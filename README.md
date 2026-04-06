@@ -6,8 +6,6 @@ Notification provider for Medusa for sending email notifications via AWS SES (Si
 
 If you are not familiar with Medusa, you can learn more on [the project web site](https://www.medusajs.com/).
 
-> Medusa is a set of commerce modules and tools that allow you to build rich, reliable, and performant commerce applications without reinventing core commerce logic. The modules can be customized and used to build advanced ecommerce stores, marketplaces, or any product that needs foundational commerce primitives. All modules are open-source and freely available on npm.
-
 ## Features
 
 - Uses AWS api v3, SESv2Client
