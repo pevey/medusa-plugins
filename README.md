@@ -1,6 +1,6 @@
 # medusa-plugin-ses
 
-Notifications plugin for Medusa ecommerce server that sends transactional emails via AWS SES (Simple Email Service).
+Notification plugin for Medusa for sending email notifications via AWS SES (Simple Email Service).
 
 [Documentation](https://pevey.com/medusa-plugin-ses)
 
@@ -10,10 +10,10 @@ If you are not familiar with Medusa, you can learn more on [the project web site
 
 ## Features
 
-- Templates are stored locally.  
+- Templates are stored locally.
 - Templates are based on handlebars, so they are compatible with Sendgrid email templates
 - You can refer to the Medusa template reference to see all data fields that are available for each event: [Template Reference](https://docs.medusajs.com/plugins/notifications/sendgrid#template-reference)
-- An API endpoint that is useful for testing and that can be used with other (non-Medusa) portions of your storefront application is included.  By default, the endpoint does nothing for security reasons.  See configuration options below to enable it.
+- An API endpoint that is useful for testing and that can be used with other (non-Medusa) portions of your storefront application is included. By default, the endpoint does nothing for security reasons. See configuration options below to enable it.
 
 ## Installation
 
@@ -27,27 +27,27 @@ Replace "yarn add" with the correct command for your package manager if you are 
 
 ## Configuration
 
-Enable in your medusa-config.js file similar to other plugins. 
+Enable in your medusa-config.js file similar to other plugins.
 
 ```js
 const plugins = [
-   //... other plugins
-  {
-    resolve: "medusa-plugin-ses",
-    options: {
-      access_key_id: process.env.SES_ACCESS_KEY_ID,
-      secret_access_key: process.env.SES_SECRET_ACCESS_KEY,
-      region: process.env.SES_REGION,
-      from: process.env.SES_FROM,
-      template_path: process.env.SES_TEMPLATE_PATH,
-      partial_path: process.env.SES_PARTIAL_PATH,
-      // optional string containing email address separated by comma
-      order_placed_cc: 'person1@example.com,person2@example.com', 
-      enable_endpoint: process.env.SES_ENABLE_ENDPOINT,
-      enable_sim_mode: process.env.SES_ENABLE_SIM_MODE
-    }
-  },
-  //... other plugins
+	//... other plugins
+	{
+		resolve: 'medusa-plugin-ses',
+		options: {
+			access_key_id: process.env.SES_ACCESS_KEY_ID,
+			secret_access_key: process.env.SES_SECRET_ACCESS_KEY,
+			region: process.env.SES_REGION,
+			from: process.env.SES_FROM,
+			template_path: process.env.SES_TEMPLATE_PATH,
+			partial_path: process.env.SES_PARTIAL_PATH,
+			// optional string containing email address separated by comma
+			order_placed_cc: 'person1@example.com,person2@example.com',
+			enable_endpoint: process.env.SES_ENABLE_ENDPOINT,
+			enable_sim_mode: process.env.SES_ENABLE_SIM_MODE
+		}
+	}
+	//... other plugins
 ]
 ```
 
@@ -72,7 +72,7 @@ SES_ENABLE_SIM_MODE=""
 
 - The SES_TEMPLATE_PATH can be absolute (starting with '/', e.g., '/home/pevey/www/medusa/data/templates') or relative (e.g., 'data/templates')
 
-- Partials are optional and supported in plugin versions 2.1.0 or later.  Any partials with the .hbs file extension that are located in the configured partials directory will be registered and available for use in templates.  For more information about Handlebars partials and how to use them in your templates, see the [Handlebars documentation](https://handlebarsjs.com/guide/partials.html). 
+- Partials are optional and supported in plugin versions 2.1.0 or later. Any partials with the .hbs file extension that are located in the configured partials directory will be registered and available for use in templates. For more information about Handlebars partials and how to use them in your templates, see the [Handlebars documentation](https://handlebarsjs.com/guide/partials.html).
 
 - See the "Testing" section below for important info on enabling the endpoint and enabling simulation mode for the endpoint.
 
@@ -81,7 +81,7 @@ Also remember that if your AWS account is still in sandbox mode, you can only SE
 
 ## Templates
 
-The templates used are stored locally.  Create a 'data/templates' folder and include the entire path in the SES_TEMPLATE_PATH variable.
+The templates used are stored locally. Create a 'data/templates' folder and include the entire path in the SES_TEMPLATE_PATH variable.
 
 ```bash
 medusa-server  // root directory
@@ -95,7 +95,7 @@ medusa-server  // root directory
                   |-subject.hbs
                   |-html.hbs
                   |-text.hbs
-            |- etc   
+            |- etc
 ```
 
 When emails are sent, each of the three parts will be compiled.
@@ -108,13 +108,13 @@ When emails are sent, each of the three parts will be compiled.
 You can resolve the service to send emails from your custom services or other resources. For example, on a custom API endpoint, you can add:
 
 ```js
-const sesService = req.scope.resolve("sesService")
+const sesService = req.scope.resolve('sesService')
 
-const sendOptions =  {
-   templateId: "d-123....",
-   from: "ACME <acme@mail.com>",
-   to: "customer@mail.com",
-   data: {}
+const sendOptions = {
+	templateId: 'd-123....',
+	from: 'ACME <acme@mail.com>',
+	to: 'customer@mail.com',
+	data: {}
 }
 
 sesService.sendEmail(sendOptions)
@@ -143,16 +143,16 @@ SES_ENABLE_ENDPOINT="42"
 
 ```json
 {
-   "template_id":"customer_password_reset",
-   "from":"me@me.com",
-   "to": "you@you.com",
-   "data": {
-      "customer": {
-         "first_name": "Test"
-      }
-   },
-   "pass_key": "42"
+	"template_id": "customer_password_reset",
+	"from": "me@me.com",
+	"to": "you@you.com",
+	"data": {
+		"customer": {
+			"first_name": "Test"
+		}
+	},
+	"pass_key": "42"
 }
 ```
 
-Setting the enable_sim_mode option to true will cause the endpoint to return information about whether the template was successfully compiled and the compiled result, but it will not actually send the email.  This setting only applies to calls to the ses/send endpoint.  It does not affect other calls to the notification service from within Medusa, which will still send emails as per usual.
+Setting the enable_sim_mode option to true will cause the endpoint to return information about whether the template was successfully compiled and the compiled result, but it will not actually send the email. This setting only applies to calls to the ses/send endpoint. It does not affect other calls to the notification service from within Medusa, which will still send emails as per usual.
