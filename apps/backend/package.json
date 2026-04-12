@@ -1,0 +1,29 @@
+{
+	"name": "test-backend",
+	"private": true,
+	"description": "A test server for developing and testing Medusa plugins.",
+	"scripts": {
+		"dev": "medusa develop",
+		"build": "medusa build",
+		"start": "medusa start",
+		"db:migrate": "medusa db:migrate",
+		"db:generate": "medusa db:generate"
+	},
+	"dependencies": {
+		"@medusajs/medusa": "2.13.6",
+		"medusa-plugin-braintree": "workspace:*",
+		"medusa-plugin-customer-tags": "workspace:*",
+		"medusa-plugin-mildred": "workspace:*",
+		"medusa-plugin-r2": "workspace:*",
+		"medusa-plugin-ses": "workspace:*",
+		"medusa-plugin-tax-lookup": "workspace:*",
+		"medusa-plugin-veeqo": "workspace:*"
+	},
+	"devDependencies": {
+		"@medusajs/cli": "2.13.6",
+		"typescript": "^5.6.2"
+	},
+	"engines": {
+		"node": ">=20"
+	}
+}

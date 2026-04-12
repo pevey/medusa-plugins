@@ -1,23 +1,24 @@
 /dist
+dist
 .env
+.env.*
+**/.env
+**/.env.*
 .DS_Store
 /uploads
-/node_modules
+node_modules
 yarn-error.log
 
+.snapshot-*
+docs
 .idea
-
 .claude
+CLAUDE.md
 .vscode
 
 coverage
 
-!src/**
-
 ./tsconfig.tsbuildinfo
-medusa-db.sql
-build
-.cache
 
 .yarn/*
 !.yarn/patches
@@ -27,3 +28,5 @@ build
 !.yarn/versions
 
 .medusa
+.cache
+.turbo

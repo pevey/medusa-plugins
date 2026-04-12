@@ -1,0 +1,16 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": [".medusa/server/**", "dist/**"]
+		},
+		"dev": {
+			"persistent": true,
+			"cache": false
+		},
+		"test:unit": {
+			"outputs": []
+		}
+	}
+}

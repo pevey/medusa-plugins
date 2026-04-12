@@ -1,0 +1,72 @@
+{
+	"name": "medusa-plugin-tax-lookup",
+	"version": "0.1.0",
+	"description": "Tax rate lookup provider for Medusa v2",
+	"author": "Lacey Pevey",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/pevey/medusa-plugins"
+	},
+	"homepage": "https://pevey.com/medusa-plugin-tax-lookup",
+	"files": [
+		".medusa/server"
+	],
+	"exports": {
+		"./package.json": "./package.json",
+		"./.medusa/server/src/modules/*": "./.medusa/server/src/modules/*/index.js",
+		"./modules/*": "./.medusa/server/src/modules/*/index.js",
+		"./providers/*": "./.medusa/server/src/providers/*/index.js",
+		"./*": "./.medusa/server/src/*.js",
+		".": "./.medusa/server/src/providers/tax-lookup/index.js"
+	},
+	"keywords": [
+		"medusa-plugin-tax",
+		"medusa-v2",
+		"medusa",
+		"tax",
+		"tax-lookup",
+		"tax provider"
+	],
+	"scripts": {
+		"build": "medusa plugin:build",
+		"dev": "medusa plugin:develop",
+		"prepublishOnly": "medusa plugin:build",
+		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests"
+	},
+	"devDependencies": {
+		"@medusajs/admin-sdk": "2.13.6",
+		"@medusajs/cli": "2.13.6",
+		"@medusajs/framework": "2.13.6",
+		"@medusajs/icons": "2.13.6",
+		"@medusajs/medusa": "2.13.6",
+		"@medusajs/test-utils": "2.13.6",
+		"@medusajs/ui": "4.0.25",
+		"@swc/core": "^1.7.28",
+		"@swc/jest": "^0.2.39",
+		"@types/jest": "^30.0.0",
+		"@types/node": "^20.0.0",
+		"@types/react": "^18.3.2",
+		"@types/react-dom": "^18.2.25",
+		"jest": "^29.7.0",
+		"prop-types": "^15.8.1",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.6.2",
+		"vite": "^5.2.11",
+		"yalc": "^1.0.0-pre.53"
+	},
+	"peerDependencies": {
+		"@medusajs/admin-sdk": "2.13.6",
+		"@medusajs/cli": "2.13.6",
+		"@medusajs/framework": "2.13.6",
+		"@medusajs/icons": "2.13.6",
+		"@medusajs/medusa": "2.13.6",
+		"@medusajs/test-utils": "2.13.6",
+		"@medusajs/ui": "4.0.25"
+	},
+	"engines": {
+		"node": ">=20"
+	}
+}

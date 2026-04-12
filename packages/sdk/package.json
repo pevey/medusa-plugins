@@ -1,0 +1,38 @@
+{
+	"name": "mildred",
+	"version": "0.1.0",
+	"description": "Lightweight analytics tracking SDK for Medusa",
+	"author": "Lacey Pevey",
+	"license": "MIT",
+	"type": "module",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch"
+	},
+	"devDependencies": {
+		"tsup": "^8",
+		"typescript": "^5.6.2"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"packageManager": "yarn@4.13.0+sha512.5c20ba010c99815433e5c8453112165e673f1c7948d8d2b267f4b5e52097538658388ebc9f9580656d9b75c5cc996f990f611f99304a2197d4c56d21eea370e7"
+}
