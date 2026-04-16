@@ -752,7 +752,7 @@ function main() {
 		{ dir: 'tax-lookup', slug: 'medusa-plugin-tax-lookup', title: 'Tax Lookup' },
 		{ dir: 'tracing', slug: 'medusa-plugin-tracing', title: 'Tracing' },
 		{ dir: 'veeqo', slug: 'medusa-plugin-veeqo', title: 'Veeqo' },
-		{ dir: 'webhooks', slug: 'medusa-plugin-webhooks', title: 'Webhooks' }
+		{ dir: 'automation', slug: 'medusa-plugin-automation', title: 'Automation' }
 	]
 
 	let synced = 0

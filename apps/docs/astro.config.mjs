@@ -27,7 +27,7 @@ const plugins = [
 	{ slug: 'medusa-plugin-tax-lookup', label: 'Tax Lookup' },
 	{ slug: 'medusa-plugin-tracing', label: 'Tracing', schemaFile: 'tracing' },
 	{ slug: 'medusa-plugin-veeqo', label: 'Veeqo', schemaFile: 'veeqo' },
-	{ slug: 'medusa-plugin-webhooks', label: 'Webhooks', schemaFile: 'webhooks' }
+	{ slug: 'medusa-plugin-automation', label: 'Automation', schemaFile: 'automation' }
 ]
 
 // Build OpenAPI plugin configs

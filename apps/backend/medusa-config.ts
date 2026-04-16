@@ -262,6 +262,17 @@ module.exports = defineConfig({
 			options: {}
 		},
 		{
+			resolve: 'medusa-plugin-automation',
+			options: {
+				automation: {
+					maxPayloadSize: process.env.MAX_WEBHOOK_PAYLOAD_SIZE || '100kb',
+					maxWorkflowIterations: process.env.MAX_WORKFLOW_ITERATIONS
+						? +process.env.MAX_WORKFLOW_ITERATIONS
+						: 50
+				}
+			}
+		},
+		{
 			resolve: 'medusa-plugin-barcodes',
 			options: {}
 		},
@@ -305,17 +316,6 @@ module.exports = defineConfig({
 				timeout: process.env.VEEQO_TIMEOUT ? +process.env.VEEQO_TIMEOUT : 5000,
 				retry: process.env.VEEQO_RETRY ? +process.env.VEEQO_RETRY : 3,
 				...(process.env.VEEQO_URL ? { veeqoUrl: process.env.VEEQO_URL } : {})
-			}
-		},
-		{
-			resolve: 'medusa-plugin-webhooks',
-			options: {
-				webhooks: {
-					maxPayloadSize: process.env.WEBHOOK_MAX_PAYLOAD_SIZE || '100kb',
-					maxWorkflowIterations: process.env.WEBHOOK_MAX_WORKFLOW_ITERATIONS
-						? +process.env.WEBHOOK_MAX_WORKFLOW_ITERATIONS
-						: 50
-				}
 			}
 		}
 	]

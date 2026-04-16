@@ -101,6 +101,96 @@
 			]
 		}
 	],
+	"medusa-plugin-automation": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Automations",
+					"link": "/medusa-plugin-automation/api/operations/getadminautomations/"
+				},
+				{
+					"label": "Create Automation",
+					"link": "/medusa-plugin-automation/api/operations/postadminautomations/"
+				},
+				{
+					"label": "Batch Delete Automations",
+					"link": "/medusa-plugin-automation/api/operations/deleteadminautomations/"
+				},
+				{
+					"label": "Get Automation",
+					"link": "/medusa-plugin-automation/api/operations/getadminautomationsbyid/"
+				},
+				{
+					"label": "Update Automation",
+					"link": "/medusa-plugin-automation/api/operations/postadminautomationsbyid/"
+				},
+				{
+					"label": "List Actions",
+					"link": "/medusa-plugin-automation/api/operations/getadminautomationsbyidactions/"
+				},
+				{
+					"label": "Create Action",
+					"link": "/medusa-plugin-automation/api/operations/postadminautomationsbyidactions/"
+				},
+				{
+					"label": "Batch Delete Actions",
+					"link": "/medusa-plugin-automation/api/operations/deleteadminautomationsbyidactions/"
+				},
+				{
+					"label": "Get Action",
+					"link": "/medusa-plugin-automation/api/operations/getadminautomationsbyidactionsbyactionid/"
+				},
+				{
+					"label": "Update Action",
+					"link": "/medusa-plugin-automation/api/operations/postadminautomationsbyidactionsbyactionid/"
+				},
+				{
+					"label": "List Query",
+					"link": "/medusa-plugin-automation/api/operations/getadminautomationsbyidactionsbyactionidquery/"
+				},
+				{
+					"label": "Create Query",
+					"link": "/medusa-plugin-automation/api/operations/postadminautomationsbyidactionsbyactionidquery/"
+				},
+				{
+					"label": "Batch Delete Query",
+					"link": "/medusa-plugin-automation/api/operations/deleteadminautomationsbyidactionsbyactionidquery/"
+				},
+				{
+					"label": "List Deliveries",
+					"link": "/medusa-plugin-automation/api/operations/getadminautomationsbyidactionsbyactioniddeliveries/"
+				},
+				{
+					"label": "List Receipts",
+					"link": "/medusa-plugin-automation/api/operations/getadminautomationsbyidreceipts/"
+				},
+				{
+					"label": "List Secrets",
+					"link": "/medusa-plugin-automation/api/operations/getadminautomationssecrets/"
+				},
+				{
+					"label": "Create Secret",
+					"link": "/medusa-plugin-automation/api/operations/postadminautomationssecrets/"
+				},
+				{
+					"label": "Delete Secret",
+					"link": "/medusa-plugin-automation/api/operations/deleteadminautomationssecretsbyid/"
+				}
+			]
+		},
+		{
+			"label": "Webhooks",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "Update Webhook",
+					"link": "/medusa-plugin-automation/api/operations/postwebhooksbyid/"
+				}
+			]
+		}
+	],
 	"medusa-plugin-barcodes": [
 		{
 			"label": "Admin",
@@ -739,96 +829,6 @@
 				{
 					"label": "Sync Stock Location",
 					"link": "/medusa-plugin-veeqo/api/operations/postadminveeqostock-locationssync/"
-				}
-			]
-		}
-	],
-	"medusa-plugin-webhooks": [
-		{
-			"label": "Admin",
-			"collapsed": true,
-			"items": [
-				{
-					"label": "List Webhook Triggers",
-					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggers/"
-				},
-				{
-					"label": "Create Webhook Trigger",
-					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-triggers/"
-				},
-				{
-					"label": "Batch Delete Webhook Triggers",
-					"link": "/medusa-plugin-webhooks/api/operations/deleteadminwebhook-triggers/"
-				},
-				{
-					"label": "Get Webhook Trigger",
-					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyid/"
-				},
-				{
-					"label": "Update Webhook Trigger",
-					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-triggersbyid/"
-				},
-				{
-					"label": "List Actions",
-					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyidactions/"
-				},
-				{
-					"label": "Create Action",
-					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-triggersbyidactions/"
-				},
-				{
-					"label": "Batch Delete Actions",
-					"link": "/medusa-plugin-webhooks/api/operations/deleteadminwebhook-triggersbyidactions/"
-				},
-				{
-					"label": "Get Action",
-					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyidactionsbyactionid/"
-				},
-				{
-					"label": "Update Action",
-					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-triggersbyidactionsbyactionid/"
-				},
-				{
-					"label": "List Query",
-					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyidactionsbyactionidquery/"
-				},
-				{
-					"label": "Create Query",
-					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-triggersbyidactionsbyactionidquery/"
-				},
-				{
-					"label": "Batch Delete Query",
-					"link": "/medusa-plugin-webhooks/api/operations/deleteadminwebhook-triggersbyidactionsbyactionidquery/"
-				},
-				{
-					"label": "List Deliveries",
-					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyidactionsbyactioniddeliveries/"
-				},
-				{
-					"label": "List Receipts",
-					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyidreceipts/"
-				},
-				{
-					"label": "List Webhook Secrets",
-					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-secrets/"
-				},
-				{
-					"label": "Create Webhook Secret",
-					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-secrets/"
-				},
-				{
-					"label": "Delete Webhook Secret",
-					"link": "/medusa-plugin-webhooks/api/operations/deleteadminwebhook-secretsbyid/"
-				}
-			]
-		},
-		{
-			"label": "Webhooks",
-			"collapsed": true,
-			"items": [
-				{
-					"label": "Update Webhook",
-					"link": "/medusa-plugin-webhooks/api/operations/postwebhooksbyid/"
 				}
 			]
 		}

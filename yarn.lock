@@ -14343,6 +14343,7 @@ __metadata:
     jest: "npm:29.7.0"
     majel: "workspace:*"
     medusa-plugin-analytics: "workspace:*"
+    medusa-plugin-automation: "workspace:*"
     medusa-plugin-braintree: "workspace:*"
     medusa-plugin-content: "workspace:*"
     medusa-plugin-customer-tags: "workspace:*"
@@ -14354,7 +14355,6 @@ __metadata:
     medusa-plugin-tax-lookup: "workspace:*"
     medusa-plugin-tracing: "workspace:*"
     medusa-plugin-veeqo: "workspace:*"
-    medusa-plugin-webhooks: "workspace:*"
     msw: "npm:2.13.2"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
@@ -20970,6 +20970,36 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"medusa-plugin-automation@workspace:*, medusa-plugin-automation@workspace:packages/automation":
+  version: 0.0.0-use.local
+  resolution: "medusa-plugin-automation@workspace:packages/automation"
+  dependencies:
+    "@medusajs/admin-sdk": "npm:2.13.6"
+    "@medusajs/cli": "npm:2.13.6"
+    "@medusajs/framework": "npm:2.13.6"
+    "@medusajs/icons": "npm:2.13.6"
+    "@medusajs/ui": "npm:4.0.25"
+    "@swc/core": "npm:^1.7.28"
+    "@swc/jest": "npm:^0.2.39"
+    "@types/jest": "npm:^30.0.0"
+    "@types/node": "npm:^20.0.0"
+    "@types/react": "npm:^18.3.2"
+    "@types/react-dom": "npm:^18.2.25"
+    jest: "npm:^29.7.0"
+    prop-types: "npm:^15.8.1"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    ts-node: "npm:^10.9.2"
+    typescript: "npm:^5.6.2"
+    vite: "npm:^5.2.11"
+    yalc: "npm:^1.0.0-pre.53"
+  peerDependencies:
+    "@medusajs/framework": 2.13.6
+    "@medusajs/js-sdk": 2.13.6
+    "@medusajs/medusa": 2.13.6
+  languageName: unknown
+  linkType: soft
+
 "medusa-plugin-barcodes@workspace:packages/barcodes":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-barcodes@workspace:packages/barcodes"
@@ -21390,36 +21420,6 @@ __metadata:
     "@types/react": "npm:^18.3.2"
     "@types/react-dom": "npm:^18.2.25"
     async-sema: "npm:^3.1.1"
-    jest: "npm:^29.7.0"
-    prop-types: "npm:^15.8.1"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    ts-node: "npm:^10.9.2"
-    typescript: "npm:^5.6.2"
-    vite: "npm:^5.2.11"
-    yalc: "npm:^1.0.0-pre.53"
-  peerDependencies:
-    "@medusajs/framework": 2.13.6
-    "@medusajs/js-sdk": 2.13.6
-    "@medusajs/medusa": 2.13.6
-  languageName: unknown
-  linkType: soft
-
-"medusa-plugin-webhooks@workspace:*, medusa-plugin-webhooks@workspace:packages/webhooks":
-  version: 0.0.0-use.local
-  resolution: "medusa-plugin-webhooks@workspace:packages/webhooks"
-  dependencies:
-    "@medusajs/admin-sdk": "npm:2.13.6"
-    "@medusajs/cli": "npm:2.13.6"
-    "@medusajs/framework": "npm:2.13.6"
-    "@medusajs/icons": "npm:2.13.6"
-    "@medusajs/ui": "npm:4.0.25"
-    "@swc/core": "npm:^1.7.28"
-    "@swc/jest": "npm:^0.2.39"
-    "@types/jest": "npm:^30.0.0"
-    "@types/node": "npm:^20.0.0"
-    "@types/react": "npm:^18.3.2"
-    "@types/react-dom": "npm:^18.2.25"
     jest: "npm:^29.7.0"
     prop-types: "npm:^15.8.1"
     react: "npm:^18.2.0"
