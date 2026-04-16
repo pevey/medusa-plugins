@@ -14392,6 +14392,7 @@ __metadata:
     medusa-plugin-braintree: "workspace:*"
     medusa-plugin-content: "workspace:*"
     medusa-plugin-customer-tags: "workspace:*"
+    medusa-plugin-mcp: "workspace:*"
     medusa-plugin-order-notes: "workspace:*"
     medusa-plugin-r2: "workspace:*"
     medusa-plugin-ratings: "workspace:*"
@@ -21230,7 +21231,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"medusa-plugin-mcp@workspace:packages/mcp":
+"medusa-plugin-mcp@workspace:*, medusa-plugin-mcp@workspace:packages/mcp":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-mcp@workspace:packages/mcp"
   dependencies:
@@ -21244,6 +21245,7 @@ __metadata:
     "@types/node": "npm:^20.0.0"
     "@types/react": "npm:^18.3.2"
     "@types/react-dom": "npm:^18.2.25"
+    ollama: "npm:^0.6.3"
     openai: "npm:^4.98.0"
     prop-types: "npm:^15.8.1"
     react: "npm:^18.2.0"
@@ -22868,6 +22870,15 @@ __metadata:
   version: 2.0.11
   resolution: "ohash@npm:2.0.11"
   checksum: 10c0/d07c8d79cc26da082c1a7c8d5b56c399dd4ed3b2bd069fcae6bae78c99a9bcc3ad813b1e1f49ca2f335292846d689c6141a762cf078727d2302a33d414e69c79
+  languageName: node
+  linkType: hard
+
+"ollama@npm:^0.6.3":
+  version: 0.6.3
+  resolution: "ollama@npm:0.6.3"
+  dependencies:
+    whatwg-fetch: "npm:^3.6.20"
+  checksum: 10c0/040742dd1f96ad06d5508e387d8d953b3cfab527427f5dd463be7ccd589877eccfbf13ccea0bcb4d6b044a90a327c82c3089834fd3c0ea7243bb830a9c07295d
   languageName: node
   linkType: hard
 
@@ -27658,6 +27669,13 @@ __metadata:
   version: 3.0.1
   resolution: "webidl-conversions@npm:3.0.1"
   checksum: 10c0/5612d5f3e54760a797052eb4927f0ddc01383550f542ccd33d5238cfd65aeed392a45ad38364970d0a0f4fea32e1f4d231b3d8dac4a3bdd385e5cf802ae097db
+  languageName: node
+  linkType: hard
+
+"whatwg-fetch@npm:^3.6.20":
+  version: 3.6.20
+  resolution: "whatwg-fetch@npm:3.6.20"
+  checksum: 10c0/fa972dd14091321d38f36a4d062298df58c2248393ef9e8b154493c347c62e2756e25be29c16277396046d6eaa4b11bd174f34e6403fff6aaca9fb30fa1ff46d
   languageName: node
   linkType: hard
 

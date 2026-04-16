@@ -32,13 +32,8 @@ export interface LlmProvider {
 	}): Promise<LlmResponse>
 }
 
-export type McpPluginOptions = {
-	provider: 'anthropic' | 'openai' | 'ollama'
-	model: string
-	apiKey?: string
-	baseUrl?: string
-	systemPrompt?: string
-}
+import type { McpPluginOptions } from '../types'
+export type { McpPluginOptions }
 
 export function createProvider(options: McpPluginOptions): LlmProvider {
 	switch (options.provider) {
@@ -52,7 +47,7 @@ export function createProvider(options: McpPluginOptions): LlmProvider {
 		}
 		case 'ollama': {
 			const { OllamaProvider } = require('./providers/ollama')
-			return new OllamaProvider(options.model, options.baseUrl!)
+			return new OllamaProvider(options.model, options.baseUrl)
 		}
 		default:
 			throw new Error(`Unknown LLM provider: ${options.provider}`)

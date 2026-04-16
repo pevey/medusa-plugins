@@ -302,6 +302,16 @@ module.exports = defineConfig({
 			}
 		},
 		{
+			resolve: 'medusa-plugin-mcp',
+			options: {
+				provider: process.env.MCP_LLM_PROVIDER || 'ollama',
+				model: process.env.MCP_LLM_MODEL || 'qwen3.6',
+				apiKey: process.env.MCP_LLM_API_KEY,
+				baseUrl: process.env.MCP_LLM_BASE_URL,
+				systemPrompt: process.env.MCP_SYSTEM_PROMPT
+			}
+		},
+		{
 			resolve: 'medusa-plugin-statistics',
 			options: {}
 		},

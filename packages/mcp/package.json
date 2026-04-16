@@ -33,6 +33,10 @@
 		"./*": {
 			"types": "./.medusa/server/src/*.d.ts",
 			"default": "./.medusa/server/src/*.js"
+		},
+		".": {
+			"types": "./.medusa/server/src/modules/mcp/index.d.ts",
+			"default": "./.medusa/server/src/modules/mcp/index.js"
 		}
 	},
 	"keywords": [
@@ -52,6 +56,7 @@
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.51.0",
 		"@modelcontextprotocol/sdk": "^1.29.0",
+		"ollama": "^0.6.3",
 		"openai": "^4.98.0",
 		"recharts": "^2.15.3"
 	},

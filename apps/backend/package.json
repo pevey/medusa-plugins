@@ -24,6 +24,7 @@
 		"medusa-plugin-braintree": "workspace:*",
 		"medusa-plugin-content": "workspace:*",
 		"medusa-plugin-customer-tags": "workspace:*",
+		"medusa-plugin-mcp": "workspace:*",
 		"medusa-plugin-order-notes": "workspace:*",
 		"medusa-plugin-r2": "workspace:*",
 		"medusa-plugin-ratings": "workspace:*",
