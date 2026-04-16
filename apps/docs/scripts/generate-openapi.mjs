@@ -35,7 +35,8 @@ function parseMiddlewares(source) {
 		if (!fullBlock) continue
 
 		const methods = methodsStr.match(/['"](\w+)['"]/g)?.map(m => m.replace(/['"]/g, '')) || []
-		const authenticated = fullBlock.includes('authenticate(') && !fullBlock.includes('allowUnauthenticated')
+		const authenticated =
+			fullBlock.includes('authenticate(') && !fullBlock.includes('allowUnauthenticated')
 
 		// Extract validator references
 		let queryValidator = null
@@ -52,7 +53,8 @@ function parseMiddlewares(source) {
 		let isList = false
 		const defaultsMatch = fullBlock.match(/defaults:\s*\[([^\]]*)\]/)
 		if (defaultsMatch) {
-			responseDefaults = defaultsMatch[1].match(/['"]([^'"]+)['"]/g)?.map(s => s.replace(/['"]/g, '')) || []
+			responseDefaults =
+				defaultsMatch[1].match(/['"]([^'"]+)['"]/g)?.map(s => s.replace(/['"]/g, '')) || []
 		}
 		const isListMatch = fullBlock.match(/isList:\s*(true|false)/)
 		if (isListMatch) isList = isListMatch[1] === 'true'
@@ -65,7 +67,7 @@ function parseMiddlewares(source) {
 				bodyValidator,
 				authenticated,
 				responseDefaults,
-				isList,
+				isList
 			})
 		}
 	}
@@ -114,8 +116,16 @@ function parseZodExpression(expr) {
 		// Extract default limit/offset
 		const limitMatch = expr.match(/limit:\s*(\d+)/)
 		const offsetMatch = expr.match(/offset:\s*(\d+)/)
-		properties.limit = { type: 'integer', default: limitMatch ? parseInt(limitMatch[1]) : 20, _optional: true }
-		properties.offset = { type: 'integer', default: offsetMatch ? parseInt(offsetMatch[1]) : 0, _optional: true }
+		properties.limit = {
+			type: 'integer',
+			default: limitMatch ? parseInt(limitMatch[1]) : 20,
+			_optional: true
+		}
+		properties.offset = {
+			type: 'integer',
+			default: offsetMatch ? parseInt(offsetMatch[1]) : 0,
+			_optional: true
+		}
 		properties.order = { type: 'string', _optional: true }
 		properties.fields = { type: 'string', _optional: true }
 	}
@@ -142,7 +152,7 @@ function parseZodExpression(expr) {
 	return {
 		type: 'object',
 		properties,
-		...(required.length > 0 ? { required } : {}),
+		...(required.length > 0 ? { required } : {})
 	}
 }
 
@@ -260,9 +270,21 @@ function inferFieldType(fieldName) {
 	if (fieldName.endsWith('_id')) return 'string'
 	if (fieldName.endsWith('_at')) return { type: 'string', format: 'date-time' }
 	if (fieldName === 'metadata') return { type: 'object', additionalProperties: true }
-	if (fieldName === 'rating' || fieldName === 'number' || fieldName === 'count' || fieldName === 'attempts') return 'integer'
+	if (
+		fieldName === 'rating' ||
+		fieldName === 'number' ||
+		fieldName === 'count' ||
+		fieldName === 'attempts'
+	)
+		return 'integer'
 	if (fieldName === 'is_active' || fieldName === 'sent') return 'boolean'
-	if (fieldName.endsWith('_count') || fieldName === 'limit' || fieldName === 'offset' || fieldName === 'response_status') return 'integer'
+	if (
+		fieldName.endsWith('_count') ||
+		fieldName === 'limit' ||
+		fieldName === 'offset' ||
+		fieldName === 'response_status'
+	)
+		return 'integer'
 	// Nested fields like 'activity.*' — skip for now, just mark as present
 	if (fieldName.includes('.*')) return { type: 'array', items: { type: 'object' } }
 	return 'string'
@@ -270,8 +292,8 @@ function inferFieldType(fieldName) {
 
 function buildResourceProperties(defaults) {
 	// Group fields by top-level key, collecting nested paths
-	const topLevel = {}    // field name -> true (scalar) or Map of sub-fields
-	const wildcards = {}   // field name -> true (has .* wildcard)
+	const topLevel = {} // field name -> true (scalar) or Map of sub-fields
+	const wildcards = {} // field name -> true (has .* wildcard)
 
 	for (const field of defaults) {
 		const dotIdx = field.indexOf('.')
@@ -305,8 +327,12 @@ function buildResourceProperties(defaults) {
 			// Nested object — recurse to build its properties
 			const nestedProps = buildResourceProperties(value)
 			// Heuristic: if the key is plural, it's likely an array of objects
-			const isArray = key.endsWith('s') && !key.endsWith('ss') && !key.endsWith('us')
-				&& key !== 'address' && key !== 'status'
+			const isArray =
+				key.endsWith('s') &&
+				!key.endsWith('ss') &&
+				!key.endsWith('us') &&
+				key !== 'address' &&
+				key !== 'status'
 			if (isArray) {
 				properties[key] = { type: 'array', items: { type: 'object', properties: nestedProps } }
 			} else {
@@ -338,8 +364,8 @@ function buildResponseSchema(path, method, responseDefaults, isList) {
 			properties: {
 				id: { type: 'string' },
 				object: { type: 'string' },
-				deleted: { type: 'boolean' },
-			},
+				deleted: { type: 'boolean' }
+			}
 		}
 	}
 
@@ -349,7 +375,9 @@ function buildResponseSchema(path, method, responseDefaults, isList) {
 	}
 
 	// Derive the resource name from the path for the response key
-	const segments = path.split('/').filter(s => s && !s.startsWith('{') && s !== 'admin' && s !== 'store')
+	const segments = path
+		.split('/')
+		.filter(s => s && !s.startsWith('{') && s !== 'admin' && s !== 'store')
 	const resourceKey = segments[segments.length - 1] || 'data'
 
 	const resourceProps = buildResourceProperties(responseDefaults)
@@ -362,8 +390,8 @@ function buildResponseSchema(path, method, responseDefaults, isList) {
 				[resourceKey]: { type: 'array', items: resourceSchema },
 				count: { type: 'integer' },
 				limit: { type: 'integer' },
-				offset: { type: 'integer' },
-			},
+				offset: { type: 'integer' }
+			}
 		}
 	}
 
@@ -371,8 +399,8 @@ function buildResponseSchema(path, method, responseDefaults, isList) {
 	return {
 		type: 'object',
 		properties: {
-			[resourceKey.replace(/s$/, '')]: resourceSchema,
-		},
+			[resourceKey.replace(/s$/, '')]: resourceSchema
+		}
 	}
 }
 
@@ -382,13 +410,21 @@ function generateOpenAPI(pluginName, routes, schemas) {
 	const paths = {}
 
 	for (const route of routes) {
-		const { path, method, queryValidator, bodyValidator, authenticated, responseDefaults, isList } = route
+		const {
+			path,
+			method,
+			queryValidator,
+			bodyValidator,
+			authenticated,
+			responseDefaults,
+			isList
+		} = route
 		if (!paths[path]) paths[path] = {}
 
 		const operation = {
 			operationId: buildOperationId(method, path),
 			summary: buildSummary(method, path),
-			tags: [buildTag(path)],
+			tags: [buildTag(path)]
 		}
 
 		if (authenticated) {
@@ -404,7 +440,7 @@ function generateOpenAPI(pluginName, routes, schemas) {
 					name,
 					in: 'query',
 					required: schema.required?.includes(name) || false,
-					schema: { ...prop },
+					schema: { ...prop }
 				}
 				delete param.schema._optional
 				operation.parameters.push(param)
@@ -423,7 +459,7 @@ function generateOpenAPI(pluginName, routes, schemas) {
 						name,
 						in: 'path',
 						required: true,
-						schema: { type: 'string' },
+						schema: { type: 'string' }
 					})
 				}
 			}
@@ -441,8 +477,8 @@ function generateOpenAPI(pluginName, routes, schemas) {
 			operation.requestBody = {
 				required: true,
 				content: {
-					'application/json': { schema },
-				},
+					'application/json': { schema }
+				}
 			}
 		}
 
@@ -452,9 +488,9 @@ function generateOpenAPI(pluginName, routes, schemas) {
 			200: {
 				description: 'OK',
 				content: {
-					'application/json': { schema: responseSchema },
-				},
-			},
+					'application/json': { schema: responseSchema }
+				}
+			}
 		}
 
 		if (authenticated) {
@@ -471,12 +507,11 @@ function generateOpenAPI(pluginName, routes, schemas) {
 		info: {
 			title: `${formatPluginName(pluginName)} API`,
 			version,
-			description: pkgDesc || `API reference for the ${formatPluginName(pluginName)} Medusa plugin.`,
+			description:
+				pkgDesc || `API reference for the ${formatPluginName(pluginName)} Medusa plugin.`
 		},
-		servers: [
-			{ url: 'http://localhost:9000', description: 'Local development' },
-		],
-		paths,
+		servers: [{ url: 'http://localhost:9000', description: 'Local development' }],
+		paths
 	}
 
 	if (routes.some(r => r.authenticated)) {
@@ -484,14 +519,14 @@ function generateOpenAPI(pluginName, routes, schemas) {
 			securitySchemes: {
 				bearerAuth: {
 					type: 'http',
-					scheme: 'bearer',
+					scheme: 'bearer'
 				},
 				cookieAuth: {
 					type: 'apiKey',
 					in: 'cookie',
-					name: 'connect.sid',
-				},
-			},
+					name: 'connect.sid'
+				}
+			}
 		}
 	}
 
@@ -510,7 +545,8 @@ function buildOperationId(method, path) {
 
 function singularize(word) {
 	if (word.endsWith('ies')) return word.slice(0, -3) + 'y'
-	if (word.endsWith('ses') || word.endsWith('xes') || word.endsWith('zes')) return word.slice(0, -2)
+	if (word.endsWith('ses') || word.endsWith('xes') || word.endsWith('zes'))
+		return word.slice(0, -2)
 	if (word.endsWith('s') && !word.endsWith('ss')) return word.slice(0, -1)
 	return word
 }
@@ -521,9 +557,12 @@ function buildSummary(method, path) {
 	const lastIsParam = lastSegment.startsWith('{')
 
 	// Get all non-parameter, non-scope segments
-	const resourceSegments = segments.filter(p => !p.startsWith('{') && p !== 'admin' && p !== 'store')
+	const resourceSegments = segments.filter(
+		p => !p.startsWith('{') && p !== 'admin' && p !== 'store'
+	)
 	const resource = resourceSegments[resourceSegments.length - 1] || ''
-	const parentResource = resourceSegments.length > 1 ? resourceSegments[resourceSegments.length - 2] : ''
+	const parentResource =
+		resourceSegments.length > 1 ? resourceSegments[resourceSegments.length - 2] : ''
 
 	const formatted = resource.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 	const singular = singularize(formatted)
@@ -532,13 +571,16 @@ function buildSummary(method, path) {
 	// that looks like a verb (not a typical plural resource name) under a resource with an {id}
 	// e.g., /admin/reviews/approve, /admin/reviews/reject
 	const secondToLast = segments[segments.length - 2] || ''
-	const isActionRoute = method === 'post' && !lastIsParam && secondToLast.startsWith('{')
-		? false // nested create like /triggers/{id}/actions — this is a normal create
-		: method === 'post' && !lastIsParam && parentResource && !lastSegment.endsWith('s')
+	const isActionRoute =
+		method === 'post' && !lastIsParam && secondToLast.startsWith('{')
+			? false // nested create like /triggers/{id}/actions — this is a normal create
+			: method === 'post' && !lastIsParam && parentResource && !lastSegment.endsWith('s')
 
 	if (isActionRoute) {
 		// Action route: "Approve Reviews", "Reject Reviews"
-		const parentFormatted = singularize(parentResource.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))
+		const parentFormatted = singularize(
+			parentResource.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+		)
 		return `${formatted} ${parentFormatted}`
 	}
 
@@ -547,7 +589,7 @@ function buildSummary(method, path) {
 		post: lastIsParam ? `Update ${singular}` : `Create ${singular}`,
 		delete: lastIsParam ? `Delete ${singular}` : `Batch Delete ${formatted}`,
 		put: `Replace ${singular}`,
-		patch: `Patch ${singular}`,
+		patch: `Patch ${singular}`
 	}
 	return verbs[method] || `${method.toUpperCase()} ${formatted}`
 }
@@ -568,7 +610,7 @@ function getPluginInfo(pluginName) {
 		return {
 			version: pkg.version || '1.0.0',
 			description: pkg.description || '',
-			name: pkg.name || pluginName,
+			name: pkg.name || pluginName
 		}
 	} catch {
 		return { version: '1.0.0', description: '', name: pluginName }
@@ -578,7 +620,10 @@ function getPluginInfo(pluginName) {
 // ── Sidebar Generation ───────────────────────────────────────────────────────
 
 function slugify(str) {
-	return str.toLowerCase().replace(/[^\w]+/g, '-').replace(/^-|-$/g, '')
+	return str
+		.toLowerCase()
+		.replace(/[^\w]+/g, '-')
+		.replace(/^-|-$/g, '')
 }
 
 function generateSidebarLinks(pluginName, spec, homepageSlug) {
@@ -592,7 +637,7 @@ function generateSidebarLinks(pluginName, spec, homepageSlug) {
 			if (!tagGroups[tag]) tagGroups[tag] = []
 			tagGroups[tag].push({
 				label: op.summary || op.operationId,
-				link: `${basePath}operations/${slugify(op.operationId)}/`,
+				link: `${basePath}operations/${slugify(op.operationId)}/`
 			})
 		}
 	}
@@ -600,7 +645,7 @@ function generateSidebarLinks(pluginName, spec, homepageSlug) {
 	return Object.entries(tagGroups).map(([tag, items]) => ({
 		label: tag,
 		collapsed: true,
-		items,
+		items
 	}))
 }
 
@@ -608,7 +653,7 @@ function generateSidebarLinks(pluginName, spec, homepageSlug) {
 
 function main() {
 	// Packages merged into other plugins — skip to avoid stale output
-	const excludePackages = ['statistics', 'webhooks']
+	const excludePackages = ['majel']
 
 	const packages = readdirSync(PACKAGES_DIR, { withFileTypes: true })
 		.filter(d => d.isDirectory() && !excludePackages.includes(d.name))
@@ -619,8 +664,8 @@ function main() {
 
 	// Map package directory names to docs site slugs
 	const slugOverrides = {
-		'majel': 'majel',
-		'mildred': 'mildred',
+		// majel: 'majel',
+		// mildred: 'mildred'
 	}
 
 	for (const pkg of packages) {
@@ -636,7 +681,9 @@ function main() {
 		// Parse routes from main middlewares file and any split middleware files
 		let routes = parseMiddlewares(readFileSync(middlewaresFile, 'utf-8'))
 		if (existsSync(middlewaresDir)) {
-			const files = readdirSync(middlewaresDir).filter(f => f.endsWith('.ts') && !f.startsWith('_'))
+			const files = readdirSync(middlewaresDir).filter(
+				f => f.endsWith('.ts') && !f.startsWith('_')
+			)
 			for (const file of files) {
 				routes.push(...parseMiddlewares(readFileSync(join(middlewaresDir, file), 'utf-8')))
 			}
@@ -688,21 +735,24 @@ function main() {
 
 	// Map package dirs to docs slugs and display titles
 	const readmeMappings = [
+		{ dir: 'analytics', slug: 'medusa-plugin-analytics', title: 'Analytics' },
 		{ dir: 'barcodes', slug: 'medusa-plugin-barcodes', title: 'Barcodes' },
 		{ dir: 'complaints', slug: 'medusa-plugin-complaints', title: 'Complaints' },
 		{ dir: 'content', slug: 'medusa-plugin-content', title: 'Content' },
 		{ dir: 'customer-tags', slug: 'medusa-plugin-customer-tags', title: 'Customer Tags' },
 		{ dir: 'file-r2', slug: 'medusa-plugin-r2', title: 'R2 File Storage' },
 		{ dir: 'forms', slug: 'medusa-plugin-forms', title: 'Forms' },
-		{ dir: 'majel', slug: 'majel', title: 'Majel' },
-		{ dir: 'mildred', slug: 'mildred', title: 'Mildred' },
+		// { dir: 'majel', slug: 'majel', title: 'Majel' },
+		// { dir: 'mildred', slug: 'mildred', title: 'Mildred' },
 		{ dir: 'notification-ses', slug: 'medusa-plugin-ses', title: 'SES Notifications' },
 		{ dir: 'order-notes', slug: 'medusa-plugin-order-notes', title: 'Order Notes' },
 		{ dir: 'payment-braintree', slug: 'medusa-plugin-braintree', title: 'Braintree Payments' },
 		{ dir: 'reviews', slug: 'medusa-plugin-ratings', title: 'Reviews' },
+		{ dir: 'statistics', slug: 'medusa-plugin-statistics', title: 'Statistics' },
 		{ dir: 'tax-lookup', slug: 'medusa-plugin-tax-lookup', title: 'Tax Lookup' },
 		{ dir: 'tracing', slug: 'medusa-plugin-tracing', title: 'Tracing' },
 		{ dir: 'veeqo', slug: 'medusa-plugin-veeqo', title: 'Veeqo' },
+		{ dir: 'webhooks', slug: 'medusa-plugin-webhooks', title: 'Webhooks' }
 	]
 
 	let synced = 0
@@ -718,10 +768,11 @@ function main() {
 		if (existsSync(readmePath)) {
 			body = readFileSync(readmePath, 'utf-8')
 				.split('\n')
-				.filter(line =>
-					!line.match(/^#\s+/) &&
-					!line.match(/^\[Documentation\]/) &&
-					!line.includes('not familiar with Medusa')
+				.filter(
+					line =>
+						!line.match(/^#\s+/) &&
+						!line.match(/^\[Documentation\]/) &&
+						!line.includes('not familiar with Medusa')
 				)
 				.join('\n')
 				.replace(/^\n+/, '')

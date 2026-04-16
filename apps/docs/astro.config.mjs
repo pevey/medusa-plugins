@@ -12,21 +12,22 @@ const apiSidebar = JSON.parse(
 
 // All plugins sorted alphabetically by label
 const plugins = [
+	{ slug: 'medusa-plugin-analytics', label: 'Analytics', schemaFile: 'analytics' },
 	{ slug: 'medusa-plugin-barcodes', label: 'Barcodes', schemaFile: 'barcodes' },
 	{ slug: 'medusa-plugin-braintree', label: 'Braintree Payments' },
 	{ slug: 'medusa-plugin-complaints', label: 'Complaints', schemaFile: 'complaints' },
 	{ slug: 'medusa-plugin-content', label: 'Content', schemaFile: 'content' },
 	{ slug: 'medusa-plugin-customer-tags', label: 'Customer Tags', schemaFile: 'customer-tags' },
 	{ slug: 'medusa-plugin-forms', label: 'Forms', schemaFile: 'forms' },
-	{ slug: 'majel', label: 'Majel', schemaFile: 'majel' },
-	{ slug: 'mildred', label: 'Mildred', schemaFile: 'mildred' },
 	{ slug: 'medusa-plugin-order-notes', label: 'Order Notes', schemaFile: 'order-notes' },
 	{ slug: 'medusa-plugin-r2', label: 'R2 File Storage' },
 	{ slug: 'medusa-plugin-ratings', label: 'Reviews', schemaFile: 'reviews' },
 	{ slug: 'medusa-plugin-ses', label: 'SES Notifications' },
+	{ slug: 'medusa-plugin-statistics', label: 'Statistics', schemaFile: 'statistics' },
 	{ slug: 'medusa-plugin-tax-lookup', label: 'Tax Lookup' },
 	{ slug: 'medusa-plugin-tracing', label: 'Tracing', schemaFile: 'tracing' },
-	{ slug: 'medusa-plugin-veeqo', label: 'Veeqo', schemaFile: 'veeqo' }
+	{ slug: 'medusa-plugin-veeqo', label: 'Veeqo', schemaFile: 'veeqo' },
+	{ slug: 'medusa-plugin-webhooks', label: 'Webhooks', schemaFile: 'webhooks' }
 ]
 
 // Build OpenAPI plugin configs

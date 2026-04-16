@@ -1,0 +1,1105 @@
+openapi: 3.1.0
+info:
+  title: Analytics API
+  version: 0.1.0
+  description: Privacy-first analytics plugin for Medusa v2
+servers:
+  - url: http://localhost:9000
+    description: Local development
+paths:
+  /admin/analytics/rubrics:
+    get:
+      operationId: getAdminAnalyticsRubrics
+      summary: List Rubrics
+      tags:
+        - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rubrics:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        label:
+                          type: string
+                        description:
+                          type: string
+                        active:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                        updated_at:
+                          type: string
+                          format: date-time
+                  count:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+    post:
+      operationId: postAdminAnalyticsRubrics
+      summary: Create Rubric
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                label:
+                  type: string
+                  minLength: 1
+                description:
+                  type: string
+                expected_properties:
+                  type: object
+                  additionalProperties: true
+                active:
+                  type: boolean
+              required:
+                - name
+                - label
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      operationId: deleteAdminAnalyticsRubrics
+      summary: Batch Delete Rubrics
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+              required:
+                - ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  deleted:
+                    type: boolean
+  /admin/analytics/rubrics/{id}:
+    get:
+      operationId: getAdminAnalyticsRubricsByid
+      summary: Get Rubric
+      tags:
+        - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rubric:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      label:
+                        type: string
+                      description:
+                        type: string
+                      expected_properties:
+                        type: string
+                      active:
+                        type: string
+                      created_at:
+                        type: string
+                        format: date-time
+                      updated_at:
+                        type: string
+                        format: date-time
+    post:
+      operationId: postAdminAnalyticsRubricsByid
+      summary: Update Rubric
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                label:
+                  type: string
+                  minLength: 1
+                description:
+                  type: string
+                  nullable: true
+                expected_properties:
+                  type: object
+                  additionalProperties: true
+                  nullable: true
+                active:
+                  type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/analytics/events:
+    get:
+      operationId: getAdminAnalyticsEvents
+      summary: List Events
+      tags:
+        - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: event
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: actor_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: source
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - storefront
+              - backend
+        - name: sales_channel_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: end_date
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        event:
+                          type: string
+                        actor_id:
+                          type: string
+                        source:
+                          type: string
+                        sales_channel_id:
+                          type: string
+                        properties:
+                          type: string
+                        timestamp:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                  count:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+  /admin/analytics/events/counts:
+    get:
+      operationId: getAdminAnalyticsEventsCounts
+      summary: List Counts
+      tags:
+        - Admin
+      parameters:
+        - name: event
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: end_date
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: granularity
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - hour
+              - day
+              - week
+        - name: sales_channel_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/analytics/funnel:
+    get:
+      operationId: getAdminAnalyticsFunnel
+      summary: List Funnel
+      tags:
+        - Admin
+      parameters:
+        - name: funnel_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: start_date
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: end_date
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: sales_channel_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/analytics/funnels:
+    get:
+      operationId: getAdminAnalyticsFunnels
+      summary: List Funnels
+      tags:
+        - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  funnels:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        label:
+                          type: string
+                        description:
+                          type: string
+                        steps:
+                          type: string
+                        sales_channel_id:
+                          type: string
+                        is_default:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                        updated_at:
+                          type: string
+                          format: date-time
+                  count:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+    post:
+      operationId: postAdminAnalyticsFunnels
+      summary: Create Funnel
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                label:
+                  type: string
+                  minLength: 1
+                description:
+                  type: string
+                steps:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                sales_channel_id:
+                  type: string
+                  nullable: true
+                is_default:
+                  type: boolean
+              required:
+                - name
+                - label
+                - steps
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      operationId: deleteAdminAnalyticsFunnels
+      summary: Batch Delete Funnels
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+              required:
+                - ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  deleted:
+                    type: boolean
+  /admin/analytics/funnels/{id}:
+    get:
+      operationId: getAdminAnalyticsFunnelsByid
+      summary: Get Funnel
+      tags:
+        - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  funnel:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      label:
+                        type: string
+                      description:
+                        type: string
+                      steps:
+                        type: string
+                      sales_channel_id:
+                        type: string
+                      is_default:
+                        type: string
+                      created_at:
+                        type: string
+                        format: date-time
+                      updated_at:
+                        type: string
+                        format: date-time
+    post:
+      operationId: postAdminAnalyticsFunnelsByid
+      summary: Update Funnel
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                label:
+                  type: string
+                  minLength: 1
+                description:
+                  type: string
+                  nullable: true
+                steps:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                sales_channel_id:
+                  type: string
+                  nullable: true
+                is_default:
+                  type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/analytics/segments:
+    get:
+      operationId: getAdminAnalyticsSegments
+      summary: List Segments
+      tags:
+        - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  segments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        label:
+                          type: string
+                        description:
+                          type: string
+                        rules:
+                          type: string
+                        sales_channel_id:
+                          type: string
+                        created_by:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                        updated_at:
+                          type: string
+                          format: date-time
+                  count:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+    post:
+      operationId: postAdminAnalyticsSegments
+      summary: Create Segment
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                label:
+                  type: string
+                  minLength: 1
+                description:
+                  type: string
+                rules:
+                  type: string
+                  enum:
+                    - AND
+                    - OR
+                conditions:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - event_performed
+                      - event_not_performed
+                      - identity_property
+                event:
+                  type: string
+                count:
+                  type: object
+                  additionalProperties: true
+                timeframe_days:
+                  type: number
+                key:
+                  type: string
+                operator:
+                  type: string
+                  minLength: 1
+                sales_channel_id:
+                  type: string
+                  nullable: true
+              required:
+                - name
+                - label
+                - rules
+                - conditions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      operationId: deleteAdminAnalyticsSegments
+      summary: Batch Delete Segments
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+              required:
+                - ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  deleted:
+                    type: boolean
+  /admin/analytics/segments/{id}:
+    get:
+      operationId: getAdminAnalyticsSegmentsByid
+      summary: Get Segment
+      tags:
+        - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  segment:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      label:
+                        type: string
+                      description:
+                        type: string
+                      rules:
+                        type: string
+                      sales_channel_id:
+                        type: string
+                      created_by:
+                        type: string
+                      created_at:
+                        type: string
+                        format: date-time
+                      updated_at:
+                        type: string
+                        format: date-time
+    post:
+      operationId: postAdminAnalyticsSegmentsByid
+      summary: Update Segment
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                label:
+                  type: string
+                  minLength: 1
+                description:
+                  type: string
+                  nullable: true
+                rules:
+                  type: string
+                  enum:
+                    - AND
+                    - OR
+                conditions:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - event_performed
+                      - event_not_performed
+                      - identity_property
+                event:
+                  type: string
+                count:
+                  type: object
+                  additionalProperties: true
+                timeframe_days:
+                  type: number
+                key:
+                  type: string
+                operator:
+                  type: string
+                  minLength: 1
+                sales_channel_id:
+                  type: string
+                  nullable: true
+              required:
+                - rules
+                - conditions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/analytics/segments/{id}/members:
+    get:
+      operationId: getAdminAnalyticsSegmentsByidMembers
+      summary: List Members
+      tags:
+        - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  members:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        segment_id:
+                          type: string
+                        actor_id:
+                          type: string
+                        evaluated_at:
+                          type: string
+                          format: date-time
+                  count:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+  /admin/analytics/segments/{id}/preview:
+    get:
+      operationId: getAdminAnalyticsSegmentsByidPreview
+      summary: List Preview
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/analytics/segments/{id}/export:
+    get:
+      operationId: getAdminAnalyticsSegmentsByidExport
+      summary: List Export
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /store/ping:
+    post:
+      operationId: postStorePing
+      summary: Create Ping
+      tags:
+        - Store
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  minLength: 1
+                actor_id:
+                  type: string
+                session_id:
+                  type: string
+                properties:
+                  type: object
+                  additionalProperties: true
+                sales_channel_id:
+                  type: string
+              required:
+                - event
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object

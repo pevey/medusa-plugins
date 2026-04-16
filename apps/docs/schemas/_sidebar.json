@@ -1,4 +1,106 @@
 {
+	"medusa-plugin-analytics": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Rubrics",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticsrubrics/"
+				},
+				{
+					"label": "Create Rubric",
+					"link": "/medusa-plugin-analytics/api/operations/postadminanalyticsrubrics/"
+				},
+				{
+					"label": "Batch Delete Rubrics",
+					"link": "/medusa-plugin-analytics/api/operations/deleteadminanalyticsrubrics/"
+				},
+				{
+					"label": "Get Rubric",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticsrubricsbyid/"
+				},
+				{
+					"label": "Update Rubric",
+					"link": "/medusa-plugin-analytics/api/operations/postadminanalyticsrubricsbyid/"
+				},
+				{
+					"label": "List Events",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticsevents/"
+				},
+				{
+					"label": "List Counts",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticseventscounts/"
+				},
+				{
+					"label": "List Funnel",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticsfunnel/"
+				},
+				{
+					"label": "List Funnels",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticsfunnels/"
+				},
+				{
+					"label": "Create Funnel",
+					"link": "/medusa-plugin-analytics/api/operations/postadminanalyticsfunnels/"
+				},
+				{
+					"label": "Batch Delete Funnels",
+					"link": "/medusa-plugin-analytics/api/operations/deleteadminanalyticsfunnels/"
+				},
+				{
+					"label": "Get Funnel",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticsfunnelsbyid/"
+				},
+				{
+					"label": "Update Funnel",
+					"link": "/medusa-plugin-analytics/api/operations/postadminanalyticsfunnelsbyid/"
+				},
+				{
+					"label": "List Segments",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticssegments/"
+				},
+				{
+					"label": "Create Segment",
+					"link": "/medusa-plugin-analytics/api/operations/postadminanalyticssegments/"
+				},
+				{
+					"label": "Batch Delete Segments",
+					"link": "/medusa-plugin-analytics/api/operations/deleteadminanalyticssegments/"
+				},
+				{
+					"label": "Get Segment",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticssegmentsbyid/"
+				},
+				{
+					"label": "Update Segment",
+					"link": "/medusa-plugin-analytics/api/operations/postadminanalyticssegmentsbyid/"
+				},
+				{
+					"label": "List Members",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticssegmentsbyidmembers/"
+				},
+				{
+					"label": "List Preview",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticssegmentsbyidpreview/"
+				},
+				{
+					"label": "List Export",
+					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticssegmentsbyidexport/"
+				}
+			]
+		},
+		{
+			"label": "Store",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "Create Ping",
+					"link": "/medusa-plugin-analytics/api/operations/poststoreping/"
+				}
+			]
+		}
+	],
 	"medusa-plugin-barcodes": [
 		{
 			"label": "Admin",
@@ -423,230 +525,6 @@
 			]
 		}
 	],
-	"majel": [
-		{
-			"label": "Admin",
-			"collapsed": true,
-			"items": [
-				{
-					"label": "List Mcp",
-					"link": "/majel/api/operations/getadminmcp/"
-				},
-				{
-					"label": "Create Mcp",
-					"link": "/majel/api/operations/postadminmcp/"
-				},
-				{
-					"label": "Batch Delete Mcp",
-					"link": "/majel/api/operations/deleteadminmcp/"
-				},
-				{
-					"label": "List Statistics",
-					"link": "/majel/api/operations/getadminstatistics/"
-				},
-				{
-					"label": "Recalculate Statistic",
-					"link": "/majel/api/operations/postadminstatisticsrecalculate/"
-				},
-				{
-					"label": "List Recent Orders",
-					"link": "/majel/api/operations/getadminstatisticsrecent-orders/"
-				},
-				{
-					"label": "List Low Stock",
-					"link": "/majel/api/operations/getadminstatisticslow-stock/"
-				},
-				{
-					"label": "Layout Statistic",
-					"link": "/majel/api/operations/postadminstatisticslayout/"
-				},
-				{
-					"label": "List Webhook Triggers",
-					"link": "/majel/api/operations/getadminwebhook-triggers/"
-				},
-				{
-					"label": "Create Webhook Trigger",
-					"link": "/majel/api/operations/postadminwebhook-triggers/"
-				},
-				{
-					"label": "Batch Delete Webhook Triggers",
-					"link": "/majel/api/operations/deleteadminwebhook-triggers/"
-				},
-				{
-					"label": "Get Webhook Trigger",
-					"link": "/majel/api/operations/getadminwebhook-triggersbyid/"
-				},
-				{
-					"label": "Update Webhook Trigger",
-					"link": "/majel/api/operations/postadminwebhook-triggersbyid/"
-				},
-				{
-					"label": "List Actions",
-					"link": "/majel/api/operations/getadminwebhook-triggersbyidactions/"
-				},
-				{
-					"label": "Create Action",
-					"link": "/majel/api/operations/postadminwebhook-triggersbyidactions/"
-				},
-				{
-					"label": "Batch Delete Actions",
-					"link": "/majel/api/operations/deleteadminwebhook-triggersbyidactions/"
-				},
-				{
-					"label": "Get Action",
-					"link": "/majel/api/operations/getadminwebhook-triggersbyidactionsbyactionid/"
-				},
-				{
-					"label": "Update Action",
-					"link": "/majel/api/operations/postadminwebhook-triggersbyidactionsbyactionid/"
-				},
-				{
-					"label": "List Query",
-					"link": "/majel/api/operations/getadminwebhook-triggersbyidactionsbyactionidquery/"
-				},
-				{
-					"label": "Create Query",
-					"link": "/majel/api/operations/postadminwebhook-triggersbyidactionsbyactionidquery/"
-				},
-				{
-					"label": "Batch Delete Query",
-					"link": "/majel/api/operations/deleteadminwebhook-triggersbyidactionsbyactionidquery/"
-				},
-				{
-					"label": "List Deliveries",
-					"link": "/majel/api/operations/getadminwebhook-triggersbyidactionsbyactioniddeliveries/"
-				},
-				{
-					"label": "List Receipts",
-					"link": "/majel/api/operations/getadminwebhook-triggersbyidreceipts/"
-				},
-				{
-					"label": "List Webhook Secrets",
-					"link": "/majel/api/operations/getadminwebhook-secrets/"
-				},
-				{
-					"label": "Create Webhook Secret",
-					"link": "/majel/api/operations/postadminwebhook-secrets/"
-				},
-				{
-					"label": "Delete Webhook Secret",
-					"link": "/majel/api/operations/deleteadminwebhook-secretsbyid/"
-				}
-			]
-		},
-		{
-			"label": "Webhooks",
-			"collapsed": true,
-			"items": [
-				{
-					"label": "Update Webhook",
-					"link": "/majel/api/operations/postwebhooksbyid/"
-				}
-			]
-		}
-	],
-	"mildred": [
-		{
-			"label": "Admin",
-			"collapsed": true,
-			"items": [
-				{
-					"label": "List Rubrics",
-					"link": "/mildred/api/operations/getadminanalyticsrubrics/"
-				},
-				{
-					"label": "Create Rubric",
-					"link": "/mildred/api/operations/postadminanalyticsrubrics/"
-				},
-				{
-					"label": "Batch Delete Rubrics",
-					"link": "/mildred/api/operations/deleteadminanalyticsrubrics/"
-				},
-				{
-					"label": "Get Rubric",
-					"link": "/mildred/api/operations/getadminanalyticsrubricsbyid/"
-				},
-				{
-					"label": "Update Rubric",
-					"link": "/mildred/api/operations/postadminanalyticsrubricsbyid/"
-				},
-				{
-					"label": "List Events",
-					"link": "/mildred/api/operations/getadminanalyticsevents/"
-				},
-				{
-					"label": "List Counts",
-					"link": "/mildred/api/operations/getadminanalyticseventscounts/"
-				},
-				{
-					"label": "List Funnel",
-					"link": "/mildred/api/operations/getadminanalyticsfunnel/"
-				},
-				{
-					"label": "List Funnels",
-					"link": "/mildred/api/operations/getadminanalyticsfunnels/"
-				},
-				{
-					"label": "Create Funnel",
-					"link": "/mildred/api/operations/postadminanalyticsfunnels/"
-				},
-				{
-					"label": "Batch Delete Funnels",
-					"link": "/mildred/api/operations/deleteadminanalyticsfunnels/"
-				},
-				{
-					"label": "Get Funnel",
-					"link": "/mildred/api/operations/getadminanalyticsfunnelsbyid/"
-				},
-				{
-					"label": "Update Funnel",
-					"link": "/mildred/api/operations/postadminanalyticsfunnelsbyid/"
-				},
-				{
-					"label": "List Segments",
-					"link": "/mildred/api/operations/getadminanalyticssegments/"
-				},
-				{
-					"label": "Create Segment",
-					"link": "/mildred/api/operations/postadminanalyticssegments/"
-				},
-				{
-					"label": "Batch Delete Segments",
-					"link": "/mildred/api/operations/deleteadminanalyticssegments/"
-				},
-				{
-					"label": "Get Segment",
-					"link": "/mildred/api/operations/getadminanalyticssegmentsbyid/"
-				},
-				{
-					"label": "Update Segment",
-					"link": "/mildred/api/operations/postadminanalyticssegmentsbyid/"
-				},
-				{
-					"label": "List Members",
-					"link": "/mildred/api/operations/getadminanalyticssegmentsbyidmembers/"
-				},
-				{
-					"label": "List Preview",
-					"link": "/mildred/api/operations/getadminanalyticssegmentsbyidpreview/"
-				},
-				{
-					"label": "List Export",
-					"link": "/mildred/api/operations/getadminanalyticssegmentsbyidexport/"
-				}
-			]
-		},
-		{
-			"label": "Store",
-			"collapsed": true,
-			"items": [
-				{
-					"label": "Create Ping",
-					"link": "/mildred/api/operations/poststoreping/"
-				}
-			]
-		}
-	],
 	"medusa-plugin-order-notes": [
 		{
 			"label": "Admin",
@@ -709,6 +587,46 @@
 				{
 					"label": "Get Review",
 					"link": "/medusa-plugin-ratings/api/operations/getstorereviewsbyproductid/"
+				}
+			]
+		}
+	],
+	"medusa-plugin-statistics": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Mcp",
+					"link": "/medusa-plugin-statistics/api/operations/getadminmcp/"
+				},
+				{
+					"label": "Create Mcp",
+					"link": "/medusa-plugin-statistics/api/operations/postadminmcp/"
+				},
+				{
+					"label": "Batch Delete Mcp",
+					"link": "/medusa-plugin-statistics/api/operations/deleteadminmcp/"
+				},
+				{
+					"label": "List Statistics",
+					"link": "/medusa-plugin-statistics/api/operations/getadminstatistics/"
+				},
+				{
+					"label": "Recalculate Statistic",
+					"link": "/medusa-plugin-statistics/api/operations/postadminstatisticsrecalculate/"
+				},
+				{
+					"label": "List Recent Orders",
+					"link": "/medusa-plugin-statistics/api/operations/getadminstatisticsrecent-orders/"
+				},
+				{
+					"label": "List Low Stock",
+					"link": "/medusa-plugin-statistics/api/operations/getadminstatisticslow-stock/"
+				},
+				{
+					"label": "Layout Statistic",
+					"link": "/medusa-plugin-statistics/api/operations/postadminstatisticslayout/"
 				}
 			]
 		}
@@ -821,6 +739,96 @@
 				{
 					"label": "Sync Stock Location",
 					"link": "/medusa-plugin-veeqo/api/operations/postadminveeqostock-locationssync/"
+				}
+			]
+		}
+	],
+	"medusa-plugin-webhooks": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Webhook Triggers",
+					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggers/"
+				},
+				{
+					"label": "Create Webhook Trigger",
+					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-triggers/"
+				},
+				{
+					"label": "Batch Delete Webhook Triggers",
+					"link": "/medusa-plugin-webhooks/api/operations/deleteadminwebhook-triggers/"
+				},
+				{
+					"label": "Get Webhook Trigger",
+					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyid/"
+				},
+				{
+					"label": "Update Webhook Trigger",
+					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-triggersbyid/"
+				},
+				{
+					"label": "List Actions",
+					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyidactions/"
+				},
+				{
+					"label": "Create Action",
+					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-triggersbyidactions/"
+				},
+				{
+					"label": "Batch Delete Actions",
+					"link": "/medusa-plugin-webhooks/api/operations/deleteadminwebhook-triggersbyidactions/"
+				},
+				{
+					"label": "Get Action",
+					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyidactionsbyactionid/"
+				},
+				{
+					"label": "Update Action",
+					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-triggersbyidactionsbyactionid/"
+				},
+				{
+					"label": "List Query",
+					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyidactionsbyactionidquery/"
+				},
+				{
+					"label": "Create Query",
+					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-triggersbyidactionsbyactionidquery/"
+				},
+				{
+					"label": "Batch Delete Query",
+					"link": "/medusa-plugin-webhooks/api/operations/deleteadminwebhook-triggersbyidactionsbyactionidquery/"
+				},
+				{
+					"label": "List Deliveries",
+					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyidactionsbyactioniddeliveries/"
+				},
+				{
+					"label": "List Receipts",
+					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-triggersbyidreceipts/"
+				},
+				{
+					"label": "List Webhook Secrets",
+					"link": "/medusa-plugin-webhooks/api/operations/getadminwebhook-secrets/"
+				},
+				{
+					"label": "Create Webhook Secret",
+					"link": "/medusa-plugin-webhooks/api/operations/postadminwebhook-secrets/"
+				},
+				{
+					"label": "Delete Webhook Secret",
+					"link": "/medusa-plugin-webhooks/api/operations/deleteadminwebhook-secretsbyid/"
+				}
+			]
+		},
+		{
+			"label": "Webhooks",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "Update Webhook",
+					"link": "/medusa-plugin-webhooks/api/operations/postwebhooksbyid/"
 				}
 			]
 		}

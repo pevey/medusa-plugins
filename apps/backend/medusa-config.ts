@@ -65,8 +65,8 @@ module.exports = defineConfig({
 			options: {
 				providers: [
 					{
-						resolve: 'mildred/providers/analytics-mildred',
-						id: 'mildred'
+						resolve: 'medusa-plugin-analytics',
+						id: 'private'
 					}
 				]
 			}
@@ -258,18 +258,7 @@ module.exports = defineConfig({
 	],
 	plugins: [
 		{
-			resolve: 'majel',
-			options: {
-				webhooks: {
-					maxPayloadSize: process.env.WEBHOOK_MAX_PAYLOAD_SIZE || '100kb',
-					maxWorkflowIterations: process.env.WEBHOOK_MAX_WORKFLOW_ITERATIONS
-						? +process.env.WEBHOOK_MAX_WORKFLOW_ITERATIONS
-						: 50
-				}
-			}
-		},
-		{
-			resolve: 'mildred',
+			resolve: 'medusa-plugin-analytics',
 			options: {}
 		},
 		{
@@ -302,6 +291,10 @@ module.exports = defineConfig({
 			}
 		},
 		{
+			resolve: 'medusa-plugin-statistics',
+			options: {}
+		},
+		{
 			resolve: 'medusa-plugin-tracing',
 			options: {}
 		},
@@ -312,6 +305,17 @@ module.exports = defineConfig({
 				timeout: process.env.VEEQO_TIMEOUT ? +process.env.VEEQO_TIMEOUT : 5000,
 				retry: process.env.VEEQO_RETRY ? +process.env.VEEQO_RETRY : 3,
 				...(process.env.VEEQO_URL ? { veeqoUrl: process.env.VEEQO_URL } : {})
+			}
+		},
+		{
+			resolve: 'medusa-plugin-webhooks',
+			options: {
+				webhooks: {
+					maxPayloadSize: process.env.WEBHOOK_MAX_PAYLOAD_SIZE || '100kb',
+					maxWorkflowIterations: process.env.WEBHOOK_MAX_WORKFLOW_ITERATIONS
+						? +process.env.WEBHOOK_MAX_WORKFLOW_ITERATIONS
+						: 50
+				}
 			}
 		}
 	]

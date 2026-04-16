@@ -30,9 +30,3 @@ coverage
 .medusa
 .cache
 .turbo
-
-packages/statistics
-packages/webhooks
-
-apps/apnea-backend
-apps/apnea-storefront
