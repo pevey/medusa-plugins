@@ -1,0 +1,828 @@
+{
+	"medusa-plugin-barcodes": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Barcodes",
+					"link": "/medusa-plugin-barcodes/api/operations/getadminbarcodes/"
+				},
+				{
+					"label": "Create Barcode",
+					"link": "/medusa-plugin-barcodes/api/operations/postadminbarcodes/"
+				},
+				{
+					"label": "Batch Delete Barcodes",
+					"link": "/medusa-plugin-barcodes/api/operations/deleteadminbarcodes/"
+				},
+				{
+					"label": "Get Barcode",
+					"link": "/medusa-plugin-barcodes/api/operations/getadminbarcodesbyid/"
+				},
+				{
+					"label": "Update Barcode",
+					"link": "/medusa-plugin-barcodes/api/operations/postadminbarcodesbyid/"
+				},
+				{
+					"label": "List Barcode Generator",
+					"link": "/medusa-plugin-barcodes/api/operations/getadminbarcode-generator/"
+				},
+				{
+					"label": "Create Barcode Generator",
+					"link": "/medusa-plugin-barcodes/api/operations/postadminbarcode-generator/"
+				}
+			]
+		}
+	],
+	"medusa-plugin-complaints": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Complaints",
+					"link": "/medusa-plugin-complaints/api/operations/getadmincomplaints/"
+				},
+				{
+					"label": "Create Complaint",
+					"link": "/medusa-plugin-complaints/api/operations/postadmincomplaints/"
+				},
+				{
+					"label": "Batch Delete Complaints",
+					"link": "/medusa-plugin-complaints/api/operations/deleteadmincomplaints/"
+				},
+				{
+					"label": "Get Complaint",
+					"link": "/medusa-plugin-complaints/api/operations/getadmincomplaintsbyid/"
+				},
+				{
+					"label": "Update Complaint",
+					"link": "/medusa-plugin-complaints/api/operations/postadmincomplaintsbyid/"
+				},
+				{
+					"label": "Create Note",
+					"link": "/medusa-plugin-complaints/api/operations/postadmincomplaintsbyidnotes/"
+				},
+				{
+					"label": "Update Note",
+					"link": "/medusa-plugin-complaints/api/operations/postadmincomplaintsbyidnotesbynote_id/"
+				},
+				{
+					"label": "List Complaint Tags",
+					"link": "/medusa-plugin-complaints/api/operations/getadmincomplaint-tags/"
+				},
+				{
+					"label": "Create Complaint Tag",
+					"link": "/medusa-plugin-complaints/api/operations/postadmincomplaint-tags/"
+				},
+				{
+					"label": "Batch Delete Complaint Tags",
+					"link": "/medusa-plugin-complaints/api/operations/deleteadmincomplaint-tags/"
+				},
+				{
+					"label": "Get Complaint Tag",
+					"link": "/medusa-plugin-complaints/api/operations/getadmincomplaint-tagsbyid/"
+				},
+				{
+					"label": "Update Complaint Tag",
+					"link": "/medusa-plugin-complaints/api/operations/postadmincomplaint-tagsbyid/"
+				},
+				{
+					"label": "List Activities",
+					"link": "/medusa-plugin-complaints/api/operations/getadmincomplaintsbyidactivities/"
+				},
+				{
+					"label": "Create Activity",
+					"link": "/medusa-plugin-complaints/api/operations/postadmincomplaintsbyidactivities/"
+				},
+				{
+					"label": "Batch Delete Activities",
+					"link": "/medusa-plugin-complaints/api/operations/deleteadmincomplaintsbyidactivities/"
+				},
+				{
+					"label": "Get Activity",
+					"link": "/medusa-plugin-complaints/api/operations/getadmincomplaintsbyidactivitiesbyentry_id/"
+				},
+				{
+					"label": "Update Activity",
+					"link": "/medusa-plugin-complaints/api/operations/postadmincomplaintsbyidactivitiesbyentry_id/"
+				},
+				{
+					"label": "Get Product",
+					"link": "/medusa-plugin-complaints/api/operations/getadmincomplaint-statsproductsbyproduct_id/"
+				}
+			]
+		}
+	],
+	"medusa-plugin-content": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Content",
+					"link": "/medusa-plugin-content/api/operations/getadmincontent/"
+				},
+				{
+					"label": "Create Content",
+					"link": "/medusa-plugin-content/api/operations/postadmincontent/"
+				},
+				{
+					"label": "Batch Delete Content",
+					"link": "/medusa-plugin-content/api/operations/deleteadmincontent/"
+				},
+				{
+					"label": "Get Content",
+					"link": "/medusa-plugin-content/api/operations/getadmincontentbycollectionid/"
+				},
+				{
+					"label": "Update Content",
+					"link": "/medusa-plugin-content/api/operations/postadmincontentbycollectionid/"
+				},
+				{
+					"label": "List Fields",
+					"link": "/medusa-plugin-content/api/operations/getadmincontentbycollectionidfields/"
+				},
+				{
+					"label": "Create Field",
+					"link": "/medusa-plugin-content/api/operations/postadmincontentbycollectionidfields/"
+				},
+				{
+					"label": "Batch Delete Fields",
+					"link": "/medusa-plugin-content/api/operations/deleteadmincontentbycollectionidfields/"
+				},
+				{
+					"label": "Get Field",
+					"link": "/medusa-plugin-content/api/operations/getadmincontentbycollectionidfieldsbyfieldid/"
+				},
+				{
+					"label": "Update Field",
+					"link": "/medusa-plugin-content/api/operations/postadmincontentbycollectionidfieldsbyfieldid/"
+				},
+				{
+					"label": "Create Upload",
+					"link": "/medusa-plugin-content/api/operations/postadmincontentbycollectionidupload/"
+				},
+				{
+					"label": "List Relationships",
+					"link": "/medusa-plugin-content/api/operations/getadmincontentbycollectionidrelationships/"
+				},
+				{
+					"label": "Create Relationship",
+					"link": "/medusa-plugin-content/api/operations/postadmincontentbycollectionidrelationships/"
+				},
+				{
+					"label": "Get Relationship",
+					"link": "/medusa-plugin-content/api/operations/getadmincontentbycollectionidrelationshipsbyrelid/"
+				},
+				{
+					"label": "List Items",
+					"link": "/medusa-plugin-content/api/operations/getadmincontentbycollectioniditems/"
+				},
+				{
+					"label": "Create Item",
+					"link": "/medusa-plugin-content/api/operations/postadmincontentbycollectioniditems/"
+				},
+				{
+					"label": "Batch Delete Items",
+					"link": "/medusa-plugin-content/api/operations/deleteadmincontentbycollectioniditems/"
+				},
+				{
+					"label": "Get Item",
+					"link": "/medusa-plugin-content/api/operations/getadmincontentbycollectioniditemsbyitemid/"
+				},
+				{
+					"label": "Update Item",
+					"link": "/medusa-plugin-content/api/operations/postadmincontentbycollectioniditemsbyitemid/"
+				},
+				{
+					"label": "List Activity",
+					"link": "/medusa-plugin-content/api/operations/getadmincontentbycollectioniditemsbyitemidactivity/"
+				},
+				{
+					"label": "Create Activity",
+					"link": "/medusa-plugin-content/api/operations/postadmincontentbycollectioniditemsbyitemidactivity/"
+				},
+				{
+					"label": "Batch Delete Activity",
+					"link": "/medusa-plugin-content/api/operations/deleteadmincontentbycollectioniditemsbyitemidactivity/"
+				},
+				{
+					"label": "List Links",
+					"link": "/medusa-plugin-content/api/operations/getadmincontentbycollectioniditemsbyitemidlinks/"
+				},
+				{
+					"label": "Create Link",
+					"link": "/medusa-plugin-content/api/operations/postadmincontentbycollectioniditemsbyitemidlinks/"
+				},
+				{
+					"label": "List Tags",
+					"link": "/medusa-plugin-content/api/operations/getadmincontentbycollectioniditemsbyitemidtags/"
+				},
+				{
+					"label": "Create Tag",
+					"link": "/medusa-plugin-content/api/operations/postadmincontentbycollectioniditemsbyitemidtags/"
+				},
+				{
+					"label": "Batch Delete Tags",
+					"link": "/medusa-plugin-content/api/operations/deleteadmincontentbycollectioniditemsbyitemidtags/"
+				},
+				{
+					"label": "List Content Creators",
+					"link": "/medusa-plugin-content/api/operations/getadmincontent-creators/"
+				},
+				{
+					"label": "Create Content Creator",
+					"link": "/medusa-plugin-content/api/operations/postadmincontent-creators/"
+				},
+				{
+					"label": "Batch Delete Content Creators",
+					"link": "/medusa-plugin-content/api/operations/deleteadmincontent-creators/"
+				},
+				{
+					"label": "Get Content Creator",
+					"link": "/medusa-plugin-content/api/operations/getadmincontent-creatorsbyid/"
+				},
+				{
+					"label": "Update Content Creator",
+					"link": "/medusa-plugin-content/api/operations/postadmincontent-creatorsbyid/"
+				},
+				{
+					"label": "List Activity",
+					"link": "/medusa-plugin-content/api/operations/getadmincontent-creatorsbyidactivity/"
+				},
+				{
+					"label": "Create Activity",
+					"link": "/medusa-plugin-content/api/operations/postadmincontent-creatorsbyidactivity/"
+				},
+				{
+					"label": "Batch Delete Activity",
+					"link": "/medusa-plugin-content/api/operations/deleteadmincontent-creatorsbyidactivity/"
+				},
+				{
+					"label": "List Content Tags",
+					"link": "/medusa-plugin-content/api/operations/getadmincontent-tags/"
+				},
+				{
+					"label": "Create Content Tag",
+					"link": "/medusa-plugin-content/api/operations/postadmincontent-tags/"
+				},
+				{
+					"label": "Batch Delete Content Tags",
+					"link": "/medusa-plugin-content/api/operations/deleteadmincontent-tags/"
+				},
+				{
+					"label": "Get Content Tag",
+					"link": "/medusa-plugin-content/api/operations/getadmincontent-tagsbyid/"
+				},
+				{
+					"label": "Update Content Tag",
+					"link": "/medusa-plugin-content/api/operations/postadmincontent-tagsbyid/"
+				}
+			]
+		},
+		{
+			"label": "Content",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Content",
+					"link": "/medusa-plugin-content/api/operations/getcontent/"
+				},
+				{
+					"label": "Get Content",
+					"link": "/medusa-plugin-content/api/operations/getcontentbyslug/"
+				},
+				{
+					"label": "List Items",
+					"link": "/medusa-plugin-content/api/operations/getcontentbyslugitems/"
+				},
+				{
+					"label": "Get Item",
+					"link": "/medusa-plugin-content/api/operations/getcontentbyslugitemsbyitemslug/"
+				}
+			]
+		}
+	],
+	"medusa-plugin-customer-tags": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Customer Tags",
+					"link": "/medusa-plugin-customer-tags/api/operations/getadmincustomer-tags/"
+				},
+				{
+					"label": "Create Customer Tag",
+					"link": "/medusa-plugin-customer-tags/api/operations/postadmincustomer-tags/"
+				},
+				{
+					"label": "Batch Delete Customer Tags",
+					"link": "/medusa-plugin-customer-tags/api/operations/deleteadmincustomer-tags/"
+				},
+				{
+					"label": "Get Customer Tag",
+					"link": "/medusa-plugin-customer-tags/api/operations/getadmincustomer-tagsbyid/"
+				},
+				{
+					"label": "Update Customer Tag",
+					"link": "/medusa-plugin-customer-tags/api/operations/postadmincustomer-tagsbyid/"
+				},
+				{
+					"label": "Update Customer",
+					"link": "/medusa-plugin-customer-tags/api/operations/postadmincustomersbyid/"
+				},
+				{
+					"label": "Create Customer Tag",
+					"link": "/medusa-plugin-customer-tags/api/operations/postadmincustomersbyidcustomer-tags/"
+				}
+			]
+		}
+	],
+	"medusa-plugin-forms": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Forms",
+					"link": "/medusa-plugin-forms/api/operations/getadminforms/"
+				},
+				{
+					"label": "Create Form",
+					"link": "/medusa-plugin-forms/api/operations/postadminforms/"
+				},
+				{
+					"label": "Batch Delete Forms",
+					"link": "/medusa-plugin-forms/api/operations/deleteadminforms/"
+				},
+				{
+					"label": "Get Form",
+					"link": "/medusa-plugin-forms/api/operations/getadminformsbyid/"
+				},
+				{
+					"label": "Update Form",
+					"link": "/medusa-plugin-forms/api/operations/postadminformsbyid/"
+				},
+				{
+					"label": "List Fields",
+					"link": "/medusa-plugin-forms/api/operations/getadminformsbyidfields/"
+				},
+				{
+					"label": "Create Field",
+					"link": "/medusa-plugin-forms/api/operations/postadminformsbyidfields/"
+				},
+				{
+					"label": "Batch Delete Fields",
+					"link": "/medusa-plugin-forms/api/operations/deleteadminformsbyidfields/"
+				},
+				{
+					"label": "Update Field",
+					"link": "/medusa-plugin-forms/api/operations/postadminformsbyidfieldsbyfieldid/"
+				},
+				{
+					"label": "Create Option",
+					"link": "/medusa-plugin-forms/api/operations/postadminformsbyidfieldsbyfieldidoptions/"
+				},
+				{
+					"label": "Batch Delete Options",
+					"link": "/medusa-plugin-forms/api/operations/deleteadminformsbyidfieldsbyfieldidoptions/"
+				},
+				{
+					"label": "Update Option",
+					"link": "/medusa-plugin-forms/api/operations/postadminformsbyidfieldsbyfieldidoptionsbyoptionid/"
+				},
+				{
+					"label": "List Form Submissions",
+					"link": "/medusa-plugin-forms/api/operations/getadminform-submissions/"
+				},
+				{
+					"label": "Batch Delete Form Submissions",
+					"link": "/medusa-plugin-forms/api/operations/deleteadminform-submissions/"
+				},
+				{
+					"label": "Get Form Submission",
+					"link": "/medusa-plugin-forms/api/operations/getadminform-submissionsbyid/"
+				},
+				{
+					"label": "Update Form Submission",
+					"link": "/medusa-plugin-forms/api/operations/postadminform-submissionsbyid/"
+				}
+			]
+		},
+		{
+			"label": "Forms",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "Update Form",
+					"link": "/medusa-plugin-forms/api/operations/postformsbyhandle/"
+				}
+			]
+		}
+	],
+	"majel": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Mcp",
+					"link": "/majel/api/operations/getadminmcp/"
+				},
+				{
+					"label": "Create Mcp",
+					"link": "/majel/api/operations/postadminmcp/"
+				},
+				{
+					"label": "Batch Delete Mcp",
+					"link": "/majel/api/operations/deleteadminmcp/"
+				},
+				{
+					"label": "List Statistics",
+					"link": "/majel/api/operations/getadminstatistics/"
+				},
+				{
+					"label": "Recalculate Statistic",
+					"link": "/majel/api/operations/postadminstatisticsrecalculate/"
+				},
+				{
+					"label": "List Recent Orders",
+					"link": "/majel/api/operations/getadminstatisticsrecent-orders/"
+				},
+				{
+					"label": "List Low Stock",
+					"link": "/majel/api/operations/getadminstatisticslow-stock/"
+				},
+				{
+					"label": "Layout Statistic",
+					"link": "/majel/api/operations/postadminstatisticslayout/"
+				},
+				{
+					"label": "List Webhook Triggers",
+					"link": "/majel/api/operations/getadminwebhook-triggers/"
+				},
+				{
+					"label": "Create Webhook Trigger",
+					"link": "/majel/api/operations/postadminwebhook-triggers/"
+				},
+				{
+					"label": "Batch Delete Webhook Triggers",
+					"link": "/majel/api/operations/deleteadminwebhook-triggers/"
+				},
+				{
+					"label": "Get Webhook Trigger",
+					"link": "/majel/api/operations/getadminwebhook-triggersbyid/"
+				},
+				{
+					"label": "Update Webhook Trigger",
+					"link": "/majel/api/operations/postadminwebhook-triggersbyid/"
+				},
+				{
+					"label": "List Actions",
+					"link": "/majel/api/operations/getadminwebhook-triggersbyidactions/"
+				},
+				{
+					"label": "Create Action",
+					"link": "/majel/api/operations/postadminwebhook-triggersbyidactions/"
+				},
+				{
+					"label": "Batch Delete Actions",
+					"link": "/majel/api/operations/deleteadminwebhook-triggersbyidactions/"
+				},
+				{
+					"label": "Get Action",
+					"link": "/majel/api/operations/getadminwebhook-triggersbyidactionsbyactionid/"
+				},
+				{
+					"label": "Update Action",
+					"link": "/majel/api/operations/postadminwebhook-triggersbyidactionsbyactionid/"
+				},
+				{
+					"label": "List Query",
+					"link": "/majel/api/operations/getadminwebhook-triggersbyidactionsbyactionidquery/"
+				},
+				{
+					"label": "Create Query",
+					"link": "/majel/api/operations/postadminwebhook-triggersbyidactionsbyactionidquery/"
+				},
+				{
+					"label": "Batch Delete Query",
+					"link": "/majel/api/operations/deleteadminwebhook-triggersbyidactionsbyactionidquery/"
+				},
+				{
+					"label": "List Deliveries",
+					"link": "/majel/api/operations/getadminwebhook-triggersbyidactionsbyactioniddeliveries/"
+				},
+				{
+					"label": "List Receipts",
+					"link": "/majel/api/operations/getadminwebhook-triggersbyidreceipts/"
+				},
+				{
+					"label": "List Webhook Secrets",
+					"link": "/majel/api/operations/getadminwebhook-secrets/"
+				},
+				{
+					"label": "Create Webhook Secret",
+					"link": "/majel/api/operations/postadminwebhook-secrets/"
+				},
+				{
+					"label": "Delete Webhook Secret",
+					"link": "/majel/api/operations/deleteadminwebhook-secretsbyid/"
+				}
+			]
+		},
+		{
+			"label": "Webhooks",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "Update Webhook",
+					"link": "/majel/api/operations/postwebhooksbyid/"
+				}
+			]
+		}
+	],
+	"mildred": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Rubrics",
+					"link": "/mildred/api/operations/getadminanalyticsrubrics/"
+				},
+				{
+					"label": "Create Rubric",
+					"link": "/mildred/api/operations/postadminanalyticsrubrics/"
+				},
+				{
+					"label": "Batch Delete Rubrics",
+					"link": "/mildred/api/operations/deleteadminanalyticsrubrics/"
+				},
+				{
+					"label": "Get Rubric",
+					"link": "/mildred/api/operations/getadminanalyticsrubricsbyid/"
+				},
+				{
+					"label": "Update Rubric",
+					"link": "/mildred/api/operations/postadminanalyticsrubricsbyid/"
+				},
+				{
+					"label": "List Events",
+					"link": "/mildred/api/operations/getadminanalyticsevents/"
+				},
+				{
+					"label": "List Counts",
+					"link": "/mildred/api/operations/getadminanalyticseventscounts/"
+				},
+				{
+					"label": "List Funnel",
+					"link": "/mildred/api/operations/getadminanalyticsfunnel/"
+				},
+				{
+					"label": "List Funnels",
+					"link": "/mildred/api/operations/getadminanalyticsfunnels/"
+				},
+				{
+					"label": "Create Funnel",
+					"link": "/mildred/api/operations/postadminanalyticsfunnels/"
+				},
+				{
+					"label": "Batch Delete Funnels",
+					"link": "/mildred/api/operations/deleteadminanalyticsfunnels/"
+				},
+				{
+					"label": "Get Funnel",
+					"link": "/mildred/api/operations/getadminanalyticsfunnelsbyid/"
+				},
+				{
+					"label": "Update Funnel",
+					"link": "/mildred/api/operations/postadminanalyticsfunnelsbyid/"
+				},
+				{
+					"label": "List Segments",
+					"link": "/mildred/api/operations/getadminanalyticssegments/"
+				},
+				{
+					"label": "Create Segment",
+					"link": "/mildred/api/operations/postadminanalyticssegments/"
+				},
+				{
+					"label": "Batch Delete Segments",
+					"link": "/mildred/api/operations/deleteadminanalyticssegments/"
+				},
+				{
+					"label": "Get Segment",
+					"link": "/mildred/api/operations/getadminanalyticssegmentsbyid/"
+				},
+				{
+					"label": "Update Segment",
+					"link": "/mildred/api/operations/postadminanalyticssegmentsbyid/"
+				},
+				{
+					"label": "List Members",
+					"link": "/mildred/api/operations/getadminanalyticssegmentsbyidmembers/"
+				},
+				{
+					"label": "List Preview",
+					"link": "/mildred/api/operations/getadminanalyticssegmentsbyidpreview/"
+				},
+				{
+					"label": "List Export",
+					"link": "/mildred/api/operations/getadminanalyticssegmentsbyidexport/"
+				}
+			]
+		},
+		{
+			"label": "Store",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "Create Ping",
+					"link": "/mildred/api/operations/poststoreping/"
+				}
+			]
+		}
+	],
+	"medusa-plugin-order-notes": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Order Notes",
+					"link": "/medusa-plugin-order-notes/api/operations/getadminorder-notes/"
+				},
+				{
+					"label": "Create Order Note",
+					"link": "/medusa-plugin-order-notes/api/operations/postadminorder-notes/"
+				}
+			]
+		}
+	],
+	"medusa-plugin-ratings": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Reviews",
+					"link": "/medusa-plugin-ratings/api/operations/getadminreviews/"
+				},
+				{
+					"label": "Batch Delete Reviews",
+					"link": "/medusa-plugin-ratings/api/operations/deleteadminreviews/"
+				},
+				{
+					"label": "Get Review",
+					"link": "/medusa-plugin-ratings/api/operations/getadminreviewsbyid/"
+				},
+				{
+					"label": "Update Review",
+					"link": "/medusa-plugin-ratings/api/operations/postadminreviewsbyid/"
+				},
+				{
+					"label": "Delete Review",
+					"link": "/medusa-plugin-ratings/api/operations/deleteadminreviewsbyid/"
+				},
+				{
+					"label": "Approve Review",
+					"link": "/medusa-plugin-ratings/api/operations/postadminreviewsapprove/"
+				},
+				{
+					"label": "Reject Review",
+					"link": "/medusa-plugin-ratings/api/operations/postadminreviewsreject/"
+				}
+			]
+		},
+		{
+			"label": "Store",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "Update Review",
+					"link": "/medusa-plugin-ratings/api/operations/poststorereviewsbyproductid/"
+				},
+				{
+					"label": "Get Review",
+					"link": "/medusa-plugin-ratings/api/operations/getstorereviewsbyproductid/"
+				}
+			]
+		}
+	],
+	"medusa-plugin-tracing": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Stock Lots",
+					"link": "/medusa-plugin-tracing/api/operations/getadminstock-lots/"
+				},
+				{
+					"label": "Create Stock Lot",
+					"link": "/medusa-plugin-tracing/api/operations/postadminstock-lots/"
+				},
+				{
+					"label": "Batch Delete Stock Lots",
+					"link": "/medusa-plugin-tracing/api/operations/deleteadminstock-lots/"
+				},
+				{
+					"label": "Enable Stock Lot",
+					"link": "/medusa-plugin-tracing/api/operations/postadminstock-lotsenable/"
+				},
+				{
+					"label": "Disable Stock Lot",
+					"link": "/medusa-plugin-tracing/api/operations/postadminstock-lotsdisable/"
+				},
+				{
+					"label": "Get Stock Lot",
+					"link": "/medusa-plugin-tracing/api/operations/getadminstock-lotsbyid/"
+				},
+				{
+					"label": "Update Stock Lot",
+					"link": "/medusa-plugin-tracing/api/operations/postadminstock-lotsbyid/"
+				},
+				{
+					"label": "List Serial Numbers",
+					"link": "/medusa-plugin-tracing/api/operations/getadminstock-lotsbyidserial-numbers/"
+				},
+				{
+					"label": "List Serial Numbers",
+					"link": "/medusa-plugin-tracing/api/operations/getadminserial-numbers/"
+				},
+				{
+					"label": "Create Serial Number",
+					"link": "/medusa-plugin-tracing/api/operations/postadminserial-numbers/"
+				},
+				{
+					"label": "Batch Delete Serial Numbers",
+					"link": "/medusa-plugin-tracing/api/operations/deleteadminserial-numbers/"
+				},
+				{
+					"label": "Get Serial Number",
+					"link": "/medusa-plugin-tracing/api/operations/getadminserial-numbersbyid/"
+				},
+				{
+					"label": "Update Serial Number",
+					"link": "/medusa-plugin-tracing/api/operations/postadminserial-numbersbyid/"
+				},
+				{
+					"label": "List Invalidation Reasons",
+					"link": "/medusa-plugin-tracing/api/operations/getadmininvalidation-reasons/"
+				},
+				{
+					"label": "Create Invalidation Reason",
+					"link": "/medusa-plugin-tracing/api/operations/postadmininvalidation-reasons/"
+				},
+				{
+					"label": "Batch Delete Invalidation Reasons",
+					"link": "/medusa-plugin-tracing/api/operations/deleteadmininvalidation-reasons/"
+				},
+				{
+					"label": "Get Invalidation Reason",
+					"link": "/medusa-plugin-tracing/api/operations/getadmininvalidation-reasonsbyid/"
+				},
+				{
+					"label": "Update Invalidation Reason",
+					"link": "/medusa-plugin-tracing/api/operations/postadmininvalidation-reasonsbyid/"
+				}
+			]
+		}
+	],
+	"medusa-plugin-veeqo": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "Sync Customer",
+					"link": "/medusa-plugin-veeqo/api/operations/postadminveeqocustomerssync/"
+				},
+				{
+					"label": "Sync Order",
+					"link": "/medusa-plugin-veeqo/api/operations/postadminveeqoorderssync/"
+				},
+				{
+					"label": "Sync Product",
+					"link": "/medusa-plugin-veeqo/api/operations/postadminveeqoproductssync/"
+				},
+				{
+					"label": "Sync Sales Channel",
+					"link": "/medusa-plugin-veeqo/api/operations/postadminveeqosales-channelssync/"
+				},
+				{
+					"label": "Sync Shipping Option",
+					"link": "/medusa-plugin-veeqo/api/operations/postadminveeqoshipping-optionssync/"
+				},
+				{
+					"label": "Sync Stock Location",
+					"link": "/medusa-plugin-veeqo/api/operations/postadminveeqostock-locationssync/"
+				}
+			]
+		}
+	]
+}

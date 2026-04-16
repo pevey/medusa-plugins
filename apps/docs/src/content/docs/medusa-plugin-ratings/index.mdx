@@ -1,0 +1,51 @@
+---
+title: Reviews
+description: Product review and rating plugin for Medusa v2 with moderation workflow
+prev: false
+---
+
+Product review and rating plugin for Medusa v2 with admin moderation workflow.
+
+## Features
+
+- Customer-submitted product reviews with 1-5 star ratings
+- Admin moderation workflow: pending, approved, rejected
+- Bulk approve/reject actions
+- Activity logging for all admin actions and notes
+- Store API with caching (5-minute TTL) for approved reviews
+- Authenticated customers can see their own pending reviews
+- Admin pages for review management with filtering and search
+
+## Installation
+
+Inside your medusa backend root folder:
+
+```bash
+yarn add medusa-plugin-reviews
+```
+
+Replace "yarn add" with the correct command for your package manager if you are using (for example) npm, pnpm, or bun.
+
+## Configuration
+
+Enable in your `medusa-config.ts` file. Example:
+
+```ts
+module.exports = defineConfig({
+	//... other config
+	plugins: [
+		{
+			resolve: 'medusa-plugin-reviews',
+			options: {}
+		}
+		// ... other plugins
+	]
+})
+```
+
+## Usage
+
+- Customers submit reviews via `POST /store/reviews/:productId`.
+- Approved reviews are served via `GET /store/reviews/:productId` with caching.
+- Manage reviews from the Reviews section in the Medusa admin sidebar.
+- Approve or reject reviews individually or in bulk.

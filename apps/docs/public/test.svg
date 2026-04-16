@@ -1,0 +1,28 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Stem of the P -->
+  <rect x="4" y="6" width="9" height="52" rx="1" fill="currentColor"/>
+  <!-- Bowl: Medusa-style rounded hexagon -->
+  <path d="
+    M51.2 11.8
+    L38.8 4.7
+    C34.8 2.4 29.9 2.4 25.9 4.7
+    L13.5 11.8
+    C13 12.1 13 12.1 13 12.1
+    L13 12.1
+    L13 39.9
+    C13 39.9 13 39.9 13 39.9
+    L25.9 47.3
+    C29.9 49.6 34.8 49.6 38.8 47.3
+    L51.2 40.2
+    C55.1 37.9 57.5 33.7 57.5 29.2
+    L57.5 22.8
+    C57.5 18.3 55.1 14.1 51.2 11.8
+    Z
+    M32.3 38.5
+    C25.5 38.5 20 33 20 26.2
+    C20 19.3 25.5 13.8 32.3 13.8
+    C39.2 13.8 44.7 19.3 44.7 26.2
+    C44.7 33 39.2 38.5 32.3 38.5
+    Z
+  " fill="currentColor" fill-rule="evenodd"/>
+</svg>

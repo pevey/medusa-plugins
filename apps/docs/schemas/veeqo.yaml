@@ -1,0 +1,171 @@
+openapi: 3.1.0
+info:
+  title: Veeqo API
+  version: 0.1.3
+  description: Veeqo integration plugin for Medusa v2
+servers:
+  - url: http://localhost:9000
+    description: Local development
+paths:
+  /admin/veeqo/customers/sync:
+    post:
+      operationId: postAdminVeeqoCustomersSync
+      summary: Sync Customer
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customer_ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+              required:
+                - customer_ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/veeqo/orders/sync:
+    post:
+      operationId: postAdminVeeqoOrdersSync
+      summary: Sync Order
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+              required:
+                - order_ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/veeqo/products/sync:
+    post:
+      operationId: postAdminVeeqoProductsSync
+      summary: Sync Product
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                product_ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+              required:
+                - product_ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/veeqo/sales-channels/sync:
+    post:
+      operationId: postAdminVeeqoSales-channelsSync
+      summary: Sync Sales Channel
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sales_channel_ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+              required:
+                - sales_channel_ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/veeqo/shipping-options/sync:
+    post:
+      operationId: postAdminVeeqoShipping-optionsSync
+      summary: Sync Shipping Option
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shipping_option_ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+              required:
+                - shipping_option_ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/veeqo/stock-locations/sync:
+    post:
+      operationId: postAdminVeeqoStock-locationsSync
+      summary: Sync Stock Location
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stock_location_ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+              required:
+                - stock_location_ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object

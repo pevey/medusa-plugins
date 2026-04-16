@@ -1,0 +1,52 @@
+# medusa-plugin-tracing
+
+Inventory tracing plugin for Medusa v2. Track stock lots and serial numbers with FIFO lot selection and inventory synchronization.
+
+[Documentation](https://pevey.com/medusa-plugin-tracing)
+
+If you are not familiar with Medusa, you can learn more on [the project web site](https://www.medusajs.com/).
+
+## Features
+
+- Stock lot management with lot numbers, descriptions, and quantities
+- Serial number tracking per stock lot with order assignment
+- Invalidation reasons for tracking rejected serial numbers
+- FIFO lot selection for automatic stock assignment
+- Inventory quantity synchronization via workflows
+- Enable/disable stock lots in bulk
+- Widget on Inventory Item detail page showing stock lots
+- Admin API for stock lots, serial numbers, and invalidation reasons
+
+## Installation
+
+Inside your medusa backend root folder:
+
+```bash
+yarn add medusa-plugin-tracing
+```
+
+Replace "yarn add" with the correct command for your package manager if you are using (for example) npm, pnpm, or bun.
+
+## Configuration
+
+Enable in your `medusa-config.ts` file. Example:
+
+```ts
+module.exports = defineConfig({
+	//... other config
+	plugins: [
+		{
+			resolve: 'medusa-plugin-tracing',
+			options: {}
+		}
+		// ... other plugins
+	]
+})
+```
+
+## Usage
+
+- Manage stock lots from the Inventory Item detail page widget in the Medusa admin.
+- Create stock lots with lot numbers and initial quantities.
+- Serial numbers are automatically tracked when assigned to orders.
+- Use the admin API for programmatic stock lot and serial number management.

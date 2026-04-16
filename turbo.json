@@ -1,0 +1,27 @@
+{
+	"$schema": "https://turbo.build/schema.json",
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": [".medusa/server/**", "dist/**"]
+		},
+		"dev": {
+			"persistent": true,
+			"cache": false
+		},
+		"test:unit": {
+			"outputs": []
+		},
+		"generate:openapi": {
+			"outputs": ["schemas/**"]
+		},
+		"docs:build": {
+			"dependsOn": ["generate:openapi"],
+			"outputs": ["dist/**"]
+		},
+		"docs:dev": {
+			"persistent": true,
+			"cache": false
+		}
+	}
+}

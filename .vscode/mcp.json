@@ -1,0 +1,15 @@
+{
+	"servers": {
+		"medusa": {
+			"type": "http",
+			"url": "https://docs.medusajs.com/mcp"
+		},
+		"svelte": {
+			"url": "https://mcp.svelte.dev/mcp"
+		}
+		// "codesight": {
+		// 	"command": "npx",
+		// 	"args": ["codesight", "--mcp"]
+		// }
+	}
+}

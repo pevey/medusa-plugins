@@ -1,0 +1,220 @@
+# @pevey/medusa
+
+Extended Medusa JS SDK with support for custom plugins. Drop-in replacement for `@medusajs/js-sdk` that adds typed methods for Reviews, Content, Forms, and Analytics alongside all core Medusa functionality.
+
+## Installation
+
+```bash
+yarn add @pevey/medusa
+```
+
+## Setup
+
+```ts
+import Medusa from '@pevey/medusa'
+
+const sdk = new Medusa({
+  baseUrl: 'http://localhost:9000',
+  publishableKey: 'pk_...',
+  auth: {
+    type: 'session'
+  }
+})
+```
+
+All [configuration options](https://docs.medusajs.com/resources/js-sdk#configuration) from `@medusajs/js-sdk` are supported, plus:
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `analytics.salesChannelId` | `string` | Default sales channel ID for analytics events |
+| `analytics.cartId` | `string` | Default actor ID (typically cart ID) |
+| `analytics.batchSize` | `number` | Flush when batch reaches this size (default: 10) |
+| `analytics.flushInterval` | `number` | Flush interval in ms (default: 2000) |
+
+## Store
+
+All core store methods from `@medusajs/js-sdk` are available unchanged:
+
+```ts
+const regions = await sdk.store.region.list()
+const cart = await sdk.store.cart.create({})
+const products = await sdk.store.product.list()
+```
+
+### Reviews
+
+```ts
+// List approved reviews for a product
+const { reviews, count } = await sdk.store.review.list('prod_123')
+
+// Submit a review (requires customer authentication)
+const { review } = await sdk.store.review.create('prod_123', {
+  rating: 5,
+  body: 'Excellent quality',
+  author_name: 'Alice',
+  author_email: 'alice@example.com'
+})
+```
+
+### Content
+
+```ts
+// List content collections
+const { content_collections } = await sdk.store.content.list()
+
+// Get a specific collection
+const { content_collection } = await sdk.store.content.retrieve('blog')
+
+// List published items in a collection
+const { content_items } = await sdk.store.content.listItems('blog', {
+  tag: 'announcements',
+  limit: 10
+})
+
+// Get a specific content item
+const { content_item } = await sdk.store.content.retrieveItem('blog', 'hello-world')
+```
+
+### Forms
+
+```ts
+// Submit a form
+const { submitted } = await sdk.store.form.submit('contact', {
+  data: {
+    name: 'Alice',
+    email: 'alice@example.com',
+    message: 'Hello!'
+  },
+  cf_turnstile_response: 'token...'  // optional, if Turnstile is enabled
+})
+```
+
+### Products (Expanded Types)
+
+`sdk.store.product.list()` and `sdk.store.product.retrieve()` return an expanded `StoreProduct` type that includes review data when the reviews plugin is installed:
+
+```ts
+const { products } = await sdk.store.product.list()
+
+// products[0].reviews       — Review[]
+// products[0].review_stats  — { average_rating: number, count: number }
+```
+
+## Admin
+
+All core admin methods from `@medusajs/js-sdk` are available unchanged:
+
+```ts
+const { orders } = await sdk.admin.order.list()
+const { products } = await sdk.admin.product.list()
+```
+
+### Reviews
+
+```ts
+// List reviews with filtering
+const { reviews } = await sdk.admin.review.list({
+  status: 'pending',
+  product_id: 'prod_123'
+})
+
+// Get a single review
+const { review } = await sdk.admin.review.retrieve('rev_123')
+
+// Update a review
+await sdk.admin.review.update('rev_123', { status: 'approved' })
+
+// Delete a review
+await sdk.admin.review.delete('rev_123')
+
+// Bulk approve/reject
+await sdk.admin.review.approve(['rev_123', 'rev_456'])
+await sdk.admin.review.reject(['rev_789'])
+```
+
+## Analytics
+
+Privacy-focused event tracking with automatic batching. Events are sent to the Mildred analytics endpoint at `/store/ping`.
+
+```ts
+// Track an event
+sdk.analytics.track('product_viewed', {
+  properties: { product_id: 'prod_123' }
+})
+
+// Identify a customer
+sdk.analytics.identify('cust_123', {
+  anonymous_id: 'cart_abc'
+})
+
+// Set default actor/sales channel
+sdk.analytics.setCartId('cart_abc')
+sdk.analytics.setSalesChannelId('sc_123')
+
+// Force flush queued events
+await sdk.analytics.flush()
+
+// Cleanup (flushes and stops timer)
+await sdk.analytics.destroy()
+```
+
+**Browser behavior:** Events are queued and flushed in batches (default: 10 events or every 2 seconds). On page unload, remaining events are sent via `navigator.sendBeacon` for reliability.
+
+**Server behavior:** Events are sent immediately with no batching.
+
+## Authentication
+
+Authentication works exactly like `@medusajs/js-sdk`:
+
+```ts
+// Customer login
+await sdk.auth.login('customer', 'emailpass', {
+  email: 'customer@example.com',
+  password: 'password'
+})
+
+// Customer registration
+await sdk.auth.register('customer', 'emailpass', {
+  email: 'customer@example.com',
+  password: 'password'
+})
+
+// Logout
+await sdk.auth.logout()
+```
+
+## Raw Client
+
+For endpoints not covered by the SDK, use `sdk.client.fetch()`:
+
+```ts
+const result = await sdk.client.fetch('/admin/custom-endpoint', {
+  method: 'POST',
+  body: { key: 'value' }
+})
+```
+
+## Types
+
+All types are exported for use in your application:
+
+```ts
+import type {
+  // Custom plugin types
+  Review,
+  StoreCreateReviewInput,
+  ContentCollection,
+  ContentItem,
+  FormSubmitInput,
+  TrackOptions,
+
+  // Expanded core types
+  StoreProduct,
+  AdminProduct,
+
+  // SDK config types
+  MedusaConfig,
+  Config,
+  ClientHeaders,
+} from '@pevey/medusa'
+```

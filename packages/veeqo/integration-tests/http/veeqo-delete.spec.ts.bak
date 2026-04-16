@@ -1,0 +1,295 @@
+/**
+ * Focused tests for VeeqoService delete methods.
+ *
+ * The existing veeqo.spec.ts cleanup blocks swallow delete errors with .catch(() => {})
+ * which means a broken delete* method silently leaves orphaned records in Veeqo.
+ * This suite creates one of each entity, syncs it, then calls the delete method as
+ * an explicit test assertion so a failure surfaces immediately.
+ *
+ * Each delete is verified by confirming the Medusa-side link record no longer exists
+ * after the call.
+ *
+ * Run with:
+ *   npm run test:integration:http -- --testPathPattern=veeqo-delete
+ */
+
+import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
+import { Modules } from '@medusajs/framework/utils'
+import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
+import { VeeqoService } from '../../src/modules/veeqo/service'
+
+jest.setTimeout(180 * 1000)
+jest.retryTimes(0)
+
+medusaIntegrationTestRunner({
+	inApp: true,
+	disableAutoTeardown: true,
+	env: {},
+	testSuite: ({ api, getContainer }) => {
+		let adminToken: string
+		let veeqoService: VeeqoService
+
+		const auth = () => ({ headers: { Authorization: `Bearer ${adminToken}` } })
+
+		// ── Setup ────────────────────────────────────────────────────────────────
+
+		beforeAll(async () => {
+			const container = getContainer()
+			veeqoService = container.resolve('veeqo')
+
+			const authService = container.resolve(Modules.AUTH)
+			const { authIdentity } = await authService.register('emailpass', {
+				body: { email: 'veeqo-delete-test@example.com', password: 'Sup3rSecret!' }
+			})
+
+			await createUserAccountWorkflow(container).run({
+				input: {
+					authIdentityId: authIdentity!.id,
+					userData: {
+						email: 'veeqo-delete-test@example.com',
+						first_name: 'VeeqoDelete',
+						last_name: 'Tester'
+					}
+				}
+			})
+
+			const loginRes = await api.post('/auth/user/emailpass', {
+				email: 'veeqo-delete-test@example.com',
+				password: 'Sup3rSecret!'
+			})
+			adminToken = loginRes.data.token
+		})
+
+		// ── deleteChannel ─────────────────────────────────────────────────────────
+
+		describe('deleteChannel', () => {
+			let salesChannelId: string
+
+			beforeAll(async () => {
+				const ts = Date.now()
+				const res = await api.post(
+					'/admin/sales-channels',
+					{ name: `VeeqoDeleteTest-Channel-${ts}` },
+					auth()
+				)
+				salesChannelId = res.data.sales_channel.id
+				await api.post(`/admin/veeqo/sales-channels/${salesChannelId}/sync`, {}, auth())
+			})
+
+			it('resolves without error', async () => {
+				await expect(veeqoService.deleteChannel(salesChannelId)).resolves.not.toThrow()
+			})
+
+			it('removes the Medusa-side link record after deletion', async () => {
+				const remaining = await veeqoService.listVeeqoChannels({ sales_channel_id: salesChannelId })
+				expect(remaining).toHaveLength(0)
+			})
+
+			it('throws NOT_FOUND when called again on an already-deleted channel', async () => {
+				await expect(veeqoService.deleteChannel(salesChannelId)).rejects.toThrow()
+			})
+		})
+
+		// ── deleteWarehouse ───────────────────────────────────────────────────────
+
+		describe('deleteWarehouse', () => {
+			let stockLocationId: string
+
+			beforeAll(async () => {
+				const ts = Date.now()
+				const res = await api.post(
+					'/admin/stock-locations',
+					{
+						name: `VeeqoDeleteTest-Warehouse-${ts}`,
+						address: {
+							address_1: '789 Delete Ave',
+							city: 'Portland',
+							province: 'OR',
+							country_code: 'us',
+							postal_code: '97201'
+						}
+					},
+					auth()
+				)
+				stockLocationId = res.data.stock_location.id
+				await api.post(`/admin/veeqo/stock-locations/${stockLocationId}/sync`, {}, auth())
+			})
+
+			it('resolves without error', async () => {
+				await expect(veeqoService.deleteWarehouse(stockLocationId)).resolves.not.toThrow()
+			})
+
+			it('removes the Medusa-side link record after deletion', async () => {
+				const remaining = await veeqoService.listVeeqoWarehouses({ stock_location_id: stockLocationId })
+				expect(remaining).toHaveLength(0)
+			})
+
+			it('throws NOT_FOUND when called again on an already-deleted warehouse', async () => {
+				await expect(veeqoService.deleteWarehouse(stockLocationId)).rejects.toThrow()
+			})
+		})
+
+		// ── deleteProduct ─────────────────────────────────────────────────────────
+
+		describe('deleteProduct', () => {
+			let productId: string
+
+			beforeAll(async () => {
+				const ts = Date.now()
+				const res = await api.post(
+					'/admin/products',
+					{
+						title: `VeeqoDeleteTest-Product-${ts}`,
+						status: 'published',
+						options: [{ title: 'Default', values: ['Default'] }],
+						variants: [
+							{
+								title: 'Default',
+								sku: `VEEQO-DEL-${ts}`,
+								options: { Default: 'Default' },
+								prices: [{ currency_code: 'usd', amount: 100 }]
+							}
+						]
+					},
+					auth()
+				)
+				productId = res.data.product.id
+				await api.post(`/admin/veeqo/products/${productId}/sync`, {}, auth())
+			})
+
+			it('resolves without error', async () => {
+				await expect(veeqoService.deleteProduct(productId)).resolves.not.toThrow()
+			})
+
+			it('removes the Medusa-side link record after deletion', async () => {
+				const remaining = await veeqoService.listVeeqoProducts({ product_id: productId })
+				expect(remaining).toHaveLength(0)
+			})
+
+			it('throws NOT_FOUND when called again on an already-deleted product', async () => {
+				await expect(veeqoService.deleteProduct(productId)).rejects.toThrow()
+			})
+		})
+
+		// ── deleteDeliveryMethod ──────────────────────────────────────────────────
+		//
+		// Shipping options require: sales channel (synced) → stock location (synced)
+		// → fulfillment set → service zone → shipping profile → shipping option (synced).
+
+		describe('deleteDeliveryMethod', () => {
+			let shippingOptionId: string
+			let salesChannelId: string
+			let stockLocationId: string
+
+			beforeAll(async () => {
+				const ts = Date.now()
+				const manualProviderId = 'manual_manual'
+
+				// Sales channel → sync
+				const scRes = await api.post(
+					'/admin/sales-channels',
+					{ name: `VeeqoDeleteTest-SC-${ts}` },
+					auth()
+				)
+				salesChannelId = scRes.data.sales_channel.id
+				await api.post(`/admin/veeqo/sales-channels/${salesChannelId}/sync`, {}, auth())
+
+				// Stock location → sync
+				const slRes = await api.post(
+					'/admin/stock-locations',
+					{
+						name: `VeeqoDeleteTest-WH-${ts}`,
+						address: {
+							address_1: '123 Delete St',
+							city: 'Portland',
+							province: 'OR',
+							country_code: 'us',
+							postal_code: '97201'
+						}
+					},
+					auth()
+				)
+				stockLocationId = slRes.data.stock_location.id
+				await api.post(`/admin/veeqo/stock-locations/${stockLocationId}/sync`, {}, auth())
+
+				// Attach manual fulfillment provider
+				await api.post(
+					`/admin/stock-locations/${stockLocationId}/fulfillment-providers`,
+					{ add: [manualProviderId] },
+					auth()
+				)
+
+				// Fulfillment set → service zone
+				await api.post(
+					`/admin/stock-locations/${stockLocationId}/fulfillment-sets`,
+					{ name: `VeeqoDeleteTest-FS-${ts}`, type: 'shipping' },
+					auth()
+				)
+				const slDetail = await api.get(
+					`/admin/stock-locations/${stockLocationId}?fields=fulfillment_sets.id`,
+					auth()
+				)
+				const fulfillmentSetId = slDetail.data.stock_location.fulfillment_sets[0].id
+
+				const szRes = await api.post(
+					`/admin/fulfillment-sets/${fulfillmentSetId}/service-zones`,
+					{
+						name: `VeeqoDeleteTest-SZ-${ts}`,
+						geo_zones: [{ type: 'country', country_code: 'us' }]
+					},
+					auth()
+				)
+				const serviceZoneId = szRes.data.fulfillment_set.service_zones[0].id
+
+				// Shipping profile
+				const spRes = await api.post(
+					'/admin/shipping-profiles',
+					{ name: `VeeqoDeleteTest-Profile-${ts}`, type: 'default' },
+					auth()
+				)
+				const shippingProfileId = spRes.data.shipping_profile.id
+
+				// Shipping option → sync to Veeqo as a delivery method
+				const soRes = await api.post(
+					'/admin/shipping-options',
+					{
+						name: `VeeqoDeleteTest-SO-${ts}`,
+						service_zone_id: serviceZoneId,
+						shipping_profile_id: shippingProfileId,
+						provider_id: manualProviderId,
+						price_type: 'flat',
+						prices: [{ currency_code: 'usd', amount: 500 }],
+						type: { label: 'Standard', description: 'Standard shipping', code: 'standard' }
+					},
+					auth()
+				)
+				shippingOptionId = soRes.data.shipping_option.id
+				await api.post(`/admin/veeqo/shipping-options/${shippingOptionId}/sync`, {}, auth())
+			})
+
+			afterAll(async () => {
+				// Sales channel and warehouse were synced as prerequisites; clean them up
+				// after the delivery method delete test has run. Errors here are swallowed
+				// intentionally — this is cleanup for prerequisite entities, not what is
+				// under test.
+				await veeqoService.deleteChannel(salesChannelId).catch(() => {})
+				await veeqoService.deleteWarehouse(stockLocationId).catch(() => {})
+			})
+
+			it('resolves without error', async () => {
+				await expect(veeqoService.deleteDeliveryMethod(shippingOptionId)).resolves.not.toThrow()
+			})
+
+			it('removes the Medusa-side link record after deletion', async () => {
+				const remaining = await veeqoService.listVeeqoDeliveryMethods({
+					shipping_option_id: shippingOptionId
+				})
+				expect(remaining).toHaveLength(0)
+			})
+
+			it('throws NOT_FOUND when called again on an already-deleted delivery method', async () => {
+				await expect(veeqoService.deleteDeliveryMethod(shippingOptionId)).rejects.toThrow()
+			})
+		})
+	}
+})

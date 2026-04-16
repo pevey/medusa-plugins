@@ -1,0 +1,112 @@
+openapi: 3.1.0
+info:
+  title: Order Notes API
+  version: 0.1.2
+  description: Order notes plugin adding Medusa v1-style notes for Medusa v2
+servers:
+  - url: http://localhost:9000
+    description: Local development
+paths:
+  /admin/order-notes:
+    get:
+      operationId: getAdminOrder-notes
+      summary: List Order Notes
+      tags:
+        - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: order_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  order-notes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        order_id:
+                          type: string
+                        user_id:
+                          type: string
+                        note:
+                          type: string
+                        sent:
+                          type: boolean
+                        created_at:
+                          type: string
+                          format: date-time
+                        updated_at:
+                          type: string
+                          format: date-time
+                  count:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+    post:
+      operationId: postAdminOrder-notes
+      summary: Create Order Note
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_id:
+                  type: string
+                note:
+                  type: string
+                sent:
+                  type: boolean
+                  default: false
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  nullable: true
+              required:
+                - order_id
+                - note
+                - sent
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object

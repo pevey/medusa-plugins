@@ -1,0 +1,35 @@
+{
+	"name": "medusa-plugins",
+	"private": true,
+	"description": "A workspace for developing Medusa plugins.",
+	"workspaces": [
+		"packages/*",
+		"apps/*"
+	],
+	"scripts": {
+		"prebuild": "node ./scripts/check-node-version.cjs && node ./scripts/dedupe-medusa.cjs",
+		"backend": "turbo dev --filter=test-backend",
+		"build": "turbo build",
+		"dev": "turbo dev",
+		"test:unit": "turbo test:unit",
+		"docs": "turbo docs:dev --filter=docs",
+		"docs:build": "turbo docs:build --filter=docs",
+		"generate:openapi": "turbo generate:openapi --filter=docs"
+	},
+	"devDependencies": {
+		"@medusajs/admin-sdk": "2.13.6",
+		"@medusajs/cli": "2.13.6",
+		"@medusajs/framework": "2.13.6",
+		"@medusajs/icons": "2.13.6",
+		"@medusajs/js-sdk": "2.13.6",
+		"@medusajs/medusa": "2.13.6",
+		"@medusajs/test-utils": "2.13.6",
+		"@medusajs/ui": "4.0.25",
+		"turbo": "^2"
+	},
+	"resolutions": {
+		"zod": "3.25.76",
+		"@astrojs/sitemap": "3.5.1"
+	},
+	"packageManager": "yarn@4.13.0+sha512.5c20ba010c99815433e5c8453112165e673f1c7948d8d2b267f4b5e52097538658388ebc9f9580656d9b75c5cc996f990f611f99304a2197d4c56d21eea370e7"
+}
