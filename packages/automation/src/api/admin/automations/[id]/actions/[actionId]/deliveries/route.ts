@@ -6,10 +6,19 @@ import { AdminGetAutomationDeliveriesType } from '../../../../../../validators'
 export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { actionId } = req.params
-	const { limit, offset, status } = req.validatedQuery as AdminGetAutomationDeliveriesType
+	const { limit, offset, status, since, until } = req.validatedQuery as AdminGetAutomationDeliveriesType
+
+	const filters: Record<string, unknown> = { action_id: actionId }
+	if (status) filters.status = status
+	if (since || until) {
+		filters.created_at = {
+			...(since ? { $gte: new Date(since) } : {}),
+			...(until ? { $lte: new Date(until) } : {})
+		}
+	}
 
 	const [deliveries, count] = await automationService.listAndCountAutomationDeliveries(
-		{ action_id: actionId, ...(status ? { status } : {}) },
+		filters,
 		{
 			skip: offset ?? 0,
 			take: limit ?? 20,

@@ -141,6 +141,19 @@ export type AdminUpsertAutomationQueryType = z.infer<typeof AdminUpsertAutomatio
 import { AutomationDeliveryStatus } from '../modules/automation/models/automation-delivery'
 
 export const AdminGetAutomationDeliveries = createFindParams().extend({
-	status: z.nativeEnum(AutomationDeliveryStatus).optional()
+	status: z.nativeEnum(AutomationDeliveryStatus).optional(),
+	since: z.string().datetime({ offset: true }).optional(),
+	until: z.string().datetime({ offset: true }).optional()
 })
 export type AdminGetAutomationDeliveriesType = z.infer<typeof AdminGetAutomationDeliveries>
+
+export const AdminRetryAutomationDeliveries = z.object({
+	delivery_ids: z.array(z.string()).min(1).optional(),
+	status: z.nativeEnum(AutomationDeliveryStatus).optional(),
+	since: z.string().datetime({ offset: true }).optional(),
+	until: z.string().datetime({ offset: true }).optional()
+}).refine(
+	data => data.delivery_ids || data.status || data.since || data.until,
+	{ message: 'Provide delivery_ids or at least one filter (status, since, until)' }
+)
+export type AdminRetryAutomationDeliveriesType = z.infer<typeof AdminRetryAutomationDeliveries>

@@ -25,7 +25,7 @@ export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse)
 				}
 			})
 
-			const server = createMcpServer(req.scope)
+			const server = await createMcpServer(req.scope)
 			await server.connect(transport)
 		} else {
 			res.status(400).json({

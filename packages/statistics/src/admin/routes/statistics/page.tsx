@@ -11,7 +11,6 @@ import {
 	useRecalculateStatistics
 } from '../../hooks/statistics'
 import { WIDGETS, StatisticsWidget } from './widgets'
-import { McpQuery } from '../../components/mcp-query'
 
 export const config = defineRouteConfig({
 	label: 'Statistics',
@@ -168,7 +167,6 @@ const StatisticsPage = () => {
 								Customize
 							</Button>
 						)}
-						<McpQuery />
 					</div>
 				</div>
 			</Container>

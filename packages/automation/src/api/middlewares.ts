@@ -12,6 +12,7 @@ import {
 	AdminGetAutomationSecrets,
 	AdminGetAutomationTrigger,
 	AdminGetAutomationTriggers,
+	AdminRetryAutomationDeliveries,
 	AdminUpdateAutomationAction,
 	AdminUpdateAutomationTrigger,
 	AdminUpsertAutomationQuery
@@ -134,6 +135,11 @@ export default defineMiddlewares([
 				defaultLimit: 20
 			})
 		]
+	},
+	{
+		matcher: '/admin/automations/:id/actions/:actionId/deliveries/retry',
+		method: ['POST'],
+		middlewares: [validateAndTransformBody(AdminRetryAutomationDeliveries)]
 	},
 	{
 		matcher: '/admin/automations/:id/receipts',

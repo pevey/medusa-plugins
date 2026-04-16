@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { LoaderFunctionArgs, UIMatch, useNavigate, useParams } from 'react-router-dom'
-import { Badge, Container, Heading, Text, toast, usePrompt } from '@medusajs/ui'
-import { PencilSquare, Trash } from '@medusajs/icons'
+import { Badge, Button, Container, Heading, Text, toast, usePrompt } from '@medusajs/ui'
+import { ArrowPath, PencilSquare, Trash } from '@medusajs/icons'
 import { sdk } from '../../../../../../lib/sdk'
 import { ActionMenu } from '../../../../../../components/action-menu'
 import { EditAutomationActionDrawer } from '../../../../../../components/edit-automation-action-drawer'
 import { MEDUSA_WORKFLOWS_BY_NAME } from '../../../../../../lib/medusa-workflows'
 import { ActionType, AutomationDelivery } from '../../../../../../types'
-import { useAutomationAction, useAutomationDeliveries, useDeleteAutomationActions } from '../../../../../../hooks/automations'
+import { useAutomationAction, useAutomationDeliveries, useDeleteAutomationActions, useRetryAutomationDeliveries } from '../../../../../../hooks/automations'
 
 type LoaderData = { action: { id: string; name: string } }
 
@@ -40,6 +40,44 @@ const AutomationActionDetailPage = () => {
 	const { data: deliveriesData } = useAutomationDeliveries(triggerId, actionId)
 
 	const { mutate: deleteActions } = useDeleteAutomationActions(triggerId!)
+	const { mutate: retryDeliveries, isPending: retrying } = useRetryAutomationDeliveries(triggerId!, actionId!)
+	const [selectedDeliveryIds, setSelectedDeliveryIds] = useState<Set<string>>(new Set())
+
+	const toggleDeliverySelection = (id: string) => {
+		setSelectedDeliveryIds(prev => {
+			const next = new Set(prev)
+			if (next.has(id)) next.delete(id)
+			else next.add(id)
+			return next
+		})
+	}
+
+	const handleRetrySelected = () => {
+		retryDeliveries(
+			{ delivery_ids: Array.from(selectedDeliveryIds) },
+			{
+				onSuccess: (data) => {
+					toast.success(`Retried ${data.retried}: ${data.succeeded} succeeded, ${data.failed} failed`)
+					setSelectedDeliveryIds(new Set())
+				},
+				onError: () => toast.error('Retry failed')
+			}
+		)
+	}
+
+	const handleRetryAllFailed = () => {
+		retryDeliveries(
+			{ status: 'failed' },
+			{
+				onSuccess: (data) => {
+					toast.success(`Retried ${data.retried}: ${data.succeeded} succeeded, ${data.failed} failed`)
+				},
+				onError: () => toast.error('Retry failed')
+			}
+		)
+	}
+
+	const failedDeliveries = deliveriesData?.deliveries.filter(d => d.status === 'failed') ?? []
 
 	const handleDelete = async () => {
 		const confirmed = await prompt({ title: 'Delete action?', description: 'This will also delete all associated deliveries. This action cannot be undone.', confirmText: 'Delete', cancelText: 'Cancel', variant: 'danger' })
@@ -126,16 +164,38 @@ const AutomationActionDetailPage = () => {
 			)}
 
 			<Container className="divide-y p-0">
-				<div className="px-6 py-4">
-					<Heading level="h2">Recent Deliveries</Heading>
-					<Text size="small" className="text-ui-fg-subtle mt-1">Last 10 delivery attempts for this action.</Text>
+				<div className="flex items-center justify-between px-6 py-4">
+					<div>
+						<Heading level="h2">Recent Deliveries</Heading>
+						<Text size="small" className="text-ui-fg-subtle mt-1">Last 10 delivery attempts for this action.</Text>
+					</div>
+					<div className="flex items-center gap-2">
+						{selectedDeliveryIds.size > 0 && (
+							<Button size="small" variant="secondary" onClick={handleRetrySelected} isLoading={retrying}>
+								<ArrowPath className="mr-1" />
+								Retry Selected ({selectedDeliveryIds.size})
+							</Button>
+						)}
+						{failedDeliveries.length > 0 && selectedDeliveryIds.size === 0 && (
+							<Button size="small" variant="secondary" onClick={handleRetryAllFailed} isLoading={retrying}>
+								<ArrowPath className="mr-1" />
+								Retry All Failed ({failedDeliveries.length})
+							</Button>
+						)}
+					</div>
 				</div>
 				{!deliveriesData || deliveriesData.deliveries.length === 0 ? (
 					<div className="px-6 py-4"><Text size="small" className="text-ui-fg-subtle">No deliveries yet.</Text></div>
 				) : (
 					<div className="divide-y">
 						{deliveriesData.deliveries.map(delivery => (
-							<div key={delivery.id} className="grid grid-cols-4 items-center gap-2 px-6 py-3">
+							<div key={delivery.id} className="grid grid-cols-[auto_1fr_auto_1fr_1fr] items-center gap-2 px-6 py-3">
+								<input
+									type="checkbox"
+									checked={selectedDeliveryIds.has(delivery.id)}
+									onChange={() => toggleDeliverySelection(delivery.id)}
+									className="rounded border-ui-border-base"
+								/>
 								<Text size="small" leading="compact" className="font-mono text-xs truncate">{delivery.event_name}</Text>
 								<DeliveryStatusBadge status={delivery.status} />
 								<Text size="small" leading="compact" className="text-ui-fg-subtle">{delivery.response_status ? `HTTP ${delivery.response_status}` : delivery.error_message ?? '—'}</Text>

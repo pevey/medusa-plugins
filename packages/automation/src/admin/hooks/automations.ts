@@ -222,6 +222,20 @@ export const useAutomationDeliveries = (triggerId: string | undefined, actionId:
 	})
 }
 
+export const useRetryAutomationDeliveries = (triggerId: string, actionId: string) => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (body: { delivery_ids?: string[]; status?: string; since?: string; until?: string }) =>
+			sdk.client.fetch<{ retried: number; succeeded: number; failed: number }>(
+				`/admin/automations/${triggerId}/actions/${actionId}/deliveries/retry`,
+				{ method: 'POST', body }
+			),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['automation-action-deliveries', actionId] })
+		}
+	})
+}
+
 export const useDeleteAutomationSecret = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
