@@ -1,0 +1,46 @@
+---
+title: MCP
+description: MCP server and LLM chat plugin for Medusa v2
+prev: false
+---
+
+MCP server and LLM chat plugin for Medusa v2. Exposes Medusa data and operations to LLMs via the Model Context Protocol, with an admin chat UI and package-based tool discovery from installed plugins.
+
+## Features
+
+- MCP server exposing Medusa data and operations as tools
+- Package-based tool discovery — installed plugins can contribute their own tools
+- Admin chat UI for conversing with an LLM that uses the discovered tools
+- Module service backing chat sessions and tool execution
+
+## Installation
+
+Inside your medusa backend root folder:
+
+```bash
+yarn add medusa-plugin-mcp
+```
+
+Replace "yarn add" with the correct command for your package manager if you are using (for example) npm, pnpm, or bun.
+
+## Configuration
+
+Enable in your `medusa-config.ts` file. Example:
+
+```ts
+module.exports = defineConfig({
+	//... other config
+	plugins: [
+		{
+			resolve: 'medusa-plugin-mcp',
+			options: {}
+		}
+		// ... other plugins
+	]
+})
+```
+
+## Usage
+
+- Open the chat UI from the Medusa admin to interact with the LLM.
+- Install other plugins that expose MCP tools to broaden the assistant's capabilities.

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Automation API
-  version: 0.1.0
+  version: 0.2.0
   description: Automation plugin for Medusa v2 with triggers, actions, and HMAC signing
 servers:
   - url: http://localhost:9000

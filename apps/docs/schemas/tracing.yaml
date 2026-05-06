@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Tracing API
-  version: 0.1.1
+  version: 0.2.0
   description: Inventory tracing plugin for Medusa v2 with stock lots and serial numbers
 servers:
   - url: http://localhost:9000
