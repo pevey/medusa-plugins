@@ -2,7 +2,9 @@
 	"extends": "../../_tsconfig.base.json",
 	"compilerOptions": {
 		"outDir": "./.medusa/server",
-		"rootDir": "./"
+		"rootDir": "./",
+		"module": "nodenext",
+		"moduleResolution": "nodenext"
 	},
 	"include": ["**/*", ".medusa/types/*"],
 	"exclude": ["node_modules", ".medusa/server", ".medusa/admin", "src/admin", ".cache"]
