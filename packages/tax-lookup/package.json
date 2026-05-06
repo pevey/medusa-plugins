@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-tax-lookup",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Tax rate lookup provider for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",

@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-ses",
-	"version": "3.1.0",
+	"version": "3.2.0",
 	"description": "AWS SES email notification provider for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",

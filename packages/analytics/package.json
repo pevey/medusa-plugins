@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-analytics",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Privacy-first analytics plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"repository": {

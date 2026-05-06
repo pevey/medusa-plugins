@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-r2",
-	"version": "1.0.4",
+	"version": "1.1.0",
 	"description": "R2 file storage provider for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",

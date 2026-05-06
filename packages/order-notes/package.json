@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-order-notes",
-	"version": "0.1.2",
+	"version": "0.2.0",
 	"description": "Order notes plugin adding Medusa v1-style notes for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",

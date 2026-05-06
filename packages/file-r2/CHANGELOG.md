@@ -1,3 +1,8 @@
+## 1.1.0
+
+- Updated medusa peer dependencies to ^2.14
+  Requires that your backend project is using zod v4
+
 ## 1.0.4
 
 - Added deleteByUrl() method

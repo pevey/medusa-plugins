@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-forms",
-	"version": "0.1.1",
+	"version": "0.2.0",
 	"description": "Form builder and submission management plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",
