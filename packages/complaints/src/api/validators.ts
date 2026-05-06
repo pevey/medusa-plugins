@@ -19,7 +19,7 @@ export const AdminGetComplaints = createFindParams({
 			if (val === 'open') return ComplaintStatus.OPEN
 			if (val === 'closed') return ComplaintStatus.CLOSED
 			return val
-		}, z.nativeEnum(ComplaintStatus))
+		}, z.enum(ComplaintStatus))
 		.optional(),
 	q: z.string().optional()
 })
@@ -38,9 +38,10 @@ export const AdminCreateComplaint = z
 		serial_number_id: z.string().optional(),
 		tag_ids: z.array(z.string()).optional(),
 		tags: z.array(z.string()).optional(),
-		metadata: z.record(z.unknown()).nullable().optional()
+		metadata: z.record(z.string(), z.unknown()).nullable().optional()
 	})
-	.superRefine((val, ctx) => {
+	.check((ctx) => {
+		const val = ctx.value
 		if (val.tag_ids && val.tags) {
 			// If both tag_ids and tags are provided, combine them and remove duplicates
 			const combinedTags = Array.from(new Set([...val.tag_ids, ...(val.tags || [])]))
@@ -66,7 +67,7 @@ export const AdminUpdateComplaint = z
 				if (val === 'open') return ComplaintStatus.OPEN
 				if (val === 'closed') return ComplaintStatus.CLOSED
 				return val
-			}, z.nativeEnum(ComplaintStatus))
+			}, z.enum(ComplaintStatus))
 			.optional(),
 		description: z.string().optional(),
 		customer_id: z.string().optional(),
@@ -76,9 +77,10 @@ export const AdminUpdateComplaint = z
 		serial_number_id: z.string().optional(),
 		tag_ids: z.array(z.string()).optional(),
 		tags: z.array(z.string()).optional(),
-		metadata: z.record(z.unknown()).nullable().optional()
+		metadata: z.record(z.string(), z.unknown()).nullable().optional()
 	})
-	.superRefine((val, ctx) => {
+	.check((ctx) => {
+		const val = ctx.value
 		if (val.tag_ids && val.tags) {
 			// If both tag_ids and tags are provided, combine them and remove duplicates
 			const combinedTags = Array.from(new Set([...val.tag_ids, ...(val.tags || [])]))
@@ -106,7 +108,7 @@ export type AdminGetComplaintTagsType = z.infer<typeof AdminGetComplaintTags>
 
 export const AdminCreateComplaintTag = z.object({
 	value: z.string(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminCreateComplaintTagType = z.infer<typeof AdminCreateComplaintTag>
 
@@ -117,7 +119,7 @@ export type AdminDeleteComplaintTagsType = z.infer<typeof AdminDeleteComplaintTa
 
 export const AdminUpdateComplaintTag = z.object({
 	value: z.string().optional(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminUpdateComplaintTagType = z.infer<typeof AdminUpdateComplaintTag>
 
@@ -126,17 +128,20 @@ export const AdminAddComplaintTag = z
 		tag_id: z.string().optional(),
 		tag: z.string().optional()
 	})
-	.superRefine((val, ctx) => {
+	.check((ctx) => {
+		const val = ctx.value
 		if (val.tag && val.tag_id) {
-			ctx.addIssue({
+			ctx.issues.push({
 				path: ['tag', 'tag_id'],
-				code: z.ZodIssueCode.custom,
+				code: 'custom',
+				input: val,
 				message: 'Only one of tag or tag_id can be provided'
 			})
 		} else if (!val.tag && !val.tag_id) {
-			ctx.addIssue({
+			ctx.issues.push({
 				path: ['tag', 'tag_id'],
-				code: z.ZodIssueCode.custom,
+				code: 'custom',
+				input: val,
 				message: 'Either tag or tag_id must be provided'
 			})
 		} else if (val.tag_id && !val.tag) {
@@ -166,10 +171,10 @@ export const AdminCreateComplaintActivity = z.object({
 			if (val === 'close') return ComplaintActivityType.CLOSE
 			if (val === 'note') return ComplaintActivityType.NOTE
 			return val
-		}, z.nativeEnum(ComplaintActivityType))
+		}, z.enum(ComplaintActivityType))
 		.default(ComplaintActivityType.NOTE),
 	note: z.string().optional(),
-	metadata: z.record(z.unknown()).optional()
+	metadata: z.record(z.string(), z.unknown()).optional()
 })
 export type AdminCreateComplaintActivityType = z.infer<typeof AdminCreateComplaintActivity>
 
@@ -195,10 +200,10 @@ export const AdminUpdateComplaintActivity = z.object({
 			if (val === 'close') return ComplaintActivityType.CLOSE
 			if (val === 'note') return ComplaintActivityType.NOTE
 			return val
-		}, z.nativeEnum(ComplaintActivityType))
+		}, z.enum(ComplaintActivityType))
 		.optional(),
 	note: z.string().optional(),
-	metadata: z.record(z.unknown()).optional()
+	metadata: z.record(z.string(), z.unknown()).optional()
 })
 export type AdminUpdateComplaintActivityType = z.infer<typeof AdminUpdateComplaintActivity>
 

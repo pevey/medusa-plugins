@@ -1,0 +1,86 @@
+openapi: 3.1.0
+info:
+  title: Mcp API
+  version: 0.1.0
+  description: MCP server and LLM chat plugin for Medusa v2
+servers:
+  - url: http://localhost:9000
+    description: Local development
+paths:
+  /admin/mcp:
+    get:
+      operationId: getAdminMcp
+      summary: List Mcp
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      operationId: postAdminMcp
+      summary: Create Mcp
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      operationId: deleteAdminMcp
+      summary: Batch Delete Mcp
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  deleted:
+                    type: boolean
+  /admin/chat:
+    post:
+      operationId: postAdminChat
+      summary: Create Chat
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messages:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - user
+                      - assistant
+                content:
+                  type: string
+                  minLength: 1
+              required:
+                - messages
+                - content
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object

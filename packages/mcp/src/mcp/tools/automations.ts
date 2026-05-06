@@ -111,7 +111,7 @@ export function registerAutomationTools(
 			description: 'Manually fire all active actions on an automation trigger with a given payload.',
 			inputSchema: {
 				trigger_id: z.string().describe('The automation trigger ID'),
-				payload: z.record(z.unknown()).optional().default({}).describe('The payload to dispatch')
+				payload: z.record(z.string(), z.unknown()).optional().default({}).describe('The payload to dispatch')
 			}
 		},
 		async ({ trigger_id, payload }) => {

@@ -26,9 +26,9 @@ const slugSchema = z
 export const AdminCreateContentCollection = z.object({
 	label: z.string(),
 	slug: slugSchema,
-	format: z.nativeEnum(ContentFormat),
+	format: z.enum(ContentFormat),
 	prefix: z.string().nullable().optional(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminCreateContentCollectionType = z.infer<typeof AdminCreateContentCollection>
 
@@ -36,7 +36,7 @@ export const AdminUpdateContentCollection = z.object({
 	label: z.string().optional(),
 	slug: slugSchema.optional(),
 	prefix: z.string().nullable().optional(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminUpdateContentCollectionType = z.infer<typeof AdminUpdateContentCollection>
 
@@ -58,7 +58,7 @@ export const AdminCreateContentCollectionField = z.object({
 	label: z.string(),
 	field_type: z.string(),
 	required: z.boolean().optional(),
-	options: z.record(z.unknown()).nullable().optional(),
+	options: z.record(z.string(), z.unknown()).nullable().optional(),
 	default_value: z.any(),
 	sort_order: z.number().int().optional()
 })
@@ -68,7 +68,7 @@ export const AdminUpdateContentCollectionField = z.object({
 	label: z.string().optional(),
 	field_type: z.string().optional(),
 	required: z.boolean().optional(),
-	options: z.record(z.unknown()).nullable().optional(),
+	options: z.record(z.string(), z.unknown()).nullable().optional(),
 	default_value: z.any(),
 	sort_order: z.number().int().optional()
 })
@@ -89,7 +89,7 @@ export type AdminGetContentCollectionRelationshipType = z.infer<typeof AdminGetC
 
 export const AdminCreateContentCollectionRelationship = z.object({
 	target_collection_id: z.string(),
-	relationship_type: z.nativeEnum(ContentRelationshipType)
+	relationship_type: z.enum(ContentRelationshipType)
 })
 export type AdminCreateContentCollectionRelationshipType = z.infer<
 	typeof AdminCreateContentCollectionRelationship
@@ -108,16 +108,16 @@ export type AdminGetContentCreatorType = z.infer<typeof AdminGetContentCreator>
 export const AdminCreateContentCreator = z.object({
 	name: z.string(),
 	bio: z.string().nullable().optional(),
-	avatar_url: z.string().url().nullable().optional(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	avatar_url: z.url().nullable().optional(),
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminCreateContentCreatorType = z.infer<typeof AdminCreateContentCreator>
 
 export const AdminUpdateContentCreator = z.object({
 	name: z.string().optional(),
 	bio: z.string().nullable().optional(),
-	avatar_url: z.string().url().nullable().optional(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	avatar_url: z.url().nullable().optional(),
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminUpdateContentCreatorType = z.infer<typeof AdminUpdateContentCreator>
 
@@ -132,7 +132,7 @@ export const AdminGetContentCreatorActivity = createFindParams({ limit: 20, offs
 export type AdminGetContentCreatorActivityType = z.infer<typeof AdminGetContentCreatorActivity>
 
 export const AdminCreateContentCreatorActivity = z.object({
-	type: z.nativeEnum(ContentCreatorActivityType).default(ContentCreatorActivityType.NOTE),
+	type: z.enum(ContentCreatorActivityType).default(ContentCreatorActivityType.NOTE),
 	note: z.string().nullable().optional()
 })
 export type AdminCreateContentCreatorActivityType = z.infer<
@@ -150,7 +150,7 @@ export type AdminDeleteContentCreatorActivityType = z.infer<
 
 export const AdminGetContentItems = createFindParams({ limit: 15, offset: 0 }).extend({
 	creator_id: z.string().optional(),
-	status: z.nativeEnum(ContentStatus).optional(),
+	status: z.enum(ContentStatus).optional(),
 	q: z.string().optional()
 })
 export type AdminGetContentItemsType = z.infer<typeof AdminGetContentItems>
@@ -163,9 +163,9 @@ export const AdminCreateContentItem = z.object({
 	slug: slugSchema,
 	creator_id: z.string().nullable().optional(),
 	body: z.string().nullable().optional(),
-	status: z.nativeEnum(ContentStatus).optional(),
+	status: z.enum(ContentStatus).optional(),
 	published_at: z.coerce.date().nullable().optional(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminCreateContentItemType = z.infer<typeof AdminCreateContentItem>
 
@@ -174,9 +174,9 @@ export const AdminUpdateContentItem = z.object({
 	slug: slugSchema.optional(),
 	creator_id: z.string().nullable().optional(),
 	body: z.string().nullable().optional(),
-	status: z.nativeEnum(ContentStatus).optional(),
+	status: z.enum(ContentStatus).optional(),
 	published_at: z.coerce.date().nullable().optional(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminUpdateContentItemType = z.infer<typeof AdminUpdateContentItem>
 
@@ -191,7 +191,7 @@ export const AdminGetContentItemActivity = createFindParams({ limit: 20, offset:
 export type AdminGetContentItemActivityType = z.infer<typeof AdminGetContentItemActivity>
 
 export const AdminCreateContentItemActivity = z.object({
-	type: z.nativeEnum(ContentItemActivityType).default(ContentItemActivityType.NOTE),
+	type: z.enum(ContentItemActivityType).default(ContentItemActivityType.NOTE),
 	note: z.string().nullable().optional()
 })
 export type AdminCreateContentItemActivityType = z.infer<typeof AdminCreateContentItemActivity>
@@ -226,13 +226,13 @@ export type AdminGetContentTagType = z.infer<typeof AdminGetContentTag>
 export const AdminCreateContentTag = z.object({
 	value: z.string(),
 	item_id: z.string(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminCreateContentTagType = z.infer<typeof AdminCreateContentTag>
 
 export const AdminUpdateContentTag = z.object({
 	value: z.string().optional(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminUpdateContentTagType = z.infer<typeof AdminUpdateContentTag>
 
@@ -243,7 +243,7 @@ export type AdminDeleteContentTagsType = z.infer<typeof AdminDeleteContentTags>
 
 export const AdminAddContentTag = z.object({
 	value: z.string(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminAddContentTagType = z.infer<typeof AdminAddContentTag>
 

@@ -163,6 +163,10 @@
 					"link": "/medusa-plugin-automation/api/operations/getadminautomationsbyidactionsbyactioniddeliveries/"
 				},
 				{
+					"label": "Retry Delivery",
+					"link": "/medusa-plugin-automation/api/operations/postadminautomationsbyidactionsbyactioniddeliveriesretry/"
+				},
+				{
 					"label": "List Receipts",
 					"link": "/medusa-plugin-automation/api/operations/getadminautomationsbyidreceipts/"
 				},
@@ -615,6 +619,30 @@
 			]
 		}
 	],
+	"medusa-plugin-mcp": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Mcp",
+					"link": "/medusa-plugin-mcp/api/operations/getadminmcp/"
+				},
+				{
+					"label": "Create Mcp",
+					"link": "/medusa-plugin-mcp/api/operations/postadminmcp/"
+				},
+				{
+					"label": "Batch Delete Mcp",
+					"link": "/medusa-plugin-mcp/api/operations/deleteadminmcp/"
+				},
+				{
+					"label": "Create Chat",
+					"link": "/medusa-plugin-mcp/api/operations/postadminchat/"
+				}
+			]
+		}
+	],
 	"medusa-plugin-order-notes": [
 		{
 			"label": "Admin",
@@ -686,18 +714,6 @@
 			"label": "Admin",
 			"collapsed": true,
 			"items": [
-				{
-					"label": "List Mcp",
-					"link": "/medusa-plugin-statistics/api/operations/getadminmcp/"
-				},
-				{
-					"label": "Create Mcp",
-					"link": "/medusa-plugin-statistics/api/operations/postadminmcp/"
-				},
-				{
-					"label": "Batch Delete Mcp",
-					"link": "/medusa-plugin-statistics/api/operations/deleteadminmcp/"
-				},
 				{
 					"label": "List Statistics",
 					"link": "/medusa-plugin-statistics/api/operations/getadminstatistics/"

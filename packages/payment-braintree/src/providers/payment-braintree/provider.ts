@@ -201,7 +201,7 @@ export class BraintreeProvider extends AbstractPaymentProvider<BraintreeOptions>
 						.object({
 							firstName: z.string(),
 							lastName: z.string(),
-							email: z.string().email(),
+							email: z.email(),
 							phone: z.string().optional()
 						})
 						.optional(),

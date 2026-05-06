@@ -23,7 +23,7 @@ export function registerQueryTool(server: McpServer, scope: MedusaContainer) {
 			inputSchema: {
 				entity: z.enum(ALLOWED_ENTITIES as [string, ...string[]]),
 				fields: z.array(z.string()).min(1).describe('Fields to return, e.g. ["id", "email", "orders.id"]'),
-				filters: z.record(z.unknown()).optional().describe('Filter conditions, e.g. { status: "completed" }'),
+				filters: z.record(z.string(), z.unknown()).optional().describe('Filter conditions, e.g. { status: "completed" }'),
 				limit: z.coerce.number().int().min(1).max(100).optional().default(20),
 				offset: z.coerce.number().int().min(0).optional().default(0)
 			}

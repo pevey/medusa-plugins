@@ -18,7 +18,7 @@ export const AdminUpdateReview = z.object({
 	title: z.string().optional(),
 	body: z.string().optional(),
 	rating: z.number().min(1).max(5).optional(),
-	metadata: z.record(z.unknown()).optional()
+	metadata: z.record(z.string(), z.unknown()).optional()
 })
 
 export type AdminDeleteReviewsType = z.infer<typeof AdminDeleteReviews>
@@ -44,7 +44,7 @@ export const StoreCreateReview = z.object({
 	title: z.string().optional(),
 	body: z.string().min(1, 'Review body is required'),
 	author_name: z.string().min(1, 'Author name is required'),
-	author_email: z.string().email().optional(),
+	author_email: z.email().optional(),
 	order_id: z.string().optional()
 })
 

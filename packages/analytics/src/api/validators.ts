@@ -21,7 +21,7 @@ export const AdminCreateRubric = z.object({
 	name: z.string().min(1).regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case (e.g. product_viewed)'),
 	label: z.string().min(1),
 	description: z.string().optional(),
-	expected_properties: z.record(z.unknown()).optional(),
+	expected_properties: z.record(z.string(), z.unknown()).optional(),
 	active: z.boolean().optional()
 })
 
@@ -30,7 +30,7 @@ export const AdminUpdateRubric = z.object({
 	name: z.string().min(1).regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case').optional(),
 	label: z.string().min(1).optional(),
 	description: z.string().nullable().optional(),
-	expected_properties: z.record(z.unknown()).nullable().optional(),
+	expected_properties: z.record(z.string(), z.unknown()).nullable().optional(),
 	active: z.boolean().optional()
 })
 
@@ -119,7 +119,7 @@ export const AdminCreateSegment = z.object({
 		conditions: z.array(z.object({
 			type: z.enum(['event_performed', 'event_not_performed', 'identity_property']),
 			event: z.string().optional(),
-			count: z.record(z.number()).optional(),
+			count: z.record(z.string(), z.number()).optional(),
 			timeframe_days: z.number().optional(),
 			key: z.string().optional(),
 			operator: z.string().optional()
@@ -138,7 +138,7 @@ export const AdminUpdateSegment = z.object({
 		conditions: z.array(z.object({
 			type: z.enum(['event_performed', 'event_not_performed', 'identity_property']),
 			event: z.string().optional(),
-			count: z.record(z.number()).optional(),
+			count: z.record(z.string(), z.number()).optional(),
 			timeframe_days: z.number().optional(),
 			key: z.string().optional(),
 			operator: z.string().optional()
@@ -161,7 +161,7 @@ export type StoreTrackEventType = z.infer<typeof StoreTrackEvent>
 export const StoreTrackEvent = z.object({
 	event: z.string().min(1),
 	actor_id: z.string().optional(),
-	session_id: z.string().uuid().optional(),
-	properties: z.record(z.unknown()).optional(),
+	session_id: z.uuid().optional(),
+	properties: z.record(z.string(), z.unknown()).optional(),
 	sales_channel_id: z.string().optional()
 })

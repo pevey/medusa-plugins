@@ -14,7 +14,7 @@ export type AdminGetBarcodesType = z.infer<typeof AdminGetBarcodes>
 
 export const AdminCreateBarcode = z.object({
 	url: z.string(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminCreateBarcodeType = z.infer<typeof AdminCreateBarcode>
 
@@ -23,12 +23,10 @@ export const AdminDeleteBarcodes = z.object({
 })
 export type AdminDeleteBarcodesType = z.infer<typeof AdminDeleteBarcodes>
 
-export const AdminUpdateBarcode = z
-	.object({
-		url: z.string().optional(),
-		metadata: z.record(z.unknown()).nullable().optional()
-	})
-	.passthrough()
+export const AdminUpdateBarcode = z.looseObject({
+	url: z.string().optional(),
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
+})
 export type AdminUpdateBarcodeType = z.infer<typeof AdminUpdateBarcode>
 
 export const AdminRenderBarcode = z.object({

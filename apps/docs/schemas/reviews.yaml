@@ -368,7 +368,6 @@ paths:
                   minLength: 1
                 author_email:
                   type: string
-                  format: email
                 order_id:
                   type: string
               required:

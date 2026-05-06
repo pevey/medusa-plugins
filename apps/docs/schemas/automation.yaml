@@ -739,6 +739,16 @@ paths:
           required: false
           schema:
             type: string
+        - name: since
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: until
+          in: query
+          required: false
+          schema:
+            type: string
         - name: id
           in: path
           required: true
@@ -790,6 +800,48 @@ paths:
                     type: integer
                   offset:
                     type: integer
+  /admin/automations/{id}/actions/{actionId}/deliveries/retry:
+    post:
+      operationId: postAdminAutomationsByidActionsByactionIdDeliveriesRetry
+      summary: Retry Delivery
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: actionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                delivery_ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                status:
+                  type: string
+                since:
+                  type: string
+                until:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
   /admin/automations/{id}/receipts:
     get:
       operationId: getAdminAutomationsByidReceipts

@@ -33,8 +33,8 @@ export const AdminCreateForm = z.object({
 	description: z.string().nullable().optional(),
 	active: z.boolean().optional(),
 	turnstile_enabled: z.boolean().optional(),
-	notification_emails: z.array(z.string().email()).nullable().optional(),
-	metadata: z.record(z.unknown()).nullable().optional(),
+	notification_emails: z.array(z.email()).nullable().optional(),
+	metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 	form_fields: z.array(fieldInputSchema).optional()
 })
 export type AdminCreateFormType = z.infer<typeof AdminCreateForm>
@@ -45,8 +45,8 @@ export const AdminUpdateForm = z.object({
 	description: z.string().nullable().optional(),
 	active: z.boolean().optional(),
 	turnstile_enabled: z.boolean().optional(),
-	notification_emails: z.array(z.string().email()).nullable().optional(),
-	metadata: z.record(z.unknown()).nullable().optional(),
+	notification_emails: z.array(z.email()).nullable().optional(),
+	metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 	form_fields: z
 		.array(
 			z.object({
@@ -145,6 +145,6 @@ export type AdminDeleteFormFieldOptionsType = z.infer<typeof AdminDeleteFormFiel
 
 export const StoreSubmitForm = z.object({
 	token: z.string().optional(),
-	data: z.record(z.unknown())
+	data: z.record(z.string(), z.unknown())
 })
 export type StoreSubmitFormType = z.infer<typeof StoreSubmitForm>

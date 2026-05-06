@@ -54,31 +54,35 @@
 		"prepublishOnly": "medusa plugin:build"
 	},
 	"dependencies": {
-		"@anthropic-ai/sdk": "^0.51.0",
-		"@modelcontextprotocol/sdk": "^1.29.0",
-		"ollama": "^0.6.3",
-		"openai": "^4.98.0",
-		"recharts": "^2.15.3"
+		"@anthropic-ai/sdk": "0.51.0",
+		"@modelcontextprotocol/sdk": "1.29.0",
+		"ollama": "0.6.3",
+		"openai": "4.98.0",
+		"recharts": "2.15.3"
 	},
 	"devDependencies": {
-		"@medusajs/admin-sdk": "2.13.6",
-		"@medusajs/cli": "2.13.6",
-		"@medusajs/framework": "2.13.6",
-		"@medusajs/icons": "2.13.6",
-		"@medusajs/ui": "4.0.25",
-		"@types/node": "^20.0.0",
-		"@types/react": "^18.3.2",
-		"@types/react-dom": "^18.2.25",
-		"prop-types": "^15.8.1",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
-		"typescript": "^5.6.2",
-		"vite": "^5.2.11"
+		"@medusajs/admin-sdk": "2.14.2",
+		"@medusajs/cli": "2.14.2",
+		"@medusajs/framework": "2.14.2",
+		"@medusajs/icons": "2.14.2",
+		"@medusajs/ui": "4.1.9",
+		"@types/node": "20.0.0",
+		"@types/react": "18.3.2",
+		"@types/react-dom": "18.2.25",
+		"medusa-plugin-automation": "workspace:*",
+		"medusa-plugin-statistics": "workspace:*",
+		"prop-types": "15.8.1",
+		"react": "18.3.1",
+		"react-dom": "18.3.1",
+		"typescript": "5.6.2",
+		"vite": "5.4.14"
 	},
 	"peerDependencies": {
-		"@medusajs/framework": "2.13.6",
-		"@medusajs/js-sdk": "2.13.6",
-		"@medusajs/medusa": "2.13.6"
+		"@medusajs/framework": "2.14.2",
+		"@medusajs/js-sdk": "2.14.2",
+		"@medusajs/medusa": "2.14.2",
+		"medusa-plugin-automation": "*",
+		"medusa-plugin-statistics": "*"
 	},
 	"peerDependenciesMeta": {
 		"medusa-plugin-automation": {

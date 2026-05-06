@@ -17,19 +17,19 @@
 		"test:unit": "turbo test:unit"
 	},
 	"devDependencies": {
-		"@medusajs/admin-sdk": "2.13.6",
-		"@medusajs/cli": "2.13.6",
-		"@medusajs/framework": "2.13.6",
-		"@medusajs/icons": "2.13.6",
-		"@medusajs/js-sdk": "2.13.6",
-		"@medusajs/medusa": "2.13.6",
-		"@medusajs/test-utils": "2.13.6",
-		"@medusajs/ui": "4.0.25",
-		"turbo": "^2"
+		"@medusajs/admin-sdk": "2.14.2",
+		"@medusajs/cli": "2.14.2",
+		"@medusajs/framework": "2.14.2",
+		"@medusajs/icons": "2.14.2",
+		"@medusajs/js-sdk": "2.14.2",
+		"@medusajs/medusa": "2.14.2",
+		"@medusajs/test-utils": "2.14.2",
+		"@medusajs/ui": "4.1.9",
+		"turbo": "2"
 	},
 	"resolutions": {
-		"zod": "3.25.76",
-		"@astrojs/sitemap": "3.5.1"
+		"zod": "4.3.6",
+		"@astrojs/sitemap": "3.7.2"
 	},
 	"packageManager": "yarn@4.13.0+sha512.5c20ba010c99815433e5c8453112165e673f1c7948d8d2b267f4b5e52097538658388ebc9f9580656d9b75c5cc996f990f611f99304a2197d4c56d21eea370e7"
 }

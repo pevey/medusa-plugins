@@ -122,7 +122,6 @@ paths:
                   type: array
                   items:
                     type: string
-                    format: email
                   nullable: true
                 metadata:
                   type: object
@@ -306,7 +305,6 @@ paths:
                   type: array
                   items:
                     type: string
-                    format: email
                   nullable: true
                 metadata:
                   type: object

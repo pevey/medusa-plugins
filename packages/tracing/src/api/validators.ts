@@ -30,13 +30,15 @@ export const AdminCreateStockLot = z
 		enabled: z.boolean().default(true),
 		initial_quantity: z.number().optional(),
 		stocked_quantity: z.number().optional(),
-		metadata: z.record(z.unknown()).nullable().optional()
+		metadata: z.record(z.string(), z.unknown()).nullable().optional()
 	})
-	.superRefine((val, ctx) => {
+	.check((ctx) => {
+		const val = ctx.value
 		if (val.initial_quantity === undefined && val.stocked_quantity === undefined) {
-			ctx.addIssue({
+			ctx.issues.push({
 				path: ['initial_quantity', 'stocked_quantity'],
-				code: z.ZodIssueCode.custom,
+				code: 'custom',
+				input: val,
 				message: 'Either initial_quantity or stocked_quantity must be provided'
 			})
 		} else if (
@@ -44,9 +46,10 @@ export const AdminCreateStockLot = z
 			val.stocked_quantity !== undefined &&
 			val.initial_quantity !== val.stocked_quantity
 		) {
-			ctx.addIssue({
+			ctx.issues.push({
 				path: ['initial_quantity', 'stocked_quantity'],
-				code: z.ZodIssueCode.custom,
+				code: 'custom',
+				input: val,
 				message: 'initial_quantity and stocked_quantity must be equal'
 			})
 		} else if (
@@ -77,7 +80,7 @@ export const AdminUpdateStockLot = z.object({
 	description: z.string().nullable().optional(),
 	enabled: z.boolean().optional(),
 	stocked_quantity: z.number().optional(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminUpdateStockLotType = z.infer<typeof AdminUpdateStockLot>
 
@@ -106,7 +109,7 @@ export const AdminCreateSerialNumber = z.object({
 	stock_lot_id: z.string(),
 	value: z.string(),
 	invalidated: z.boolean().default(false),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminCreateSerialNumberType = z.infer<typeof AdminCreateSerialNumber>
 
@@ -120,7 +123,7 @@ export const AdminUpdateSerialNumber = z.object({
 	stock_lot_id: z.string().optional(),
 	value: z.string().optional(),
 	invalidated: z.boolean().default(false),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminUpdateSerialNumberType = z.infer<typeof AdminUpdateSerialNumber>
 
@@ -137,7 +140,7 @@ export type AdminGetInvalidationReasonsType = z.infer<typeof AdminGetInvalidatio
 
 export const AdminCreateInvalidationReason = z.object({
 	value: z.string(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminCreateInvalidationReasonType = z.infer<typeof AdminCreateInvalidationReason>
 
@@ -148,6 +151,6 @@ export type AdminDeleteInvalidationReasonsType = z.infer<typeof AdminDeleteInval
 
 export const AdminUpdateInvalidationReason = z.object({
 	value: z.string().optional(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminUpdateInvalidationReasonType = z.infer<typeof AdminUpdateInvalidationReason>

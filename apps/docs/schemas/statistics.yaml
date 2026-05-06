@@ -1,56 +1,12 @@
 openapi: 3.1.0
 info:
   title: Statistics API
-  version: 0.1.0
+  version: 0.1.1
   description: Dashboard statistics plugin for Medusa v2 with daily aggregation and customizable widgets
 servers:
   - url: http://localhost:9000
     description: Local development
 paths:
-  /admin/mcp:
-    get:
-      operationId: getAdminMcp
-      summary: List Mcp
-      tags:
-        - Admin
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-    post:
-      operationId: postAdminMcp
-      summary: Create Mcp
-      tags:
-        - Admin
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-    delete:
-      operationId: deleteAdminMcp
-      summary: Batch Delete Mcp
-      tags:
-        - Admin
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  object:
-                    type: string
-                  deleted:
-                    type: boolean
   /admin/statistics:
     get:
       operationId: getAdminStatistics

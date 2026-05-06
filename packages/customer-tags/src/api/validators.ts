@@ -14,7 +14,7 @@ export type AdminGetCustomerTagsType = z.infer<typeof AdminGetCustomerTags>
 
 export const AdminCreateCustomerTag = z.object({
 	value: z.string(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminCreateCustomerTagType = z.infer<typeof AdminCreateCustomerTag>
 
@@ -25,7 +25,7 @@ export type AdminDeleteCustomerTagsType = z.infer<typeof AdminDeleteCustomerTags
 
 export const AdminUpdateCustomerTag = z.object({
 	value: z.string().optional(),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminUpdateCustomerTagType = z.infer<typeof AdminUpdateCustomerTag>
 
@@ -34,17 +34,20 @@ export const AdminAddCustomerTag = z
 		tag: z.string().optional(),
 		tag_id: z.string().optional()
 	})
-	.superRefine((val, ctx) => {
+	.check((ctx) => {
+		const val = ctx.value
 		if (val.tag && val.tag_id) {
-			ctx.addIssue({
+			ctx.issues.push({
 				path: ['tag', 'tag_id'],
-				code: z.ZodIssueCode.custom,
+				code: 'custom',
+				input: val,
 				message: 'Only one of tag or tag_id can be provided'
 			})
 		} else if (!val.tag && !val.tag_id) {
-			ctx.addIssue({
+			ctx.issues.push({
 				path: ['tag', 'tag_id'],
-				code: z.ZodIssueCode.custom,
+				code: 'custom',
+				input: val,
 				message: 'Either tag or tag_id must be provided'
 			})
 		} else if (val.tag_id && !val.tag) {

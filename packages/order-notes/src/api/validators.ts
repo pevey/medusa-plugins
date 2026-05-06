@@ -13,6 +13,6 @@ export const AdminCreateOrderNote = z.object({
 	order_id: z.string(),
 	note: z.string(),
 	sent: z.boolean().default(false),
-	metadata: z.record(z.unknown()).nullable().optional()
+	metadata: z.record(z.string(), z.unknown()).nullable().optional()
 })
 export type AdminCreateOrderNoteType = z.infer<typeof AdminCreateOrderNote>
