@@ -10,6 +10,7 @@ export class BarcodeService extends MedusaService({
 }) {
 	async render(options: bwipjs.RenderOptions): Promise<Buffer> {
 		// remove undefined options
+		// @ts-ignore
 		Object.keys(options).forEach(key => options[key] === undefined && delete options[key])
 		return await bwipjs.toBuffer(options)
 	}

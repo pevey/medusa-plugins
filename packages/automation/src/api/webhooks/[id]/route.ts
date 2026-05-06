@@ -44,7 +44,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 			const expectedBuffer = Buffer.from(expected)
 			if (
 				sigBuffer.length !== expectedBuffer.length ||
-				!timingSafeEqual(sigBuffer, expectedBuffer)
+				!timingSafeEqual(new Uint8Array(sigBuffer), new Uint8Array(expectedBuffer))
 			) {
 				return res.status(401).json({ error: 'Invalid signature' })
 			}

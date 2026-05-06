@@ -553,7 +553,10 @@ medusaIntegrationTestRunner({
 					name: `Submission Test ${ts}`,
 					handle: `submission-test-${ts}`,
 					active: true,
-					turnstile_enabled: false
+					turnstile_enabled: false,
+					form_fields: [
+						{ name: 'message', label: 'Message', field_type: 'textarea', required: false }
+					]
 				}, auth())
 				formId = formRes.data.form.id
 
@@ -665,7 +668,7 @@ medusaIntegrationTestRunner({
 				if (form) await api.delete(`/admin/forms/${form.id}`, auth()).catch(() => {})
 			})
 
-			it('returns 400 when cf_turnstile_response is missing', async () => {
+			it('returns 400 when token is missing', async () => {
 				const res = await api
 					.post(`/forms/${formHandle}`, { data: {} })
 					.catch((e: any) => e.response)
@@ -675,7 +678,7 @@ medusaIntegrationTestRunner({
 			it('returns 201 when token passes Cloudflare verification', async () => {
 				const res = await api.post(`/forms/${formHandle}`, {
 					data: {},
-					cf_turnstile_response: 'XXXX.DUMMY.TOKEN.XXXX'
+					token: 'XXXX.DUMMY.TOKEN.XXXX'
 				})
 				expect(res.status).toBe(201)
 				expect(res.data.submitted).toBe(true)

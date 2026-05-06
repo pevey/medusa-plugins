@@ -149,6 +149,11 @@ export default defineMiddlewares([
 		method: ['POST'],
 		middlewares: [validateAndTransformBody(AdminUpdateFormSubmission)]
 	},
+	{
+		matcher: '/admin/form-submissions/:id',
+		method: ['DELETE'],
+		middlewares: []
+	},
 	// Store
 	{
 		matcher: '/forms/:handle',

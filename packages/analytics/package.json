@@ -51,7 +51,8 @@
 		"build": "medusa plugin:build",
 		"dev": "medusa plugin:develop",
 		"prepublishOnly": "medusa plugin:build",
-		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests"
+		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests",
+		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit"
 	},
 	"dependencies": {
 		"recharts": "2.15.0"
@@ -62,7 +63,7 @@
 		"@medusajs/framework": "2.14.2",
 		"@medusajs/icons": "2.14.2",
 		"@medusajs/ui": "4.1.9",
-		"@swc/core": "1.7.28",
+		"@swc/core": "1.15.33",
 		"@swc/jest": "0.2.39",
 		"@types/jest": "30.0.0",
 		"@types/node": "20.0.0",
@@ -73,8 +74,8 @@
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
 		"ts-node": "10.9.2",
-		"typescript": "5.6.2",
-		"vite": "5.4.14",
+		"typescript": "6.0.3",
+		"vite": "8.0.8",
 		"yalc": "1.0.0-pre.53"
 	},
 	"peerDependencies": {

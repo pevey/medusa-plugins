@@ -16,6 +16,7 @@
 		"prebuild": "node ./scripts/check-node-version.cjs && node ./scripts/dedupe-medusa.cjs",
 		"release": "lerna publish from-package --yes",
 		"release:preview": "lerna publish from-package",
+		"test:integration": "turbo test:integration:http",
 		"test:unit": "turbo test:unit"
 	},
 	"devDependencies": {

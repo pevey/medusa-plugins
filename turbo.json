@@ -12,6 +12,10 @@
 		"test:unit": {
 			"outputs": []
 		},
+		"test:integration:http": {
+			"outputs": [],
+			"cache": false
+		},
 		"generate:openapi": {
 			"outputs": ["schemas/**"]
 		},

@@ -8017,7 +8017,7 @@ __metadata:
   dependencies:
     "@medusajs/js-sdk": "npm:2.14.2"
     "@medusajs/types": "npm:2.14.2"
-    typescript: "npm:5.6.2"
+    typescript: "npm:6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -13683,9 +13683,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-darwin-arm64@npm:1.7.28":
-  version: 1.7.28
-  resolution: "@swc/core-darwin-arm64@npm:1.7.28"
+"@swc/core-darwin-arm64@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-darwin-arm64@npm:1.15.33"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
@@ -13697,9 +13697,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-darwin-x64@npm:1.7.28":
-  version: 1.7.28
-  resolution: "@swc/core-darwin-x64@npm:1.7.28"
+"@swc/core-darwin-x64@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-darwin-x64@npm:1.15.33"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
@@ -13711,9 +13711,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-linux-arm-gnueabihf@npm:1.7.28":
-  version: 1.7.28
-  resolution: "@swc/core-linux-arm-gnueabihf@npm:1.7.28"
+"@swc/core-linux-arm-gnueabihf@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-linux-arm-gnueabihf@npm:1.15.33"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
@@ -13725,9 +13725,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-linux-arm64-gnu@npm:1.7.28":
-  version: 1.7.28
-  resolution: "@swc/core-linux-arm64-gnu@npm:1.7.28"
+"@swc/core-linux-arm64-gnu@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-linux-arm64-gnu@npm:1.15.33"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
@@ -13739,9 +13739,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-linux-arm64-musl@npm:1.7.28":
-  version: 1.7.28
-  resolution: "@swc/core-linux-arm64-musl@npm:1.7.28"
+"@swc/core-linux-arm64-musl@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-linux-arm64-musl@npm:1.15.33"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
@@ -13753,9 +13753,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/core-linux-ppc64-gnu@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-linux-ppc64-gnu@npm:1.15.33"
+  conditions: os=linux & cpu=ppc64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "@swc/core-linux-s390x-gnu@npm:1.15.24":
   version: 1.15.24
   resolution: "@swc/core-linux-s390x-gnu@npm:1.15.24"
+  conditions: os=linux & cpu=s390x & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@swc/core-linux-s390x-gnu@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-linux-s390x-gnu@npm:1.15.33"
   conditions: os=linux & cpu=s390x & libc=glibc
   languageName: node
   linkType: hard
@@ -13767,9 +13781,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-linux-x64-gnu@npm:1.7.28":
-  version: 1.7.28
-  resolution: "@swc/core-linux-x64-gnu@npm:1.7.28"
+"@swc/core-linux-x64-gnu@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-linux-x64-gnu@npm:1.15.33"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
@@ -13781,9 +13795,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-linux-x64-musl@npm:1.7.28":
-  version: 1.7.28
-  resolution: "@swc/core-linux-x64-musl@npm:1.7.28"
+"@swc/core-linux-x64-musl@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-linux-x64-musl@npm:1.15.33"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
@@ -13795,9 +13809,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-win32-arm64-msvc@npm:1.7.28":
-  version: 1.7.28
-  resolution: "@swc/core-win32-arm64-msvc@npm:1.7.28"
+"@swc/core-win32-arm64-msvc@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-win32-arm64-msvc@npm:1.15.33"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
@@ -13809,9 +13823,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-win32-ia32-msvc@npm:1.7.28":
-  version: 1.7.28
-  resolution: "@swc/core-win32-ia32-msvc@npm:1.7.28"
+"@swc/core-win32-ia32-msvc@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-win32-ia32-msvc@npm:1.15.33"
   conditions: os=win32 & cpu=ia32
   languageName: node
   linkType: hard
@@ -13823,9 +13837,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-win32-x64-msvc@npm:1.7.28":
-  version: 1.7.28
-  resolution: "@swc/core-win32-x64-msvc@npm:1.7.28"
+"@swc/core-win32-x64-msvc@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core-win32-x64-msvc@npm:1.15.33"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -13882,24 +13896,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core@npm:1.7.28":
-  version: 1.7.28
-  resolution: "@swc/core@npm:1.7.28"
+"@swc/core@npm:1.15.33":
+  version: 1.15.33
+  resolution: "@swc/core@npm:1.15.33"
   dependencies:
-    "@swc/core-darwin-arm64": "npm:1.7.28"
-    "@swc/core-darwin-x64": "npm:1.7.28"
-    "@swc/core-linux-arm-gnueabihf": "npm:1.7.28"
-    "@swc/core-linux-arm64-gnu": "npm:1.7.28"
-    "@swc/core-linux-arm64-musl": "npm:1.7.28"
-    "@swc/core-linux-x64-gnu": "npm:1.7.28"
-    "@swc/core-linux-x64-musl": "npm:1.7.28"
-    "@swc/core-win32-arm64-msvc": "npm:1.7.28"
-    "@swc/core-win32-ia32-msvc": "npm:1.7.28"
-    "@swc/core-win32-x64-msvc": "npm:1.7.28"
+    "@swc/core-darwin-arm64": "npm:1.15.33"
+    "@swc/core-darwin-x64": "npm:1.15.33"
+    "@swc/core-linux-arm-gnueabihf": "npm:1.15.33"
+    "@swc/core-linux-arm64-gnu": "npm:1.15.33"
+    "@swc/core-linux-arm64-musl": "npm:1.15.33"
+    "@swc/core-linux-ppc64-gnu": "npm:1.15.33"
+    "@swc/core-linux-s390x-gnu": "npm:1.15.33"
+    "@swc/core-linux-x64-gnu": "npm:1.15.33"
+    "@swc/core-linux-x64-musl": "npm:1.15.33"
+    "@swc/core-win32-arm64-msvc": "npm:1.15.33"
+    "@swc/core-win32-ia32-msvc": "npm:1.15.33"
+    "@swc/core-win32-x64-msvc": "npm:1.15.33"
     "@swc/counter": "npm:^0.1.3"
-    "@swc/types": "npm:^0.1.12"
+    "@swc/types": "npm:^0.1.26"
   peerDependencies:
-    "@swc/helpers": "*"
+    "@swc/helpers": ">=0.5.17"
   dependenciesMeta:
     "@swc/core-darwin-arm64":
       optional: true
@@ -13910,6 +13926,10 @@ __metadata:
     "@swc/core-linux-arm64-gnu":
       optional: true
     "@swc/core-linux-arm64-musl":
+      optional: true
+    "@swc/core-linux-ppc64-gnu":
+      optional: true
+    "@swc/core-linux-s390x-gnu":
       optional: true
     "@swc/core-linux-x64-gnu":
       optional: true
@@ -13924,7 +13944,7 @@ __metadata:
   peerDependenciesMeta:
     "@swc/helpers":
       optional: true
-  checksum: 10c0/e7a5764fe9c476b606b3c68e9bfcb1945a2a1576458176dbd93edd06bd57e3e0837a119c21162904fa2b0c3f5c3a7049d77b52c4f793e0d4f4f345ba959c5456
+  checksum: 10c0/7d6771fdf8f1e1d41665fb84b3e718feec05e72ed448b1fbc95d3f9f4c0e80ea495e66e778436201e8ab902478042f517da4bd3f6890127248788d8b985f9a52
   languageName: node
   linkType: hard
 
@@ -13966,7 +13986,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/types@npm:^0.1.12, @swc/types@npm:^0.1.26":
+"@swc/types@npm:^0.1.26":
   version: 0.1.26
   resolution: "@swc/types@npm:0.1.26"
   dependencies:
@@ -14766,16 +14786,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.19.39, @types/node@npm:^20.10.7":
-  version: 20.19.39
-  resolution: "@types/node@npm:20.19.39"
-  dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10c0/1d16da7b5f47a7415b827fcf3b94d279febf4c14671afec74a03e47856b5270023d9beb1b9aeab4d3b622fd97d61a60206cfc2cca588663181331bc592468289
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:>=10.0.0, @types/node@npm:>=20.0.0":
+"@types/node@npm:25.6.0, @types/node@npm:>=10.0.0, @types/node@npm:>=20.0.0":
   version: 25.6.0
   resolution: "@types/node@npm:25.6.0"
   dependencies:
@@ -14790,6 +14801,15 @@ __metadata:
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: 10c0/22ba2bc9f8863101a7e90a56aaeba1eb3ebdc51e847cef4a6d188967ab1acbce9b4f92251372fd0329ecb924bbf610509e122c3dfe346c04dbad04013d4ad7d0
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^20.10.7":
+  version: 20.19.39
+  resolution: "@types/node@npm:20.19.39"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10c0/1d16da7b5f47a7415b827fcf3b94d279febf4c14671afec74a03e47856b5270023d9beb1b9aeab4d3b622fd97d61a60206cfc2cca588663181331bc592468289
   languageName: node
   linkType: hard
 
@@ -15886,7 +15906,7 @@ __metadata:
     "@testing-library/dom": "npm:10.4.1"
     "@testing-library/react": "npm:16.3.2"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.19.39"
+    "@types/node": "npm:25.6.0"
     "@types/react": "npm:18.3.2"
     "@types/react-dom": "npm:18.2.25"
     "@vitejs/plugin-react": "npm:6.0.1"
@@ -15913,7 +15933,7 @@ __metadata:
     react-email: "npm:6.1.1"
     ts-node: "npm:10.9.2"
     tsx: "npm:4.21.0"
-    typescript: "npm:5.6.2"
+    typescript: "npm:6.0.3"
     vite: "npm:8.0.8"
     vitest: "npm:4.1.4"
     yalc: "npm:1.0.0-pre.53"
@@ -23491,7 +23511,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23503,8 +23523,8 @@ __metadata:
     react-dom: "npm:18.3.1"
     recharts: "npm:2.15.0"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23522,7 +23542,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23533,8 +23553,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23553,7 +23573,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23564,8 +23584,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23583,7 +23603,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/braintree": "npm:3.4.4"
     "@types/jest": "npm:30.0.0"
@@ -23596,8 +23616,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23615,7 +23635,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23626,8 +23646,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23646,7 +23666,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/multer": "npm:2.1.0"
@@ -23659,8 +23679,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23678,7 +23698,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23689,8 +23709,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23708,7 +23728,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23719,8 +23739,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23751,8 +23771,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     recharts: "npm:2.15.3"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
   peerDependencies:
     "@medusajs/framework": 2.14.2
     "@medusajs/js-sdk": 2.14.2
@@ -23776,7 +23796,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23787,8 +23807,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23806,7 +23826,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23818,8 +23838,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23837,7 +23857,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23848,8 +23868,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23868,7 +23888,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23881,8 +23901,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23900,7 +23920,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23914,8 +23934,8 @@ __metadata:
     react-grid-layout: "npm:2.2.3"
     recharts: "npm:2.15.3"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23933,7 +23953,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23944,8 +23964,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23963,7 +23983,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -23974,8 +23994,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -23993,7 +24013,7 @@ __metadata:
     "@medusajs/framework": "npm:2.14.2"
     "@medusajs/icons": "npm:2.14.2"
     "@medusajs/ui": "npm:4.1.9"
-    "@swc/core": "npm:1.7.28"
+    "@swc/core": "npm:1.15.33"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
@@ -24005,8 +24025,8 @@ __metadata:
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
-    typescript: "npm:5.6.2"
-    vite: "npm:5.4.14"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": 2.14.2
@@ -30590,13 +30610,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:5.6.2":
-  version: 5.6.2
-  resolution: "typescript@npm:5.6.2"
+"typescript@npm:6.0.3":
+  version: 6.0.3
+  resolution: "typescript@npm:6.0.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/3ed8297a8c7c56b7fec282532503d1ac795239d06e7c4966b42d4330c6cf433a170b53bcf93a130a7f14ccc5235de5560df4f1045eb7f3550b46ebed16d3c5e5
+  checksum: 10c0/4a25ff5045b984370f48f196b3a0120779b1b343d40b9a68d114ea5e5fff099809b2bb777576991a63a5cd59cf7bffd96ff6fe10afcefbcb8bd6fb96ad4b6606
   languageName: node
   linkType: hard
 
@@ -30610,13 +30630,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>":
-  version: 5.6.2
-  resolution: "typescript@patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=8c6c40"
+"typescript@patch:typescript@npm%3A6.0.3#optional!builtin<compat/typescript>":
+  version: 6.0.3
+  resolution: "typescript@patch:typescript@npm%3A6.0.3#optional!builtin<compat/typescript>::version=6.0.3&hash=5786d5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/94eb47e130d3edd964b76da85975601dcb3604b0c848a36f63ac448d0104e93819d94c8bdf6b07c00120f2ce9c05256b8b6092d23cf5cf1c6fa911159e4d572f
+  checksum: 10c0/2f25c74e65663c248fa1ade2b8459d9ce5372ff9dad07067310f132966ebec1d93f6c42f0baf77a6b6a7a91460463f708e6887013aaade22111037457c6b25df
   languageName: node
   linkType: hard
 
@@ -31254,49 +31274,6 @@ __metadata:
     d3-time: "npm:^3.0.0"
     d3-timer: "npm:^3.0.1"
   checksum: 10c0/bad36de3bf4d406834743c2e99a8281d786af324d7e84b7f7a2fc02c27a3779034fb0c3c4707d4c8e68683334d924a67100cfa13985235565e83b9877f8e2ffd
-  languageName: node
-  linkType: hard
-
-"vite@npm:5.4.14":
-  version: 5.4.14
-  resolution: "vite@npm:5.4.14"
-  dependencies:
-    esbuild: "npm:^0.21.3"
-    fsevents: "npm:~2.3.3"
-    postcss: "npm:^8.4.43"
-    rollup: "npm:^4.20.0"
-  peerDependencies:
-    "@types/node": ^18.0.0 || >=20.0.0
-    less: "*"
-    lightningcss: ^1.21.0
-    sass: "*"
-    sass-embedded: "*"
-    stylus: "*"
-    sugarss: "*"
-    terser: ^5.4.0
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-    less:
-      optional: true
-    lightningcss:
-      optional: true
-    sass:
-      optional: true
-    sass-embedded:
-      optional: true
-    stylus:
-      optional: true
-    sugarss:
-      optional: true
-    terser:
-      optional: true
-  bin:
-    vite: bin/vite.js
-  checksum: 10c0/8842933bd70ca6a98489a0bb9c8464bec373de00f9a97c8c7a4e64b24d15c88bfaa8c1acb38a68c3e5eb49072ffbccb146842c2d4edcdd036a9802964cffe3d1
   languageName: node
   linkType: hard
 
