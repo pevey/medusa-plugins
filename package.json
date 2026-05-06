@@ -14,6 +14,8 @@
 		"docs:build": "turbo docs:build --filter=docs",
 		"generate:openapi": "turbo generate:openapi --filter=docs",
 		"prebuild": "node ./scripts/check-node-version.cjs && node ./scripts/dedupe-medusa.cjs",
+		"release": "lerna publish from-package --yes",
+		"release:preview": "lerna publish from-package",
 		"test:unit": "turbo test:unit"
 	},
 	"devDependencies": {
@@ -25,6 +27,7 @@
 		"@medusajs/medusa": "2.14.2",
 		"@medusajs/test-utils": "2.14.2",
 		"@medusajs/ui": "4.1.9",
+		"lerna": "^9.0.7",
 		"turbo": "2"
 	},
 	"resolutions": {

@@ -16,9 +16,13 @@
 	"files": [
 		"dist"
 	],
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"build": "tsc",
-		"dev": "tsc --watch"
+		"dev": "tsc --watch",
+		"prepublishOnly": "tsc"
 	},
 	"dependencies": {
 		"@medusajs/js-sdk": "2.14.2",
