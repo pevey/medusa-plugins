@@ -8,7 +8,7 @@ import {
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { ConfigModule, CreateNotificationDTO, RemoteQueryFunction } from '@medusajs/framework/types'
 import { sendNotificationsStep, updateCartsStep } from '@medusajs/medusa/core-flows'
-import { render, pretty } from '@react-email/render'
+import { render, pretty } from 'react-email'
 import getAbandonedCartTemplate from '../../templates/abandoned-cart'
 import { getMedusaStorefrontUrl } from './utils'
 

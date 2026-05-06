@@ -7,7 +7,7 @@ import {
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { CreateNotificationDTO, RemoteQueryFunction } from '@medusajs/framework/types'
 import { sendNotificationsStep } from '@medusajs/medusa/core-flows'
-import { render, pretty } from '@react-email/render'
+import { render, pretty } from 'react-email'
 import getShipmentCreatedTemplate from '../../templates/shipment-created'
 
 const prepareShipmentCreatedNotificationStep = createStep(

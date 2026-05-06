@@ -8,7 +8,7 @@ import {
 	Section,
 	Tailwind,
 	Text
-} from '@react-email/components'
+} from 'react-email'
 
 type FieldEntry = { label: string; value: string }
 

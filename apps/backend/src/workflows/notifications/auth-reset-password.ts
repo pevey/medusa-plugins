@@ -7,7 +7,7 @@ import {
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import { ConfigModule, CreateNotificationDTO, INotificationModuleService, RemoteQueryFunction } from '@medusajs/framework/types'
 import { sendNotificationsStep } from '@medusajs/medusa/core-flows'
-import { render, pretty } from '@react-email/render'
+import { render, pretty } from 'react-email'
 import getResetPasswordTemplate from '../../templates/reset-password'
 import { getMedusaAdminUrl, getMedusaStorefrontUrl } from './utils'
 

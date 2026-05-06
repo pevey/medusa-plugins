@@ -9,7 +9,7 @@ import {
 	Preview,
 	Body,
 	Button
-} from '@react-email/components'
+} from 'react-email'
 
 type InviteEmailProps = {
 	inviteUrl: string

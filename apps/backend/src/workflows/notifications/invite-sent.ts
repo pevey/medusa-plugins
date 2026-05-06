@@ -7,7 +7,7 @@ import {
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import { ConfigModule, CreateNotificationDTO, INotificationModuleService, RemoteQueryFunction } from '@medusajs/framework/types'
 import { sendNotificationsStep } from '@medusajs/medusa/core-flows'
-import { render, pretty } from '@react-email/render'
+import { render, pretty } from 'react-email'
 import getInviteTemplate from '../../templates/invite-sent'
 import { getMedusaAdminUrl, getMedusaStorefrontUrl } from './utils'
 
