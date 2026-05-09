@@ -80,9 +80,6 @@ export type OrderForVeeqoOrderInput = {
 					| null
 		  }[]
 		| null
-	veeqo_order?: {
-		veeqo_order_id?: number | null
-	} | null
 }
 
 export type ProductVariantForVeeqoProductInput = {
@@ -220,7 +217,12 @@ export interface VeeqoOrderInput {
 		payment_type: string
 		reference_number: string
 	}
-	tags?: string[]
+	// Veeqo's nested-attributes (Rails-style) field for warehouse-visible "Internal Notes."
+	// GET responses return this content under `employee_notes` (without `_attributes`).
+	// Distinct from `customer_note` (customer-facing) and the deprecated `notes` field.
+	// Verify the exact inner key (`text` vs `body` vs `content`) at integration test time
+	// against https://developers.veeqo.com/api/operations/create-a-new-order/.
+	employee_notes_attributes?: { text: string }[]
 }
 
 export interface VeeqoProductDTO {

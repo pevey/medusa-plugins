@@ -25,7 +25,7 @@ import {
 import { VeeqoChannel } from './models/veeqo-channel'
 import { VeeqoCustomer } from './models/veeqo-customer'
 import { VeeqoDeliveryMethod } from './models/veeqo-delivery-method'
-import { VeeqoOrder } from './models/veeqo-order'
+import { VeeqoOrder, SourceType } from './models/veeqo-order'
 import { VeeqoProduct } from './models/veeqo-product'
 import { VeeqoSellable } from './models/veeqo-sellable'
 import { VeeqoShipment } from './models/veeqo-shipment'
@@ -181,6 +181,32 @@ export class VeeqoService extends MedusaService({
 					`Veeqo delivery method with veeqo_delivery_method_id ${veeqoDeliveryMethodId} not found`
 				)
 			})
+	}
+
+	/**
+	 * Searches Veeqo for an order whose `number` field exactly matches the given value.
+	 *
+	 * Veeqo's list-orders endpoint only supports a free-text `query` parameter, so we
+	 * search and then filter client-side for an exact `number` match. Used by
+	 * createVeeqoOrderStep to recover from the API-succeeded-DB-failed window —
+	 * if a Veeqo order already exists for the number we're about to create, we
+	 * adopt it instead of creating a duplicate.
+	 *
+	 * Returns the matching order or null if not found.
+	 */
+	async findOrderByNumber(number: string): Promise<VeeqoOrderDTO | null> {
+		const response = await this.fetch({
+			path: `/orders?query=${encodeURIComponent(number)}&page_size=20`,
+			method: 'GET'
+		})
+		if (!response.ok) {
+			this.logger_.warn(`veeqo findOrderByNumber: HTTP ${response.status} for query "${number}"`)
+			return null
+		}
+		const body = await response.json().catch(() => null)
+		if (!Array.isArray(body)) return null
+		const exact = (body as any[]).find(o => o?.number === number)
+		return (exact as VeeqoOrderDTO) ?? null
 	}
 
 	/**
@@ -364,38 +390,39 @@ export class VeeqoService extends MedusaService({
 	}
 
 	/**
-	 * Adds an order to Veeqo and links it to the corresponding order in Medusa. First argument is the Medusa order ID, second argument is the input data to create the order in Veeqo. Returns the created Veeqo order.
+	 * Creates an order in Veeqo via the Veeqo API and returns the response.
+	 *
+	 * Persistence of the local VeeqoOrder DB row is the caller's responsibility (see
+	 * createVeeqoOrderStep in workflows/order.ts, which uses the placeholder-row pattern).
+	 * This separation lets the workflow handle the (source_type, source_id) discriminator,
+	 * idempotency, and failure tracking, while this method stays focused on the API call.
 	 */
-	async addOrder(orderId: string, orderInput: VeeqoOrderInput): Promise<VeeqoOrderDTO> {
-		const veeqoOrder = (await this.fetch({
+	async addOrder(input: { veeqo_input: VeeqoOrderInput }): Promise<VeeqoOrderDTO> {
+		const response = await this.fetch({
 			path: `/orders`,
 			method: 'POST',
-			body: { order: orderInput }
+			body: { order: input.veeqo_input }
 		})
-			.then(response => response.json())
-			.catch(err => this.logger_.error(err))) as VeeqoOrderDTO
 
-		if (!veeqoOrder?.id) {
+		const body = await response.json().catch(() => null)
+
+		if (!response.ok || !body?.id) {
+			// Surface the Veeqo error so callers (and createVeeqoOrderStep) can persist
+			// it as last_sync_error rather than throwing an opaque "Failed" message.
+			const detail =
+				body && typeof body === 'object'
+					? JSON.stringify(body)
+					: `HTTP ${response.status}`
+			this.logger_.error(
+				`veeqo addOrder failed (number: ${input.veeqo_input.number}): ${detail}`
+			)
 			throw new MedusaError(
 				MedusaError.Types.UNEXPECTED_STATE,
-				`Failed to create order in Veeqo for order ${orderId}`
+				`Failed to create order in Veeqo (number: ${input.veeqo_input.number}): ${detail}`
 			)
 		}
 
-		// Resolve the local VeeqoCustomer DB record so we can set the required FK
-		const dbCustomers = await this.listVeeqoCustomers(
-			{ veeqo_customer_id: orderInput.customer_id },
-			{ take: 1 }
-		)
-		const dbCustomer = dbCustomers[0]
-
-		await this.createVeeqoOrders({
-			order_id: orderId,
-			veeqo_order_id: veeqoOrder.id,
-			...(dbCustomer ? { veeqo_customer_id: dbCustomer.id } : {})
-		} as any)
-
-		return veeqoOrder
+		return body as VeeqoOrderDTO
 	}
 
 	/**
@@ -689,7 +716,12 @@ export class VeeqoService extends MedusaService({
 	 * Cancels an order in Veeqo by Medusa order ID and unlinks it in Medusa. Veeqo does not allow deleting orders, but canceling the order will hide it in the Veeqo interface.
 	 */
 	async deleteOrder(orderId: string, cancelReason: string = ''): Promise<void> {
-		const [veeqoOrder] = await this.listVeeqoOrders({ order_id: orderId })
+		// Scoped to ORDER_PLACED — replacement VeeqoOrders (claim/exchange) are not
+		// touched by this delete; warehouse handles those independently if needed.
+		const [veeqoOrder] = await this.listVeeqoOrders({
+			order_id: orderId,
+			source_type: SourceType.ORDER_PLACED
+		})
 		if (!veeqoOrder) {
 			throw new MedusaError(
 				MedusaError.Types.NOT_FOUND,

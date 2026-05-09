@@ -39,6 +39,12 @@ const fetchVeeqoOrderDataStep = createStep(
 		if (!dbOrder) {
 			throw new Error(`VeeqoOrder with id ${input.veeqoOrderDbId} not found`)
 		}
+		// Skip placeholder rows from in-flight or failed creates — there's nothing in Veeqo yet.
+		if (dbOrder.veeqo_order_id == null) {
+			throw new Error(
+				`VeeqoOrder ${input.veeqoOrderDbId} has no veeqo_order_id (placeholder row from a failed create attempt)`
+			)
+		}
 		const liveOrder = await veeqoService.fetchOrder(dbOrder.veeqo_order_id)
 		return new StepResponse({ dbOrder, liveOrder } as SyncData)
 	}

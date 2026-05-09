@@ -8,3 +8,4 @@ export default Module(VEEQO_MODULE, {
 })
 
 export * from './service'
+export { SourceType } from './models/veeqo-order'

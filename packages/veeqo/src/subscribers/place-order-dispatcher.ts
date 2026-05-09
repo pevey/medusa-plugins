@@ -5,7 +5,7 @@ export const config: SubscriberConfig = {
 	event: 'order.placed'
 }
 
-export default async function veeqoDispatchHandler({
+export default async function placeOrderDispatchHandler({
 	event: {
 		data: { id: orderId }
 	},
