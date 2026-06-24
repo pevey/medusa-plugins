@@ -38,7 +38,7 @@ function createProvider(): BraintreeProvider {
 	const container = {
 		logger: mockLogger,
 		caching: mockCaching
-	}
+	} as any
 	const provider = new BraintreeProvider(container, defaultOptions)
 	// Replace the real gateway with our mock
 	;(provider as any).gateway = mockGateway

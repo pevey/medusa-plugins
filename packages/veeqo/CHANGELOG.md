@@ -1,3 +1,7 @@
+## 0.3.1
+
+- Upgrade underlying Medusa packages
+
 ## 0.3.0
 
 - BREAKING CHANGE: The `veeqo_order` table schema was updated. Migrations must be run after upgrading. After running the migration, reverting to the previous plugin version will not be possible without data loss.

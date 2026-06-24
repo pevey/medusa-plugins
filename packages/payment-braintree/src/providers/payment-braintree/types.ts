@@ -1,15 +1,13 @@
-import type Braintree from 'braintree'
-
-export interface BraintreeOptions extends Braintree.ClientGatewayConfig {
-	defaultCurrencyCode?: string
+export interface BraintreeOptions {
 	environment: 'production' | 'sandbox' | 'development' | 'qa'
 	merchantId: string
 	publicKey: string
 	privateKey: string
+	webhookSecret: string
 	enable3DSecure: boolean
 	savePaymentMethod: boolean
-	webhookSecret: string
 	autoCapture: boolean
+	defaultCurrencyCode?: string
 	allowRefundOnRefunded?: boolean
 }
 

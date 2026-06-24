@@ -9,7 +9,7 @@ import {
 import { Upload } from '@aws-sdk/lib-storage'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { MedusaError } from '@medusajs/framework/utils'
-import { R2FileProvider } from '../r2/provider'
+import { R2FileProvider, R2FileProviderConfig } from '../r2/provider'
 
 jest.mock('@aws-sdk/client-s3')
 jest.mock('@aws-sdk/lib-storage')
@@ -41,7 +41,7 @@ const mockLogger = {
 	debug: jest.fn()
 }
 
-function makeService(overrides: Partial<typeof baseOptions> = {}) {
+function makeService(overrides: Partial<R2FileProviderConfig> = {}) {
 	return new R2FileProvider({ logger: mockLogger as any }, { ...baseOptions, ...overrides })
 }
 

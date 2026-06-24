@@ -9,6 +9,9 @@
 			"persistent": true,
 			"cache": false
 		},
+		"lint": {
+			"outputs": []
+		},
 		"test:unit": {
 			"outputs": []
 		},

@@ -605,6 +605,10 @@
 				{
 					"label": "Update Form Submission",
 					"link": "/medusa-plugin-forms/api/operations/postadminform-submissionsbyid/"
+				},
+				{
+					"label": "Delete Form Submission",
+					"link": "/medusa-plugin-forms/api/operations/deleteadminform-submissionsbyid/"
 				}
 			]
 		},

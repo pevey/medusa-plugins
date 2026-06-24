@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-mcp",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "MCP server and LLM chat plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"repository": {
@@ -61,11 +61,11 @@
 		"recharts": "2.15.3"
 	},
 	"devDependencies": {
-		"@medusajs/admin-sdk": "2.14.2",
-		"@medusajs/cli": "2.14.2",
-		"@medusajs/framework": "2.14.2",
-		"@medusajs/icons": "2.14.2",
-		"@medusajs/ui": "4.1.9",
+		"@medusajs/admin-sdk": "2.16.0",
+		"@medusajs/cli": "2.16.0",
+		"@medusajs/framework": "2.16.0",
+		"@medusajs/icons": "2.16.0",
+		"@medusajs/ui": "4.1.16",
 		"@types/node": "20.0.0",
 		"@types/react": "18.3.2",
 		"@types/react-dom": "18.2.25",
@@ -78,9 +78,9 @@
 		"vite": "8.0.8"
 	},
 	"peerDependencies": {
-		"@medusajs/framework": "2.14.2",
-		"@medusajs/js-sdk": "2.14.2",
-		"@medusajs/medusa": "2.14.2",
+		"@medusajs/framework": "2.16.0",
+		"@medusajs/js-sdk": "2.16.0",
+		"@medusajs/medusa": "2.16.0",
 		"medusa-plugin-automation": "*",
 		"medusa-plugin-statistics": "*"
 	},

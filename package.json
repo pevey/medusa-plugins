@@ -13,6 +13,7 @@
 		"docs": "turbo docs:dev --filter=docs",
 		"docs:build": "turbo docs:build --filter=docs",
 		"generate:openapi": "turbo generate:openapi --filter=docs",
+		"lint": "turbo lint",
 		"prebuild": "node ./scripts/check-node-version.cjs && node ./scripts/dedupe-medusa.cjs",
 		"release": "lerna publish from-package --yes",
 		"release:preview": "lerna publish from-package",
@@ -20,16 +21,20 @@
 		"test:unit": "turbo test:unit"
 	},
 	"devDependencies": {
-		"@medusajs/admin-sdk": "2.14.2",
-		"@medusajs/cli": "2.14.2",
-		"@medusajs/framework": "2.14.2",
-		"@medusajs/icons": "2.14.2",
-		"@medusajs/js-sdk": "2.14.2",
-		"@medusajs/medusa": "2.14.2",
-		"@medusajs/test-utils": "2.14.2",
-		"@medusajs/ui": "4.1.9",
+		"@medusajs/admin-sdk": "2.16.0",
+		"@medusajs/cli": "2.16.0",
+		"@medusajs/eslint-plugin": "2.16.0",
+		"@medusajs/framework": "2.16.0",
+		"@medusajs/icons": "2.16.0",
+		"@medusajs/js-sdk": "2.16.0",
+		"@medusajs/medusa": "2.16.0",
+		"@medusajs/test-utils": "2.16.0",
+		"@medusajs/ui": "4.1.16",
+		"eslint": "^9",
+		"jiti": "^2",
 		"lerna": "^9.0.7",
-		"turbo": "2"
+		"turbo": "2",
+		"typescript": "6.0.3"
 	},
 	"resolutions": {
 		"zod": "4.3.6",

@@ -5,7 +5,12 @@ import {
 	StepResponse
 } from '@medusajs/framework/workflows-sdk'
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
-import { ConfigModule, CreateNotificationDTO, INotificationModuleService, RemoteQueryFunction } from '@medusajs/framework/types'
+import {
+	ConfigModule,
+	CreateNotificationDTO,
+	INotificationModuleService,
+	RemoteQueryFunction
+} from '@medusajs/framework/types'
 import { sendNotificationsStep } from '@medusajs/medusa/core-flows'
 import { render, pretty } from 'react-email'
 import getInviteTemplate from '../../templates/invite-sent'
@@ -59,15 +64,15 @@ const prepareInviteUserNotificationStep = createStep(
 	}
 )
 
-export const sendNotificationStep = createStep(
-	'send-invite-admin-notification',
-	async (notification: CreateNotificationDTO, { container }) => {
-		const notificationModule = container.resolve(Modules.NOTIFICATION) as INotificationModuleService
-		await notificationModule.createNotifications(notification)
-	}
-)
+// export const sendNotificationStep = createStep(
+// 	'send-invite-admin-notification',
+// 	async (notification: CreateNotificationDTO, { container }) => {
+// 		const notificationModule = container.resolve(Modules.NOTIFICATION) as INotificationModuleService
+// 		await notificationModule.createNotifications(notification)
+// 	}
+// )
 
-export const inviteUserWorkflow = createWorkflow('invite-user-workflow', (id: string) => {
+export const inviteUserWorkflow = createWorkflow('invite-user', (id: string) => {
 	const notifications = prepareInviteUserNotificationStep(id)
 	sendNotificationsStep(notifications)
 	return new WorkflowResponse(void 0)

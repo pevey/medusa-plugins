@@ -1,3 +1,7 @@
+## 0.2.1
+
+- Upgrade underlying Medusa packages
+
 ## 0.2.0
 
 - BREAKING CHANGE: Updated medusa peer dependencies to ^2.14

@@ -68,7 +68,7 @@ const prepareOrderNoteNotificationStep = createStep(
 )
 
 export const orderNoteNotificationWorkflow = createWorkflow(
-	'order-note-notification-workflow',
+	'order-note-notification',
 	(id: string) => {
 		const notifications = prepareOrderNoteNotificationStep(id)
 		sendNotificationsStep(notifications)

@@ -19,7 +19,7 @@ type InjectedDependencies = {
 	logger: Logger
 }
 
-interface R2FileProviderConfig {
+export interface R2FileProviderConfig {
 	region: string
 	bucket: string
 	accessKeyId?: string

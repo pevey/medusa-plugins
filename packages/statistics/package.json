@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-statistics",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "Dashboard statistics plugin for Medusa v2 with daily aggregation and customizable widgets",
 	"author": "Lacey Pevey",
 	"license": "MIT",
@@ -61,11 +61,11 @@
 		"recharts": "2.15.3"
 	},
 	"devDependencies": {
-		"@medusajs/admin-sdk": "2.14.2",
-		"@medusajs/cli": "2.14.2",
-		"@medusajs/framework": "2.14.2",
-		"@medusajs/icons": "2.14.2",
-		"@medusajs/ui": "4.1.9",
+		"@medusajs/admin-sdk": "2.16.0",
+		"@medusajs/cli": "2.16.0",
+		"@medusajs/framework": "2.16.0",
+		"@medusajs/icons": "2.16.0",
+		"@medusajs/ui": "4.1.16",
 		"@swc/core": "1.15.33",
 		"@swc/jest": "0.2.39",
 		"@types/jest": "30.0.0",
@@ -83,9 +83,9 @@
 		"yalc": "1.0.0-pre.53"
 	},
 	"peerDependencies": {
-		"@medusajs/framework": "2.14.2",
-		"@medusajs/js-sdk": "2.14.2",
-		"@medusajs/medusa": "2.14.2"
+		"@medusajs/framework": "2.16.0",
+		"@medusajs/js-sdk": "2.16.0",
+		"@medusajs/medusa": "2.16.0"
 	},
 	"engines": {
 		"node": ">=20"

@@ -1,3 +1,7 @@
+## 3.2.1
+
+- Upgrade underlying Medusa packages
+
 ## 3.2.0
 
 - Update medusa peer dependencies to ^2.14

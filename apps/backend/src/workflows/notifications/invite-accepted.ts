@@ -55,11 +55,8 @@ const prepareInviteAcceptedNotificationStep = createStep(
 	}
 )
 
-export const inviteAcceptedWorkflow = createWorkflow(
-	'invite-accepted-workflow',
-	(id: string) => {
-		const notifications = prepareInviteAcceptedNotificationStep(id)
-		sendNotificationsStep(notifications)
-		return new WorkflowResponse(void 0)
-	}
-)
+export const inviteAcceptedWorkflow = createWorkflow('invite-accepted', (id: string) => {
+	const notifications = prepareInviteAcceptedNotificationStep(id)
+	sendNotificationsStep(notifications)
+	return new WorkflowResponse(void 0)
+})

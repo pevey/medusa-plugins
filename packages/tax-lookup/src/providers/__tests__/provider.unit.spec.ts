@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import path from 'path'
 import { TaxLookupProvider, TaxLookupOptions } from '../../providers/tax-lookup/provider'
 
