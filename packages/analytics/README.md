@@ -1,8 +1,8 @@
-# Mildred
+# medusa-plugin-analytics
 
 Privacy-focused customer analytics for Medusa v2.
 
-[Documentation](https://pevey.com/mildred)
+[Documentation](https://pevey.com/medusa-plugin-analytics)
 
 If you are not familiar with Medusa, you can learn more on [the project web site](https://www.medusajs.com/).
 
@@ -13,7 +13,7 @@ If you are not familiar with Medusa, you can learn more on [the project web site
 Inside your medusa backend root folder:
 
 ```bash
-yarn add mildred
+yarn add medusa-plugin-analytics
 ```
 
 Replace "yarn add" with the correct command for your package manager if you are using (for example) npm, pnpm, or bun.
@@ -27,7 +27,7 @@ module.exports = defineConfig({
 	//... other config
 	plugins: [
 		{
-			resolve: 'mildred',
+			resolve: 'medusa-plugin-analytics',
 			options: {}
 		}
 		// ... other plugins
