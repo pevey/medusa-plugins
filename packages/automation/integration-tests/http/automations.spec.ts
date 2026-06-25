@@ -102,7 +102,7 @@ function hmacSign(secret: string, body: unknown): string {
 // ─── Test suite ───────────────────────────────────────────────────────────────
 
 medusaIntegrationTestRunner({
-	dbName: 'medusa_test',
+	dbName: 'medusa-automation',
 	inApp: true,
 	disableAutoTeardown: true,
 	env: {},

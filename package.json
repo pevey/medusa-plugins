@@ -33,6 +33,7 @@
 		"eslint": "^9",
 		"jiti": "^2",
 		"lerna": "^9.0.7",
+		"pg-god": "1.0.12",
 		"turbo": "2",
 		"typescript": "6.0.3"
 	},

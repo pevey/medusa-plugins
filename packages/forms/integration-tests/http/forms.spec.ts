@@ -29,7 +29,7 @@ jest.setTimeout(120 * 1000)
 jest.retryTimes(1)
 
 medusaIntegrationTestRunner({
-	dbName: 'medusa_test',
+	dbName: 'medusa-form',
 	inApp: true,
 	disableAutoTeardown: true,
 	env: { TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA' },

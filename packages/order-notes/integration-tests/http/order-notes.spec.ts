@@ -23,7 +23,7 @@ jest.setTimeout(120 * 1000)
 jest.retryTimes(1)
 
 medusaIntegrationTestRunner({
-	dbName: 'medusa_test',
+	dbName: 'medusa-order-note',
 	inApp: true,
 	disableAutoTeardown: true,
 	env: {},
