@@ -23,7 +23,12 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 		order: { created_at: 'DESC' }
 	})
 
-	res.json({ triggers, count, limit: limit ?? 20, offset: offset ?? 0 })
+	const safe = triggers.map((t: any) => {
+		const { trigger_signing_key, ...rest } = t
+		return { ...rest, has_signing_key: Boolean(trigger_signing_key) }
+	})
+
+	res.json({ triggers: safe, count, limit: limit ?? 20, offset: offset ?? 0 })
 }
 
 export const POST = async (
@@ -31,8 +36,14 @@ export const POST = async (
 	res: MedusaResponse
 ) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
-	const trigger = await automationService.createAutomationTriggers(req.validatedBody as any)
-	res.json({ trigger })
+	const body = { ...req.validatedBody }
+	if (body.trigger_signing_key) {
+		body.trigger_signing_key = automationService.encryptSecret(body.trigger_signing_key)
+	}
+	const trigger = await automationService.createAutomationTriggers(body as any)
+	// Never echo the signing key back, even ciphertext — expose only presence.
+	const { trigger_signing_key, ...safe } = trigger as any
+	res.json({ trigger: { ...safe, has_signing_key: Boolean(trigger_signing_key) } })
 }
 
 export const DELETE = async (

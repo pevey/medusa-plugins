@@ -5,6 +5,15 @@ export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE'
 export type FieldMapping = { source_path: string; target_key: string }
 export type StaticValue = { key: string; value: string }
 
+export type SignatureConfig = {
+	header?: string
+	encoding?: 'hex' | 'base64'
+	prefix?: string
+	template?: string
+	timestamp_header?: string
+	tolerance_seconds?: number
+}
+
 export type AutomationTrigger = {
 	id: string
 	name: string
@@ -12,7 +21,9 @@ export type AutomationTrigger = {
 	trigger_type: TriggerType
 	is_active: boolean
 	trigger_events?: string[]
-	trigger_signing_key?: string
+	/** True when a signing key is set. The key value itself is never returned. */
+	has_signing_key?: boolean
+	signature_config?: SignatureConfig | null
 	log_incoming?: boolean
 	metadata?: Record<string, unknown>
 	created_at: string

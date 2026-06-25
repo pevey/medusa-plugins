@@ -2,6 +2,7 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/
 import { MedusaError } from '@medusajs/framework/utils'
 import { AUTOMATION_MODULE } from '../../../../../../modules/automation'
 import { AutomationService } from '../../../../../../modules/automation/service'
+import { isBlockedWorkflowName } from '../../../../../../lib/workflow-guard'
 import { AdminUpdateAutomationActionType } from '../../../../../validators'
 
 export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaResponse) => {
@@ -31,6 +32,22 @@ export const POST = async (
 		throw new MedusaError(
 			MedusaError.Types.NOT_FOUND,
 			`AutomationAction with id ${actionId} not found`
+		)
+	}
+
+	// SSRF save-time check — re-validate target_url if the update touches it.
+	if (req.validatedBody.target_url) {
+		const validation = automationService.getSsrfGuard().validateUrl(req.validatedBody.target_url)
+		if (!validation.ok) {
+			throw new MedusaError(MedusaError.Types.INVALID_DATA, validation.error)
+		}
+	}
+
+	// Workflow guard: refuse to update an action to use a destructive workflow.
+	if (isBlockedWorkflowName(req.validatedBody.medusa_workflow)) {
+		throw new MedusaError(
+			MedusaError.Types.INVALID_DATA,
+			`Workflow "${req.validatedBody.medusa_workflow}" is blocked: destructive workflows cannot be invoked from automation actions.`
 		)
 	}
 

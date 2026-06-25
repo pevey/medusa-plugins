@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { LoaderFunctionArgs, UIMatch, useNavigate, useParams } from 'react-router-dom'
-import { Badge, Container, Heading, Text, toast, usePrompt } from '@medusajs/ui'
+import { Alert, Badge, Container, Heading, Text, toast, usePrompt } from '@medusajs/ui'
 import { PencilSquare, Trash } from '@medusajs/icons'
 import { sdk } from '../../../../lib/sdk'
 import { ActionMenu } from '../../../../components/action-menu'
@@ -49,8 +49,15 @@ const AutomationTriggerDetailPage = () => {
 	if (isLoading) return <Container className="p-6"><Text>Loading...</Text></Container>
 	if (!trigger) return <Container className="p-6"><Text>Trigger not found.</Text></Container>
 
+	const showUnsignedWarning = trigger.trigger_type === 'incoming_webhook' && !trigger.has_signing_key
+
 	return (
 		<div className="flex flex-col gap-4 p-4">
+			{showUnsignedWarning && (
+				<Alert variant="warning">
+					Treat this URL like a password. Without signing enabled, this URL will accept all incoming webhooks.
+				</Alert>
+			)}
 			<Container className="divide-y p-0">
 				<div className="flex items-center justify-between px-6 py-4">
 					<Heading level="h1">Trigger Details</Heading>
@@ -94,7 +101,7 @@ const AutomationTriggerDetailPage = () => {
 						</div>
 						<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
 							<Text size="small" weight="plus" leading="compact">Signing Key</Text>
-							<Text size="small" leading="compact">{trigger.trigger_signing_key ? '••••••••' : 'Not set'}</Text>
+							<Text size="small" leading="compact">{trigger.has_signing_key ? '••••••••' : 'Not set'}</Text>
 						</div>
 						<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
 							<Text size="small" weight="plus" leading="compact">Log Incoming Payloads</Text>

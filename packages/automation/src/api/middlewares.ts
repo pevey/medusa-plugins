@@ -27,7 +27,8 @@ export default defineMiddlewares([
 			validateAndTransformQuery(AdminGetAutomationTriggers, {
 				defaults: [
 					'id', 'name', 'description', 'trigger_type', 'is_active',
-					'trigger_events', 'metadata', 'created_at', 'updated_at'
+					'trigger_events', 'signature_config', 'log_incoming',
+					'metadata', 'created_at', 'updated_at'
 				],
 				isList: true,
 				defaultLimit: 20
@@ -51,7 +52,8 @@ export default defineMiddlewares([
 			validateAndTransformQuery(AdminGetAutomationTrigger, {
 				defaults: [
 					'id', 'name', 'description', 'trigger_type', 'is_active',
-					'trigger_events', 'metadata', 'created_at', 'updated_at'
+					'trigger_events', 'signature_config', 'log_incoming',
+					'metadata', 'created_at', 'updated_at'
 				],
 				isList: false
 			})
@@ -175,10 +177,23 @@ export default defineMiddlewares([
 		middlewares: []
 	},
 	// Public listener
+	// preserveRawBody is required so the webhook handler can verify HMAC
+	// against the original bytes — re-stringifying req.body would change
+	// key ordering / whitespace and silently break signature verification.
+	//
+	// sizeLimit is the HARD ceiling: requests above this never even reach
+	// the route handler (bodyParser returns 413). Driven by MAX_WEBHOOK_PAYLOAD_SIZE
+	// env var so prod can override without a code change. Default 512kb —
+	// large enough for typical integration-target payloads (Shopify orders
+	// with many line items, CRM/helpdesk events, newsletter exports) while
+	// still bounding OOM risk on the public endpoint.
 	{
 		matcher: '/webhooks/:id',
 		method: ['POST'],
-		bodyParser: { sizeLimit: '5mb' },
+		bodyParser: {
+			sizeLimit: process.env.MAX_WEBHOOK_PAYLOAD_SIZE || '512kb',
+			preserveRawBody: true
+		},
 		middlewares: []
 	}
 ])

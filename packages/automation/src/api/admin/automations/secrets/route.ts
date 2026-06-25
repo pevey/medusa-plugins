@@ -33,13 +33,15 @@ export const POST = async (
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { label } = req.validatedBody
 	const secret = randomBytes(32).toString('hex')
-	const created = await automationService.createAutomationSecrets({ label, secret })
-	// Return the secret value exactly once — it is never returned again
+	const encrypted = automationService.encryptSecret(secret)
+	const created = await automationService.createAutomationSecrets({ label, secret: encrypted })
+	// Return the plaintext value exactly once — it is never returned again,
+	// and what we store on `created` is the ciphertext.
 	res.json({
 		secret: {
 			id: created.id,
 			label: created.label,
-			secret: created.secret,
+			secret,
 			created_at: created.created_at
 		}
 	})

@@ -21483,6 +21483,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ipaddr.js@npm:2.2.0":
+  version: 2.2.0
+  resolution: "ipaddr.js@npm:2.2.0"
+  checksum: 10c0/e4ee875dc1bd92ac9d27e06cfd87cdb63ca786ff9fd7718f1d4f7a8ef27db6e5d516128f52d2c560408cbb75796ac2f83ead669e73507c86282d45f84c5abbb6
+  languageName: node
+  linkType: hard
+
 "iron-webcrypto@npm:^1.2.1":
   version: 1.2.1
   resolution: "iron-webcrypto@npm:1.2.1"
@@ -24000,12 +24007,14 @@ __metadata:
     "@types/node": "npm:20.0.0"
     "@types/react": "npm:18.3.2"
     "@types/react-dom": "npm:18.2.25"
+    ipaddr.js: "npm:2.2.0"
     jest: "npm:29.7.0"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
+    undici: "npm:6.21.1"
     vite: "npm:8.0.8"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
@@ -31239,6 +31248,13 @@ __metadata:
   version: 7.19.2
   resolution: "undici-types@npm:7.19.2"
   checksum: 10c0/7159f10546f9f6c47d36776bb1bbf8671e87c1e587a6fee84ae1f111ae8de4f914efa8ca0dfcd224f4f4a9dfc3f6028f627ccb5ddaccf82d7fd54671b89fac3e
+  languageName: node
+  linkType: hard
+
+"undici@npm:6.21.1":
+  version: 6.21.1
+  resolution: "undici@npm:6.21.1"
+  checksum: 10c0/d604080e4f8db89b35a63b483b5f96a5f8b19ec9f716e934639345449405809d2997e1dd7212d67048f210e54534143384d712bd9075e4394f0788895ef9ca8e
   languageName: node
   linkType: hard
 

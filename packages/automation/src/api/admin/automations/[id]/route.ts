@@ -13,7 +13,8 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 		throw new MedusaError(MedusaError.Types.NOT_FOUND, `AutomationTrigger with id ${id} not found`)
 	}
 
-	res.json({ trigger })
+	const { trigger_signing_key, ...safe } = trigger as any
+	res.json({ trigger: { ...safe, has_signing_key: Boolean(trigger_signing_key) } })
 }
 
 export const POST = async (
@@ -28,11 +29,17 @@ export const POST = async (
 		throw new MedusaError(MedusaError.Types.NOT_FOUND, `AutomationTrigger with id ${id} not found`)
 	}
 
+	const body = { ...req.validatedBody }
+	if (body.trigger_signing_key) {
+		body.trigger_signing_key = automationService.encryptSecret(body.trigger_signing_key)
+	}
+
 	const trigger = await (automationService.updateAutomationTriggers({
 		id,
-		...req.validatedBody
+		...body
 	} as any) as any)
-	res.json({ trigger })
+	const { trigger_signing_key, ...safe } = trigger as any
+	res.json({ trigger: { ...safe, has_signing_key: Boolean(trigger_signing_key) } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest<never>, res: MedusaResponse) => {

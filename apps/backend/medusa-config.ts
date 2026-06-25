@@ -265,10 +265,21 @@ module.exports = defineConfig({
 			resolve: 'medusa-plugin-automation',
 			options: {
 				automation: {
-					maxPayloadSize: process.env.MAX_WEBHOOK_PAYLOAD_SIZE || '100kb',
+					secret: process.env.AUTOMATION_SECRET,
+					// Note: webhook payload size is enforced by the bodyParser using
+					// MAX_WEBHOOK_PAYLOAD_SIZE env var directly (see plugin middlewares.ts).
 					maxWorkflowIterations: process.env.MAX_WORKFLOW_ITERATIONS
 						? +process.env.MAX_WORKFLOW_ITERATIONS
-						: 50
+						: 50,
+					ssrf: {
+						// Defaults are https-only with private/reserved IPs blocked.
+						// Override here for dev (allow http + localhost) or to add
+						// allowedHosts / blockedHosts for stricter prod policy.
+						allowedSchemes: (process.env.AUTOMATION_SSRF_SCHEMES?.split(',') as ('http' | 'https')[]) || ['https'],
+						allowPrivateIps: process.env.AUTOMATION_SSRF_ALLOW_PRIVATE_IPS === 'true',
+						allowedHosts: process.env.AUTOMATION_SSRF_ALLOWED_HOSTS?.split(',').filter(Boolean),
+						blockedHosts: process.env.AUTOMATION_SSRF_BLOCKED_HOSTS?.split(',').filter(Boolean)
+					}
 				}
 			}
 		},

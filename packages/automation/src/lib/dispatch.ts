@@ -10,6 +10,13 @@ import { AutomationActionType, FieldMapping, StaticValue } from '../modules/auto
 import { AutomationDeliveryStatus } from '../modules/automation/models/automation-delivery'
 import { AutomationService } from '../modules/automation/service'
 import { AUTOMATION_MODULE } from '../modules/automation'
+import { redactPayload } from '../modules/automation/models/automation-receipt'
+import { isBlockedWorkflowName } from './workflow-guard'
+
+// Max characters of upstream response body to persist on each delivery.
+// Anything past this is truncated to keep DB rows bounded and to limit the
+// blast radius if a target service echoes sensitive data back to us.
+const MAX_STORED_RESPONSE_BODY_CHARS = 4096
 
 // ─── Mapping helpers ──────────────────────────────────────────────────────────
 
@@ -170,17 +177,36 @@ export function buildIterationPayload(
 	return result
 }
 
-// ─── Payload size helper ──────────────────────────────────────────────────────
+// ─── Outgoing header guard ────────────────────────────────────────────────────
+//
+// Headers an admin should never be able to inject into an outgoing request:
+// they enable request smuggling, redirect via Host confusion, leak ambient
+// credentials, or interfere with the dispatcher's own framing decisions.
+const BLOCKED_OUTGOING_HEADERS = new Set([
+	'host',
+	'content-length',
+	'transfer-encoding',
+	'te',
+	'connection',
+	'upgrade',
+	'cookie',
+	'set-cookie'
+])
 
-export function parseMaxBytes(value: string | number | undefined): number {
-	if (value === undefined) return 100 * 1024
-	if (typeof value === 'number') return value
-	const match = value.trim().match(/^(\d+(?:\.\d+)?)\s*(kb|mb|gb|b)?$/i)
-	if (!match) return 100 * 1024
-	const num = parseFloat(match[1])
-	const unit = (match[2] ?? 'b').toLowerCase()
-	const multipliers: Record<string, number> = { b: 1, kb: 1024, mb: 1024 ** 2, gb: 1024 ** 3 }
-	return Math.floor(num * (multipliers[unit] ?? 1))
+function collectTargetHeaders(
+	rawHeaders: unknown,
+	base: Record<string, string> = {}
+): Record<string, string> {
+	const headers = { ...base }
+	if (!Array.isArray(rawHeaders)) return headers
+	for (const h of rawHeaders as Array<{ key: string; value: string }>) {
+		if (!h.key) continue
+		if (BLOCKED_OUTGOING_HEADERS.has(h.key.toLowerCase())) continue
+		// Also block any header starting with proxy- (Proxy-Authorization, Proxy-Connection, etc.)
+		if (h.key.toLowerCase().startsWith('proxy-')) continue
+		headers[h.key] = h.value
+	}
+	return headers
 }
 
 // ─── Query augmentation ───────────────────────────────────────────────────────
@@ -265,16 +291,17 @@ export async function dispatchAction(
 		if (action.action_type === AutomationActionType.OUTGOING_WEBHOOK) {
 			if (!action.target_url) throw new Error('No target URL configured')
 
+			const ssrfGuard = automationService.getSsrfGuard()
+			const validation = ssrfGuard.validateUrl(action.target_url)
+			if (!validation.ok) throw new Error(`SSRF guard: ${validation.error}`)
+
 			const dynamicPayload = applyMappings(sourceData, mappings)
 			const mappedPayload = applyStaticValues(dynamicPayload, statics)
 			const bodyStr = JSON.stringify(mappedPayload)
 
-			const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-			if (Array.isArray(action.target_headers)) {
-				for (const h of action.target_headers as Array<{ key: string; value: string }>) {
-					if (h.key) headers[h.key] = h.value
-				}
-			}
+			const headers = collectTargetHeaders(action.target_headers, {
+				'Content-Type': 'application/json'
+			})
 
 			if (opts.signOutgoing && action.signing_secret_id) {
 				const [secret] = await automationService.listAutomationSecrets(
@@ -282,7 +309,8 @@ export async function dispatchAction(
 					{ take: 1 }
 				)
 				if (secret?.secret) {
-					const sig = createHmac('sha256', secret.secret)
+					const signingKey = automationService.decryptSecret(secret.secret)
+					const sig = createHmac('sha256', signingKey)
 						.update(bodyStr)
 						.digest('hex')
 					headers['x-webhook-signature'] = sig
@@ -292,7 +320,7 @@ export async function dispatchAction(
 			const controller = new AbortController()
 			const timeout = setTimeout(() => controller.abort(), 10000)
 
-			const response = await fetch(action.target_url, {
+			const response = await ssrfGuard.fetch(action.target_url, {
 				method: 'POST',
 				headers,
 				body: bodyStr,
@@ -311,16 +339,15 @@ export async function dispatchAction(
 		} else if ((action.action_type as string) === 'outgoing_request') {
 			if (!action.target_url) throw new Error('No target URL configured')
 
+			const ssrfGuard = automationService.getSsrfGuard()
+			const validation = ssrfGuard.validateUrl(action.target_url)
+			if (!validation.ok) throw new Error(`SSRF guard: ${validation.error}`)
+
 			const method = (action.request_method as string) || 'POST'
 			const dynamicPayload = applyMappings(sourceData, mappings)
 			const mappedPayload = applyStaticValues(dynamicPayload, statics)
 
-			const headers: Record<string, string> = {}
-			if (Array.isArray(action.target_headers)) {
-				for (const h of action.target_headers as Array<{ key: string; value: string }>) {
-					if (h.key) headers[h.key] = h.value
-				}
-			}
+			const headers = collectTargetHeaders(action.target_headers)
 
 			let requestUrl = action.target_url
 			let requestBody: string | undefined
@@ -337,7 +364,7 @@ export async function dispatchAction(
 			const controller = new AbortController()
 			const timeout = setTimeout(() => controller.abort(), 10000)
 
-			const response = await fetch(requestUrl, {
+			const response = await ssrfGuard.fetch(requestUrl, {
 				method,
 				headers,
 				body: requestBody,
@@ -355,6 +382,13 @@ export async function dispatchAction(
 			}
 		} else if (action.action_type === AutomationActionType.MEDUSA_WORKFLOW) {
 			if (!action.medusa_workflow) throw new Error('No workflow configured')
+
+			if (isBlockedWorkflowName(action.medusa_workflow)) {
+				throw new Error(
+					`Workflow "${action.medusa_workflow}" is blocked: destructive workflows ` +
+					'(name contains "delete") cannot be invoked from automation actions.'
+				)
+			}
 
 			const workflowFn = (coreFlows as Record<string, unknown>)[action.medusa_workflow]
 			if (typeof workflowFn !== 'function') {
@@ -435,12 +469,20 @@ export async function dispatchAndRecord(
 	const automationService = container.resolve(AUTOMATION_MODULE) as AutomationService
 	const result = await dispatchAction(container, action, sourceData, opts)
 
+	// Redact secret-looking keys in the request payload before persisting, and
+	// truncate response bodies to a bounded length so they can't balloon the
+	// DB or leak large echoed payloads.
+	const truncatedResponseBody =
+		result.responseBody != null && result.responseBody.length > MAX_STORED_RESPONSE_BODY_CHARS
+			? result.responseBody.slice(0, MAX_STORED_RESPONSE_BODY_CHARS) + '…[truncated]'
+			: result.responseBody
+
 	await automationService.createAutomationDeliveries({
 		action_id: action.id,
 		event_name: eventName,
-		request_payload: sourceData,
+		request_payload: redactPayload(sourceData),
 		response_status: result.responseStatus,
-		response_body: result.responseBody,
+		response_body: truncatedResponseBody,
 		status: result.status,
 		attempts: 1,
 		error_message: result.errorMessage

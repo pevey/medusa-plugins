@@ -16,7 +16,15 @@ module.exports = defineConfig({
 	},
 	modules: [
 		{
-			resolve: './src/modules/automation'
+			resolve: './src/modules/automation',
+			options: {
+				secret: process.env.AUTOMATION_SECRET || 'integration-test-only-secret-not-for-prod',
+				ssrf: {
+					// Integration tests target a localhost mock server.
+					allowedSchemes: ['http', 'https'],
+					allowPrivateIps: true
+				}
+			}
 		}
 	]
 })

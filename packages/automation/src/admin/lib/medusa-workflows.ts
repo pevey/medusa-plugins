@@ -2,6 +2,10 @@
 // Each entry documents the workflow name, a human label, category, and the shape
 // of its input so the UI can render a targeted field mapper.
 // Input shapes verified against https://docs.medusajs.com/resources/references/medusa-workflows/
+//
+// Destructive workflows (any name containing 'delete') are commented out — kept
+// in this file as a reference. The runtime in src/lib/workflow-guard.ts also
+// rejects any workflow whose name contains 'delete' as defense in depth.
 
 export type WorkflowInputField = {
 	key: string
@@ -76,6 +80,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deleteCustomersWorkflow',
 		label: 'deleteCustomersWorkflow',
@@ -85,6 +90,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			{ key: 'ids', type: 'array' }
 		]
 	},
+	*/
 	{
 		name: 'createCustomerAddressesWorkflow',
 		label: 'createCustomerAddressesWorkflow',
@@ -151,6 +157,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deleteCustomerAddressesWorkflow',
 		label: 'deleteCustomerAddressesWorkflow',
@@ -158,6 +165,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		hasAdditionalData: false,
 		inputFields: [{ key: 'ids', type: 'array' }]
 	},
+	*/
 	{
 		name: 'createCustomerGroupsWorkflow',
 		label: 'createCustomerGroupsWorkflow',
@@ -175,6 +183,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deleteCustomerGroupsWorkflow',
 		label: 'deleteCustomerGroupsWorkflow',
@@ -182,6 +191,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		hasAdditionalData: false,
 		inputFields: [{ key: 'ids', type: 'array' }]
 	},
+	*/
 	// ─── Order ──────────────────────────────────────────────────────────────────
 	{
 		name: 'cancelOrderWorkflow',
@@ -356,6 +366,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deleteProductsWorkflow',
 		label: 'deleteProductsWorkflow',
@@ -365,6 +376,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			{ key: 'ids', type: 'array' }
 		]
 	},
+	*/
 	{
 		name: 'createProductVariantsWorkflow',
 		label: 'createProductVariantsWorkflow',
@@ -418,6 +430,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deleteProductVariantsWorkflow',
 		label: 'deleteProductVariantsWorkflow',
@@ -425,6 +438,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		hasAdditionalData: false,
 		inputFields: [{ key: 'ids', type: 'array' }]
 	},
+	*/
 	{
 		name: 'createProductTypesWorkflow',
 		label: 'createProductTypesWorkflow',
@@ -655,6 +669,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deleteUsersWorkflow',
 		label: 'deleteUsersWorkflow',
@@ -662,6 +677,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		hasAdditionalData: false,
 		inputFields: [{ key: 'ids', type: 'array' }]
 	},
+	*/
 	// ─── Region ─────────────────────────────────────────────────────────────────
 	{
 		name: 'createRegionsWorkflow',
@@ -684,6 +700,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deleteRegionsWorkflow',
 		label: 'deleteRegionsWorkflow',
@@ -691,6 +708,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		hasAdditionalData: false,
 		inputFields: [{ key: 'ids', type: 'array' }]
 	},
+	*/
 	// ─── Promotions ─────────────────────────────────────────────────────────────
 	{
 		name: 'createPromotionsWorkflow',
@@ -734,6 +752,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deletePromotionsWorkflow',
 		label: 'deletePromotionsWorkflow',
@@ -741,6 +760,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		hasAdditionalData: false,
 		inputFields: [{ key: 'ids', type: 'array' }]
 	},
+	*/
 	{
 		name: 'createCampaignsWorkflow',
 		label: 'createCampaignsWorkflow',
@@ -857,6 +877,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deleteSalesChannelsWorkflow',
 		label: 'deleteSalesChannelsWorkflow',
@@ -864,6 +885,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		hasAdditionalData: false,
 		inputFields: [{ key: 'ids', type: 'array' }]
 	},
+	*/
 	// ─── Payment ────────────────────────────────────────────────────────────────
 	{
 		name: 'capturePaymentWorkflow',
@@ -909,6 +931,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deletePriceListsWorkflow',
 		label: 'deletePriceListsWorkflow',
@@ -916,6 +939,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		hasAdditionalData: false,
 		inputFields: [{ key: 'ids', type: 'array' }]
 	},
+	*/
 	// ─── Stock Locations ─────────────────────────────────────────────────────────
 	{
 		name: 'createStockLocationsWorkflow',
@@ -934,6 +958,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deleteStockLocationsWorkflow',
 		label: 'deleteStockLocationsWorkflow',
@@ -941,6 +966,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		hasAdditionalData: false,
 		inputFields: [{ key: 'ids', type: 'array' }]
 	},
+	*/
 	// ─── Return Reasons ──────────────────────────────────────────────────────────
 	{
 		name: 'createReturnReasonsWorkflow',
@@ -1022,6 +1048,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			}
 		]
 	},
+	/*
 	{
 		name: 'deleteApiKeysWorkflow',
 		label: 'deleteApiKeysWorkflow',
@@ -1029,6 +1056,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		hasAdditionalData: false,
 		inputFields: [{ key: 'ids', type: 'array' }]
 	}
+	*/
 ]
 
 export const MEDUSA_WORKFLOWS_BY_NAME = Object.fromEntries(

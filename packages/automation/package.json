@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-automation",
-	"version": "0.2.1",
+	"version": "0.3.0",
 	"description": "Automation plugin for Medusa v2 with triggers, actions, and HMAC signing",
 	"author": "Lacey Pevey",
 	"repository": {
@@ -51,6 +51,10 @@
 		"event triggers",
 		"webhook actions"
 	],
+	"dependencies": {
+		"ipaddr.js": "2.2.0",
+		"undici": "6.21.1"
+	},
 	"scripts": {
 		"build": "medusa plugin:build",
 		"clean:snapshots": "find . -name '.snapshot-*.json' -path '*/migrations/*' -delete",

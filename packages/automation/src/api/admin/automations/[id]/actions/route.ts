@@ -2,6 +2,7 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/
 import { MedusaError } from '@medusajs/framework/utils'
 import { AUTOMATION_MODULE } from '../../../../../modules/automation'
 import { AutomationService } from '../../../../../modules/automation/service'
+import { isBlockedWorkflowName } from '../../../../../lib/workflow-guard'
 import {
 	AdminGetAutomationActionsType,
 	AdminCreateAutomationActionType,
@@ -39,6 +40,23 @@ export const POST = async (
 		throw new MedusaError(
 			MedusaError.Types.NOT_FOUND,
 			`AutomationTrigger with id ${trigger_id} not found`
+		)
+	}
+
+	// SSRF save-time check — scheme + host patterns only (DNS check happens at delivery).
+	// Only applies to action types that make outgoing HTTP calls.
+	if (req.validatedBody.target_url) {
+		const validation = automationService.getSsrfGuard().validateUrl(req.validatedBody.target_url)
+		if (!validation.ok) {
+			throw new MedusaError(MedusaError.Types.INVALID_DATA, validation.error)
+		}
+	}
+
+	// Workflow guard: refuse to save destructive workflows (e.g. delete*Workflow).
+	if (isBlockedWorkflowName(req.validatedBody.medusa_workflow)) {
+		throw new MedusaError(
+			MedusaError.Types.INVALID_DATA,
+			`Workflow "${req.validatedBody.medusa_workflow}" is blocked: destructive workflows cannot be invoked from automation actions.`
 		)
 	}
 

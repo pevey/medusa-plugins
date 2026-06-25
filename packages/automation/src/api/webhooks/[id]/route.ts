@@ -2,23 +2,19 @@
 // External services POST here; the payload is verified, then each active action
 // is dispatched via the shared dispatch pipeline.
 import { MedusaRequest, MedusaResponse } from '@medusajs/framework/http'
-import { createHmac, timingSafeEqual } from 'crypto'
 import { AUTOMATION_MODULE } from '../../../modules/automation'
 import { AutomationService } from '../../../modules/automation/service'
-import { AutomationTriggerType } from '../../../modules/automation/models/automation-trigger'
+import { AutomationTriggerType, SignatureConfig } from '../../../modules/automation/models/automation-trigger'
 import { redactPayload } from '../../../modules/automation/models/automation-receipt'
-import { parseMaxBytes, dispatchAndRecord } from '../../../lib/dispatch'
+import { dispatchAndRecord } from '../../../lib/dispatch'
+import { verifySignature } from '../../../lib/signature'
 
 export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { id } = req.params
 
-	// Enforce configurable payload size limit before doing any DB work
-	const maxBytes = parseMaxBytes(automationService.getOptions().maxPayloadSize)
-	const bodyBytes = Buffer.byteLength(JSON.stringify(req.body ?? ''))
-	if (bodyBytes > maxBytes) {
-		return res.status(413).json({ error: 'Payload too large' })
-	}
+	// Payload size is enforced upstream by the bodyParser (see middlewares.ts);
+	// anything over the limit returns 413 before reaching this handler.
 
 	const [trigger] = await automationService.listAutomationTriggers({ id }, { take: 1 })
 
@@ -30,26 +26,39 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 		return res.status(404).json({ error: 'Webhook not found or not active' })
 	}
 
-	// Verify HMAC-SHA256 signature if a signing key is configured
+	// Verify HMAC signature if a signing key is configured. Verification
+	// honors the per-trigger SignatureConfig (header name, encoding,
+	// prefix, signed-input template, optional replay window). HMAC is
+	// computed over the raw request bytes captured by preserveRawBody —
+	// re-serializing req.body would normalize whitespace/key order and
+	// reject otherwise-valid signatures.
 	if (trigger.trigger_signing_key) {
-		const signature = req.headers['x-webhook-signature'] as string
-		if (!signature) {
-			return res.status(401).json({ error: 'Missing x-webhook-signature header' })
+		const rawBody = (req as MedusaRequest & { rawBody?: Buffer }).rawBody
+		if (!rawBody) {
+			return res.status(400).json({ error: 'Raw body unavailable for signature verification' })
 		}
-		const expected = createHmac('sha256', trigger.trigger_signing_key)
-			.update(JSON.stringify(req.body))
-			.digest('hex')
-		try {
-			const sigBuffer = Buffer.from(signature)
-			const expectedBuffer = Buffer.from(expected)
-			if (
-				sigBuffer.length !== expectedBuffer.length ||
-				!timingSafeEqual(new Uint8Array(sigBuffer), new Uint8Array(expectedBuffer))
-			) {
-				return res.status(401).json({ error: 'Invalid signature' })
+		const signingKey = automationService.decryptSecret(trigger.trigger_signing_key)
+		const sigConfig = (trigger as any).signature_config as SignatureConfig | null
+		const result = verifySignature(req.headers, rawBody, signingKey, sigConfig)
+		if (!result.ok) {
+			return res.status(result.status).json({ error: result.error })
+		}
+
+		// In-window replay dedup. Only active when the trigger has a
+		// timestamp_header configured — without one we have no defined
+		// window to bound the cache TTL. Uses the signature header value
+		// as the dedup key (already unique per body + timestamp).
+		if (sigConfig?.timestamp_header && (sigConfig.tolerance_seconds ?? 0) > 0) {
+			const headerName = (sigConfig.header ?? 'x-webhook-signature').toLowerCase()
+			const sigValue = req.headers[headerName] as string | undefined
+			if (sigValue) {
+				const seen = automationService
+					.getSignatureCache()
+					.checkAndRecord(trigger.id, sigValue, sigConfig.tolerance_seconds!)
+				if (seen) {
+					return res.status(409).json({ error: 'Replayed signature' })
+				}
 			}
-		} catch {
-			return res.status(401).json({ error: 'Invalid signature' })
 		}
 	}
 

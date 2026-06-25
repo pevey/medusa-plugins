@@ -7,6 +7,7 @@ import {
 	Input,
 	Label,
 	RadioGroup,
+	Select,
 	Switch,
 	Text,
 	Textarea,
@@ -28,6 +29,14 @@ const schema = zod.object({
 	trigger_type: zod.enum(['medusa_event', 'incoming_webhook'] satisfies [TriggerType, ...TriggerType[]]),
 	trigger_events: zod.array(zod.string()).optional(),
 	trigger_signing_key: zod.string().optional(),
+	signature_config: zod.object({
+		header: zod.string().optional(),
+		encoding: zod.enum(['hex', 'base64']).optional(),
+		prefix: zod.string().optional(),
+		template: zod.string().optional(),
+		timestamp_header: zod.string().optional(),
+		tolerance_seconds: zod.string().optional() // form gives string; converted in onSubmit
+	}).optional(),
 	log_incoming: zod.boolean().optional()
 })
 
@@ -84,6 +93,14 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 			trigger_type: 'medusa_event',
 			trigger_events: [],
 			trigger_signing_key: '',
+			signature_config: {
+				header: '',
+				encoding: 'hex',
+				prefix: '',
+				template: '',
+				timestamp_header: '',
+				tolerance_seconds: ''
+			},
 			log_incoming: false
 		}
 	})
@@ -105,11 +122,29 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 	})
 
 	const onSubmit = form.handleSubmit(data => {
-		const payload = { ...data }
+		const payload: any = { ...data }
 		if (payload.trigger_type === 'medusa_event') {
 			delete payload.trigger_signing_key
+			delete payload.signature_config
 		} else {
 			delete payload.trigger_events
+			// Compact signature_config: drop empty strings, coerce numbers, omit entirely if nothing set.
+			const sc = payload.signature_config ?? {}
+			const compact: Record<string, unknown> = {}
+			if (sc.header?.trim()) compact.header = sc.header.trim()
+			if (sc.encoding && sc.encoding !== 'hex') compact.encoding = sc.encoding
+			if (sc.prefix) compact.prefix = sc.prefix
+			if (sc.template?.trim()) compact.template = sc.template.trim()
+			if (sc.timestamp_header?.trim()) compact.timestamp_header = sc.timestamp_header.trim()
+			if (sc.tolerance_seconds?.trim()) {
+				const n = parseInt(sc.tolerance_seconds, 10)
+				if (Number.isFinite(n) && n >= 0) compact.tolerance_seconds = n
+			}
+			if (Object.keys(compact).length > 0) {
+				payload.signature_config = compact
+			} else {
+				delete payload.signature_config
+			}
 		}
 		createTrigger(payload, {
 			onSuccess: () => {
@@ -297,6 +332,123 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 													)}
 												/>
 											</div>
+
+											<details className="mt-2">
+												<summary className="cursor-pointer">
+													<Text size="small" weight="plus" className="inline">
+														Advanced signing options
+													</Text>
+													<Text size="xsmall" className="text-ui-fg-subtle inline ml-2">
+														(only needed for non-default senders)
+													</Text>
+												</summary>
+												<div className="flex flex-col gap-y-3 mt-3 pl-2 border-l border-ui-border-base">
+													<div>
+														<Label htmlFor="wt-sig-header" size="small" weight="plus">
+															Signature Header
+														</Label>
+														<Text size="xsmall" className="text-ui-fg-subtle">
+															Default: <code className="font-mono">x-webhook-signature</code>.
+															Override for senders like GitHub (<code className="font-mono">X-Hub-Signature-256</code>) or Slack.
+														</Text>
+														<Controller
+															name="signature_config.header"
+															control={control}
+															render={({ field }) => (
+																<Input id="wt-sig-header" {...field} placeholder="x-webhook-signature" />
+															)}
+														/>
+													</div>
+													<div>
+														<Label htmlFor="wt-sig-encoding" size="small" weight="plus">
+															Encoding
+														</Label>
+														<Text size="xsmall" className="text-ui-fg-subtle">
+															How the signature bytes are encoded in the header. Default: hex.
+														</Text>
+														<Controller
+															name="signature_config.encoding"
+															control={control}
+															render={({ field }) => (
+																<Select value={field.value ?? 'hex'} onValueChange={field.onChange}>
+																	<Select.Trigger id="wt-sig-encoding">
+																		<Select.Value />
+																	</Select.Trigger>
+																	<Select.Content>
+																		<Select.Item value="hex">hex</Select.Item>
+																		<Select.Item value="base64">base64</Select.Item>
+																	</Select.Content>
+																</Select>
+															)}
+														/>
+													</div>
+													<div>
+														<Label htmlFor="wt-sig-prefix" size="small" weight="plus">
+															Header Prefix
+														</Label>
+														<Text size="xsmall" className="text-ui-fg-subtle">
+															Stripped from the header value before decoding. E.g.{' '}
+															<code className="font-mono">sha256=</code> for GitHub.
+														</Text>
+														<Controller
+															name="signature_config.prefix"
+															control={control}
+															render={({ field }) => (
+																<Input id="wt-sig-prefix" {...field} placeholder="(none)" />
+															)}
+														/>
+													</div>
+													<div>
+														<Label htmlFor="wt-sig-template" size="small" weight="plus">
+															Signed Input Template
+														</Label>
+														<Text size="xsmall" className="text-ui-fg-subtle">
+															Supports <code className="font-mono">{'{body}'}</code> and{' '}
+															<code className="font-mono">{'{ts}'}</code>. Default:{' '}
+															<code className="font-mono">{'{body}'}</code>. Slack-style:{' '}
+															<code className="font-mono">{'v0:{ts}:{body}'}</code>.
+														</Text>
+														<Controller
+															name="signature_config.template"
+															control={control}
+															render={({ field }) => (
+																<Input id="wt-sig-template" {...field} placeholder="{body}" />
+															)}
+														/>
+													</div>
+													<div>
+														<Label htmlFor="wt-sig-ts-header" size="small" weight="plus">
+															Timestamp Header
+														</Label>
+														<Text size="xsmall" className="text-ui-fg-subtle">
+															Header to read the timestamp from for{' '}
+															<code className="font-mono">{'{ts}'}</code> substitution and replay checks.
+														</Text>
+														<Controller
+															name="signature_config.timestamp_header"
+															control={control}
+															render={({ field }) => (
+																<Input id="wt-sig-ts-header" {...field} placeholder="X-Slack-Request-Timestamp" />
+															)}
+														/>
+													</div>
+													<div>
+														<Label htmlFor="wt-sig-tolerance" size="small" weight="plus">
+															Replay Tolerance (seconds)
+														</Label>
+														<Text size="xsmall" className="text-ui-fg-subtle">
+															Reject requests whose timestamp is outside this window. 0 or blank disables the check.
+														</Text>
+														<Controller
+															name="signature_config.tolerance_seconds"
+															control={control}
+															render={({ field }) => (
+																<Input id="wt-sig-tolerance" {...field} placeholder="300" inputMode="numeric" />
+															)}
+														/>
+													</div>
+												</div>
+											</details>
 										</div>
 									)}
 								</div>

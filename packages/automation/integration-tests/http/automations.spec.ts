@@ -592,6 +592,208 @@ medusaIntegrationTestRunner({
 			})
 		})
 
+		// ── Configurable signature schemes (GitHub / Slack-style) ──────────────
+
+		describe('Configurable signature schemes', () => {
+			it('verifies a GitHub-style signature (X-Hub-Signature-256: sha256=<hex>)', async () => {
+				const key = 'gh-key'
+				const tRes = await api.post('/admin/automations', {
+					name: 'GitHub Trigger',
+					trigger_type: 'incoming_webhook',
+					trigger_signing_key: key,
+					signature_config: {
+						header: 'X-Hub-Signature-256',
+						prefix: 'sha256=',
+						encoding: 'hex'
+					},
+					is_active: true
+				}, auth())
+				const tid = tRes.data.trigger.id
+
+				const body = { hello: 'world' }
+				const raw = JSON.stringify(body)
+				const sig = 'sha256=' + createHmac('sha256', key).update(raw).digest('hex')
+
+				const ok = await api.post(`/webhooks/${tid}`, body, {
+					headers: { 'X-Hub-Signature-256': sig }
+				})
+				expect(ok.status).toBe(200)
+
+				const bad = await api
+					.post(`/webhooks/${tid}`, body, { headers: { 'X-Hub-Signature-256': 'sha256=deadbeef' } })
+					.catch((e: any) => e.response)
+				expect(bad.status).toBe(401)
+			})
+
+			it('verifies a Slack-style signature (v0=<hex> over v0:ts:body, with replay window)', async () => {
+				const key = 'slack-key'
+				const tRes = await api.post('/admin/automations', {
+					name: 'Slack Trigger',
+					trigger_type: 'incoming_webhook',
+					trigger_signing_key: key,
+					signature_config: {
+						header: 'X-Slack-Signature',
+						prefix: 'v0=',
+						encoding: 'hex',
+						template: 'v0:{ts}:{body}',
+						timestamp_header: 'X-Slack-Request-Timestamp',
+						tolerance_seconds: 300
+					},
+					is_active: true
+				}, auth())
+				const tid = tRes.data.trigger.id
+
+				const body = { event: 'message' }
+				const raw = JSON.stringify(body)
+				const ts = String(Math.floor(Date.now() / 1000))
+				const sig = 'v0=' + createHmac('sha256', key).update(`v0:${ts}:${raw}`).digest('hex')
+
+				const ok = await api.post(`/webhooks/${tid}`, body, {
+					headers: { 'X-Slack-Signature': sig, 'X-Slack-Request-Timestamp': ts }
+				})
+				expect(ok.status).toBe(200)
+			})
+
+			it('rejects requests outside the replay tolerance window', async () => {
+				const key = 'replay-key'
+				const tRes = await api.post('/admin/automations', {
+					name: 'Replay Trigger',
+					trigger_type: 'incoming_webhook',
+					trigger_signing_key: key,
+					signature_config: {
+						template: 'v0:{ts}:{body}',
+						timestamp_header: 'X-Timestamp',
+						tolerance_seconds: 60
+					},
+					is_active: true
+				}, auth())
+				const tid = tRes.data.trigger.id
+
+				const body = { foo: 'old' }
+				const raw = JSON.stringify(body)
+				const staleTs = String(Math.floor(Date.now() / 1000) - 3600) // 1 hour ago
+				const sig = createHmac('sha256', key).update(`v0:${staleTs}:${raw}`).digest('hex')
+
+				const bad = await api
+					.post(`/webhooks/${tid}`, body, {
+						headers: { 'x-webhook-signature': sig, 'X-Timestamp': staleTs }
+					})
+					.catch((e: any) => e.response)
+				expect(bad.status).toBe(401)
+				expect(bad.data.error).toMatch(/tolerance|timestamp/i)
+			})
+
+			it('returns 401 when GitHub-style prefix is missing from header value', async () => {
+				const key = 'prefix-key'
+				const tRes = await api.post('/admin/automations', {
+					name: 'Prefix Trigger',
+					trigger_type: 'incoming_webhook',
+					trigger_signing_key: key,
+					signature_config: { prefix: 'sha256=' },
+					is_active: true
+				}, auth())
+				const tid = tRes.data.trigger.id
+
+				const body = { foo: 'bar' }
+				const sig = createHmac('sha256', key).update(JSON.stringify(body)).digest('hex')
+
+				// No 'sha256=' prefix → expected prefix mismatch
+				const bad = await api
+					.post(`/webhooks/${tid}`, body, { headers: { 'x-webhook-signature': sig } })
+					.catch((e: any) => e.response)
+				expect(bad.status).toBe(401)
+				expect(bad.data.error).toMatch(/prefix/i)
+			})
+		})
+
+		// ── SSRF save-time validation (end-to-end wiring) ──────────────────────
+		//
+		// IP-level rejection (private/reserved) is covered by the unit suite
+		// in src/lib/__tests__/ssrf.unit.spec.ts — the integration test
+		// backend runs with allowPrivateIps + http enabled so it can talk to
+		// the localhost mock server. These tests just verify the save-time
+		// wiring fires.
+
+		describe('SSRF save-time validation', () => {
+			let triggerId: string
+
+			beforeAll(async () => {
+				const tRes = await api.post('/admin/automations', {
+					name: 'SSRF Save-Time Trigger',
+					trigger_type: 'incoming_webhook',
+					is_active: true
+				}, auth())
+				triggerId = tRes.data.trigger.id
+			})
+
+			it('rejects file:// URLs at action create (scheme not in allowlist)', async () => {
+				const bad = await api.post(`/admin/automations/${triggerId}/actions`, {
+					name: 'File Scheme Action',
+					action_type: 'outgoing_webhook',
+					target_url: 'file:///etc/passwd',
+					is_active: true
+				}, auth()).catch((e: any) => e.response)
+				expect(bad.status).toBe(400)
+				expect(JSON.stringify(bad.data)).toMatch(/scheme|allowed/i)
+			})
+
+			it('rejects malformed URLs at the validator layer', async () => {
+				const bad = await api.post(`/admin/automations/${triggerId}/actions`, {
+					name: 'Bad URL Action',
+					action_type: 'outgoing_webhook',
+					target_url: 'not-a-url',
+					is_active: true
+				}, auth()).catch((e: any) => e.response)
+				expect(bad.status).toBe(400)
+			})
+
+			it('accepts a valid http target_url (test config allows http)', async () => {
+				const ok = await api.post(`/admin/automations/${triggerId}/actions`, {
+					name: 'Valid HTTP Action',
+					action_type: 'outgoing_webhook',
+					target_url: 'http://example.com/hook',
+					is_active: true
+				}, auth())
+				expect(ok.status).toBe(200)
+			})
+		})
+
+		// ── Workflow guard (save-time end-to-end) ──────────────────────────────
+
+		describe('Workflow guard save-time validation', () => {
+			let triggerId: string
+
+			beforeAll(async () => {
+				const tRes = await api.post('/admin/automations', {
+					name: 'Workflow Guard Trigger',
+					trigger_type: 'incoming_webhook',
+					is_active: true
+				}, auth())
+				triggerId = tRes.data.trigger.id
+			})
+
+			it('rejects creating a medusa_workflow action whose workflow name contains "delete"', async () => {
+				const bad = await api.post(`/admin/automations/${triggerId}/actions`, {
+					name: 'Destructive Action',
+					action_type: 'medusa_workflow',
+					medusa_workflow: 'deleteCustomersWorkflow',
+					is_active: true
+				}, auth()).catch((e: any) => e.response)
+				expect(bad.status).toBe(400)
+				expect(JSON.stringify(bad.data)).toMatch(/delete|blocked|destructive/i)
+			})
+
+			it('still allows non-destructive workflows (e.g. createCustomersWorkflow)', async () => {
+				const ok = await api.post(`/admin/automations/${triggerId}/actions`, {
+					name: 'Safe Workflow Action',
+					action_type: 'medusa_workflow',
+					medusa_workflow: 'createCustomersWorkflow',
+					is_active: true
+				}, auth())
+				expect(ok.status).toBe(200)
+			})
+		})
+
 		// ── Dispatch: outgoing webhook ──────────────────────────────────────────
 
 		describe('Dispatch: outgoing webhook', () => {

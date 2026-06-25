@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Added options to allow more control over fetch request events
+
 ## 0.2.1
 
 - Upgrade underlying Medusa packages

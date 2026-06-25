@@ -1,7 +1,26 @@
 import { model } from '@medusajs/framework/utils'
 import { AutomationTrigger } from './automation-trigger'
 
-const REDACT_KEYS = ['password', 'pass', 'apikey', 'secret']
+// Substring match (case-insensitive). Catches keys like 'api_key', 'apiKey',
+// 'authorization', 'X-Auth-Token', 'access_token', 'session_id', etc.
+const REDACT_KEYS = [
+	'password',
+	'pass',
+	'secret',
+	'token',
+	'bearer',
+	'authorization',
+	'auth',
+	'apikey',
+	'api_key',
+	'access_key',
+	'accesskey',
+	'private_key',
+	'privatekey',
+	'credential',
+	'session',
+	'jwt'
+]
 
 function shouldRedact(key: string): boolean {
 	const lower = key.toLowerCase()
