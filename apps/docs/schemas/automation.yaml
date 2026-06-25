@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Automation API
-  version: 0.2.1
+  version: 0.3.0
   description: Automation plugin for Medusa v2 with triggers, actions, and HMAC signing
 servers:
   - url: http://localhost:9000
@@ -76,6 +76,10 @@ paths:
                           type: boolean
                         trigger_events:
                           type: string
+                        signature_config:
+                          type: string
+                        log_incoming:
+                          type: string
                         metadata:
                           type: object
                           additionalProperties: true
@@ -117,6 +121,8 @@ paths:
                   items:
                     type: string
                 trigger_signing_key:
+                  type: string
+                signature_config:
                   type: string
                 log_incoming:
                   type: boolean
@@ -223,6 +229,10 @@ paths:
                         type: boolean
                       trigger_events:
                         type: string
+                      signature_config:
+                        type: string
+                      log_incoming:
+                        type: string
                       metadata:
                         type: object
                         additionalProperties: true
@@ -263,6 +273,9 @@ paths:
                     type: string
                 trigger_signing_key:
                   type: string
+                signature_config:
+                  type: string
+                  nullable: true
                 log_incoming:
                   type: boolean
                 metadata:
