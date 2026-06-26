@@ -7,6 +7,8 @@ import {
 	Input,
 	Button,
 	Select,
+	Switch,
+	Text,
 	Textarea,
 	toast,
 	usePrompt
@@ -23,15 +25,22 @@ import {
 	useUpdateComplaint
 } from '../hooks/complaints'
 
-const schema = zod.object({
-	order_id: zod.string().min(1, 'Required'),
-	product_id: zod.string().min(1, 'Required'),
-	number: zod.number(),
-	status: zod.enum(['open', 'closed'] satisfies [ComplaintStatus, ...ComplaintStatus[]]),
-	description: zod.string().nullable().optional(),
-	metadata: zod.record(zod.unknown()).nullable().optional(),
-	tag_ids: zod.array(zod.string()).optional()
-})
+const schema = zod
+	.object({
+		order_id: zod.string().optional(),
+		product_id: zod.string().optional(),
+		number: zod.number(),
+		status: zod.enum(['open', 'closed'] satisfies [ComplaintStatus, ...ComplaintStatus[]]),
+		description: zod.string().nullable().optional(),
+		actionable: zod.boolean(),
+		reportable: zod.boolean(),
+		metadata: zod.record(zod.unknown()).nullable().optional(),
+		tag_ids: zod.array(zod.string()).optional()
+	})
+	.refine((data) => !data.product_id || !!data.order_id, {
+		message: 'Order is required when a product is selected',
+		path: ['order_id']
+	})
 type EditComplaintFormData = zod.infer<typeof schema>
 
 type EditComplaintDrawerProps = {
@@ -52,6 +61,8 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 			description: null,
 			order_id: '',
 			product_id: '',
+			actionable: false,
+			reportable: false,
 			metadata: null,
 			tag_ids: []
 		}
@@ -117,8 +128,10 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 				number: complaint.number,
 				status: complaint.status,
 				description: complaint.description ?? null,
-				order_id: complaint.order_id,
-				product_id: complaint.product_id,
+				order_id: complaint.order_id ?? '',
+				product_id: complaint.product_id ?? '',
+				actionable: complaint.actionable ?? false,
+				reportable: complaint.reportable ?? false,
 				metadata: complaint.metadata ?? null,
 				tag_ids: complaint.tags?.map(tag => tag.id) ?? []
 			})
@@ -126,7 +139,12 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 	}, [complaint, open, form])
 
 	const handleSubmit = form.handleSubmit(data => {
-		updateMutation.mutate(data, {
+		const payload = {
+			...data,
+			order_id: data.order_id || null,
+			product_id: data.product_id || null
+		}
+		updateMutation.mutate(payload, {
 			onSuccess: () => {
 				form.reset()
 				setOpen(false)
@@ -161,17 +179,16 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 							<Controller
 								control={form.control}
 								name="order_id"
-								rules={{ required: 'Order is required' }}
-								render={({ field }) => (
+								render={({ field, fieldState }) => (
 									<div className="flex flex-col space-y-2">
 										<Label size="small" weight="plus">
-											Order <span className="text-red-500">*</span>
+											Order
 										</Label>
 										{customerLoading ? (
 											<Label size="small">Loading orders...</Label>
 										) : (
 											<Select
-												value={field.value}
+												value={field.value ?? ''}
 												onValueChange={value => {
 													field.onChange(value)
 													form.setValue('product_id', '')
@@ -194,6 +211,11 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 												</Select.Content>
 											</Select>
 										)}
+										{fieldState.error?.message && (
+											<Label size="small" className="text-ui-fg-error">
+												{fieldState.error.message}
+											</Label>
+										)}
 									</div>
 								)}
 							/>
@@ -201,7 +223,6 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 							<Controller
 								control={form.control}
 								name="product_id"
-								rules={{ required: 'Product is required' }}
 								render={({ field }) => (
 									<div className="flex flex-col space-y-2">
 										<Label size="small" weight="plus">
@@ -210,7 +231,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 										{orderLoading ? (
 											<span className="text-sm text-ui-fg-subtle">Loading...</span>
 										) : (
-											<Select value={field.value} onValueChange={field.onChange}>
+											<Select value={field.value ?? ''} onValueChange={field.onChange}>
 												<Select.Trigger>
 													<Select.Value placeholder="Select a product" />
 												</Select.Trigger>
@@ -339,6 +360,50 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 									</div>
 								)}
 							/>
+							{/* Actionable */}
+							<div className="flex items-center justify-between rounded-lg border border-ui-border-base p-3">
+								<div>
+									<Label htmlFor="ecd-actionable" size="small" weight="plus">
+										Actionable
+									</Label>
+									<Text size="small" className="text-ui-fg-subtle">
+										This complaint requires corrective action.
+									</Text>
+								</div>
+								<Controller
+									control={form.control}
+									name="actionable"
+									render={({ field }) => (
+										<Switch
+											id="ecd-actionable"
+											checked={field.value}
+											onCheckedChange={field.onChange}
+										/>
+									)}
+								/>
+							</div>
+							{/* Reportable */}
+							<div className="flex items-center justify-between rounded-lg border border-ui-border-base p-3">
+								<div>
+									<Label htmlFor="ecd-reportable" size="small" weight="plus">
+										Reportable
+									</Label>
+									<Text size="small" className="text-ui-fg-subtle">
+										This complaint must be reported to a regulator.
+									</Text>
+								</div>
+								<Controller
+									control={form.control}
+									name="reportable"
+									render={({ field }) => (
+										<Switch
+											id="ecd-reportable"
+											checked={field.value}
+											onCheckedChange={field.onChange}
+										/>
+									)}
+								/>
+							</div>
 						</Drawer.Body>
 						<Drawer.Footer>
 							<div className="flex items-center justify-end gap-x-2">

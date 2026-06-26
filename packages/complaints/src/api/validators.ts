@@ -5,6 +5,12 @@ import { ComplaintActivityType } from '../modules/complaint/models/complaint-act
 
 // ── Complaints ────────────────────────────────────────────────────────────────
 
+const booleanFromQuery = z.preprocess(val => {
+	if (val === 'true' || val === true) return true
+	if (val === 'false' || val === false) return false
+	return val
+}, z.boolean())
+
 export const AdminGetComplaints = createFindParams({
 	limit: 15,
 	offset: 0
@@ -21,6 +27,8 @@ export const AdminGetComplaints = createFindParams({
 			return val
 		}, z.enum(ComplaintStatus))
 		.optional(),
+	actionable: booleanFromQuery.optional(),
+	reportable: booleanFromQuery.optional(),
 	q: z.string().optional()
 })
 export type AdminGetComplaintsType = z.infer<typeof AdminGetComplaints>
@@ -32,16 +40,26 @@ export const AdminCreateComplaint = z
 	.object({
 		description: z.string(),
 		customer_id: z.string(),
-		order_id: z.string(),
-		product_id: z.string(),
+		order_id: z.string().optional(),
+		product_id: z.string().optional(),
 		stock_lot_id: z.string().optional(),
 		serial_number_id: z.string().optional(),
+		actionable: z.boolean().optional(),
+		reportable: z.boolean().optional(),
 		tag_ids: z.array(z.string()).optional(),
 		tags: z.array(z.string()).optional(),
 		metadata: z.record(z.string(), z.unknown()).nullable().optional()
 	})
 	.check((ctx) => {
 		const val = ctx.value
+		if (val.product_id && !val.order_id) {
+			ctx.issues.push({
+				path: ['order_id'],
+				code: 'custom',
+				input: val,
+				message: 'order_id is required when product_id is provided'
+			})
+		}
 		if (val.tag_ids && val.tags) {
 			// If both tag_ids and tags are provided, combine them and remove duplicates
 			const combinedTags = Array.from(new Set([...val.tag_ids, ...(val.tags || [])]))
@@ -71,16 +89,26 @@ export const AdminUpdateComplaint = z
 			.optional(),
 		description: z.string().optional(),
 		customer_id: z.string().optional(),
-		order_id: z.string().optional(),
-		product_id: z.string().optional(),
-		stock_lot_id: z.string().optional(),
-		serial_number_id: z.string().optional(),
+		order_id: z.string().nullable().optional(),
+		product_id: z.string().nullable().optional(),
+		stock_lot_id: z.string().nullable().optional(),
+		serial_number_id: z.string().nullable().optional(),
+		actionable: z.boolean().optional(),
+		reportable: z.boolean().optional(),
 		tag_ids: z.array(z.string()).optional(),
 		tags: z.array(z.string()).optional(),
 		metadata: z.record(z.string(), z.unknown()).nullable().optional()
 	})
 	.check((ctx) => {
 		const val = ctx.value
+		if (val.product_id && val.order_id === null) {
+			ctx.issues.push({
+				path: ['order_id'],
+				code: 'custom',
+				input: val,
+				message: 'order_id cannot be cleared while a product_id is set'
+			})
+		}
 		if (val.tag_ids && val.tags) {
 			// If both tag_ids and tags are provided, combine them and remove duplicates
 			const combinedTags = Array.from(new Set([...val.tag_ids, ...(val.tags || [])]))

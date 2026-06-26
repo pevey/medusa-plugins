@@ -34,7 +34,7 @@ const ComplaintsPage = () => {
 		pageIndex: 0
 	})
 	const offset = useMemo(() => pagination.pageIndex * limit, [pagination])
-	const [filtering, setFiltering] = useState<DataTableFilteringState>({})
+	const [filtering, setFiltering] = useState<DataTableFilteringState>({ actionable: 'true' })
 	const [sorting, setSorting] = useState<DataTableSortingState | null>(null)
 	const [search, setSearch] = useState('')
 
@@ -42,7 +42,9 @@ const ComplaintsPage = () => {
 		limit,
 		offset,
 		q: search,
-		...(filtering.enabled !== undefined ? { enabled: filtering.enabled } : {}),
+		...(filtering.status !== undefined ? { status: filtering.status } : {}),
+		...(filtering.actionable !== undefined ? { actionable: filtering.actionable } : {}),
+		...(filtering.reportable !== undefined ? { reportable: filtering.reportable } : {}),
 		order: sorting ? `${sorting.desc ? '-' : ''}${sorting.id}` : undefined
 	})
 	const { mutateAsync: deleteComplaints } = useDeleteComplaints()
@@ -111,6 +113,22 @@ const ComplaintsPage = () => {
 			options: [
 				{ label: 'Open', value: 'open' },
 				{ label: 'Closed', value: 'closed' }
+			]
+		}),
+		filterHelper.accessor('actionable', {
+			type: 'select',
+			label: 'Actionable',
+			options: [
+				{ label: 'Yes', value: 'true' },
+				{ label: 'No', value: 'false' }
+			]
+		}),
+		filterHelper.accessor('reportable', {
+			type: 'select',
+			label: 'Reportable',
+			options: [
+				{ label: 'Yes', value: 'true' },
+				{ label: 'No', value: 'false' }
 			]
 		})
 	]

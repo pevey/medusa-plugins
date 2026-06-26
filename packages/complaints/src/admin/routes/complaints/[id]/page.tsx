@@ -67,14 +67,30 @@ const ComplaintDetailPage = () => {
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
 					<Text size="small" weight="plus" leading="compact">Order</Text>
 					<Text size="small" leading="compact">
-						<Link to={`/orders/${complaint.order_id}`}>{complaint.order.id ?? '-'}</Link>
+						{complaint.order_id ? (
+							<Link to={`/orders/${complaint.order_id}`}>{complaint.order?.id ?? complaint.order_id}</Link>
+						) : (
+							'-'
+						)}
 					</Text>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
 					<Text size="small" weight="plus" leading="compact">Product</Text>
 					<Text size="small" leading="compact">
-						<Link to={`/products/${complaint.product_id}`}>{complaint.product.title ?? '-'}</Link>
+						{complaint.product_id ? (
+							<Link to={`/products/${complaint.product_id}`}>{complaint.product?.title ?? complaint.product_id}</Link>
+						) : (
+							'-'
+						)}
 					</Text>
+				</div>
+				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
+					<Text size="small" weight="plus" leading="compact">Actionable</Text>
+					<Text size="small" leading="compact">{complaint.actionable ? 'Yes' : 'No'}</Text>
+				</div>
+				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
+					<Text size="small" weight="plus" leading="compact">Reportable</Text>
+					<Text size="small" leading="compact">{complaint.reportable ? 'Yes' : 'No'}</Text>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
 					<Text size="small" weight="plus" leading="compact">Tags</Text>

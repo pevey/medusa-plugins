@@ -15,7 +15,8 @@ export const GET = async (
 ) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
-	const { customer_id, order_id, product_id, status, q } = req.validatedQuery
+	const { customer_id, order_id, product_id, status, actionable, reportable, q } =
+		req.validatedQuery
 
 	const { data: complaints, metadata } = await query.graph({
 		entity: 'complaint',
@@ -29,6 +30,8 @@ export const GET = async (
 					? { status: ComplaintStatus.CLOSED }
 					: { status: ComplaintStatus.OPEN }
 				: {}),
+			...(actionable !== undefined ? { actionable } : {}),
+			...(reportable !== undefined ? { reportable } : {}),
 			...(q ? { description: { $ilike: `%${q}%` } } : {})
 		}
 	})

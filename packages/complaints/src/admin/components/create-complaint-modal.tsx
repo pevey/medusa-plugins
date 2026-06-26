@@ -3,11 +3,13 @@ import {
 	Badge,
 	FocusModal,
 	Heading,
+	Label,
 	Text,
 	Textarea,
 	Button,
 	Input,
 	Select,
+	Switch,
 	toast,
 	usePrompt
 } from '@medusajs/ui'
@@ -22,13 +24,20 @@ import {
 	useCreateComplaint
 } from '../hooks/complaints'
 
-const schema = zod.object({
-	description: zod.string().min(1, 'Required'),
-	customer_id: zod.string().min(1, 'Required'),
-	order_id: zod.string().min(1, 'Required'),
-	product_id: zod.string().min(1, 'Required'),
-	tag_ids: zod.array(zod.string()).optional()
-})
+const schema = zod
+	.object({
+		description: zod.string().min(1, 'Required'),
+		customer_id: zod.string().min(1, 'Required'),
+		order_id: zod.string().optional(),
+		product_id: zod.string().optional(),
+		actionable: zod.boolean(),
+		reportable: zod.boolean(),
+		tag_ids: zod.array(zod.string()).optional()
+	})
+	.refine((data) => !data.product_id || !!data.order_id, {
+		message: 'Order is required when a product is selected',
+		path: ['order_id']
+	})
 type CreateComplaintFormData = zod.infer<typeof schema>
 
 type CreateComplaintDrawerProps = {
@@ -55,6 +64,8 @@ export const CreateComplaintModal = ({
 			customer_id: customerId,
 			order_id: orderId ?? '',
 			product_id: '',
+			actionable: false,
+			reportable: false,
 			tag_ids: []
 		}
 	})
@@ -121,7 +132,12 @@ export const CreateComplaintModal = ({
 	}, [isDirty, open, blocker])
 
 	const handleSubmit = form.handleSubmit(data => {
-		createComplaint(data, {
+		const payload = {
+			...data,
+			order_id: data.order_id || undefined,
+			product_id: data.product_id || undefined
+		}
+		createComplaint(payload, {
 			onSuccess: result => {
 				toast.success('Complaint created successfully')
 				setSuccess(true)
@@ -188,11 +204,10 @@ export const CreateComplaintModal = ({
 										<Controller
 											control={form.control}
 											name="order_id"
-											rules={{ required: 'Order is required' }}
-											render={({ field }) => (
+											render={({ field, fieldState }) => (
 												<div className="flex flex-col space-y-2">
 													<Text size="small" weight="plus">
-														Order <span className="text-red-500">*</span>
+														Order
 													</Text>
 													{customerLoading ? (
 														<Text size="small">Loading orders...</Text>
@@ -223,6 +238,11 @@ export const CreateComplaintModal = ({
 																))}
 															</Select.Content>
 														</Select>
+													)}
+													{fieldState.error?.message && (
+														<Text size="small" className="text-ui-fg-error">
+															{fieldState.error.message}
+														</Text>
 													)}
 												</div>
 											)}
@@ -332,6 +352,50 @@ export const CreateComplaintModal = ({
 												</div>
 											)}
 										/>
+										{/* Actionable */}
+										<div className="flex items-center justify-between rounded-lg border border-ui-border-base p-3">
+											<div>
+												<Label htmlFor="ccm-actionable" size="small" weight="plus">
+													Actionable
+												</Label>
+												<Text size="small" className="text-ui-fg-subtle">
+													This complaint requires corrective action.
+												</Text>
+											</div>
+											<Controller
+												control={form.control}
+												name="actionable"
+												render={({ field }) => (
+													<Switch
+														id="ccm-actionable"
+														checked={field.value}
+														onCheckedChange={field.onChange}
+													/>
+												)}
+											/>
+										</div>
+										{/* Reportable */}
+										<div className="flex items-center justify-between rounded-lg border border-ui-border-base p-3">
+											<div>
+												<Label htmlFor="ccm-reportable" size="small" weight="plus">
+													Reportable
+												</Label>
+												<Text size="small" className="text-ui-fg-subtle">
+													This complaint must be reported to a regulator.
+												</Text>
+											</div>
+											<Controller
+												control={form.control}
+												name="reportable"
+												render={({ field }) => (
+													<Switch
+														id="ccm-reportable"
+														checked={field.value}
+														onCheckedChange={field.onChange}
+													/>
+												)}
+											/>
+										</div>
 									</div>
 								</div>
 							</div>

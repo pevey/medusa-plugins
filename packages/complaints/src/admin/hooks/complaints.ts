@@ -98,8 +98,10 @@ export const useCreateComplaint = () => {
 		mutationFn: (data: {
 			description: string
 			customer_id: string
-			order_id: string
-			product_id: string
+			order_id?: string
+			product_id?: string
+			actionable?: boolean
+			reportable?: boolean
 			tag_ids?: string[]
 		}) =>
 			sdk.client.fetch<AdminComplaintResponse>('/admin/complaints', {

@@ -14,7 +14,9 @@
  *
  * NOTE: complaint.customer_id, order_id, and product_id are plain text fields with
  * no FK validation, so fake IDs are used throughout to avoid the overhead of
- * creating full Medusa order/customer/product records.
+ * creating full Medusa order/customer/product records. customer_id is required;
+ * order_id and product_id are optional (general complaints can omit both), but
+ * product_id may not be set without order_id.
  *
  * The complaint-stats success case seeds a stat record directly via the
  * ComplaintService rather than going through the full recalculate flow.
@@ -125,16 +127,50 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(400)
 			})
 
-			it('POST /admin/complaints rejects missing order_id', async () => {
-				const res = await api
-					.post('/admin/complaints', { description: 'x', customer_id: 'c', product_id: 'p' }, auth())
-					.catch((e: any) => e.response)
-				expect(res.status).toBe(400)
+			it('POST /admin/complaints accepts missing order_id and product_id (general complaint)', async () => {
+				const res = await api.post(
+					'/admin/complaints',
+					{ description: 'general complaint', customer_id: 'cus_general_test' },
+					auth()
+				)
+				expect(res.status).toBe(200)
+				expect(res.data.complaint).toMatchObject({
+					customer_id: 'cus_general_test',
+					order_id: null,
+					product_id: null
+				})
+				await api
+					.delete('/admin/complaints', { data: { ids: [res.data.complaint.id] }, ...auth() })
+					.catch(() => {})
 			})
 
-			it('POST /admin/complaints rejects missing product_id', async () => {
+			it('POST /admin/complaints accepts order_id without product_id', async () => {
+				const res = await api.post(
+					'/admin/complaints',
+					{
+						description: 'order-level complaint',
+						customer_id: 'cus_order_only_test',
+						order_id: 'ord_order_only_test'
+					},
+					auth()
+				)
+				expect(res.status).toBe(200)
+				expect(res.data.complaint).toMatchObject({
+					order_id: 'ord_order_only_test',
+					product_id: null
+				})
+				await api
+					.delete('/admin/complaints', { data: { ids: [res.data.complaint.id] }, ...auth() })
+					.catch(() => {})
+			})
+
+			it('POST /admin/complaints rejects product_id without order_id', async () => {
 				const res = await api
-					.post('/admin/complaints', { description: 'x', customer_id: 'c', order_id: 'o' }, auth())
+					.post(
+						'/admin/complaints',
+						{ description: 'x', customer_id: 'c', product_id: 'p' },
+						auth()
+					)
 					.catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})

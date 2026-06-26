@@ -56,10 +56,12 @@ export type AdminComplaint = {
 	description: string
 	customer_id: string
 	customer: AdminCustomer
-	order_id: string
-	order: AdminOrder
-	product_id: string
-	product: AdminProduct
+	order_id: string | null
+	order: AdminOrder | null
+	product_id: string | null
+	product: AdminProduct | null
+	actionable: boolean
+	reportable: boolean
 	metadata?: Record<string, unknown> | null
 	tags?: AdminComplaintTag[]
 	history: AdminComplaintHistory[]
