@@ -1,6 +1,7 @@
 import { model } from '@medusajs/framework/utils'
 import { ComplaintTag } from './complaint-tag'
 import { ComplaintActivity } from './complaint-activity'
+import { ComplaintDocument } from './complaint-document'
 
 export enum ComplaintStatus {
 	OPEN = 'open',
@@ -23,6 +24,9 @@ export const Complaint = model
 		metadata: model.json().nullable(),
 		tags: model.manyToMany(() => ComplaintTag),
 		activity: model.hasMany(() => ComplaintActivity, {
+			mappedBy: 'complaint'
+		}),
+		documents: model.hasMany(() => ComplaintDocument, {
 			mappedBy: 'complaint'
 		})
 	})

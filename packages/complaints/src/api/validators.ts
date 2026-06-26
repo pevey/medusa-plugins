@@ -286,3 +286,11 @@ export const AdminGetComplaintCustomerTagStats = createFindParams({
 export type AdminGetComplaintCustomerTagStatsType = z.infer<
 	typeof AdminGetComplaintCustomerTagStats
 >
+
+// ── Complaint Documents ───────────────────────────────────────────────────────
+
+export const AdminGetComplaintDocuments = createFindParams({
+	limit: 50,
+	offset: 0
+})
+export type AdminGetComplaintDocumentsType = z.infer<typeof AdminGetComplaintDocuments>

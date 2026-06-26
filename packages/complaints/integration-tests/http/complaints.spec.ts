@@ -11,6 +11,11 @@
  *  - Status-change auto-activity creation (open/close entries)
  *  - Query filters (status, q)
  *  - GET /admin/complaint-stats/products/:id (404 and success)
+ *  - Documents endpoints (list, download URL, delete, cross-complaint isolation,
+ *    cascade on complaint delete). Document rows are seeded directly via the
+ *    service to avoid needing real file-provider credentials in tests; the
+ *    workflow's provider.delete() call uses S3-compatible idempotent semantics
+ *    so a missing key still succeeds.
  *
  * NOTE: complaint.customer_id, order_id, and product_id are plain text fields with
  * no FK validation, so fake IDs are used throughout to avoid the overhead of
@@ -94,7 +99,11 @@ medusaIntegrationTestRunner({
 				['GET', `/admin/complaint-tags/${FAKE_ID}`, null],
 				['POST', `/admin/complaint-tags/${FAKE_ID}`, { value: 'y' }],
 				['DELETE', `/admin/complaint-tags/${FAKE_ID}`, null],
-				['GET', `/admin/complaint-stats/products/${FAKE_ID}`, null]
+				['GET', `/admin/complaint-stats/products/${FAKE_ID}`, null],
+				['GET', `/admin/complaints/${FAKE_ID}/documents`, null],
+				['POST', `/admin/complaints/${FAKE_ID}/documents`, {}],
+				['GET', `/admin/complaints/${FAKE_ID}/documents/${FAKE_ID}/download`, null],
+				['DELETE', `/admin/complaints/${FAKE_ID}/documents/${FAKE_ID}`, null]
 			] as const
 
 			it.each(endpoints)('%s %s returns 401 without auth token', async (method, path, body) => {
@@ -566,6 +575,185 @@ medusaIntegrationTestRunner({
 		})
 
 		// ── Complaint Stats — Products ─────────────────────────────────────────────
+
+		describe('Documents', () => {
+			let docComplaintId: string
+			let otherComplaintId: string
+
+			beforeAll(async () => {
+				const [r1, r2] = await Promise.all([
+					api.post(
+						'/admin/complaints',
+						{ description: 'doc owner', customer_id: 'cus_doc_test' },
+						auth()
+					),
+					api.post(
+						'/admin/complaints',
+						{ description: 'doc isolation', customer_id: 'cus_doc_other' },
+						auth()
+					)
+				])
+				docComplaintId = r1.data.complaint.id
+				otherComplaintId = r2.data.complaint.id
+			})
+
+			afterAll(async () => {
+				await api
+					.delete('/admin/complaints', {
+						data: { ids: [docComplaintId, otherComplaintId] },
+						...auth()
+					})
+					.catch(() => {})
+			})
+
+			it('POST /admin/complaints/:id/documents rejects request with no file', async () => {
+				const res = await api
+					.post(`/admin/complaints/${docComplaintId}/documents`, {}, auth())
+					.catch((e: any) => e.response)
+				expect(res.status).toBe(400)
+			})
+
+			it('GET /admin/complaints/:id/documents lists documents for the complaint', async () => {
+				const created = await complaintService.createComplaintDocuments({
+					complaint_id: docComplaintId,
+					file_key: 'test/list-test.txt',
+					filename: 'list-test.txt',
+					mime_type: 'text/plain',
+					size_bytes: 42,
+					uploaded_by: null
+				})
+				const seeded = Array.isArray(created) ? created[0] : created
+
+				const res = await api.get(
+					`/admin/complaints/${docComplaintId}/documents`,
+					auth()
+				)
+				expect(res.status).toBe(200)
+				expect(Array.isArray(res.data.documents)).toBe(true)
+				expect(res.data.documents.some((d: any) => d.id === seeded.id)).toBe(true)
+
+				await complaintService.deleteComplaintDocuments([seeded.id])
+			})
+
+			it('GET .../:docId/download returns a presigned URL', async () => {
+				const created = await complaintService.createComplaintDocuments({
+					complaint_id: docComplaintId,
+					file_key: 'test/download-test.txt',
+					filename: 'download-test.txt',
+					mime_type: 'text/plain',
+					size_bytes: 10,
+					uploaded_by: null
+				})
+				const seeded = Array.isArray(created) ? created[0] : created
+
+				const res = await api.get(
+					`/admin/complaints/${docComplaintId}/documents/${seeded.id}/download`,
+					auth()
+				)
+				expect(res.status).toBe(200)
+				expect(typeof res.data.url).toBe('string')
+				expect(res.data.filename).toBe('download-test.txt')
+				expect(res.data.mime_type).toBe('text/plain')
+
+				await complaintService.deleteComplaintDocuments([seeded.id])
+			})
+
+			it('GET .../:docId/download returns 404 when document belongs to another complaint', async () => {
+				const created = await complaintService.createComplaintDocuments({
+					complaint_id: otherComplaintId,
+					file_key: 'test/iso-download.txt',
+					filename: 'iso-download.txt',
+					mime_type: 'text/plain',
+					size_bytes: 5,
+					uploaded_by: null
+				})
+				const seeded = Array.isArray(created) ? created[0] : created
+
+				const res = await api
+					.get(
+						`/admin/complaints/${docComplaintId}/documents/${seeded.id}/download`,
+						auth()
+					)
+					.catch((e: any) => e.response)
+				expect(res.status).toBe(404)
+
+				await complaintService.deleteComplaintDocuments([seeded.id])
+			})
+
+			it('DELETE .../:docId removes the document', async () => {
+				const created = await complaintService.createComplaintDocuments({
+					complaint_id: docComplaintId,
+					file_key: 'test/delete-test.txt',
+					filename: 'delete-test.txt',
+					mime_type: 'text/plain',
+					size_bytes: 7,
+					uploaded_by: null
+				})
+				const seeded = Array.isArray(created) ? created[0] : created
+
+				const res = await api.delete(
+					`/admin/complaints/${docComplaintId}/documents/${seeded.id}`,
+					auth()
+				)
+				expect(res.status).toBe(200)
+				expect(res.data.deleted).toContain(seeded.id)
+
+				const after = await complaintService.listComplaintDocuments({ id: seeded.id })
+				expect(after).toHaveLength(0)
+			})
+
+			it('DELETE .../:docId returns 404 when document belongs to another complaint', async () => {
+				const created = await complaintService.createComplaintDocuments({
+					complaint_id: otherComplaintId,
+					file_key: 'test/iso-delete.txt',
+					filename: 'iso-delete.txt',
+					mime_type: 'text/plain',
+					size_bytes: 5,
+					uploaded_by: null
+				})
+				const seeded = Array.isArray(created) ? created[0] : created
+
+				const res = await api
+					.delete(
+						`/admin/complaints/${docComplaintId}/documents/${seeded.id}`,
+						auth()
+					)
+					.catch((e: any) => e.response)
+				expect(res.status).toBe(404)
+
+				const stillThere = await complaintService.listComplaintDocuments({ id: seeded.id })
+				expect(stillThere).toHaveLength(1)
+
+				await complaintService.deleteComplaintDocuments([seeded.id])
+			})
+
+			it('DELETE complaint cascades through and removes its documents', async () => {
+				const c = await api.post(
+					'/admin/complaints',
+					{ description: 'cascade target', customer_id: 'cus_cascade_test' },
+					auth()
+				)
+				const targetId = c.data.complaint.id
+
+				const created = await complaintService.createComplaintDocuments({
+					complaint_id: targetId,
+					file_key: 'test/cascade.txt',
+					filename: 'cascade.txt',
+					mime_type: 'text/plain',
+					size_bytes: 3,
+					uploaded_by: null
+				})
+				const seededDoc = Array.isArray(created) ? created[0] : created
+
+				const res = await api.delete(`/admin/complaints/${targetId}`, auth())
+				expect(res.status).toBe(200)
+
+				const remaining = await complaintService.listComplaintDocuments({
+					id: seededDoc.id
+				})
+				expect(remaining).toHaveLength(0)
+			})
+		})
 
 		describe('Complaint Stats - Products', () => {
 			const STAT_PRODUCT_ID = 'prod_stat_test_complaints_001'

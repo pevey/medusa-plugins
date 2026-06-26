@@ -1,4 +1,8 @@
+import multer from 'multer'
 import { defineMiddlewares, validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework/http'
+import { COMPLAINT_MODULE } from '../modules/complaint'
+import { ComplaintService } from '../modules/complaint/service'
+import { DEFAULT_COMPLAINT_DOCUMENT_MAX_BYTES } from '../modules/complaint/types'
 import {
 	AdminCreateComplaint,
 	AdminCreateComplaintActivity,
@@ -8,6 +12,7 @@ import {
 	AdminGetComplaint,
 	AdminGetComplaintActivities,
 	AdminGetComplaintActivity,
+	AdminGetComplaintDocuments,
 	AdminGetComplaintProductStat,
 	AdminGetComplaints,
 	AdminGetComplaintTag,
@@ -19,6 +24,18 @@ import {
 	AdminCreateComplaintNote,
 	AdminUpdateComplaintNote
 } from './validators'
+
+const COMPLAINT_DOCUMENT_ALLOWED_MIME_TYPES = new Set([
+	'application/pdf',
+	'text/plain',
+	'text/csv',
+	'image/png',
+	'image/jpeg',
+	'image/gif',
+	'image/webp',
+	'application/zip',
+	'application/x-zip-compressed'
+])
 
 export default defineMiddlewares([
 	{
@@ -162,6 +179,58 @@ export default defineMiddlewares([
 				],
 				isList: false
 			})
+		]
+	},
+	{
+		matcher: '/admin/complaints/:id/documents',
+		method: ['GET'],
+		middlewares: [
+			validateAndTransformQuery(AdminGetComplaintDocuments, {
+				defaults: [
+					'id', 'complaint_id', 'filename', 'mime_type', 'size_bytes',
+					'uploaded_by', 'created_at'
+				],
+				isList: true,
+				defaultLimit: 50
+			})
+		]
+	},
+	{
+		matcher: '/admin/complaints/:id/documents',
+		method: ['POST'],
+		middlewares: [
+			(req: any, res: any, next: any) => {
+				let maxBytes = DEFAULT_COMPLAINT_DOCUMENT_MAX_BYTES
+				try {
+					const service: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)
+					maxBytes = service.getMaxDocumentBytes()
+				} catch {
+					// Service not resolvable at this point — fall back to the
+					// shipped default. This shouldn't happen in normal request
+					// handling but we don't want a config-lookup failure to
+					// block uploads outright.
+				}
+				const upload = multer({
+					storage: multer.memoryStorage(),
+					limits: { fileSize: maxBytes },
+					fileFilter: (_req, file, cb) => {
+						if (COMPLAINT_DOCUMENT_ALLOWED_MIME_TYPES.has(file.mimetype)) {
+							cb(null, true)
+						} else {
+							cb(new Error(`Unsupported file type: ${file.mimetype}`))
+						}
+					}
+				}).single('file')
+				upload(req, res, (err: any) => {
+					if (err) {
+						return res.status(400).json({ type: 'invalid_data', message: err.message })
+					}
+					if (!req.file) {
+						return res.status(400).json({ type: 'invalid_data', message: 'No file was uploaded' })
+					}
+					next()
+				})
+			}
 		]
 	}
 ])

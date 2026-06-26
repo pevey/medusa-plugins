@@ -6,7 +6,13 @@ import { sdk } from '../../../lib/sdk'
 import { ActionMenu } from '../../../components/action-menu'
 import { ComplaintActivity } from '../../../components/complaint-activity'
 import { EditComplaintDrawer } from '../../../components/edit-complaint-drawer'
-import { useComplaint, useDeleteComplaints } from '../../../hooks/complaints'
+import { formatFileSize } from '../../../components/document-drop-zone'
+import {
+	useComplaint,
+	useComplaintDocuments,
+	useDeleteComplaints,
+	useDownloadComplaintDocument
+} from '../../../hooks/complaints'
 
 type ComplaintLoaderData = { complaint: { id: string; number: number } }
 
@@ -28,7 +34,18 @@ const ComplaintDetailPage = () => {
 
 	const { data, isLoading } = useComplaint(id)
 	const { mutate: deleteComplaints } = useDeleteComplaints()
+	const { data: documentsData } = useComplaintDocuments(id)
+	const documents = documentsData?.documents ?? []
+	const downloadDocumentMutation = useDownloadComplaintDocument()
 	const complaint = data?.complaint
+
+	const handleDownloadDocument = (docId: string) => {
+		if (!id) return
+		downloadDocumentMutation.mutate(
+			{ complaintId: id, docId },
+			{ onError: (err: Error) => toast.error(`Failed to open document: ${err.message}`) }
+		)
+	}
 
 	const handleDelete = async () => {
 		const confirmed = await prompt({ title: 'Delete complaint?', description: 'This action cannot be undone.', confirmText: 'Delete', cancelText: 'Cancel', variant: 'danger' })
@@ -106,6 +123,35 @@ const ComplaintDetailPage = () => {
 					<Text size="small" weight="plus" leading="compact">Description</Text>
 					<Text size="small" leading="compact" className="whitespace-pre-wrap">{complaint.description ?? '-'}</Text>
 				</div>
+			</Container>
+			<Container className="divide-y p-0">
+				<div className="flex items-center justify-between px-6 py-4">
+					<Heading level="h2">Documents</Heading>
+				</div>
+				{documents.length === 0 ? (
+					<div className="px-6 py-4">
+						<Text size="small" className="text-ui-fg-subtle">
+							No documents attached.
+						</Text>
+					</div>
+				) : (
+					documents.map((doc) => (
+						<div
+							key={doc.id}
+							className="flex items-center justify-between gap-x-2 px-6 py-3 hover:bg-ui-bg-subtle cursor-pointer"
+							onClick={() => handleDownloadDocument(doc.id)}
+						>
+							<div className="flex min-w-0 flex-col">
+								<Text size="small" weight="plus" className="truncate text-ui-fg-interactive">
+									{doc.filename}
+								</Text>
+								<Text size="xsmall" className="text-ui-fg-subtle">
+									{formatFileSize(doc.size_bytes)}
+								</Text>
+							</div>
+						</div>
+					))
+				)}
 			</Container>
 			<ComplaintActivity complaint={complaint} />
 			<EditComplaintDrawer complaint={complaint} open={editOpen} setOpen={setEditOpen} />

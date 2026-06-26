@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { COMPLAINT_MODULE } from '../../../modules/complaint'
 import { ComplaintService } from '../../../modules/complaint/service'
 import { ComplaintStatus } from '../../../modules/complaint/models/complaint'
+import { deleteComplaintsWithDocumentsWorkflow } from '../../../workflows/delete-complaints-with-documents'
 import {
 	AdminCreateComplaintType,
 	AdminDeleteComplaintsType,
@@ -60,7 +61,6 @@ export const DELETE = async (
 	res: MedusaResponse
 ) => {
 	const { ids } = req.validatedBody
-	const complaintService: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)
-	await complaintService.deleteComplaints(ids)
+	await deleteComplaintsWithDocumentsWorkflow(req.scope).run({ input: { ids } })
 	res.json({ deleted: ids })
 }

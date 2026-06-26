@@ -49,6 +49,30 @@ export type AdminComplaintActivityResponse = {
 	activities: AdminComplaintActivity[]
 }
 
+export type AdminComplaintDocument = {
+	id: string
+	complaint_id: string
+	filename: string
+	mime_type: string
+	size_bytes: number
+	uploaded_by: string | null
+	created_at: string
+}
+
+export type AdminComplaintDocumentsResponse = PaginatedResponse<{
+	documents: AdminComplaintDocument[]
+}>
+
+export type AdminComplaintDocumentResponse = {
+	document: AdminComplaintDocument
+}
+
+export type AdminComplaintDocumentDownloadResponse = {
+	url: string
+	filename: string
+	mime_type: string
+}
+
 export type AdminComplaint = {
 	id: string
 	number: number

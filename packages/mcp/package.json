@@ -50,6 +50,7 @@
 	],
 	"scripts": {
 		"build": "medusa plugin:build",
+		"db:generate": "medusa plugin:db:generate && yarn build",
 		"dev": "medusa plugin:develop",
 		"prepublishOnly": "medusa plugin:build"
 	},

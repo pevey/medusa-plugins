@@ -19,11 +19,17 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useBlocker } from 'react-router-dom'
 import { AdminComplaint, ComplaintStatus } from '../types'
 import {
+	useComplaintDocuments,
 	useCustomerWithOrders,
+	useDeleteComplaintDocument,
+	useDownloadComplaintDocument,
 	useOrder,
 	useComplaintTags,
-	useUpdateComplaint
+	useUpdateComplaint,
+	useUploadComplaintDocument,
+	UploadProgress
 } from '../hooks/complaints'
+import { DocumentDropZone, formatFileSize } from './document-drop-zone'
 
 const schema = zod
 	.object({
@@ -49,9 +55,76 @@ type EditComplaintDrawerProps = {
 	setOpen: (open: boolean) => void
 }
 
+type InFlightUpload = {
+	id: string
+	filename: string
+	percent: number
+	error?: string
+}
+
 export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintDrawerProps) => {
 	const updateMutation = useUpdateComplaint(complaint.id)
 	const prompt = usePrompt()
+
+	const { data: documentsData } = useComplaintDocuments(complaint.id)
+	const documents = documentsData?.documents ?? []
+	const uploadDocument = useUploadComplaintDocument()
+	const deleteDocumentMutation = useDeleteComplaintDocument(complaint.id)
+	const downloadDocumentMutation = useDownloadComplaintDocument()
+	const [inFlight, setInFlight] = useState<InFlightUpload[]>([])
+	// Documents upload/delete via their own mutations and don't touch any form
+	// field, so react-hook-form's isDirty stays false. Track changes separately
+	// so Save reflects them; reset on successful complaint update.
+	const [documentsChanged, setDocumentsChanged] = useState(false)
+
+	const handleFilesSelected = (files: File[]) => {
+		for (const file of files) {
+			const tempId = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+			setInFlight((prev) => [...prev, { id: tempId, filename: file.name, percent: 0 }])
+			uploadDocument(complaint.id, file, (p: UploadProgress) => {
+				setInFlight((prev) =>
+					prev.map((u) => (u.id === tempId ? { ...u, percent: p.percent } : u))
+				)
+			})
+				.then(() => {
+					setInFlight((prev) => prev.filter((u) => u.id !== tempId))
+					setDocumentsChanged(true)
+				})
+				.catch((err: Error) => {
+					setInFlight((prev) =>
+						prev.map((u) =>
+							u.id === tempId ? { ...u, percent: 100, error: err.message } : u
+						)
+					)
+					toast.error(`Upload failed for ${file.name}: ${err.message}`)
+				})
+		}
+	}
+
+	const handleDeleteDocument = async (docId: string, filename: string) => {
+		const confirmed = await prompt({
+			title: `Delete ${filename}?`,
+			description: 'This will permanently remove the file. This cannot be undone.',
+			confirmText: 'Delete',
+			cancelText: 'Cancel',
+			variant: 'danger'
+		})
+		if (!confirmed) return
+		deleteDocumentMutation.mutate(docId, {
+			onSuccess: () => {
+				toast.success('Document deleted')
+				setDocumentsChanged(true)
+			},
+			onError: () => toast.error('Failed to delete document')
+		})
+	}
+
+	const handleDownloadDocument = (docId: string) => {
+		downloadDocumentMutation.mutate(
+			{ complaintId: complaint.id, docId },
+			{ onError: (err: Error) => toast.error(`Failed to open document: ${err.message}`) }
+		)
+	}
 
 	const form = useForm<EditComplaintFormData>({
 		resolver: zodResolver(schema),
@@ -135,6 +208,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 				metadata: complaint.metadata ?? null,
 				tag_ids: complaint.tags?.map(tag => tag.id) ?? []
 			})
+			setDocumentsChanged(false)
 		}
 	}, [complaint, open, form])
 
@@ -147,6 +221,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 		updateMutation.mutate(payload, {
 			onSuccess: () => {
 				form.reset()
+				setDocumentsChanged(false)
 				setOpen(false)
 				toast.success('Complaint updated successfully')
 			},
@@ -404,6 +479,69 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 									)}
 								/>
 							</div>
+							{/* Documents */}
+							<div className="flex flex-col space-y-2">
+								<Label size="small" weight="plus">
+									Documents
+								</Label>
+								<DocumentDropZone onFilesSelected={handleFilesSelected} />
+								{(documents.length > 0 || inFlight.length > 0) && (
+									<div className="mt-2 flex flex-col divide-y rounded-lg border border-ui-border-base">
+										{documents.map((doc) => (
+											<div
+												key={doc.id}
+												className="flex items-center justify-between gap-x-2 px-3 py-2"
+											>
+												<button
+													type="button"
+													onClick={() => handleDownloadDocument(doc.id)}
+													className="flex min-w-0 flex-col items-start text-left"
+												>
+													<Text size="small" weight="plus" className="truncate">
+														{doc.filename}
+													</Text>
+													<Text size="xsmall" className="text-ui-fg-subtle">
+														{formatFileSize(doc.size_bytes)}
+													</Text>
+												</button>
+												<button
+													type="button"
+													onClick={() => handleDeleteDocument(doc.id, doc.filename)}
+													className="text-ui-fg-subtle hover:text-ui-fg-base text-sm"
+													aria-label={`Delete ${doc.filename}`}
+												>
+													✕
+												</button>
+											</div>
+										))}
+										{inFlight.map((u) => (
+											<div key={u.id} className="flex flex-col gap-y-1 px-3 py-2">
+												<div className="flex items-center justify-between gap-x-2">
+													<Text size="small" weight="plus" className="truncate">
+														{u.filename}
+													</Text>
+													<Text size="xsmall" className="text-ui-fg-subtle">
+														{u.error ? 'Failed' : `${u.percent}%`}
+													</Text>
+												</div>
+												<div className="h-1 w-full overflow-hidden rounded bg-ui-bg-subtle">
+													<div
+														className={`h-full transition-all ${
+															u.error ? 'bg-ui-tag-red-icon' : 'bg-ui-fg-interactive'
+														}`}
+														style={{ width: `${u.percent}%` }}
+													/>
+												</div>
+												{u.error && (
+													<Text size="xsmall" className="text-ui-fg-error">
+														{u.error}
+													</Text>
+												)}
+											</div>
+										))}
+									</div>
+								)}
+							</div>
 						</Drawer.Body>
 						<Drawer.Footer>
 							<div className="flex items-center justify-end gap-x-2">
@@ -415,7 +553,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 								<Button
 									size="small"
 									type="submit"
-									disabled={!form.formState.isDirty}
+									disabled={!form.formState.isDirty && !documentsChanged}
 									isLoading={updateMutation.isPending}
 								>
 									Save

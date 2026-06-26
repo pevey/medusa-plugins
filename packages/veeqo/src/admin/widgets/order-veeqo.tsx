@@ -2,7 +2,6 @@ import { Button, Container, Heading, Text, toast } from '@medusajs/ui'
 import { defineWidgetConfig } from '@medusajs/admin-sdk'
 import { DetailWidgetProps, AdminOrder } from '@medusajs/framework/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
 import { sdk } from '../lib/sdk'
 
 export const config = defineWidgetConfig({
@@ -59,9 +58,13 @@ const OrderVeeqoWidget = ({ data: order }: DetailWidgetProps<AdminOrder>) => {
 				{isLoading ? (
 					'Loading...'
 				) : veeqoOrderId ? (
-					<Link to={`https://app.veeqo.com/orders/${veeqoOrderId}`}>
+					<a
+						href={`https://app.veeqo.com/orders/${veeqoOrderId}`}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
 						<Text size="small">ID: {veeqoOrderId}</Text>
-					</Link>
+					</a>
 				) : (
 					<Text size="small">NOT SYNCED</Text>
 				)}

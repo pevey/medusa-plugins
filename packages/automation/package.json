@@ -57,6 +57,7 @@
 	},
 	"scripts": {
 		"build": "medusa plugin:build",
+		"db:generate": "medusa plugin:db:generate && yarn build",
 		"clean:snapshots": "find . -name '.snapshot-*.json' -path '*/migrations/*' -delete",
 		"dev": "medusa plugin:develop",
 		"prepublishOnly": "medusa plugin:build",

@@ -47,6 +47,7 @@
 	],
 	"scripts": {
 		"build": "medusa plugin:build",
+		"db:generate": "medusa plugin:db:generate && yarn build",
 		"dev": "medusa plugin:develop",
 		"prepublishOnly": "medusa plugin:build",
 		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests"

@@ -21,8 +21,11 @@ import {
 	useCustomerWithOrders,
 	useOrder,
 	useComplaintTags,
-	useCreateComplaint
+	useCreateComplaint,
+	useUploadComplaintDocument,
+	UploadProgress
 } from '../hooks/complaints'
+import { DocumentDropZone, formatFileSize } from './document-drop-zone'
 
 const schema = zod
 	.object({
@@ -98,6 +101,11 @@ export const CreateComplaintModal = ({
 
 	const [success, setSuccess] = useState(false)
 
+	type StagedFile = { id: string; file: File; percent: number; error?: string }
+	const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([])
+	const [isUploading, setIsUploading] = useState(false)
+	const uploadDocument = useUploadComplaintDocument()
+
 	let blocker = useBlocker(
 		({ currentLocation, nextLocation }) =>
 			isDirty &&
@@ -131,6 +139,49 @@ export const CreateComplaintModal = ({
 		}
 	}, [isDirty, open, blocker])
 
+	const handleFilesSelected = (files: File[]) => {
+		setStagedFiles((prev) => [
+			...prev,
+			...files.map((file) => ({
+				id: `${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`,
+				file,
+				percent: 0
+			}))
+		])
+	}
+
+	const removeStagedFile = (id: string) => {
+		setStagedFiles((prev) => prev.filter((s) => s.id !== id))
+	}
+
+	const uploadStagedFiles = async (complaintId: string) => {
+		if (!stagedFiles.length) return
+		setIsUploading(true)
+		await Promise.all(
+			stagedFiles.map((staged) =>
+				uploadDocument(complaintId, staged.file, (p) => {
+					setStagedFiles((prev) =>
+						prev.map((s) => (s.id === staged.id ? { ...s, percent: p.percent } : s))
+					)
+				})
+					.then(() => {
+						setStagedFiles((prev) =>
+							prev.map((s) => (s.id === staged.id ? { ...s, percent: 100 } : s))
+						)
+					})
+					.catch((err: Error) => {
+						setStagedFiles((prev) =>
+							prev.map((s) =>
+								s.id === staged.id ? { ...s, error: err.message, percent: 100 } : s
+							)
+						)
+						toast.error(`Upload failed for ${staged.file.name}: ${err.message}`)
+					})
+			)
+		)
+		setIsUploading(false)
+	}
+
 	const handleSubmit = form.handleSubmit(data => {
 		const payload = {
 			...data,
@@ -138,9 +189,10 @@ export const CreateComplaintModal = ({
 			product_id: data.product_id || undefined
 		}
 		createComplaint(payload, {
-			onSuccess: result => {
+			onSuccess: async result => {
 				toast.success('Complaint created successfully')
 				setSuccess(true)
+				await uploadStagedFiles(result.complaint.id)
 				form.reset()
 				navigate(`/complaints/${result.complaint.id}`)
 			},
@@ -175,8 +227,13 @@ export const CreateComplaintModal = ({
 										Cancel
 									</Button>
 								</FocusModal.Close>
-								<Button type="submit" size="small" isLoading={isPending}>
-									Save
+								<Button
+									type="submit"
+									size="small"
+									isLoading={isPending || isUploading}
+									disabled={isPending || isUploading}
+								>
+									{isUploading ? 'Uploading…' : 'Save'}
 								</Button>
 							</div>
 						</FocusModal.Header>
@@ -395,6 +452,65 @@ export const CreateComplaintModal = ({
 													/>
 												)}
 											/>
+										</div>
+										{/* Documents */}
+										<div className="flex flex-col space-y-2">
+											<Text size="small" weight="plus">
+												Documents
+											</Text>
+											<DocumentDropZone
+												onFilesSelected={handleFilesSelected}
+												disabled={isPending || isUploading}
+											/>
+											{stagedFiles.length > 0 && (
+												<div className="mt-2 flex flex-col divide-y rounded-lg border border-ui-border-base">
+													{stagedFiles.map((s) => (
+														<div key={s.id} className="flex flex-col gap-y-1 px-3 py-2">
+															<div className="flex items-center justify-between gap-x-2">
+																<div className="flex min-w-0 flex-col">
+																	<Text size="small" weight="plus" className="truncate">
+																		{s.file.name}
+																	</Text>
+																	<Text size="xsmall" className="text-ui-fg-subtle">
+																		{formatFileSize(s.file.size)}
+																	</Text>
+																</div>
+																{isUploading || success ? (
+																	<Text size="xsmall" className="text-ui-fg-subtle">
+																		{s.error ? 'Failed' : `${s.percent}%`}
+																	</Text>
+																) : (
+																	<button
+																		type="button"
+																		onClick={() => removeStagedFile(s.id)}
+																		className="text-ui-fg-subtle hover:text-ui-fg-base text-sm"
+																		aria-label={`Remove ${s.file.name}`}
+																	>
+																		✕
+																	</button>
+																)}
+															</div>
+															{(isUploading || success) && (
+																<div className="h-1 w-full overflow-hidden rounded bg-ui-bg-subtle">
+																	<div
+																		className={`h-full transition-all ${
+																			s.error
+																				? 'bg-ui-tag-red-icon'
+																				: 'bg-ui-fg-interactive'
+																		}`}
+																		style={{ width: `${s.percent}%` }}
+																	/>
+																</div>
+															)}
+															{s.error && (
+																<Text size="xsmall" className="text-ui-fg-error">
+																	{s.error}
+																</Text>
+															)}
+														</div>
+													))}
+												</div>
+											)}
 										</div>
 									</div>
 								</div>

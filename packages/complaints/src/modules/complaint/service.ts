@@ -4,18 +4,32 @@ import { Complaint } from './models/complaint'
 import { ComplaintTag } from './models/complaint-tag'
 import { ComplaintProductStat } from './models/complaint-product-stat'
 import { ComplaintActivity, ComplaintActivityType } from './models/complaint-activity'
+import { ComplaintDocument } from './models/complaint-document'
+import { ComplaintOptions, DEFAULT_COMPLAINT_DOCUMENT_MAX_BYTES } from './types'
 
 export class ComplaintService extends MedusaService({
 	Complaint,
 	ComplaintTag,
 	ComplaintActivity,
+	ComplaintDocument,
 	ComplaintProductStat
 }) {
 	protected logger_: Logger
+	protected readonly options_: ComplaintOptions
 
-	constructor(container: { logger: Logger }, _options?: any) {
+	constructor(container: { logger: Logger }, options?: ComplaintOptions) {
 		super(...arguments)
 		this.logger_ = container.logger
+		this.options_ = options ?? {}
+	}
+
+	getOptions(): ComplaintOptions {
+		return this.options_
+	}
+
+	getMaxDocumentBytes(): number {
+		// return this.options_.maxDocumentBytes ?? DEFAULT_COMPLAINT_DOCUMENT_MAX_BYTES
+		return DEFAULT_COMPLAINT_DOCUMENT_MAX_BYTES
 	}
 
 	async addNote(complaintId: string, userId: string, note: string) {
@@ -51,7 +65,9 @@ export class ComplaintService extends MedusaService({
 	}
 
 	async calculateComplaintRates(orderCountsByProduct: Record<string, number>): Promise<void> {
-		this.logger_.info(`Calculating complaint rates for ${Object.keys(orderCountsByProduct).length} products`)
+		this.logger_.info(
+			`Calculating complaint rates for ${Object.keys(orderCountsByProduct).length} products`
+		)
 		const [complaints] = await this.listAndCountComplaints({}, { select: ['id', 'product_id'] })
 
 		const complaintsByProduct: Record<string, number> = {}

@@ -2,7 +2,6 @@ import { Button, Container, Heading, Text, toast } from '@medusajs/ui'
 import { defineWidgetConfig } from '@medusajs/admin-sdk'
 import { DetailWidgetProps, AdminProduct, AdminProductVariant } from '@medusajs/framework/types'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
 import { sdk } from '../lib/sdk'
 
 export const config = defineWidgetConfig({
@@ -67,9 +66,13 @@ const ProductVeeqoWidget = ({ data: product }: DetailWidgetProps<AdminProduct>) 
 
 			<div className="px-6 py-4">
 				{defaultVariantId && (
-					<Link to={`https://app.veeqo.com/inventory/variants/${defaultVariantId}`}>
+					<a
+						href={`https://app.veeqo.com/inventory/variants/${defaultVariantId}`}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
 						<Text size="small">{isLoading ? 'Loading...' : 'ID: ' + veeqoProductId}</Text>
-					</Link>
+					</a>
 				)}
 				{!defaultVariantId && (
 					<Text size="small">{isLoading ? 'Loading...' : 'ID: ' + veeqoProductId}</Text>
