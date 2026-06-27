@@ -21,7 +21,8 @@
 			"./node_modules/@medusajs"
 		],
 		"types": [
-			"node"
+			"node",
+			"framework"
 		]
 	},
 	"ts-node": {
