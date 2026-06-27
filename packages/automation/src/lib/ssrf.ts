@@ -129,7 +129,7 @@ export class SsrfGuard {
 
 	private lookup(
 		hostname: string,
-		opts: dns.LookupOneOptions,
+		opts: dns.LookupOptions,
 		callback: (err: NodeJS.ErrnoException | null, address: string, family: number) => void
 	): void {
 		dns.lookup(hostname, { all: true, family: opts.family ?? 0 }, (err, addrs) => {
