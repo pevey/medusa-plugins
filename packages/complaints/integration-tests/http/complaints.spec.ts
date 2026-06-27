@@ -799,5 +799,49 @@ medusaIntegrationTestRunner({
 				})
 			})
 		})
+
+		// ── PDF Export ────────────────────────────────────────────────────────
+		describe('POST /admin/complaints/pdf-export', () => {
+			let pdfExportIds: string[] = []
+
+			beforeAll(async () => {
+				const cs = await complaintService.createComplaints([
+					{ description: 'pdf export target 1', customer_id: 'cus_pdf_1' },
+					{ description: 'pdf export target 2', customer_id: 'cus_pdf_2' }
+				])
+				pdfExportIds = (Array.isArray(cs) ? cs : [cs]).map(c => c.id)
+			})
+
+			it('requires authentication', async () => {
+				const res = await api
+					.post('/admin/complaints/pdf-export', { ids: pdfExportIds })
+					.catch((e: any) => e.response)
+				expect(res.status).toBe(401)
+			})
+
+			it('rejects missing ids', async () => {
+				const res = await api
+					.post('/admin/complaints/pdf-export', {}, auth())
+					.catch((e: any) => e.response)
+				expect(res.status).toBe(400)
+			})
+
+			it('rejects empty ids array', async () => {
+				const res = await api
+					.post('/admin/complaints/pdf-export', { ids: [] }, auth())
+					.catch((e: any) => e.response)
+				expect(res.status).toBe(400)
+			})
+
+			it('accepts a valid request and returns 202 with transaction_id', async () => {
+				const res = await api.post(
+					'/admin/complaints/pdf-export',
+					{ ids: pdfExportIds },
+					auth()
+				)
+				expect(res.status).toBe(202)
+				expect(res.data).toEqual({ transaction_id: expect.any(String) })
+			})
+		})
 	}
 })

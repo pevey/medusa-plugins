@@ -167,6 +167,16 @@ export const useDeleteComplaints = () => {
 	})
 }
 
+export const useGenerateComplaintsPdfExport = () => {
+	return useMutation({
+		mutationFn: (ids: string[]) =>
+			sdk.client.fetch<{ transaction_id: string }>('/admin/complaints/pdf-export', {
+				method: 'POST',
+				body: { ids }
+			})
+	})
+}
+
 export const useRecalculateComplaintStats = () => {
 	return useMutation({
 		mutationFn: () =>

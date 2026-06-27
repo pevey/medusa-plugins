@@ -77,6 +77,11 @@ export const AdminDeleteComplaints = z.object({
 })
 export type AdminDeleteComplaintsType = z.infer<typeof AdminDeleteComplaints>
 
+export const AdminGenerateComplaintsPdfExport = z.object({
+	ids: z.array(z.string()).min(1, 'At least one complaint ID is required')
+})
+export type AdminGenerateComplaintsPdfExportType = z.infer<typeof AdminGenerateComplaintsPdfExport>
+
 export const AdminUpdateComplaint = z
 	.object({
 		number: z.number().optional(),

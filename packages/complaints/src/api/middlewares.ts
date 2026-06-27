@@ -15,6 +15,7 @@ import {
 	AdminGetComplaintDocuments,
 	AdminGetComplaintProductStat,
 	AdminGetComplaints,
+	AdminGenerateComplaintsPdfExport,
 	AdminGetComplaintTag,
 	AdminGetComplaintTags,
 	AdminUpdateComplaint,
@@ -61,6 +62,11 @@ export default defineMiddlewares([
 		matcher: '/admin/complaints',
 		method: ['DELETE'],
 		middlewares: [validateAndTransformBody(AdminDeleteComplaints)]
+	},
+	{
+		matcher: '/admin/complaints/pdf-export',
+		method: ['POST'],
+		middlewares: [validateAndTransformBody(AdminGenerateComplaintsPdfExport)]
 	},
 	{
 		matcher: '/admin/complaints/:id',

@@ -14,11 +14,12 @@ import {
 	DataTableRowSelectionState,
 	DataTableSortingState,
 	Heading,
+	toast,
 	useDataTable,
 	usePrompt
 } from '@medusajs/ui'
 import { AdminComplaint } from '../../types'
-import { useComplaintsList, useDeleteComplaints } from '../../hooks/complaints'
+import { useComplaintsList, useDeleteComplaints, useGenerateComplaintsPdfExport } from '../../hooks/complaints'
 
 export const config = defineRouteConfig({
 	label: 'Complaints',
@@ -48,6 +49,7 @@ const ComplaintsPage = () => {
 		order: sorting ? `${sorting.desc ? '-' : ''}${sorting.id}` : undefined
 	})
 	const { mutateAsync: deleteComplaints } = useDeleteComplaints()
+	const { mutateAsync: generatePdfExport } = useGenerateComplaintsPdfExport()
 
 	const columnHelper = createDataTableColumnHelper<AdminComplaint>()
 	const columns = [
@@ -86,6 +88,29 @@ const ComplaintsPage = () => {
 	const commandHelper = createDataTableCommandHelper()
 	const prompt = usePrompt()
 	const useCommands = () => [
+		commandHelper.command({
+			label: 'Generate PDF',
+			shortcut: 'G',
+			action: async (selection, ctx) => {
+				const ids = Object.keys(selection)
+				const confirmed = await prompt({
+					title: `Generate PDF for ${ids.length} complaint${ids.length === 1 ? '' : 's'}?`,
+					description:
+						"A PDF will be generated in the background. You'll get a notification when it's ready to download.",
+					confirmText: 'Generate',
+					cancelText: 'Cancel',
+					variant: 'confirmation'
+				})
+				if (!confirmed) return
+				try {
+					await generatePdfExport(ids)
+					toast.success("PDF generation started — you'll be notified when it's ready.")
+					ctx?.clearRowSelection?.()
+				} catch {
+					toast.error('Failed to start PDF generation.')
+				}
+			}
+		}),
 		commandHelper.command({
 			label: 'Delete',
 			shortcut: 'X',
