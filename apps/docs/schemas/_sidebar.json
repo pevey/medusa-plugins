@@ -249,6 +249,10 @@
 					"link": "/medusa-plugin-complaints/api/operations/deleteadmincomplaints/"
 				},
 				{
+					"label": "Pdf Export Complaint",
+					"link": "/medusa-plugin-complaints/api/operations/postadmincomplaintspdf-export/"
+				},
+				{
 					"label": "Get Complaint",
 					"link": "/medusa-plugin-complaints/api/operations/getadmincomplaintsbyid/"
 				},
@@ -307,6 +311,14 @@
 				{
 					"label": "Get Product",
 					"link": "/medusa-plugin-complaints/api/operations/getadmincomplaint-statsproductsbyproduct_id/"
+				},
+				{
+					"label": "List Documents",
+					"link": "/medusa-plugin-complaints/api/operations/getadmincomplaintsbyiddocuments/"
+				},
+				{
+					"label": "Create Document",
+					"link": "/medusa-plugin-complaints/api/operations/postadmincomplaintsbyiddocuments/"
 				}
 			]
 		}

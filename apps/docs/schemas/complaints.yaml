@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Complaints API
-  version: 0.2.1
+  version: 0.3.0
   description: Complaint logger plugin for Medusa v2
 servers:
   - url: http://localhost:9000
@@ -62,6 +62,16 @@ paths:
           schema:
             type: string
         - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: actionable
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: reportable
           in: query
           required: false
           schema:
@@ -163,6 +173,33 @@ paths:
                     type: string
                   deleted:
                     type: boolean
+  /admin/complaints/pdf-export:
+    post:
+      operationId: postAdminComplaintsPdf-export
+      summary: Pdf Export Complaint
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+              required:
+                - ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
   /admin/complaints/{id}:
     get:
       operationId: getAdminComplaintsByid
@@ -851,3 +888,89 @@ paths:
                       last_calculated_at:
                         type: string
                         format: date-time
+  /admin/complaints/{id}/documents:
+    get:
+      operationId: getAdminComplaintsByidDocuments
+      summary: List Documents
+      tags:
+        - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        complaint_id:
+                          type: string
+                        filename:
+                          type: string
+                        mime_type:
+                          type: string
+                        size_bytes:
+                          type: string
+                        uploaded_by:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                  count:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+    post:
+      operationId: postAdminComplaintsByidDocuments
+      summary: Create Document
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
