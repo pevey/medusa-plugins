@@ -34,6 +34,7 @@
 		"jiti": "^2",
 		"lerna": "^9.0.7",
 		"pg-god": "1.0.12",
+		"ts-node": "10.9.2",
 		"turbo": "2",
 		"typescript": "6.0.3"
 	},
