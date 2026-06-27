@@ -1,3 +1,7 @@
+## 0.4.0
+
+- Enable export of one or more complaints in PDF format from list view
+
 ## 0.3.0
 
 - Enable document upload.

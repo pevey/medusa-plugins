@@ -13,10 +13,11 @@ const TEXT_BODY_LINE_HEIGHT = 11
 const IMAGE_DECODE_MIMES = new Set(['image/gif', 'image/bmp', 'image/tiff', 'image/webp'])
 
 export function classify(mime: string): AttachmentClass {
-	if (mime === 'application/pdf') return 'pdf'
-	if (mime === 'image/png' || mime === 'image/jpeg') return 'image-native'
-	if (IMAGE_DECODE_MIMES.has(mime)) return 'image-decode'
-	if (mime === 'text/plain' || mime === 'text/csv') return 'text'
+	const bare = (mime ?? '').split(';')[0].trim().toLowerCase()
+	if (bare === 'application/pdf') return 'pdf'
+	if (bare === 'image/png' || bare === 'image/jpeg') return 'image-native'
+	if (IMAGE_DECODE_MIMES.has(bare)) return 'image-decode'
+	if (bare.startsWith('text/')) return 'text'
 	return 'excluded'
 }
 

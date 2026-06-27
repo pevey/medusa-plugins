@@ -53,6 +53,7 @@ const ComplaintsPage = () => {
 
 	const columnHelper = createDataTableColumnHelper<AdminComplaint>()
 	const columns = [
+		columnHelper.select(),
 		columnHelper.accessor('number', {
 			header: 'Number',
 			enableSorting: true,
