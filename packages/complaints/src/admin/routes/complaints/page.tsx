@@ -19,7 +19,11 @@ import {
 	usePrompt
 } from '@medusajs/ui'
 import { AdminComplaint } from '../../types'
-import { useComplaintsList, useDeleteComplaints, useGenerateComplaintsPdfExport } from '../../hooks/complaints'
+import {
+	useComplaintsList,
+	useDeleteComplaints,
+	useGenerateComplaintsPdfExport
+} from '../../hooks/complaints'
 
 export const config = defineRouteConfig({
 	label: 'Complaints',
@@ -92,7 +96,7 @@ const ComplaintsPage = () => {
 		commandHelper.command({
 			label: 'Generate PDF',
 			shortcut: 'G',
-			action: async (selection, ctx) => {
+			action: async selection => {
 				const ids = Object.keys(selection)
 				const confirmed = await prompt({
 					title: `Generate PDF for ${ids.length} complaint${ids.length === 1 ? '' : 's'}?`,
@@ -106,7 +110,7 @@ const ComplaintsPage = () => {
 				try {
 					await generatePdfExport(ids)
 					toast.success("PDF generation started — you'll be notified when it's ready.")
-					ctx?.clearRowSelection?.()
+					setRowSelection({})
 				} catch {
 					toast.error('Failed to start PDF generation.')
 				}

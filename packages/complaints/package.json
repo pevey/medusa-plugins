@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-complaints",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"description": "Complaint logger plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",

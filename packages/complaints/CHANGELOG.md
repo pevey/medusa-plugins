@@ -1,3 +1,7 @@
+## 0.4.1
+
+- Fix type error in complaint list view
+
 ## 0.4.0
 
 - Enable export of one or more complaints in PDF format from list view
