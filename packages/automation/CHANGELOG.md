@@ -1,3 +1,7 @@
+## 0.3.1
+
+- Make create and edit forms more consistent across plugins
+
 ## 0.3.0
 
 - Added options to allow more control over fetch request events

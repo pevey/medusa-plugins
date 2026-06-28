@@ -1,3 +1,7 @@
+## 0.4.2
+
+- Make create and edit forms more consistent across plugins
+
 ## 0.4.1
 
 - Fix type error in complaint list view
