@@ -40,7 +40,7 @@ const schema = zod
 		description: zod.string().nullable().optional(),
 		actionable: zod.boolean(),
 		reportable: zod.boolean(),
-		metadata: zod.record(zod.unknown()).nullable().optional(),
+		metadata: zod.record(zod.string(), zod.unknown()).nullable().optional(),
 		tag_ids: zod.array(zod.string()).optional()
 	})
 	.refine((data) => !data.product_id || !!data.order_id, {

@@ -258,6 +258,15 @@ module.exports = defineConfig({
 	],
 	plugins: [
 		{
+			resolve: 'medusa-plugin-affiliates',
+			options: {
+				payoutBasis: 'placed',
+				defaultCommissionRate: 0.1,
+				defaultCommissionBasis: 'percentage',
+				allowStackingWithNonAffiliatePromotions: false
+			}
+		},
+		{
 			resolve: 'medusa-plugin-analytics',
 			options: {}
 		},

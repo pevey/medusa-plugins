@@ -139,8 +139,8 @@ export const CreateContentItemModal = ({ open, onOpenChange, contentCollection }
 							{isImg ? 'Upload' : 'Create'}
 						</Button>
 					</FocusModal.Header>
-					<FocusModal.Body className="flex flex-col items-center py-16">
-						<div className="flex w-full max-w-lg flex-col gap-y-8">
+					<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
+						<div className="mx-auto flex w-full max-w-lg flex-col gap-y-8 px-2 py-16">
 							<div>
 								<Heading>{isImg ? 'Upload Image' : `Create ${contentCollection.label}`}</Heading>
 								<Text className="text-ui-fg-subtle mt-1">

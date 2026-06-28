@@ -18,7 +18,10 @@ function sanitizeSlug(value: string) {
 
 const schema = zod.object({
 	title: zod.string().min(1, 'Title is required'),
-	slug: zod.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, hyphens only')
+	slug: zod
+		.string()
+		.min(1, 'Slug is required')
+		.regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, hyphens only')
 })
 type FormData = zod.infer<typeof schema>
 
@@ -29,7 +32,10 @@ type Props = {
 }
 
 export const EditContentItemDrawer = ({ item, open, onOpenChange }: Props) => {
-	const { mutate: updateItem, isPending } = useUpdateContentItem(item.content_collection?.id, item.id)
+	const { mutate: updateItem, isPending } = useUpdateContentItem(
+		item.content_collection_id,
+		item.id
+	)
 	const prompt = usePrompt()
 	const [metadata, setMetadata] = useState<Record<string, unknown>>({})
 	const [publishedAt, setPublishedAt] = useState<Date | undefined>(undefined)
@@ -99,7 +105,7 @@ export const EditContentItemDrawer = ({ item, open, onOpenChange }: Props) => {
 					<Drawer.Header>
 						<Heading level="h1">Edit Item</Heading>
 					</Drawer.Header>
-					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-6 overflow-y-auto">
+					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 						<Controller
 							control={form.control}
 							name="title"

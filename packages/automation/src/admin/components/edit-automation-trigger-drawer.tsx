@@ -198,11 +198,11 @@ export const EditAutomationTriggerDrawer = ({ trigger, open, setOpen }: Props) =
 		<Drawer open={open} onOpenChange={setOpen}>
 			<Drawer.Content>
 				<FormProvider {...form}>
-					<form onSubmit={onSubmit} className="flex flex-col h-full">
+					<form onSubmit={onSubmit} className="flex flex-1 flex-col overflow-hidden">
 						<Drawer.Header>
-							<Heading level="h2">Edit Trigger</Heading>
+							<Heading level="h1">Edit Trigger</Heading>
 						</Drawer.Header>
-						<Drawer.Body className="flex flex-col gap-y-4 overflow-y-auto p-6">
+						<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 							{/* ── Read-only trigger type ────────────────────────── */}
 							<div className="flex flex-col gap-y-2">
 								<Label size="small" weight="plus" className="leading-compact mb-1">
@@ -479,23 +479,21 @@ export const EditAutomationTriggerDrawer = ({ trigger, open, setOpen }: Props) =
 						</Drawer.Body>
 
 						<Drawer.Footer>
-							<Button
-								type="button"
-								variant="secondary"
-								size="small"
-								onClick={() => setOpen(false)}
-								disabled={isPending}
-							>
-								Cancel
-							</Button>
-							<Button
-								type="submit"
-								size="small"
-								isLoading={isPending}
-								disabled={!isDirty || isPending}
-							>
-								Save Changes
-							</Button>
+							<div className="flex items-center justify-end gap-x-2">
+								<Drawer.Close asChild>
+									<Button size="small" variant="secondary" disabled={isPending}>
+										Cancel
+									</Button>
+								</Drawer.Close>
+								<Button
+									type="submit"
+									size="small"
+									isLoading={isPending}
+									disabled={!isDirty || isPending}
+								>
+									Save Changes
+								</Button>
+							</div>
 						</Drawer.Footer>
 					</form>
 				</FormProvider>

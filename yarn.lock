@@ -15729,9 +15729,12 @@ __metadata:
     jest: "npm:29.7.0"
     medusa-plugin-analytics: "workspace:*"
     medusa-plugin-automation: "workspace:*"
+    medusa-plugin-barcodes: "workspace:*"
     medusa-plugin-braintree: "workspace:*"
+    medusa-plugin-complaints: "workspace:*"
     medusa-plugin-content: "workspace:*"
     medusa-plugin-customer-tags: "workspace:*"
+    medusa-plugin-forms: "workspace:*"
     medusa-plugin-mcp: "workspace:*"
     medusa-plugin-order-notes: "workspace:*"
     medusa-plugin-r2: "workspace:*"
@@ -23712,6 +23715,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"medusa-plugin-affiliates@workspace:packages/affiliates":
+  version: 0.0.0-use.local
+  resolution: "medusa-plugin-affiliates@workspace:packages/affiliates"
+  dependencies:
+    "@medusajs/admin-sdk": "npm:2.16.0"
+    "@medusajs/cli": "npm:2.16.0"
+    "@medusajs/framework": "npm:2.16.0"
+    "@medusajs/icons": "npm:2.16.0"
+    "@medusajs/ui": "npm:4.1.16"
+    "@swc/core": "npm:1.15.33"
+    "@swc/jest": "npm:0.2.39"
+    "@types/jest": "npm:30.0.0"
+    "@types/node": "npm:20.0.0"
+    "@types/react": "npm:18.3.2"
+    "@types/react-dom": "npm:18.2.25"
+    jest: "npm:29.7.0"
+    prop-types: "npm:15.8.1"
+    react: "npm:18.3.1"
+    react-dom: "npm:18.3.1"
+    ts-node: "npm:10.9.2"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.0.8"
+    yalc: "npm:1.0.0-pre.53"
+  peerDependencies:
+    "@medusajs/framework": 2.16.0
+    "@medusajs/js-sdk": 2.16.0
+    "@medusajs/medusa": 2.16.0
+  languageName: unknown
+  linkType: soft
+
 "medusa-plugin-analytics@workspace:*, medusa-plugin-analytics@workspace:packages/analytics":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-analytics@workspace:packages/analytics"
@@ -23775,7 +23808,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"medusa-plugin-barcodes@workspace:packages/barcodes":
+"medusa-plugin-barcodes@workspace:*, medusa-plugin-barcodes@workspace:packages/barcodes":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-barcodes@workspace:packages/barcodes"
   dependencies:
@@ -23838,7 +23871,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"medusa-plugin-complaints@workspace:packages/complaints":
+"medusa-plugin-complaints@workspace:*, medusa-plugin-complaints@workspace:packages/complaints":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-complaints@workspace:packages/complaints"
   dependencies:
@@ -23933,7 +23966,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"medusa-plugin-forms@workspace:packages/forms":
+"medusa-plugin-forms@workspace:*, medusa-plugin-forms@workspace:packages/forms":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-forms@workspace:packages/forms"
   dependencies:

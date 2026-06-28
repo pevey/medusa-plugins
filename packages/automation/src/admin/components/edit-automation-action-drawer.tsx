@@ -526,12 +526,12 @@ export const EditAutomationActionDrawer = ({
 		<Drawer open={open} onOpenChange={setOpen}>
 			<Drawer.Content>
 				<FormProvider {...form}>
-					<form onSubmit={onSubmit} className="flex flex-col h-full">
+					<form onSubmit={onSubmit} className="flex flex-1 flex-col overflow-hidden">
 						<Drawer.Header>
-							<Heading level="h2">Edit Action</Heading>
+							<Heading level="h1">Edit Action</Heading>
 						</Drawer.Header>
 
-						<Drawer.Body className="flex flex-col gap-y-6 overflow-y-auto p-6">
+						<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 							{/* ── Read-only action type ─────────────────────────── */}
 							<div className="flex flex-col gap-y-3">
 								<div>
@@ -1069,23 +1069,21 @@ export const EditAutomationActionDrawer = ({
 						</Drawer.Body>
 
 						<Drawer.Footer>
-							<Button
-								type="button"
-								variant="secondary"
-								size="small"
-								onClick={() => setOpen(false)}
-								disabled={isPending}
-							>
-								Cancel
-							</Button>
-							<Button
-								type="submit"
-								size="small"
-								isLoading={isPending}
-								disabled={!isDirty || isPending}
-							>
-								Save Changes
-							</Button>
+							<div className="flex items-center justify-end gap-x-2">
+								<Drawer.Close asChild>
+									<Button size="small" variant="secondary" disabled={isPending}>
+										Cancel
+									</Button>
+								</Drawer.Close>
+								<Button
+									type="submit"
+									size="small"
+									isLoading={isPending}
+									disabled={!isDirty || isPending}
+								>
+									Save Changes
+								</Button>
+							</div>
 						</Drawer.Footer>
 					</form>
 				</FormProvider>

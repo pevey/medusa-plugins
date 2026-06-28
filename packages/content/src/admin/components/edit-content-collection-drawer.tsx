@@ -133,9 +133,9 @@ export const EditContentCollectionDrawer = ({ contentCollection, open, onOpenCha
 			<Drawer.Content>
 				<form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
 					<Drawer.Header>
-						<Heading>Edit Content Collection</Heading>
+						<Heading level="h1">Edit Content Collection</Heading>
 					</Drawer.Header>
-					<Drawer.Body className="flex flex-col gap-y-6 overflow-y-auto">
+					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 						<div className="flex flex-col gap-y-4">
 							<div className="flex flex-col gap-y-1">
 								<Label htmlFor="edit-label" className="text-ui-fg-subtle">

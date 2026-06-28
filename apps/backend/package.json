@@ -18,6 +18,7 @@
 		"@medusajs/framework": "2.16.0",
 		"@medusajs/index": "2.16.0",
 		"@medusajs/medusa": "2.16.0",
+		"medusa-plugin-affiliates": "workspace:*",
 		"medusa-plugin-analytics": "workspace:*",
 		"medusa-plugin-automation": "workspace:*",
 		"medusa-plugin-barcodes": "workspace:*",

@@ -114,11 +114,11 @@ export const EditFormDrawer = ({ form, open, setOpen }: Props) => {
 	return (
 		<Drawer open={open} onOpenChange={setOpen}>
 			<Drawer.Content>
-				<form onSubmit={onSubmit} className="flex flex-col h-full">
+				<form onSubmit={onSubmit} className="flex flex-1 flex-col overflow-hidden">
 					<Drawer.Header>
-						<Heading level="h2">Edit Form</Heading>
+						<Heading level="h1">Edit Form</Heading>
 					</Drawer.Header>
-					<Drawer.Body className="flex flex-col gap-y-6 overflow-y-auto">
+					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 						<div className="flex flex-col gap-y-4">
 							<div className="flex flex-col gap-y-1">
 								<Label htmlFor="eft-name" size="small" weight="plus">
@@ -246,19 +246,17 @@ export const EditFormDrawer = ({ form, open, setOpen }: Props) => {
 							<FormFieldsEditor fields={fields} onChange={setFields} />
 						</div>
 					</Drawer.Body>
-					<Drawer.Footer className="flex justify-end gap-x-2">
-						<Button
-							type="button"
-							variant="secondary"
-							size="small"
-							onClick={() => setOpen(false)}
-							disabled={saving}
-						>
-							Cancel
-						</Button>
-						<Button type="submit" size="small" isLoading={saving} disabled={saving}>
-							Save
-						</Button>
+					<Drawer.Footer>
+						<div className="flex items-center justify-end gap-x-2">
+							<Drawer.Close asChild>
+								<Button size="small" variant="secondary" disabled={saving}>
+									Cancel
+								</Button>
+							</Drawer.Close>
+							<Button type="submit" size="small" isLoading={saving} disabled={saving}>
+								Save
+							</Button>
+						</div>
 					</Drawer.Footer>
 				</form>
 			</Drawer.Content>

@@ -101,8 +101,8 @@ export const CreateContentCollectionModal = ({ open, onOpenChange }: Props) => {
 							Save
 						</Button>
 					</FocusModal.Header>
-					<FocusModal.Body className="flex flex-col items-center py-16">
-						<div className="flex w-full max-w-2xl flex-col gap-y-8">
+					<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
+						<div className="mx-auto flex w-full max-w-2xl flex-col gap-y-8 px-2 py-16">
 							<div>
 								<Heading>Create Content Collection</Heading>
 								<Text className="text-ui-fg-subtle mt-1">

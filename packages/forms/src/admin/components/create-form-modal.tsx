@@ -122,7 +122,7 @@ export const CreateFormModal = ({ open, setOpen }: Props) => {
 				<form onSubmit={onSubmit} className="flex flex-col h-full">
 					<FocusModal.Header />
 					<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
-						<div className="flex w-full max-w-2xl flex-col gap-y-8 py-16 pb-8">
+						<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 							<Heading level="h1">Create Form</Heading>
 
 							<div className="flex flex-col gap-y-4">

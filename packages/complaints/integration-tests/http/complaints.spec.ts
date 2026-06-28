@@ -636,26 +636,38 @@ medusaIntegrationTestRunner({
 			})
 
 			it('GET .../:docId/download returns a presigned URL', async () => {
+				const fileService = getContainer().resolve(Modules.FILE)
+				const provider = fileService.getProvider()
+				const uploaded = await provider.upload({
+					filename: 'download-test.txt',
+					mimeType: 'text/plain',
+					content: Buffer.from('hello').toString('base64'),
+					access: 'private'
+				} as any)
+
 				const created = await complaintService.createComplaintDocuments({
 					complaint_id: docComplaintId,
-					file_key: 'test/download-test.txt',
+					file_key: uploaded.key,
 					filename: 'download-test.txt',
 					mime_type: 'text/plain',
-					size_bytes: 10,
+					size_bytes: 5,
 					uploaded_by: null
 				})
 				const seeded = Array.isArray(created) ? created[0] : created
 
-				const res = await api.get(
-					`/admin/complaints/${docComplaintId}/documents/${seeded.id}/download`,
-					auth()
-				)
-				expect(res.status).toBe(200)
-				expect(typeof res.data.url).toBe('string')
-				expect(res.data.filename).toBe('download-test.txt')
-				expect(res.data.mime_type).toBe('text/plain')
-
-				await complaintService.deleteComplaintDocuments([seeded.id])
+				try {
+					const res = await api.get(
+						`/admin/complaints/${docComplaintId}/documents/${seeded.id}/download`,
+						auth()
+					)
+					expect(res.status).toBe(200)
+					expect(typeof res.data.url).toBe('string')
+					expect(res.data.filename).toBe('download-test.txt')
+					expect(res.data.mime_type).toBe('text/plain')
+				} finally {
+					await complaintService.deleteComplaintDocuments([seeded.id])
+					await provider.delete({ fileKey: uploaded.key } as any).catch(() => {})
+				}
 			})
 
 			it('GET .../:docId/download returns 404 when document belongs to another complaint', async () => {

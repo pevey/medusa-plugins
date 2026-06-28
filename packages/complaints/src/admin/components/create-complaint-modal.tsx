@@ -237,8 +237,7 @@ export const CreateComplaintModal = ({
 								</Button>
 							</div>
 						</FocusModal.Header>
-						<FocusModal.Body>
-							<div className="flex flex-1 flex-col items-center overflow-y-auto">
+						<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 								<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 									<div>
 										<Heading className="capitalize">Create Complaint</Heading>
@@ -514,7 +513,6 @@ export const CreateComplaintModal = ({
 										</div>
 									</div>
 								</div>
-							</div>
 						</FocusModal.Body>
 					</form>
 				</FormProvider>
