@@ -4,6 +4,7 @@ import type { HttpTypes, SelectParams } from '@medusajs/types'
 import { createStoreReviewResource } from './resources/store/review'
 import { createStoreContentResource } from './resources/store/content'
 import { createStoreFormResource } from './resources/store/form'
+import { createStoreSearchResource } from './resources/store/search'
 import type { StoreProductListResponse, StoreProductResponse } from './types/expanded'
 
 type CoreStore = InstanceType<typeof MedusaStore>
@@ -16,6 +17,7 @@ export class Store {
 	public review: ReturnType<typeof createStoreReviewResource>
 	public content: ReturnType<typeof createStoreContentResource>
 	public form: ReturnType<typeof createStoreFormResource>
+	public search: ReturnType<typeof createStoreSearchResource>
 
 	constructor(client: Client) {
 		this.client = client
@@ -23,6 +25,7 @@ export class Store {
 		this.review = createStoreReviewResource(client)
 		this.content = createStoreContentResource(client)
 		this.form = createStoreFormResource(client)
+		this.search = createStoreSearchResource(client)
 	}
 
 	// ── Overridden resources (expanded types) ────────────────────────────────

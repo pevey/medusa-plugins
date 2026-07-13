@@ -8218,9 +8218,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@pevey/medusa@workspace:packages/js-sdk":
+"@pevey/medusa-sdk@workspace:packages/js-sdk":
   version: 0.0.0-use.local
-  resolution: "@pevey/medusa@workspace:packages/js-sdk"
+  resolution: "@pevey/medusa-sdk@workspace:packages/js-sdk"
   dependencies:
     "@medusajs/js-sdk": "npm:2.17.2"
     "@medusajs/types": "npm:2.17.2"
@@ -15740,6 +15740,7 @@ __metadata:
     medusa-plugin-order-notes: "workspace:*"
     medusa-plugin-r2: "workspace:*"
     medusa-plugin-ratings: "workspace:*"
+    medusa-plugin-search: "workspace:*"
     medusa-plugin-ses: "workspace:*"
     medusa-plugin-statistics: "workspace:*"
     medusa-plugin-tax-lookup: "workspace:*"
@@ -24139,7 +24140,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"medusa-plugin-search@workspace:packages/search":
+"medusa-plugin-search@workspace:*, medusa-plugin-search@workspace:packages/search":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-search@workspace:packages/search"
   dependencies:

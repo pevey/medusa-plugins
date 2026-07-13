@@ -1,5 +1,6 @@
 import { Client, Admin as MedusaAdmin } from '@medusajs/js-sdk'
 import { createAdminReviewResource } from './resources/admin/review'
+import { createAdminSearchResource } from './resources/admin/search'
 
 type CoreAdmin = InstanceType<typeof MedusaAdmin>
 
@@ -8,10 +9,12 @@ export class Admin {
 
 	// Custom plugin resources
 	public review: ReturnType<typeof createAdminReviewResource>
+	public search: ReturnType<typeof createAdminSearchResource>
 
 	constructor(client: Client) {
 		this.core = new MedusaAdmin(client)
 		this.review = createAdminReviewResource(client)
+		this.search = createAdminSearchResource(client)
 	}
 
 	// ── Delegated core resources ─────────────────────────────────────────────

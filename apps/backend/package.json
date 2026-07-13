@@ -31,6 +31,7 @@
 		"medusa-plugin-order-notes": "workspace:*",
 		"medusa-plugin-r2": "workspace:*",
 		"medusa-plugin-ratings": "workspace:*",
+		"medusa-plugin-search": "workspace:*",
 		"medusa-plugin-ses": "workspace:*",
 		"medusa-plugin-statistics": "workspace:*",
 		"medusa-plugin-tax-lookup": "workspace:*",

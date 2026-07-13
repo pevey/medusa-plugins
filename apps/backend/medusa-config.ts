@@ -333,6 +333,10 @@ module.exports = defineConfig({
 			}
 		},
 		{
+			resolve: 'medusa-plugin-search',
+			options: {}
+		},
+		{
 			resolve: 'medusa-plugin-statistics',
 			options: {}
 		},
