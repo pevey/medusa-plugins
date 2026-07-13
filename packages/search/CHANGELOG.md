@@ -1,4 +1,4 @@
-## 0.1.2
+## 0.1.3
 
 - Added loader function to run the job to generate search documents when starting the plugin for the first time
 - Added README

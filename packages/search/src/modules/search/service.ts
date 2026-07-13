@@ -1,4 +1,4 @@
-import { MedusaService } from '@medusajs/framework/utils'
+import { MedusaService, Modules } from '@medusajs/framework/utils'
 import SearchDocument from './models/search-document'
 import { buildRegistry } from './lib/sources'
 import type { SearchDocumentInput, SearchHit, SearchSource, PluginOptions } from './lib/types'
@@ -8,11 +8,48 @@ class SearchModuleService extends MedusaService({
 }) {
 	protected options_: PluginOptions
 	protected registry_: Map<string, SearchSource>
+	protected container_: any
 
-	constructor(_container: object, options: PluginOptions = {}) {
+	// Medusa framework calls this after ALL modules finish loading. This is the earliest
+	// safe point to resolve cross-module services (event_bus) and emit events that a
+	// subscriber can catch — subscribers are also registered by the time this fires.
+	__hooks = {
+		onApplicationStart: async () => this.seedIndexIfEmpty()
+	}
+
+	constructor(container: any, options: PluginOptions = {}) {
 		super(...arguments)
+		this.container_ = container
 		this.options_ = options ?? {}
 		this.registry_ = buildRegistry(this.options_)
+	}
+
+	protected async seedIndexIfEmpty(): Promise<void> {
+		const logger = this.container_.logger ?? console
+
+		const workerMode = process.env.WORKER_MODE || 'shared'
+		if (workerMode === 'server') return
+
+		try {
+			const existing = await this.listSearchDocuments({}, { take: 1 })
+			if (existing.length > 0) return
+		} catch (error) {
+			// Table may not exist yet (fresh install before migrations); nothing to seed.
+			logger.debug?.(`[search] seed check skipped: ${(error as Error).message}`)
+			return
+		}
+
+		const eventBus = this.container_[Modules.EVENT_BUS]
+		if (!eventBus) {
+			logger.warn('[search] cannot seed on startup — event bus module is not configured')
+			return
+		}
+
+		eventBus
+			.emit({ name: 'search.seed-empty-index', data: {} })
+			.catch((error: Error) => {
+				logger.error(`[search] failed to emit initial-seed event: ${error.message}`)
+			})
 	}
 
 	getSource(type: string): SearchSource | undefined {
