@@ -1,7 +1,5 @@
 import type { LoaderOptions } from '@medusajs/framework/types'
-import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
-import reindexSearchDocumentsWorkflow from '../../../workflows/reindex-search-documents'
-import type SearchModuleService from '../service'
+import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 
 export default async function seedIfEmptyLoader({ container }: LoaderOptions) {
 	const logger = container.resolve(ContainerRegistrationKeys.LOGGER) ?? console
@@ -9,34 +7,39 @@ export default async function seedIfEmptyLoader({ container }: LoaderOptions) {
 	const workerMode = process.env.WORKER_MODE || 'shared'
 	if (workerMode === 'server') return
 
-	const search = container.resolve('search') as SearchModuleService
+	// Loader containers do NOT have the module's own service or `query` registered yet —
+	// the service is instantiated AFTER loaders run. So we can't call the reindex workflow
+	// from here. Instead: check for existing rows via the raw pg connection, then emit an
+	// event that a subscriber picks up (subscribers get the full app container).
+	const knex = container.resolve(ContainerRegistrationKeys.PG_CONNECTION, { allowUnregistered: true })
+	if (!knex) return
 
 	let hasDocuments = false
 	try {
-		const existing = await search.listSearchDocuments({}, { take: 1 })
-		hasDocuments = existing.length > 0
+		const [{ exists }] = await knex.raw(
+			`SELECT EXISTS (SELECT 1 FROM search_document WHERE deleted_at IS NULL LIMIT 1) AS exists`
+		).then((r: { rows: { exists: boolean }[] }) => r.rows)
+		hasDocuments = exists
 	} catch (error) {
-		// Table may not exist yet (first boot before migrations); nothing to seed.
+		// Table may not exist yet (fresh install before migrations); nothing to seed.
 		logger.debug?.(`[search] seed check skipped: ${(error as Error).message}`)
 		return
 	}
 
 	if (hasDocuments) return
 
-	// Defer to next tick so the full app is bootstrapped before we hit workflows/query,
-	// then fire-and-forget — a large catalog reindex can take minutes.
+	const eventBus = container.resolve(Modules.EVENT_BUS, { allowUnregistered: true })
+	if (!eventBus) {
+		logger.warn('[search] cannot seed on startup — event bus module is not configured')
+		return
+	}
+
+	// Defer emit until after boot completes so subscribers are registered and ready.
 	setImmediate(() => {
-		const start = Date.now()
-		logger.info('[search] no documents found, seeding search index in background...')
-		reindexSearchDocumentsWorkflow(container)
-			.run({})
-			.then(({ result }) => {
-				logger.info(
-					`[search] initial seed done in ${Date.now() - start}ms: ${JSON.stringify(result.counts)}`
-				)
-			})
+		eventBus
+			.emit({ name: 'search.seed-empty-index', data: {} })
 			.catch((error: Error) => {
-				logger.error(`[search] initial seed failed: ${error.message}`)
+				logger.error(`[search] failed to emit initial-seed event: ${error.message}`)
 			})
 	})
 }
