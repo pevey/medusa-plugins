@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Search API
-  version: 0.1.0
+  version: 0.1.1
   description: Typo-tolerant search for Medusa v2 on existing Postgres database using pg_trgm.
 servers:
   - url: http://localhost:9000
