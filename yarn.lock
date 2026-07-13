@@ -23790,7 +23790,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"medusa-plugin-automation@workspace:*, medusa-plugin-automation@workspace:packages/automation":
+"medusa-plugin-automation@npm:0.3.2, medusa-plugin-automation@workspace:*, medusa-plugin-automation@workspace:packages/automation":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-automation@workspace:packages/automation"
   dependencies:
@@ -24024,8 +24024,8 @@ __metadata:
     "@types/node": "npm:20.0.0"
     "@types/react": "npm:18.3.2"
     "@types/react-dom": "npm:18.2.25"
-    medusa-plugin-automation: "workspace:*"
-    medusa-plugin-statistics: "workspace:*"
+    medusa-plugin-automation: "npm:0.3.2"
+    medusa-plugin-statistics: "npm:0.2.2"
     ollama: "npm:0.6.3"
     openai: "npm:4.98.0"
     prop-types: "npm:15.8.1"
@@ -24139,6 +24139,27 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"medusa-plugin-search@workspace:packages/search":
+  version: 0.0.0-use.local
+  resolution: "medusa-plugin-search@workspace:packages/search"
+  dependencies:
+    "@medusajs/cli": "npm:2.17.2"
+    "@medusajs/framework": "npm:2.17.2"
+    "@medusajs/test-utils": "npm:2.17.2"
+    "@swc/core": "npm:1.15.33"
+    "@swc/jest": "npm:0.2.39"
+    "@types/jest": "npm:30.0.0"
+    "@types/node": "npm:20.0.0"
+    jest: "npm:29.7.0"
+    ts-node: "npm:10.9.2"
+    typescript: "npm:6.0.3"
+  peerDependencies:
+    "@medusajs/framework": 2.17.2
+    "@medusajs/js-sdk": 2.17.2
+    "@medusajs/medusa": 2.17.2
+  languageName: unknown
+  linkType: soft
+
 "medusa-plugin-ses@workspace:*, medusa-plugin-ses@workspace:packages/notification-ses":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-ses@workspace:packages/notification-ses"
@@ -24172,7 +24193,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"medusa-plugin-statistics@workspace:*, medusa-plugin-statistics@workspace:packages/statistics":
+"medusa-plugin-statistics@npm:0.2.2, medusa-plugin-statistics@workspace:*, medusa-plugin-statistics@workspace:packages/statistics":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-statistics@workspace:packages/statistics"
   dependencies:
