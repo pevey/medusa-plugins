@@ -1,3 +1,7 @@
+## 0.1.2
+
+- Added README
+
 ## 0.1.1
 
 - Updated medusa packages to 2.17.2

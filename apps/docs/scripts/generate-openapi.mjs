@@ -735,6 +735,7 @@ function main() {
 
 	// Map package dirs to docs slugs and display titles
 	const readmeMappings = [
+		{ dir: 'affiliates', slug: 'medusa-plugin-affiliates', title: 'Affiliates' },
 		{ dir: 'analytics', slug: 'medusa-plugin-analytics', title: 'Analytics' },
 		{ dir: 'barcodes', slug: 'medusa-plugin-barcodes', title: 'Barcodes' },
 		{ dir: 'complaints', slug: 'medusa-plugin-complaints', title: 'Complaints' },
@@ -748,6 +749,7 @@ function main() {
 		{ dir: 'order-notes', slug: 'medusa-plugin-order-notes', title: 'Order Notes' },
 		{ dir: 'payment-braintree', slug: 'medusa-plugin-braintree', title: 'Braintree Payments' },
 		{ dir: 'reviews', slug: 'medusa-plugin-ratings', title: 'Reviews' },
+		{ dir: 'search', slug: 'medusa-plugin-search', title: 'Search' },
 		{ dir: 'statistics', slug: 'medusa-plugin-statistics', title: 'Statistics' },
 		{ dir: 'tax-lookup', slug: 'medusa-plugin-tax-lookup', title: 'Tax Lookup' },
 		{ dir: 'tracing', slug: 'medusa-plugin-tracing', title: 'Tracing' },
