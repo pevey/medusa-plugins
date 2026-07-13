@@ -1,0 +1,5 @@
+export { searchSourceSubscriber } from './subscriber-factory'
+export { default as upsertSearchDocumentWorkflow } from './workflows/upsert-search-document'
+export { default as deleteSearchDocumentWorkflow } from './workflows/delete-search-document'
+export { default as reindexSearchDocumentsWorkflow } from './workflows/reindex-search-documents'
+export type { SearchSource, SearchDocumentInput, SearchHit, PluginOptions } from './modules/search/lib/types'
