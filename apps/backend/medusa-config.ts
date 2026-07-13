@@ -262,7 +262,7 @@ module.exports = defineConfig({
 			options: {
 				payoutBasis: 'placed',
 				defaultCommissionRate: 0.1,
-				defaultCommissionBasis: 'percentage',
+				defaultCommissionBasis: 'gross',
 				allowStackingWithNonAffiliatePromotions: false
 			}
 		},
