@@ -1,5 +1,5 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework'
-import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
+import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import { CONTENT_MODULE } from '../../../../../modules/content'
 import { ContentService } from '../../../../../modules/content/service'
 import {
@@ -43,6 +43,10 @@ export const POST = async (
 		...req.validatedBody,
 		content_collection_id: req.params.collectionId
 	})
+
+	const eventBus = req.scope.resolve(Modules.EVENT_BUS)
+	await eventBus.emit({ name: 'content-item.created', data: { id: content_item.id } })
+
 	res.json({ content_item })
 }
 
@@ -53,5 +57,9 @@ export const DELETE = async (
 	const { ids } = req.validatedBody
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
 	await contentService.deleteContentItems(ids)
+
+	const eventBus = req.scope.resolve(Modules.EVENT_BUS)
+	await eventBus.emit(ids.map(id => ({ name: 'content-item.deleted', data: { id } })))
+
 	res.json({ deleted: ids })
 }

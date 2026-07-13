@@ -1,3 +1,8 @@
+## 0.2.3
+
+- Added 'searchable' boolean field to content-collection data model for easier configuration when generating search documents that should include only certain content items.
+- Add content-item.created/updated/deleted and content-collection.updated event emitters to allow subscribing to those events to update search documents.
+
 ## 0.2.2
 
 - Make create and edit forms more consistent across plugins

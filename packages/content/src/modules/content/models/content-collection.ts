@@ -17,6 +17,7 @@ export const ContentCollection = model
 		label: model.text(),
 		slug: model.text().unique(),
 		format: model.enum(ContentFormat),
+		searchable: model.boolean().default(false),
 		prefix: model.text().nullable(),
 		metadata: model.json().nullable(),
 		content_fields: model.hasMany(() => ContentField, {

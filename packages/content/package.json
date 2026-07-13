@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-content",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"description": "Content management plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",

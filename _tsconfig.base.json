@@ -22,7 +22,8 @@
 		],
 		"types": [
 			"node",
-			"framework"
+			"framework",
+			"jest"
 		]
 	},
 	"ts-node": {

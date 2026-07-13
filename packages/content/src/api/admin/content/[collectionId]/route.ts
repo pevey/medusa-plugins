@@ -1,5 +1,5 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework'
-import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
+import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import { CONTENT_MODULE } from '../../../../modules/content'
 import { ContentService } from '../../../../modules/content/service'
 import {
@@ -33,6 +33,10 @@ export const POST = async (
 	const { collectionId } = req.params
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
 	const content_collection = await contentService.updateContentCollections({ id: collectionId, ...req.validatedBody })
+
+	const eventBus = req.scope.resolve(Modules.EVENT_BUS)
+	await eventBus.emit({ name: 'content-collection.updated', data: { id: collectionId } })
+
 	res.json({ content_collection })
 }
 
