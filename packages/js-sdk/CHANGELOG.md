@@ -1,3 +1,7 @@
+## 2.17.2c
+
+- Fix type error in forms route
+
 ## 2.17.2b
 
 - Add tsc-alias step to make sure all imports are ESM-compliant at build time

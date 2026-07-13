@@ -2,7 +2,7 @@
 // Routes: POST /forms/:handle
 
 export interface FormSubmitInput {
-	cf_turnstile_response?: string
+	token?: string
 	data: Record<string, unknown>
 }
 
