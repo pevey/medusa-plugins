@@ -1,6 +1,6 @@
 import { MedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import type SearchModuleService from '../../../modules/search/service'
-import type { StoreSearchQuery } from '../../middlewares/search'
+import type { StoreSearchQuery } from '../../validators'
 
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
 	const { q, limit } = req.validatedQuery as StoreSearchQuery

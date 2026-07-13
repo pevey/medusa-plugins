@@ -5,31 +5,31 @@ Extended Medusa JS SDK with support for custom plugins. Drop-in replacement for 
 ## Installation
 
 ```bash
-yarn add @pevey/medusa
+yarn add "@pevey/medusa-sdk"
 ```
 
 ## Setup
 
 ```ts
-import Medusa from '@pevey/medusa'
+import Medusa from '@pevey/medusa-sdk'
 
 const sdk = new Medusa({
-  baseUrl: 'http://localhost:9000',
-  publishableKey: 'pk_...',
-  auth: {
-    type: 'session'
-  }
+	baseUrl: 'http://localhost:9000',
+	publishableKey: 'pk_...',
+	auth: {
+		type: 'session'
+	}
 })
 ```
 
 All [configuration options](https://docs.medusajs.com/resources/js-sdk#configuration) from `@medusajs/js-sdk` are supported, plus:
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `analytics.salesChannelId` | `string` | Default sales channel ID for analytics events |
-| `analytics.cartId` | `string` | Default actor ID (typically cart ID) |
-| `analytics.batchSize` | `number` | Flush when batch reaches this size (default: 10) |
-| `analytics.flushInterval` | `number` | Flush interval in ms (default: 2000) |
+| Option                     | Type     | Description                                      |
+| -------------------------- | -------- | ------------------------------------------------ |
+| `analytics.salesChannelId` | `string` | Default sales channel ID for analytics events    |
+| `analytics.cartId`         | `string` | Default actor ID (typically cart ID)             |
+| `analytics.batchSize`      | `number` | Flush when batch reaches this size (default: 10) |
+| `analytics.flushInterval`  | `number` | Flush interval in ms (default: 2000)             |
 
 ## Store
 
@@ -49,10 +49,10 @@ const { reviews, count } = await sdk.store.review.list('prod_123')
 
 // Submit a review (requires customer authentication)
 const { review } = await sdk.store.review.create('prod_123', {
-  rating: 5,
-  body: 'Excellent quality',
-  author_name: 'Alice',
-  author_email: 'alice@example.com'
+	rating: 5,
+	body: 'Excellent quality',
+	author_name: 'Alice',
+	author_email: 'alice@example.com'
 })
 ```
 
@@ -67,8 +67,8 @@ const { content_collection } = await sdk.store.content.retrieve('blog')
 
 // List published items in a collection
 const { content_items } = await sdk.store.content.listItems('blog', {
-  tag: 'announcements',
-  limit: 10
+	tag: 'announcements',
+	limit: 10
 })
 
 // Get a specific content item
@@ -80,12 +80,12 @@ const { content_item } = await sdk.store.content.retrieveItem('blog', 'hello-wor
 ```ts
 // Submit a form
 const { submitted } = await sdk.store.form.submit('contact', {
-  data: {
-    name: 'Alice',
-    email: 'alice@example.com',
-    message: 'Hello!'
-  },
-  cf_turnstile_response: 'token...'  // optional, if Turnstile is enabled
+	data: {
+		name: 'Alice',
+		email: 'alice@example.com',
+		message: 'Hello!'
+	},
+	cf_turnstile_response: 'token...' // optional, if Turnstile is enabled
 })
 ```
 
@@ -114,8 +114,8 @@ const { products } = await sdk.admin.product.list()
 ```ts
 // List reviews with filtering
 const { reviews } = await sdk.admin.review.list({
-  status: 'pending',
-  product_id: 'prod_123'
+	status: 'pending',
+	product_id: 'prod_123'
 })
 
 // Get a single review
@@ -139,12 +139,12 @@ Privacy-focused event tracking with automatic batching. Events are sent to the M
 ```ts
 // Track an event
 sdk.analytics.track('product_viewed', {
-  properties: { product_id: 'prod_123' }
+	properties: { product_id: 'prod_123' }
 })
 
 // Identify a customer
 sdk.analytics.identify('cust_123', {
-  anonymous_id: 'cart_abc'
+	anonymous_id: 'cart_abc'
 })
 
 // Set default actor/sales channel
@@ -169,14 +169,14 @@ Authentication works exactly like `@medusajs/js-sdk`:
 ```ts
 // Customer login
 await sdk.auth.login('customer', 'emailpass', {
-  email: 'customer@example.com',
-  password: 'password'
+	email: 'customer@example.com',
+	password: 'password'
 })
 
 // Customer registration
 await sdk.auth.register('customer', 'emailpass', {
-  email: 'customer@example.com',
-  password: 'password'
+	email: 'customer@example.com',
+	password: 'password'
 })
 
 // Logout
@@ -189,8 +189,8 @@ For endpoints not covered by the SDK, use `sdk.client.fetch()`:
 
 ```ts
 const result = await sdk.client.fetch('/admin/custom-endpoint', {
-  method: 'POST',
-  body: { key: 'value' }
+	method: 'POST',
+	body: { key: 'value' }
 })
 ```
 
@@ -200,21 +200,21 @@ All types are exported for use in your application:
 
 ```ts
 import type {
-  // Custom plugin types
-  Review,
-  StoreCreateReviewInput,
-  ContentCollection,
-  ContentItem,
-  FormSubmitInput,
-  TrackOptions,
+	// Custom plugin types
+	Review,
+	StoreCreateReviewInput,
+	ContentCollection,
+	ContentItem,
+	FormSubmitInput,
+	TrackOptions,
 
-  // Expanded core types
-  StoreProduct,
-  AdminProduct,
+	// Expanded core types
+	StoreProduct,
+	AdminProduct,
 
-  // SDK config types
-  MedusaConfig,
-  Config,
-  ClientHeaders,
-} from '@pevey/medusa'
+	// SDK config types
+	MedusaConfig,
+	Config,
+	ClientHeaders
+} from '@pevey/medusa-sdk'
 ```

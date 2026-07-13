@@ -12,6 +12,7 @@ const apiSidebar = JSON.parse(
 
 // All plugins sorted alphabetically by label
 const plugins = [
+	{ slug: 'medusa-plugin-affiliates', label: 'Affiliates', schemaFile: 'affiliates' },
 	{ slug: 'medusa-plugin-analytics', label: 'Analytics', schemaFile: 'analytics' },
 	{ slug: 'medusa-plugin-automation', label: 'Automation', schemaFile: 'automation' },
 	{ slug: 'medusa-plugin-barcodes', label: 'Barcodes', schemaFile: 'barcodes' },
@@ -24,6 +25,7 @@ const plugins = [
 	{ slug: 'medusa-plugin-order-notes', label: 'Order Notes', schemaFile: 'order-notes' },
 	{ slug: 'medusa-plugin-r2', label: 'R2 File Storage' },
 	{ slug: 'medusa-plugin-ratings', label: 'Reviews', schemaFile: 'reviews' },
+	{ slug: 'medusa-plugin-search', label: 'Search', schemaFile: 'search' },
 	{ slug: 'medusa-plugin-ses', label: 'SES Notifications' },
 	{ slug: 'medusa-plugin-statistics', label: 'Statistics', schemaFile: 'statistics' },
 	{ slug: 'medusa-plugin-tax-lookup', label: 'Tax Lookup' },
@@ -59,10 +61,8 @@ export default defineConfig({
 			plugins: [starlightOpenAPI(apiPluginConfigs), starlightLlmsTxt()],
 			sidebar: [
 				{
-					label: '@pevey/medusa',
-					items: [
-						{ label: 'Overview', slug: 'medusa-sdk' },
-					],
+					label: '@pevey/medusa-sdk',
+					items: [{ label: 'Overview', slug: 'medusa-sdk' }]
 				},
 				...plugins.map(p => buildPluginSidebar(p)),
 				{
@@ -75,7 +75,7 @@ export default defineConfig({
 				}
 			],
 			social: [
-				{ icon: 'github', label: 'GitHub', href: 'https://github.com/pevey/medusa-plugins' },
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/pevey/medusa-plugins' }
 			],
 			customCss: ['./src/styles/global.css'],
 			favicon: '/favicon.png'

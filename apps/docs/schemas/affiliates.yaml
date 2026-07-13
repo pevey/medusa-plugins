@@ -1,0 +1,392 @@
+openapi: 3.1.0
+info:
+  title: Affiliates API
+  version: 0.1.1
+  description: Affiliate promotion code management and per-order attribution for Medusa v2.
+servers:
+  - url: http://localhost:9000
+    description: Local development
+paths:
+  /admin/affiliates:
+    get:
+      operationId: getAdminAffiliates
+      summary: List Affiliates
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  affiliates:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        email:
+                          type: string
+                        phone:
+                          type: string
+                        status:
+                          type: string
+                        currency_code:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                        "*addresses":
+                          type: string
+                  count:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+    post:
+      operationId: postAdminAffiliates
+      summary: Create Affiliate
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      operationId: deleteAdminAffiliates
+      summary: Batch Delete Affiliates
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+              required:
+                - ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  deleted:
+                    type: boolean
+  /admin/affiliates/{id}:
+    get:
+      operationId: getAdminAffiliatesByid
+      summary: Get Affiliate
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  affiliate:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      phone:
+                        type: string
+                      status:
+                        type: string
+                      currency_code:
+                        type: string
+                      primary_address_id:
+                        type: string
+                      created_at:
+                        type: string
+                        format: date-time
+                      "*addresses":
+                        type: string
+                      promotions:
+                        type: array
+                        items:
+                          type: object
+    post:
+      operationId: postAdminAffiliatesByid
+      summary: Update Affiliate
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/affiliates/{id}/addresses:
+    post:
+      operationId: postAdminAffiliatesByidAddresses
+      summary: Create Address
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/affiliates/{id}/addresses/{addressId}:
+    post:
+      operationId: postAdminAffiliatesByidAddressesByaddressId
+      summary: Update Address
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      operationId: deleteAdminAffiliatesByidAddressesByaddressId
+      summary: Delete Address
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  deleted:
+                    type: boolean
+  /admin/affiliates/{id}/promotions:
+    post:
+      operationId: postAdminAffiliatesByidPromotions
+      summary: Create Promotion
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/affiliates/{id}/promotions/{promotionId}:
+    post:
+      operationId: postAdminAffiliatesByidPromotionsBypromotionId
+      summary: Update Promotion
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: promotionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      operationId: deleteAdminAffiliatesByidPromotionsBypromotionId
+      summary: Delete Promotion
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: promotionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  deleted:
+                    type: boolean
+  /admin/affiliates/{id}/promotions/{promotionId}/reactivate:
+    post:
+      operationId: postAdminAffiliatesByidPromotionsBypromotionIdReactivate
+      summary: Create Reactivate
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: promotionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/affiliates/{id}/promotions/{promotionId}/retire:
+    post:
+      operationId: postAdminAffiliatesByidPromotionsBypromotionIdRetire
+      summary: Create Retire
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: promotionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/affiliates/{id}/attributions/recalculate:
+    post:
+      operationId: postAdminAffiliatesByidAttributionsRecalculate
+      summary: Recalculate Attribution
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/affiliates/{id}/stats:
+    get:
+      operationId: getAdminAffiliatesByidStats
+      summary: List Stats
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object

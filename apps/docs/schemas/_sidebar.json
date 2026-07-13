@@ -1,4 +1,72 @@
 {
+	"medusa-plugin-affiliates": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Affiliates",
+					"link": "/medusa-plugin-affiliates/api/operations/getadminaffiliates/"
+				},
+				{
+					"label": "Create Affiliate",
+					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliates/"
+				},
+				{
+					"label": "Batch Delete Affiliates",
+					"link": "/medusa-plugin-affiliates/api/operations/deleteadminaffiliates/"
+				},
+				{
+					"label": "Get Affiliate",
+					"link": "/medusa-plugin-affiliates/api/operations/getadminaffiliatesbyid/"
+				},
+				{
+					"label": "Update Affiliate",
+					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyid/"
+				},
+				{
+					"label": "Create Address",
+					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidaddresses/"
+				},
+				{
+					"label": "Update Address",
+					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidaddressesbyaddressid/"
+				},
+				{
+					"label": "Delete Address",
+					"link": "/medusa-plugin-affiliates/api/operations/deleteadminaffiliatesbyidaddressesbyaddressid/"
+				},
+				{
+					"label": "Create Promotion",
+					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidpromotions/"
+				},
+				{
+					"label": "Update Promotion",
+					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidpromotionsbypromotionid/"
+				},
+				{
+					"label": "Delete Promotion",
+					"link": "/medusa-plugin-affiliates/api/operations/deleteadminaffiliatesbyidpromotionsbypromotionid/"
+				},
+				{
+					"label": "Create Reactivate",
+					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidpromotionsbypromotionidreactivate/"
+				},
+				{
+					"label": "Create Retire",
+					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidpromotionsbypromotionidretire/"
+				},
+				{
+					"label": "Recalculate Attribution",
+					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidattributionsrecalculate/"
+				},
+				{
+					"label": "List Stats",
+					"link": "/medusa-plugin-affiliates/api/operations/getadminaffiliatesbyidstats/"
+				}
+			]
+		}
+	],
 	"medusa-plugin-analytics": [
 		{
 			"label": "Admin",
@@ -721,6 +789,28 @@
 				{
 					"label": "Get Review",
 					"link": "/medusa-plugin-ratings/api/operations/getstorereviewsbyproductid/"
+				}
+			]
+		}
+	],
+	"medusa-plugin-search": [
+		{
+			"label": "Store",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Search",
+					"link": "/medusa-plugin-search/api/operations/getstoresearch/"
+				}
+			]
+		},
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "Reindex Search",
+					"link": "/medusa-plugin-search/api/operations/postadminsearchreindex/"
 				}
 			]
 		}

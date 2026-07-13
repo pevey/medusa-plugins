@@ -19,7 +19,7 @@ export default defineMiddlewares({
 	routes: [
 		{
 			matcher: '/admin/affiliates',
-			method: 'GET',
+			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminListAffiliatesSchema, {
 					defaults: [
@@ -39,17 +39,17 @@ export default defineMiddlewares({
 		},
 		{
 			matcher: '/admin/affiliates',
-			method: 'POST',
+			method: ['POST'],
 			middlewares: [validateAndTransformBody(AdminCreateAffiliateSchema)]
 		},
 		{
 			matcher: '/admin/affiliates',
-			method: 'DELETE',
+			method: ['DELETE'],
 			middlewares: [validateAndTransformBody(AdminDeleteAffiliatesSchema)]
 		},
 		{
 			matcher: '/admin/affiliates/:id',
-			method: 'GET',
+			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminListAffiliatesSchema.partial(), {
 					defaults: [
@@ -70,32 +70,57 @@ export default defineMiddlewares({
 		},
 		{
 			matcher: '/admin/affiliates/:id',
-			method: 'POST',
+			method: ['POST'],
 			middlewares: [validateAndTransformBody(AdminUpdateAffiliateSchema)]
 		},
 		{
 			matcher: '/admin/affiliates/:id/addresses',
-			method: 'POST',
+			method: ['POST'],
 			middlewares: [validateAndTransformBody(AdminAddAddressSchema)]
 		},
 		{
 			matcher: '/admin/affiliates/:id/addresses/:addressId',
-			method: 'POST',
+			method: ['POST'],
 			middlewares: [validateAndTransformBody(AdminUpdateAddressSchema)]
 		},
 		{
+			matcher: '/admin/affiliates/:id/addresses/:addressId',
+			method: ['DELETE'],
+			middlewares: []
+		},
+		{
 			matcher: '/admin/affiliates/:id/promotions',
-			method: 'POST',
+			method: ['POST'],
 			middlewares: [validateAndTransformBody(AdminCreateAffiliatePromotionSchema)]
 		},
 		{
 			matcher: '/admin/affiliates/:id/promotions/:promotionId',
-			method: 'POST',
+			method: ['POST'],
 			middlewares: [validateAndTransformBody(AdminUpdateAffiliatePromotionSchema)]
 		},
 		{
+			matcher: '/admin/affiliates/:id/promotions/:promotionId',
+			method: ['DELETE'],
+			middlewares: []
+		},
+		{
+			matcher: '/admin/affiliates/:id/promotions/:promotionId/reactivate',
+			method: ['POST'],
+			middlewares: []
+		},
+		{
+			matcher: '/admin/affiliates/:id/promotions/:promotionId/retire',
+			method: ['POST'],
+			middlewares: []
+		},
+		{
+			matcher: '/admin/affiliates/:id/attributions/recalculate',
+			method: ['POST'],
+			middlewares: []
+		},
+		{
 			matcher: '/admin/affiliates/:id/stats',
-			method: 'GET',
+			method: ['GET'],
 			middlewares: [validateAndTransformQuery(AdminGetStatsSchema, {})]
 		}
 	]

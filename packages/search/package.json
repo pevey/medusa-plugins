@@ -1,7 +1,7 @@
 {
 	"name": "medusa-plugin-search",
 	"version": "0.1.0",
-	"description": "Typo-tolerant Postgres (pg_trgm) full-site search for Medusa v2 — product search by default, opt-in category/collection and custom sources",
+	"description": "Typo-tolerant search for Medusa v2 on existing Postgres database using pg_trgm.",
 	"author": "Lacey Pevey",
 	"license": "MIT",
 	"repository": {

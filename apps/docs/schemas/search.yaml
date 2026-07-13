@@ -1,0 +1,48 @@
+openapi: 3.1.0
+info:
+  title: Search API
+  version: 0.1.0
+  description: Typo-tolerant search for Medusa v2 on existing Postgres database using pg_trgm.
+servers:
+  - url: http://localhost:9000
+    description: Local development
+paths:
+  /store/search:
+    get:
+      operationId: getStoreSearch
+      summary: List Search
+      tags:
+        - Store
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+            default: ""
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: string
+            default: 12
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/search/reindex:
+    post:
+      operationId: postAdminSearchReindex
+      summary: Reindex Search
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object

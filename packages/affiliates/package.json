@@ -1,7 +1,7 @@
 {
 	"name": "medusa-plugin-affiliates",
 	"version": "0.1.1",
-	"description": "Affiliate management plugin for Medusa v2 — owns affiliate-specific promotion codes and tracks per-order attribution.",
+	"description": "Affiliate promotion code management and per-order attribution for Medusa v2.",
 	"author": "Lacey Pevey",
 	"license": "MIT",
 	"repository": {
