@@ -1,6 +1,6 @@
 {
 	"name": "@pevey/medusa-sdk",
-	"version": "2.17.2",
+	"version": "2.17.2b",
 	"description": "Extended Medusa JS SDK with custom plugin support",
 	"author": "Lacey Pevey",
 	"license": "MIT",
@@ -25,15 +25,16 @@
 		"access": "public"
 	},
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc && tsc-alias",
 		"dev": "tsc --watch",
-		"prepublishOnly": "tsc"
+		"prepublishOnly": "tsc && tsc-alias"
 	},
 	"dependencies": {
 		"@medusajs/js-sdk": "2.17.2",
 		"@medusajs/types": "2.17.2"
 	},
 	"devDependencies": {
+		"tsc-alias": "^1.9.0",
 		"typescript": "6.0.3"
 	},
 	"engines": {

@@ -10,5 +10,8 @@
 		"outDir": "dist",
 		"rootDir": "src"
 	},
-	"include": ["src"]
+	"include": ["src"],
+	"tsc-alias": {
+		"resolveFullPaths": true
+	}
 }
