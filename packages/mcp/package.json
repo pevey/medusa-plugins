@@ -70,8 +70,8 @@
 		"@types/node": "20.0.0",
 		"@types/react": "18.3.2",
 		"@types/react-dom": "18.2.25",
-		"medusa-plugin-automation": "workspace:*",
-		"medusa-plugin-statistics": "workspace:*",
+		"medusa-plugin-automation": "0.3.2",
+		"medusa-plugin-statistics": "0.2.2",
 		"prop-types": "15.8.1",
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
@@ -95,5 +95,6 @@
 	},
 	"engines": {
 		"node": ">=20"
-	}
+	},
+	"gitHead": "1341835d85ae264049df6be15d353d9504917c26"
 }
