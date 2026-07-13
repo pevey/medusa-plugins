@@ -16,7 +16,6 @@ jest.retryTimes(1)
 medusaIntegrationTestRunner({
 	dbName: 'medusa-analytics',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: {},
 	testSuite: ({ api }) => {
 		describe('Authentication', () => {

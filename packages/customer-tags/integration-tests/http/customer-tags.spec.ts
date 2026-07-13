@@ -25,9 +25,12 @@ jest.retryTimes(1)
 medusaIntegrationTestRunner({
 	dbName: 'medusa-customer-tag',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: {},
-	testSuite: ({ api, getContainer }) => {
+	testSuite: ({ api, getContainer, dbUtils, utils }) => {
+		const seedSnapshot = async () => {
+			await utils.waitWorkflowExecutions()
+			await dbUtils.snapshot()
+		}
 		let adminToken: string
 
 		const auth = () => ({ headers: { Authorization: `Bearer ${adminToken}` } })
@@ -138,6 +141,7 @@ medusaIntegrationTestRunner({
 				])
 				tagId = r1.data.customer_tag.id
 				tagId2 = r2.data.customer_tag.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -246,6 +250,7 @@ medusaIntegrationTestRunner({
 				customerId = customerRes.data.customer.id
 				tagId = tagRes1.data.customer_tag.id
 				tagId2 = tagRes2.data.customer_tag.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -275,6 +280,9 @@ medusaIntegrationTestRunner({
 			})
 
 			it('linked tags appear when querying the customer with customer_tags field', async () => {
+				// Per-test DB restore isolates tests, so create the links within this test
+				await api.post(`/admin/customers/${customerId}/customer-tags`, { tag_id: tagId }, auth())
+				await api.post(`/admin/customers/${customerId}/customer-tags`, { tag: tagId2 }, auth())
 				const res = await api.get(
 					`/admin/customers/${customerId}?fields=+customer_tags.id,+customer_tags.value`,
 					auth()
@@ -286,6 +294,9 @@ medusaIntegrationTestRunner({
 			})
 
 			it('DELETE /admin/customers/:id/customer-tags/:tagId removes a tag link', async () => {
+				// Per-test DB restore isolates tests, so create the links within this test
+				await api.post(`/admin/customers/${customerId}/customer-tags`, { tag_id: tagId }, auth())
+				await api.post(`/admin/customers/${customerId}/customer-tags`, { tag: tagId2 }, auth())
 				const res = await api.delete(
 					`/admin/customers/${customerId}/customer-tags/${tagId}`,
 					auth()

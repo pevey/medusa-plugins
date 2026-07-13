@@ -8,9 +8,12 @@ jest.retryTimes(1)
 medusaIntegrationTestRunner({
 	dbName: 'medusa-affiliate',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: {},
-	testSuite: ({ api, getContainer }) => {
+	testSuite: ({ api, getContainer, dbUtils, utils }) => {
+		const seedSnapshot = async () => {
+			await utils.waitWorkflowExecutions()
+			await dbUtils.snapshot()
+		}
 		let adminToken: string
 
 		const auth = () => ({ headers: { Authorization: `Bearer ${adminToken}` } })
@@ -177,6 +180,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				promoAffiliateId = res.data.affiliate.affiliate_id
+				await seedSnapshot()
 			})
 
 			it('adds a new code', async () => {
@@ -302,6 +306,7 @@ medusaIntegrationTestRunner({
 				)
 				addrAffiliateId = res.data.affiliate.affiliate_id
 				addrPrimaryAddressId = res.data.affiliate.primary_address_id
+				await seedSnapshot()
 			})
 
 			it('adds a second address', async () => {
@@ -466,6 +471,7 @@ medusaIntegrationTestRunner({
 						voided_at: now
 					}
 				])
+				await seedSnapshot()
 			})
 
 			it('basis=completed window=day returns only today (excludes voided)', async () => {

@@ -104,9 +104,12 @@ function hmacSign(secret: string, body: unknown): string {
 medusaIntegrationTestRunner({
 	dbName: 'medusa-automation',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: {},
-	testSuite: ({ api, getContainer }) => {
+	testSuite: ({ api, getContainer, dbUtils, utils }) => {
+		const seedSnapshot = async () => {
+			await utils.waitWorkflowExecutions()
+			await dbUtils.snapshot()
+		}
 		let adminToken: string
 		let mock: Awaited<ReturnType<typeof startMockServer>>
 
@@ -158,6 +161,17 @@ medusaIntegrationTestRunner({
 		describe('Trigger CRUD', () => {
 			let triggerId: string
 
+			beforeAll(async () => {
+				// Per-test DB restore isolates tests, so seed a trigger the get/list/update tests can use
+				const res = await api.post(
+					'/admin/automations',
+					{ name: 'CRUD Test Trigger', trigger_type: 'incoming_webhook', is_active: true },
+					auth()
+				)
+				triggerId = res.data.trigger.id
+				await seedSnapshot()
+			})
+
 			it('creates an incoming_webhook trigger', async () => {
 				const res = await api.post(
 					'/admin/automations',
@@ -174,7 +188,6 @@ medusaIntegrationTestRunner({
 					trigger_type: 'incoming_webhook',
 					is_active: true
 				})
-				triggerId = res.data.trigger.id
 			})
 
 			it('creates a medusa_event trigger', async () => {
@@ -239,6 +252,21 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				triggerId = res.data.trigger.id
+				// Seed an action the list/update tests can use (per-test DB restore isolates tests)
+				const actionRes = await api.post(
+					`/admin/automations/${triggerId}/actions`,
+					{
+						name: 'Forward Action',
+						action_type: 'outgoing_webhook',
+						target_url: 'https://example.com/hook',
+						is_active: true,
+						field_mappings: [{ source_path: 'id', target_key: 'customer_id' }],
+						static_values: [{ key: 'source', value: 'test' }]
+					},
+					auth()
+				)
+				actionId = actionRes.data.action.id
+				await seedSnapshot()
 			})
 
 			it('creates an outgoing_webhook action', async () => {
@@ -262,7 +290,6 @@ medusaIntegrationTestRunner({
 					is_active: true
 				})
 				expect(res.data.action.field_mappings).toHaveLength(1)
-				actionId = res.data.action.id
 			})
 
 			it('lists actions for trigger', async () => {
@@ -334,6 +361,7 @@ medusaIntegrationTestRunner({
 				outgoingActionId = a1.data.action.id
 				workflowActionId = a2.data.action.id
 				inactiveActionId = a3.data.action.id
+				await seedSnapshot()
 			})
 
 			// ── Trigger filters ────────────────────────────────────────────────────
@@ -470,6 +498,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				actionId = aRes.data.action.id
+				await seedSnapshot()
 			})
 
 			const queryUrl = () => `/admin/automations/${triggerId}/actions/${actionId}/query`
@@ -537,6 +566,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				triggerId = res.data.trigger.id
+				await seedSnapshot()
 			})
 
 			it('returns 404 for an unknown trigger id', async () => {
@@ -724,6 +754,7 @@ medusaIntegrationTestRunner({
 					is_active: true
 				}, auth())
 				triggerId = tRes.data.trigger.id
+				await seedSnapshot()
 			})
 
 			it('rejects file:// URLs at action create (scheme not in allowlist)', async () => {
@@ -770,6 +801,7 @@ medusaIntegrationTestRunner({
 					is_active: true
 				}, auth())
 				triggerId = tRes.data.trigger.id
+				await seedSnapshot()
 			})
 
 			it('rejects creating a medusa_workflow action whose workflow name contains "delete"', async () => {
@@ -829,6 +861,7 @@ medusaIntegrationTestRunner({
 					},
 					auth()
 				)
+				await seedSnapshot()
 			})
 
 			it('returns 200 and records actions_executed count', async () => {
@@ -952,6 +985,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				actionId = aRes.data.action.id
+				await seedSnapshot()
 			})
 
 			it('coerces a single object to an array and runs the workflow once', async () => {
@@ -1011,6 +1045,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				actionId = aRes.data.action.id
+				await seedSnapshot()
 			})
 
 			it('runs the workflow once per item in the source array', async () => {
@@ -1070,6 +1105,22 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				triggerId = res.data.trigger.id
+				// Seed an outgoing_request action the list/update tests can use (per-test DB restore isolates tests)
+				const actionRes = await api.post(
+					`/admin/automations/${triggerId}/actions`,
+					{
+						name: 'GET Request Action',
+						action_type: 'outgoing_request',
+						target_url: 'https://example.com/api/search',
+						request_method: 'GET',
+						is_active: true,
+						field_mappings: [{ source_path: 'id', target_key: 'customer_id' }],
+						target_headers: [{ key: 'X-Api-Key', value: 'secret123' }]
+					},
+					auth()
+				)
+				actionId = actionRes.data.action.id
+				await seedSnapshot()
 			})
 
 			it('creates an outgoing_request action with request_method', async () => {
@@ -1095,7 +1146,6 @@ medusaIntegrationTestRunner({
 					is_active: true
 				})
 				expect(res.data.action.field_mappings).toHaveLength(1)
-				actionId = res.data.action.id
 			})
 
 			it('lists the outgoing_request action', async () => {
@@ -1165,6 +1215,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				actionId = aRes.data.action.id
+				await seedSnapshot()
 			})
 
 			it('sends a POST request with JSON body to the target URL', async () => {
@@ -1238,6 +1289,7 @@ medusaIntegrationTestRunner({
 					},
 					auth()
 				)
+				await seedSnapshot()
 			})
 
 			it('sends a PUT request with JSON body', async () => {
@@ -1282,6 +1334,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				actionId = aRes.data.action.id
+				await seedSnapshot()
 			})
 
 			it('sends a GET request with mapped fields as query parameters', async () => {
@@ -1364,6 +1417,7 @@ medusaIntegrationTestRunner({
 					},
 					auth()
 				)
+				await seedSnapshot()
 			})
 
 			it('sends a DELETE request with mapped fields as query parameters', async () => {
@@ -1393,6 +1447,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				triggerId = res.data.trigger.id
+				await seedSnapshot()
 			})
 
 			it('creates a receipt record when log_incoming is enabled', async () => {

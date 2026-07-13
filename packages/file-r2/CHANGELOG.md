@@ -1,3 +1,8 @@
+## 1.1.2
+
+- Updated medusa packages to 2.17.2
+- Migrated all integration tests to work with changes introduced in @medusajs/test-utils 2.17.0
+
 ## 1.1.1
 
 - Upgrade underlying Medusa packages

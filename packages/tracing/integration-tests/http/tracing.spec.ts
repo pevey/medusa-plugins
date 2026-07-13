@@ -29,9 +29,12 @@ jest.retryTimes(1)
 medusaIntegrationTestRunner({
 	dbName: 'medusa-tracing',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: {},
-	testSuite: ({ api, getContainer }) => {
+	testSuite: ({ api, getContainer, dbUtils, utils }) => {
+		const seedSnapshot = async () => {
+			await utils.waitWorkflowExecutions()
+			await dbUtils.snapshot()
+		}
 		let adminToken: string
 
 		const auth = () => ({ headers: { Authorization: `Bearer ${adminToken}` } })
@@ -211,6 +214,7 @@ medusaIntegrationTestRunner({
 				])
 				reasonId = r1.data.invalidation_reason.id
 				reasonId2 = r2.data.invalidation_reason.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -350,6 +354,7 @@ medusaIntegrationTestRunner({
 				])
 				stockLotId = r1.data.stock_lot.id
 				stockLotId2 = r2.data.stock_lot.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -503,6 +508,8 @@ medusaIntegrationTestRunner({
 				})
 
 				it('GET /admin/stock-lots filters by enabled=false', async () => {
+					// Per-test DB restore isolates tests, so disable the lot within this test
+					await api.post('/admin/stock-lots/disable', { ids: [stockLotId2] }, auth())
 					const res = await api.get('/admin/stock-lots?enabled=false', auth())
 					expect(res.status).toBe(200)
 					expect(res.data.stock_lots.every((s: any) => s.enabled === false)).toBe(true)
@@ -535,6 +542,7 @@ medusaIntegrationTestRunner({
 						auth()
 					)
 					serialNumberId = res.data.serial_number.id
+					await seedSnapshot()
 				})
 
 				afterAll(async () => {
@@ -617,6 +625,7 @@ medusaIntegrationTestRunner({
 				])
 				serialNumberId = r1.data.serial_number.id
 				serialNumberId2 = r2.data.serial_number.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {

@@ -1,3 +1,8 @@
+## 0.4.3
+
+- Updated medusa packages to 2.17.2
+- Migrated all integration tests to work with changes introduced in @medusajs/test-utils 2.17.0
+
 ## 0.4.2
 
 - Make create and edit forms more consistent across plugins

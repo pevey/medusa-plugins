@@ -29,9 +29,12 @@ jest.retryTimes(1)
 medusaIntegrationTestRunner({
 	dbName: 'medusa-review',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: {},
-	testSuite: ({ api, getContainer }) => {
+	testSuite: ({ api, getContainer, dbUtils, utils }) => {
+		const seedSnapshot = async () => {
+			await utils.waitWorkflowExecutions()
+			await dbUtils.snapshot()
+		}
 		let adminToken: string
 		let reviewService: any
 
@@ -160,6 +163,7 @@ medusaIntegrationTestRunner({
 					})
 				])
 				reviewIds = created.map((r: any) => r.id)
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -246,6 +250,7 @@ medusaIntegrationTestRunner({
 					status: 'pending'
 				})
 				reviewId = review.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -285,6 +290,7 @@ medusaIntegrationTestRunner({
 					status: 'pending'
 				})
 				reviewId = review.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -411,6 +417,7 @@ medusaIntegrationTestRunner({
 					})
 				])
 				reviewIds = [r1.id, r2.id]
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -424,6 +431,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('sets status to approved on each review', async () => {
+				await api.post('/admin/reviews/approve', { ids: reviewIds }, auth())
 				for (const id of reviewIds) {
 					const detailRes = await api.get(`/admin/reviews/${id}`, auth())
 					expect(detailRes.data.review.status).toBe('approved')
@@ -431,6 +439,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('creates approve activity on each review', async () => {
+				await api.post('/admin/reviews/approve', { ids: reviewIds }, auth())
 				for (const id of reviewIds) {
 					const detailRes = await api.get(`/admin/reviews/${id}`, auth())
 					const approveActivity = detailRes.data.review.activity.find(
@@ -465,6 +474,7 @@ medusaIntegrationTestRunner({
 					})
 				])
 				reviewIds = [r1.id, r2.id]
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -478,6 +488,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('sets status to rejected on each review', async () => {
+				await api.post('/admin/reviews/reject', { ids: reviewIds }, auth())
 				for (const id of reviewIds) {
 					const detailRes = await api.get(`/admin/reviews/${id}`, auth())
 					expect(detailRes.data.review.status).toBe('rejected')
@@ -485,6 +496,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('creates reject activity on each review', async () => {
+				await api.post('/admin/reviews/reject', { ids: reviewIds }, auth())
 				for (const id of reviewIds) {
 					const detailRes = await api.get(`/admin/reviews/${id}`, auth())
 					const rejectActivity = detailRes.data.review.activity.find(
@@ -573,6 +585,7 @@ medusaIntegrationTestRunner({
 						status: 'pending'
 					})
 				])
+				await seedSnapshot()
 			})
 
 			const storeHeaders = () => ({ headers: { 'x-publishable-api-key': publishableApiKey } })

@@ -25,9 +25,12 @@ jest.retryTimes(1)
 medusaIntegrationTestRunner({
 	dbName: 'medusa-order-note',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: {},
-	testSuite: ({ api, getContainer }) => {
+	testSuite: ({ api, getContainer, dbUtils, utils }) => {
+		const seedSnapshot = async () => {
+			await utils.waitWorkflowExecutions()
+			await dbUtils.snapshot()
+		}
 		let adminToken: string
 
 		const auth = () => ({ headers: { Authorization: `Bearer ${adminToken}` } })
@@ -124,6 +127,7 @@ medusaIntegrationTestRunner({
 				])
 				noteId = r1.data.order_note.id
 				sentNoteId = r2.data.order_note.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {

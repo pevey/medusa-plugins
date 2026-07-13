@@ -31,12 +31,19 @@ jest.retryTimes(1)
 medusaIntegrationTestRunner({
 	dbName: 'medusa-form',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: { TURNSTILE_SECRET_KEY: '1x0000000000000000000000000000000AA' },
-	testSuite: ({ api, getContainer }) => {
+	testSuite: ({ api, getContainer, dbUtils, utils }) => {
 		let adminToken: string
 
 		const auth = () => ({ headers: { Authorization: `Bearer ${adminToken}` } })
+
+		// 2.17.0 test-utils snapshots the DB after the first beforeEach and restores it before
+		// every later test — wiping data seeded in a describe-level beforeAll. Re-snapshot after
+		// each seed (once workflows settle) so it lands in the restore template.
+		const seedSnapshot = async () => {
+			await utils.waitWorkflowExecutions()
+			await dbUtils.snapshot()
+		}
 
 		// ── Setup ────────────────────────────────────────────────────────────────
 
@@ -197,6 +204,7 @@ medusaIntegrationTestRunner({
 				])
 				formId = r1.data.form.id
 				formId2 = r2.data.form.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -363,6 +371,7 @@ medusaIntegrationTestRunner({
 					sort_order: 0
 				}, auth())
 				fieldId = fieldRes.data.field.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -491,6 +500,7 @@ medusaIntegrationTestRunner({
 					sort_order: 0
 				}, auth())
 				optionId = optRes.data.option.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -572,6 +582,7 @@ medusaIntegrationTestRunner({
 				const subs = listRes.data.form_submissions.filter((s: any) => s.form_id === formId)
 				submissionId = subs[0].id
 				submissionId2 = subs[1].id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -660,6 +671,7 @@ medusaIntegrationTestRunner({
 					active: true,
 					turnstile_enabled: true
 				}, auth())
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -722,6 +734,7 @@ medusaIntegrationTestRunner({
 						]
 					}, auth())
 				])
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {

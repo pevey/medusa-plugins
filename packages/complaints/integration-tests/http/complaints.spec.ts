@@ -41,9 +41,12 @@ jest.retryTimes(1)
 medusaIntegrationTestRunner({
 	dbName: 'medusa-complaint',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: {},
-	testSuite: ({ api, getContainer }) => {
+	testSuite: ({ api, getContainer, dbUtils, utils }) => {
+		const seedSnapshot = async () => {
+			await utils.waitWorkflowExecutions()
+			await dbUtils.snapshot()
+		}
 		let adminToken: string
 		let complaintService: ComplaintService
 
@@ -228,6 +231,7 @@ medusaIntegrationTestRunner({
 				])
 				tagId = r1.data.complaint_tag.id
 				tagId2 = r2.data.complaint_tag.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -345,6 +349,7 @@ medusaIntegrationTestRunner({
 				])
 				complaintId = r1.data.complaint.id
 				complaintId2 = r2.data.complaint.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -464,6 +469,8 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/complaints/:id creates open activity on status change to open', async () => {
+				// Per-test DB restore isolates tests, so close first to make the reopen a real change
+				await api.post(`/admin/complaints/${complaintId}`, { status: 'closed' }, auth())
 				const res = await api.post(
 					`/admin/complaints/${complaintId}`,
 					{ status: 'open' },
@@ -595,6 +602,7 @@ medusaIntegrationTestRunner({
 				])
 				docComplaintId = r1.data.complaint.id
 				otherComplaintId = r2.data.complaint.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -779,6 +787,7 @@ medusaIntegrationTestRunner({
 					complaint_rate: 0.06,
 					last_calculated_at: new Date()
 				})
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -822,6 +831,7 @@ medusaIntegrationTestRunner({
 					{ description: 'pdf export target 2', customer_id: 'cus_pdf_2' }
 				])
 				pdfExportIds = (Array.isArray(cs) ? cs : [cs]).map(c => c.id)
+				await seedSnapshot()
 			})
 
 			it('requires authentication', async () => {

@@ -30,9 +30,12 @@ jest.retryTimes(1)
 medusaIntegrationTestRunner({
 	dbName: 'medusa-content',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: {},
-	testSuite: ({ api, getContainer }) => {
+	testSuite: ({ api, getContainer, dbUtils, utils }) => {
+		const seedSnapshot = async () => {
+			await utils.waitWorkflowExecutions()
+			await dbUtils.snapshot()
+		}
 		let adminToken: string
 		let contentService: ContentService
 
@@ -262,6 +265,7 @@ medusaIntegrationTestRunner({
 				])
 				collectionId = r1.data.content_collection.id
 				collectionId2 = r2.data.content_collection.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -373,6 +377,7 @@ medusaIntegrationTestRunner({
 						auth()
 					)
 					fieldId = res.data.field.id
+					await seedSnapshot()
 				})
 
 				afterAll(async () => {
@@ -495,6 +500,7 @@ medusaIntegrationTestRunner({
 						auth()
 					)
 					relId = relRes.data.relationship.id
+					await seedSnapshot()
 				})
 
 				afterAll(async () => {
@@ -593,6 +599,7 @@ medusaIntegrationTestRunner({
 				])
 				creatorId = r1.data.content_creator.id
 				creatorId2 = r2.data.content_creator.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -693,6 +700,8 @@ medusaIntegrationTestRunner({
 				})
 
 				it('GET .../activity lists activity for a creator', async () => {
+					// Per-test DB restore isolates tests, so create an activity within this test
+					await api.post(`/admin/content-creators/${creatorId}/activity`, { type: 'note', note: 'seed' }, auth())
 					const res = await api.get(`/admin/content-creators/${creatorId}/activity`, auth())
 					expect(res.status).toBe(200)
 					expect(Array.isArray(res.data.activity)).toBe(true)
@@ -764,6 +773,7 @@ medusaIntegrationTestRunner({
 				])
 				itemId = r1.data.content_item.id
 				itemId2 = r2.data.content_item.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -902,6 +912,8 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST .../items/:itemId auto-logs DRAFT on status change to draft', async () => {
+				// ensure a real published->draft change (per-test restore isolates tests)
+				await api.post(`/admin/content/${collectionId}/items/${itemId}`, { status: 'published' }, auth())
 				const res = await api.post(
 					`/admin/content/${collectionId}/items/${itemId}`,
 					{ status: 'draft' },
@@ -957,6 +969,8 @@ medusaIntegrationTestRunner({
 				})
 
 				it('GET .../activity lists activity for a content item', async () => {
+					// Per-test DB restore isolates tests, so create an activity within this test
+					await api.post(`/admin/content/${collectionId}/items/${itemId}/activity`, { type: 'note', note: 'seed' }, auth())
 					const res = await api.get(`/admin/content/${collectionId}/items/${itemId}/activity`, auth())
 					expect(res.status).toBe(200)
 					expect(Array.isArray(res.data.activity)).toBe(true)
@@ -1015,6 +1029,7 @@ medusaIntegrationTestRunner({
 						auth()
 					)
 					linkedItemId = linkedItemRes.data.content_item.id
+					await seedSnapshot()
 				})
 
 				afterAll(async () => {
@@ -1042,6 +1057,8 @@ medusaIntegrationTestRunner({
 				})
 
 				it('GET .../links lists links for a content item', async () => {
+					// Per-test DB restore isolates tests, so create a link within this test
+					await api.post(`/admin/content/${collectionId}/items/${itemId}/links`, { target_item_id: linkedItemId, relationship_id: relId }, auth())
 					const res = await api.get(`/admin/content/${collectionId}/items/${itemId}/links`, auth())
 					expect(res.status).toBe(200)
 					expect(Array.isArray(res.data.links)).toBe(true)
@@ -1078,10 +1095,13 @@ medusaIntegrationTestRunner({
 				})
 
 				it('GET .../tags lists tags for the item', async () => {
+					// Per-test DB restore isolates tests, so create a tag within this test
+					const created = await api.post(`/admin/content/${collectionId}/items/${itemId}/tags`, { value: 'featured' }, auth())
+					const seededTagId = created.data.tag.id
 					const res = await api.get(`/admin/content/${collectionId}/items/${itemId}/tags`, auth())
 					expect(res.status).toBe(200)
 					expect(Array.isArray(res.data.tags)).toBe(true)
-					expect(res.data.tags.some((t: any) => t.id === tagId)).toBe(true)
+					expect(res.data.tags.some((t: any) => t.id === seededTagId)).toBe(true)
 				})
 
 				it('DELETE .../tags bulk removes tags from the item', async () => {
@@ -1132,6 +1152,7 @@ medusaIntegrationTestRunner({
 				])
 				tagId = r1.data.content_tag.id
 				tagId2 = r2.data.content_tag.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -1243,6 +1264,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				imgCollectionId = res.data.content_collection.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -1333,6 +1355,7 @@ medusaIntegrationTestRunner({
 						auth()
 					)
 				])
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {

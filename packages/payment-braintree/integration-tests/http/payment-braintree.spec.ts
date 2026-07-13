@@ -17,7 +17,6 @@ jest.retryTimes(1)
 medusaIntegrationTestRunner({
 	dbName: 'medusa-payment-braintree',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: {},
 	testSuite: ({ api }) => {
 		describe('Smoke', () => {

@@ -1,3 +1,8 @@
+## 0.2.4
+
+- Updated medusa packages to 2.17.2
+- Migrated all integration tests to work with changes introduced in @medusajs/test-utils 2.17.0
+
 ## 0.2.3
 
 - Added 'searchable' boolean field to content-collection data model for easier configuration when generating search documents that should include only certain content items.

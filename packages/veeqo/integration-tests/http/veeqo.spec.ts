@@ -31,9 +31,12 @@ jest.retryTimes(1)
 medusaIntegrationTestRunner({
 	dbName: 'medusa-veeqo',
 	inApp: true,
-	disableAutoTeardown: true,
 	env: {},
-	testSuite: ({ api, getContainer }) => {
+	testSuite: ({ api, getContainer, dbUtils, utils }) => {
+		const seedSnapshot = async () => {
+			await utils.waitWorkflowExecutions()
+			await dbUtils.snapshot()
+		}
 		let adminToken: string
 		let veeqoService: VeeqoService
 
@@ -216,6 +219,7 @@ medusaIntegrationTestRunner({
 				])
 				salesChannelId = r1.data.sales_channel.id
 				salesChannelId2 = r2.data.sales_channel.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -295,6 +299,7 @@ medusaIntegrationTestRunner({
 				])
 				stockLocationId = r1.data.stock_location.id
 				stockLocationId2 = r2.data.stock_location.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -346,6 +351,7 @@ medusaIntegrationTestRunner({
 				])
 				customerId = r1.data.customer.id
 				customerId2 = r2.data.customer.id
+				await seedSnapshot()
 			})
 
 			// Veeqo does not support customer deletion — afterAll only unlinks the
@@ -594,6 +600,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				orderId2 = orderRes2.data.draft_order.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -791,6 +798,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				veeqoCustomerId = Number(customerSyncRes.data.veeqo_customer.id)
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {
@@ -1174,6 +1182,7 @@ medusaIntegrationTestRunner({
 				])
 				productId = r1.data.product.id
 				productId2 = r2.data.product.id
+				await seedSnapshot()
 			})
 
 			afterAll(async () => {

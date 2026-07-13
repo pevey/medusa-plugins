@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-braintree",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "Braintree payment provider plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",
@@ -55,11 +55,11 @@
 		"braintree": "3.36.0"
 	},
 	"devDependencies": {
-		"@medusajs/admin-sdk": "2.16.0",
-		"@medusajs/cli": "2.16.0",
-		"@medusajs/framework": "2.16.0",
-		"@medusajs/icons": "2.16.0",
-		"@medusajs/ui": "4.1.16",
+		"@medusajs/admin-sdk": "2.17.2",
+		"@medusajs/cli": "2.17.2",
+		"@medusajs/framework": "2.17.2",
+		"@medusajs/icons": "2.17.2",
+		"@medusajs/ui": "4.1.19",
 		"@swc/core": "1.15.33",
 		"@swc/jest": "0.2.39",
 		"@types/braintree": "3.4.4",
@@ -77,9 +77,9 @@
 		"yalc": "1.0.0-pre.53"
 	},
 	"peerDependencies": {
-		"@medusajs/framework": "2.16.0",
-		"@medusajs/js-sdk": "2.16.0",
-		"@medusajs/medusa": "2.16.0"
+		"@medusajs/framework": "2.17.2",
+		"@medusajs/js-sdk": "2.17.2",
+		"@medusajs/medusa": "2.17.2"
 	},
 	"engines": {
 		"node": ">=20"

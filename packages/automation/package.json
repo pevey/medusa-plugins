@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-automation",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"description": "Automation plugin for Medusa v2 with triggers, actions, and HMAC signing",
 	"author": "Lacey Pevey",
 	"repository": {
@@ -65,11 +65,11 @@
 		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit"
 	},
 	"devDependencies": {
-		"@medusajs/admin-sdk": "2.16.0",
-		"@medusajs/cli": "2.16.0",
-		"@medusajs/framework": "2.16.0",
-		"@medusajs/icons": "2.16.0",
-		"@medusajs/ui": "4.1.16",
+		"@medusajs/admin-sdk": "2.17.2",
+		"@medusajs/cli": "2.17.2",
+		"@medusajs/framework": "2.17.2",
+		"@medusajs/icons": "2.17.2",
+		"@medusajs/ui": "4.1.19",
 		"@swc/core": "1.15.33",
 		"@swc/jest": "0.2.39",
 		"@types/jest": "30.0.0",
@@ -86,9 +86,9 @@
 		"yalc": "1.0.0-pre.53"
 	},
 	"peerDependencies": {
-		"@medusajs/framework": "2.16.0",
-		"@medusajs/js-sdk": "2.16.0",
-		"@medusajs/medusa": "2.16.0"
+		"@medusajs/framework": "2.17.2",
+		"@medusajs/js-sdk": "2.17.2",
+		"@medusajs/medusa": "2.17.2"
 	},
 	"engines": {
 		"node": ">=20"
