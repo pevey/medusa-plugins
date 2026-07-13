@@ -1,3 +1,7 @@
+## 1.1.3
+
+- Mirror the changes made to the Medusa file-s3 provider in PR https://github.com/medusajs/medusa/pull/15811, decode upload content by MIME type to stop binary file corruption
+
 ## 1.1.2
 
 - Updated medusa packages to 2.17.2

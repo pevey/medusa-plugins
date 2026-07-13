@@ -264,6 +264,53 @@ describe('R2FileService — upload() — public', () => {
 	})
 })
 
+// ─── upload() — content decoding (#14120 regression) ──────────────────────────
+
+describe('R2FileService — upload() — content decoding (#14120)', () => {
+	const uploadedBody = async (file: any): Promise<Buffer> => {
+		const svc = makeService()
+		await svc.upload(file)
+		const [call] = (PutObjectCommand as jest.MockedClass<typeof PutObjectCommand>).mock.calls
+		return (call[0] as any).Body as Buffer
+	}
+
+	it("preserves binary image bytes passed via buffer.toString('binary') (no UTF-8 corruption)", async () => {
+		const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0xff, 0x80])
+		const body = await uploadedBody({
+			filename: 'image.png',
+			mimeType: 'image/png',
+			content: png.toString('binary'),
+			access: 'public'
+		})
+		// Before the fix the leading 0x89 was re-encoded to the UTF-8 sequence
+		// 0xC2 0x89, corrupting the file.
+		expect(Buffer.compare(body, png)).toBe(0)
+		expect([body[0], body[1], body[2], body[3]]).toEqual([0x89, 0x50, 0x4e, 0x47])
+	})
+
+	it('decodes base64-encoded content back to the original bytes', async () => {
+		const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0xfe])
+		const body = await uploadedBody({
+			filename: 'image.png',
+			mimeType: 'image/png',
+			content: png.toString('base64'),
+			access: 'public'
+		})
+		expect(Buffer.compare(body, png)).toBe(0)
+	})
+
+	it('preserves UTF-8 special characters in text/CSV content (guards #13649)', async () => {
+		const csv = 'name,city\nJoão,São Paulo\n'
+		const body = await uploadedBody({
+			filename: 'data.csv',
+			mimeType: 'text/csv',
+			content: csv,
+			access: 'public'
+		})
+		expect(Buffer.compare(body, Buffer.from(csv, 'utf8'))).toBe(0)
+	})
+})
+
 // ─── upload() — private ACL ───────────────────────────────────────────────────
 
 describe('R2FileService — upload() — private', () => {
