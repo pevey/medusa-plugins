@@ -1,7 +1,8 @@
 import { prerender, query } from '$app/server'
 import * as v from 'valibot'
 import type Medusa from '@pevey/medusa-sdk'
-import { getClient } from './internal/state'
+import { getClient, getConfig } from './internal/state'
+import { getDefaultRegionId } from './internal/region'
 import { requestContext } from './internal/request'
 
 const regionSchema = v.object({
@@ -18,6 +19,22 @@ const productArgsSchema = v.object({
 
 type RegionArgs = { region_id?: string; country_code?: string }
 type ProductArgs = RegionArgs & { id?: string; slug?: string }
+
+/**
+ * Resolve region/country for the prerender variants: an explicit arg wins; otherwise
+ * fall back to the store's default region (`config.defaultRegionId`, or a single-region
+ * backend's only region — see `getDefaultRegionId`) and `config.defaultCountryCode`.
+ * All are request-independent, so this is safe at build time. Makes `getProduct({ slug })`
+ * prerender at the store's default region (the common single-region case) while
+ * multi-region stores pass an explicit `region_id` (e.g. routed by URL).
+ */
+async function withDefaultRegion<T extends RegionArgs>(a: T): Promise<T> {
+  return {
+    ...a,
+    region_id: a.region_id || (await getDefaultRegionId()),
+    country_code: a.country_code || getConfig().defaultCountryCode
+  }
+}
 
 function regionParams(a: RegionArgs): Record<string, string> {
   const p: Record<string, string> = {}
@@ -42,26 +59,29 @@ async function getProductCore(client: Medusa, a: ProductArgs, headers?: Record<s
   return products.length ? products[0] : null
 }
 
-// Prerender (cacheable, request-independent — region/country via args). Swallow to empty.
+// Prerender (cacheable, request-independent). Region: explicit arg ?? config default.
+// Swallow to empty so a flaky backend can't fail a consumer's build.
 export const getProducts = prerender(
   v.optional(regionSchema, {}),
-  async (a: RegionArgs) => listProductsCore(getClient(), a).catch(() => []),
+  async (a: RegionArgs) => listProductsCore(getClient(), await withDefaultRegion(a)).catch(() => []),
   { dynamic: true }
 )
 
 export const getProduct = prerender(
   productArgsSchema,
-  async (a: ProductArgs) => getProductCore(getClient(), a).catch(() => null),
+  async (a: ProductArgs) => getProductCore(getClient(), await withDefaultRegion(a)).catch(() => null),
   { dynamic: true }
 )
 
-// Query twins (fresh, personalized — region/country from cookies). Propagate errors.
+// Query twins (fresh, personalized — region from cookie ?? default). Propagate errors.
 export const getProductsQuery = query(v.optional(regionSchema, {}), async (a: RegionArgs) => {
   const ctx = requestContext()
-  return listProductsCore(ctx.client, { region_id: a.region_id || ctx.region_id, country_code: a.country_code || ctx.country_code }, ctx.headers())
+  const region_id = a.region_id || ctx.region_id || (await getDefaultRegionId())
+  return listProductsCore(ctx.client, { region_id, country_code: a.country_code || ctx.country_code }, ctx.headers())
 })
 
 export const getProductQuery = query(productArgsSchema, async (a: ProductArgs) => {
   const ctx = requestContext()
-  return getProductCore(ctx.client, { ...a, region_id: a.region_id || ctx.region_id, country_code: a.country_code || ctx.country_code }, ctx.headers())
+  const region_id = a.region_id || ctx.region_id || (await getDefaultRegionId())
+  return getProductCore(ctx.client, { ...a, region_id, country_code: a.country_code || ctx.country_code }, ctx.headers())
 })

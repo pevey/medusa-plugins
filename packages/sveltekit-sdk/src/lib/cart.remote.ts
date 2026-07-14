@@ -2,6 +2,7 @@ import { query, command, getRequestEvent } from '$app/server'
 import * as v from 'valibot'
 import { requestContext } from './internal/request'
 import { getConfig } from './internal/state'
+import { getDefaultRegionId } from './internal/region'
 import type { MedusaContext } from './types'
 
 // Always resolve `shipping_methods.name` on cart reads/mutations.
@@ -55,13 +56,14 @@ export const getCartById = query(v.optional(v.string()), async (cartId?: string)
   return cart ?? null
 })
 
+async function createCartBody(ctx: MedusaContext): Promise<Record<string, string>> {
+  const region_id = ctx.region_id || (await getDefaultRegionId())
+  return region_id ? { region_id } : {}
+}
+
 export const createCart = command(async () => {
   const ctx = requestContext()
-  const { cart } = await ctx.client.store.cart.create(
-    ctx.region_id ? { region_id: ctx.region_id } : {},
-    cartRelations,
-    ctx.headers()
-  )
+  const { cart } = await ctx.client.store.cart.create(await createCartBody(ctx), cartRelations, ctx.headers())
   setCartCookie(cart.id)
   getCart().set(cart)
   return cart
@@ -70,11 +72,7 @@ export const createCart = command(async () => {
 async function ensureCartId(ctx: MedusaContext): Promise<string> {
   const existing = currentCartId()
   if (existing) return existing
-  const { cart } = await ctx.client.store.cart.create(
-    ctx.region_id ? { region_id: ctx.region_id } : {},
-    cartRelations,
-    ctx.headers()
-  )
+  const { cart } = await ctx.client.store.cart.create(await createCartBody(ctx), cartRelations, ctx.headers())
   setCartCookie(cart.id)
   return cart.id
 }
