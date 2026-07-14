@@ -11,6 +11,8 @@ import "@sveltejs/kit/internal";
 import "../../chunks/query.js";
 import { g as getRegions } from "../../chunks/regions.remote.js";
 import { g as getProducts } from "../../chunks/products.remote.js";
+import "../../chunks/cart.remote.js";
+import "../../chunks/auth.remote.js";
 function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     $$renderer2.push(`<h1>Regions</h1> <ul><!--[-->`);

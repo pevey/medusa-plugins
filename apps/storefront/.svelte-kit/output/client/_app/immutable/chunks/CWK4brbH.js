@@ -1,0 +1,1 @@
+import{f as l,g as _,i as g,j as o,k as n,h as u,l as d,e as v,n as c}from"./DlwYb_-q.js";function p(s,r=[],f=[],i){var a=u,t=null;if(a&&(_(),t=g(!1),o(s,t)),f.length===0&&r.every(e=>e.settled)){i(s),a&&n(t);return}if(a){var y=v;n(t)}l(r,[],f,e=>{a&&(d(!0),n(y));try{for(const h of e)c(h);i(s,...e)}finally{a&&d(!1)}})}export{p as a};

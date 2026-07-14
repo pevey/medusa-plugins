@@ -974,12 +974,12 @@ function split_remote_key(key) {
   };
 }
 export {
-  normalize_issue as A,
-  set_nested_value as B,
-  flatten_issues as C,
-  deep_set as D,
+  create_field_proxy as A,
+  normalize_issue as B,
+  set_nested_value as C,
+  flatten_issues as D,
   ENDPOINT_METHODS as E,
-  stringify_remote_arg as F,
+  deep_set as F,
   INVALIDATED_PARAM as I,
   MUTATIVE_METHODS as M,
   PAGE_METHODS as P,
@@ -1010,5 +1010,5 @@ export {
   get_set_cookies as w,
   handle_fatal_error as x,
   format_server_error as y,
-  create_field_proxy as z
+  stringify_remote_arg as z
 };

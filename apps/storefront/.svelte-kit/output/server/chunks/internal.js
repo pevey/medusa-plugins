@@ -101,10 +101,10 @@ const options = {
   service_worker_options: void 0,
   server_error_boundaries: false,
   templates: {
-    app: ({ head, body, assets, nonce, env }) => '<!doctype html>\n<html lang="en">\n  <head><meta charset="utf-8" />' + head + "</head>\n  <body><div>" + body + "</div></body>\n</html>\n",
+    app: ({ head, body, assets, nonce, env }) => '<!doctype html>\n<html lang="en">\n\n<head>\n	<meta charset="utf-8" />' + head + "\n</head>\n\n<body>\n	<div>" + body + "</div>\n</body>\n\n</html>",
     error
   },
-  version_hash: "nvxawr"
+  version_hash: "hnytzv"
 };
 async function get_hooks() {
   let handle;

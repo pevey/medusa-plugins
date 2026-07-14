@@ -465,8 +465,19 @@ function getConfig() {
     throw new Error("Medusa config is not set. Add createMedusaHandle(config) to your hooks.server.ts.");
   return config;
 }
+function createAuthClient() {
+  const c = getConfig();
+  return new Medusa({
+    baseUrl: c.baseUrl,
+    publishableKey: c.publishableKey,
+    globalHeaders: c.globalHeaders,
+    debug: c.debug,
+    auth: { type: "jwt" }
+  });
+}
 export {
   getClient as a,
+  createAuthClient as c,
   getConfig as g,
   setConfig as s
 };

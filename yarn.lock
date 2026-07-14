@@ -8411,29 +8411,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@pevey/sveltekit-medusa-sdk@workspace:*, @pevey/sveltekit-medusa-sdk@workspace:packages/sveltekit-sdk":
-  version: 0.0.0-use.local
-  resolution: "@pevey/sveltekit-medusa-sdk@workspace:packages/sveltekit-sdk"
-  dependencies:
-    "@pevey/medusa-sdk": "workspace:*"
-    "@sveltejs/adapter-auto": "npm:^6.0.0"
-    "@sveltejs/kit": "npm:^2.22.0"
-    "@sveltejs/package": "npm:^2.3.0"
-    "@sveltejs/vite-plugin-svelte": "npm:^6.0.0"
-    cookie: "npm:^1.0.0"
-    publint: "npm:^0.3.0"
-    svelte: "npm:^5.36.0"
-    svelte-check: "npm:^4.0.0"
-    typescript: "npm:^5.5.0"
-    valibot: "npm:^1.0.0"
-    vite: "npm:^7.0.0"
-    vitest: "npm:^3.0.0"
-  peerDependencies:
-    "@sveltejs/kit": ^2.22.0
-    svelte: ^5.36.0
-  languageName: unknown
-  linkType: soft
-
 "@polka/url@npm:^1.0.0-next.24":
   version: 1.0.0-next.29
   resolution: "@polka/url@npm:1.0.0-next.29"
@@ -30784,12 +30761,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "storefront@workspace:apps/storefront"
   dependencies:
-    "@pevey/sveltekit-medusa-sdk": "workspace:*"
     "@sveltejs/adapter-auto": "npm:^6.0.0"
     "@sveltejs/kit": "npm:^2.22.0"
     "@sveltejs/vite-plugin-svelte": "npm:^6.0.0"
     svelte: "npm:^5.36.0"
     svelte-check: "npm:^4.0.0"
+    sveltekit-medusa-sdk: "workspace:*"
     typescript: "npm:^5.5.0"
     vite: "npm:^7.0.0"
   languageName: unknown
@@ -31178,6 +31155,29 @@ __metadata:
   checksum: 10c0/949e07077cd1a2bd4ab96bd09fe536c925064bcc3cbb3f0d4ac39f3acef56c0bbb61e49765b08c2e63bddfd05aa0d4f3ef3f3a79c87d84b2d5b23bb2a9158f7a
   languageName: node
   linkType: hard
+
+"sveltekit-medusa-sdk@workspace:*, sveltekit-medusa-sdk@workspace:packages/sveltekit-sdk":
+  version: 0.0.0-use.local
+  resolution: "sveltekit-medusa-sdk@workspace:packages/sveltekit-sdk"
+  dependencies:
+    "@pevey/medusa-sdk": "workspace:*"
+    "@sveltejs/adapter-auto": "npm:^6.0.0"
+    "@sveltejs/kit": "npm:^2.22.0"
+    "@sveltejs/package": "npm:^2.3.0"
+    "@sveltejs/vite-plugin-svelte": "npm:^6.0.0"
+    cookie: "npm:^1.0.0"
+    publint: "npm:^0.3.0"
+    svelte: "npm:^5.36.0"
+    svelte-check: "npm:^4.0.0"
+    typescript: "npm:^5.5.0"
+    valibot: "npm:^1.0.0"
+    vite: "npm:^7.0.0"
+    vitest: "npm:^3.0.0"
+  peerDependencies:
+    "@sveltejs/kit": ^2.22.0
+    svelte: ^5.36.0
+  languageName: unknown
+  linkType: soft
 
 "svgo@npm:^4.0.1":
   version: 4.0.1

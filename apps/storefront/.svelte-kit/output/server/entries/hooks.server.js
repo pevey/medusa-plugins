@@ -1,5 +1,5 @@
 import { s as setConfig, g as getConfig, a as getClient } from "../chunks/state.js";
-import { r as resolveContext } from "../chunks/products.remote.js";
+import { r as resolveContext } from "../chunks/request.js";
 import "../chunks/url.js";
 import "@sveltejs/kit/internal/server";
 import "../chunks/root.js";
@@ -11,6 +11,9 @@ import "../chunks/query.js";
 import "@medusajs/js-sdk";
 import "cookie";
 import "../chunks/regions.remote.js";
+import "../chunks/products.remote.js";
+import "../chunks/cart.remote.js";
+import "../chunks/auth.remote.js";
 function createMedusaHandle(config) {
   setConfig(config);
   return async ({ event, resolve }) => {
@@ -19,7 +22,7 @@ function createMedusaHandle(config) {
   };
 }
 const MEDUSA_BACKEND_URL = "http://localhost:9000";
-const MEDUSA_PUBLISHABLE_KEY = "pk_197851e94ecdb30e10e6a7bd1053818fdabae56978adbbd65d8059f24f30535d";
+const MEDUSA_PUBLISHABLE_KEY = "pk_4ece4a910695b83f4a74f9e56152e94692a90ac9cf8ab53bb7ab44825b1e5eff";
 const MEDUSA_DEFAULT_COUNTRY_CODE = "us";
 const handle = createMedusaHandle({
   baseUrl: MEDUSA_BACKEND_URL,

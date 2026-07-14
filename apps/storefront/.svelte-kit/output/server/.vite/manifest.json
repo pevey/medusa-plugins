@@ -15,6 +15,44 @@
     "file": "chunks/async.js",
     "name": "async"
   },
+  "_auth.remote.js": {
+    "file": "chunks/auth.remote.js",
+    "name": "auth.remote",
+    "imports": [
+      "_url.js",
+      "_root.js",
+      "_utils.js",
+      "_command.js",
+      "_form.js",
+      "_query.js",
+      "_index.js",
+      "_state.js",
+      "_session.js"
+    ]
+  },
+  "_cart.remote.js": {
+    "file": "chunks/cart.remote.js",
+    "name": "cart.remote",
+    "imports": [
+      "_url.js",
+      "_root.js",
+      "_utils.js",
+      "_command.js",
+      "_shared.js",
+      "_query.js",
+      "_index.js",
+      "_request.js",
+      "_state.js"
+    ]
+  },
+  "_command.js": {
+    "file": "chunks/command.js",
+    "name": "command",
+    "imports": [
+      "_query.js",
+      "_shared.js"
+    ]
+  },
   "_exports.js": {
     "file": "chunks/exports.js",
     "name": "exports",
@@ -25,6 +63,18 @@
   "_false.js": {
     "file": "chunks/false.js",
     "name": "false"
+  },
+  "_form.js": {
+    "file": "chunks/form.js",
+    "name": "form",
+    "imports": [
+      "_shared.js",
+      "_query.js"
+    ]
+  },
+  "_index.js": {
+    "file": "chunks/index.js",
+    "name": "index"
   },
   "_internal.js": {
     "file": "chunks/internal.js",
@@ -61,7 +111,7 @@
       "_utils.js",
       "_shared.js",
       "_query.js",
-      "_state.js"
+      "_request.js"
     ]
   },
   "_query.js": {
@@ -85,6 +135,19 @@
       "_state.js"
     ]
   },
+  "_request.js": {
+    "file": "chunks/request.js",
+    "name": "request",
+    "imports": [
+      "_url.js",
+      "_root.js",
+      "_utils.js",
+      "_shared.js",
+      "_query.js",
+      "_state.js",
+      "_session.js"
+    ]
+  },
   "_root.js": {
     "file": "chunks/root.js",
     "name": "root",
@@ -96,6 +159,10 @@
   "_server.js": {
     "file": "chunks/server.js",
     "name": "server"
+  },
+  "_session.js": {
+    "file": "chunks/session.js",
+    "name": "session"
   },
   "_shared.js": {
     "file": "chunks/shared.js",
@@ -122,9 +189,11 @@
     "src": "node_modules/@sveltejs/kit/src/runtime/app/server/remote/index.js",
     "isEntry": true,
     "imports": [
+      "_command.js",
+      "_form.js",
+      "_prerender.js",
       "_query.js",
-      "_shared.js",
-      "_prerender.js"
+      "_shared.js"
     ]
   },
   "node_modules/@sveltejs/kit/src/runtime/components/svelte-5/error.svelte": {
@@ -172,13 +241,16 @@
     "isDynamicEntry": true,
     "imports": [
       "_state.js",
-      "_products.remote.js",
+      "_request.js",
       "_url.js",
       "_root.js",
       "_utils.js",
       "_shared.js",
       "_query.js",
-      "_regions.remote.js"
+      "_regions.remote.js",
+      "_products.remote.js",
+      "_cart.remote.js",
+      "_auth.remote.js"
     ]
   },
   "src/routes/+page.svelte": {
@@ -194,7 +266,54 @@
       "_shared.js",
       "_query.js",
       "_regions.remote.js",
-      "_products.remote.js"
+      "_products.remote.js",
+      "_cart.remote.js",
+      "_auth.remote.js"
+    ]
+  },
+  "src/routes/account/+page.svelte": {
+    "file": "entries/pages/account/_page.svelte.js",
+    "name": "entries/pages/account/_page.svelte",
+    "src": "src/routes/account/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_async.js",
+      "_root.js",
+      "_url.js",
+      "_utils.js",
+      "_shared.js",
+      "_query.js",
+      "_regions.remote.js",
+      "_products.remote.js",
+      "_cart.remote.js",
+      "_auth.remote.js"
+    ]
+  },
+  "src/routes/cart/+page.svelte": {
+    "file": "entries/pages/cart/_page.svelte.js",
+    "name": "entries/pages/cart/_page.svelte",
+    "src": "src/routes/cart/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_async.js",
+      "_root.js",
+      "_url.js",
+      "_utils.js",
+      "_shared.js",
+      "_query.js",
+      "_regions.remote.js",
+      "_products.remote.js",
+      "_cart.remote.js",
+      "_auth.remote.js"
+    ]
+  },
+  "sveltekit-remote:101ujqe": {
+    "file": "chunks/remote-101ujqe.js",
+    "name": "remote-101ujqe",
+    "src": "sveltekit-remote:101ujqe",
+    "isEntry": true,
+    "imports": [
+      "_auth.remote.js"
     ]
   },
   "sveltekit-remote:1gtf39y": {
@@ -204,6 +323,15 @@
     "isEntry": true,
     "imports": [
       "_products.remote.js"
+    ]
+  },
+  "sveltekit-remote:1mvazxm": {
+    "file": "chunks/remote-1mvazxm.js",
+    "name": "remote-1mvazxm",
+    "src": "sveltekit-remote:1mvazxm",
+    "isEntry": true,
+    "imports": [
+      "_cart.remote.js"
     ]
   },
   "sveltekit-remote:v8uztx": {

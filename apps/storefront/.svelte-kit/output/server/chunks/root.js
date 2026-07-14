@@ -4279,6 +4279,8 @@ const root = asClassComponent(Root);
 export {
   ensure_array_like as a,
   save as b,
+  attributes as c,
+  attr as d,
   escape_html as e,
   getContext as g,
   noop as n,

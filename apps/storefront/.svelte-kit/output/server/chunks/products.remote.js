@@ -1,39 +1,18 @@
 import "./url.js";
-import { getRequestEvent } from "@sveltejs/kit/internal/server";
+import "@sveltejs/kit/internal/server";
 import "./root.js";
 import "./utils.js";
 import "@sveltejs/kit";
 import "./shared.js";
 import { init_remote_functions } from "@sveltejs/kit/internal";
 import { q as query } from "./query.js";
-import { g as getConfig, a as getClient } from "./state.js";
-import "cookie";
+import { a as requestContext } from "./request.js";
 const m = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   get getProducts() {
     return getProducts;
   }
 }, Symbol.toStringTag, { value: "Module" }));
-function buildSessionHeader(sessionValue, backendSessionCookie) {
-  if (!sessionValue)
-    return {};
-  return { Cookie: `${backendSessionCookie}=${sessionValue}` };
-}
-function resolveContext(client, config, cookies) {
-  const region_id = cookies.get(config.cookies.region) || config.defaultRegionId || "";
-  const country_code = cookies.get(config.cookies.country) || config.defaultCountryCode || "";
-  const sessionValue = cookies.get(config.cookies.session);
-  return {
-    client,
-    region_id,
-    country_code,
-    headers: () => buildSessionHeader(sessionValue, config.backendSessionCookie)
-  };
-}
-function requestContext() {
-  const { cookies } = getRequestEvent();
-  return resolveContext(getClient(), getConfig(), cookies);
-}
 const getProducts = query(async () => {
   const ctx = requestContext();
   const queryParams = {};
@@ -51,6 +30,5 @@ for (const [name, fn] of Object.entries(m)) {
 }
 export {
   getProducts as g,
-  m,
-  resolveContext as r
+  m
 };
