@@ -2,7 +2,7 @@ import { prerender, query } from '$app/server'
 import * as v from 'valibot'
 import type Medusa from '@pevey/medusa-sdk'
 import { getClient } from './internal/state'
-import { requestContext } from './internal/request'
+import { requestContext } from './server/request'
 
 const bySlugSchema = v.object({
   id: v.optional(v.string()),

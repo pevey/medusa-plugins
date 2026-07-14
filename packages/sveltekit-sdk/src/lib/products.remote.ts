@@ -3,7 +3,7 @@ import * as v from 'valibot'
 import type Medusa from '@pevey/medusa-sdk'
 import { getClient, getConfig } from './internal/state'
 import { getDefaultRegionId } from './internal/region'
-import { requestContext } from './internal/request'
+import { requestContext } from './server/request'
 
 const regionSchema = v.object({
   region_id: v.optional(v.string()),

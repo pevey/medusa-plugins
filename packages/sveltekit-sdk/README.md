@@ -225,10 +225,12 @@ Two conventions to know:
 
 Because the library exposes its per-request context, you can add your own remote functions in your app that reuse the same configured Medusa instance. This is useful if you have custom routes added by your own Medusa plugins or if you want to customize any of the functions included in the library. Call `getMedusaContext()` within a custom remote function get an object with the relevant context (`{ client, region_id, country_code, headers() }`) for the current request. Passing `headers()` sends the logged-in customer's session.
 
+`getMedusaContext` is server-only (it reads the request via `$app/server`), so it is imported from the **`sveltekit-medusa-sdk/server`** subpath rather than the package root. Importing it only inside a `*.remote.ts` file is safe — SvelteKit compiles those to client stubs, so the server dependency never reaches the browser.
+
 ```ts
 // src/lib/orders.remote.ts
 import { query } from '$app/server'
-import { getMedusaContext } from 'sveltekit-medusa-sdk'
+import { getMedusaContext } from 'sveltekit-medusa-sdk/server'
 
 // Fetches the signed-in customer's orders — requires credentials, which
 // getMedusaContext().headers() supplies from the request's session cookie.

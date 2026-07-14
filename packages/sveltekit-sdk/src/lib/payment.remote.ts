@@ -1,6 +1,6 @@
 import { query, command, getRequestEvent } from '$app/server'
 import * as v from 'valibot'
-import { requestContext } from './internal/request'
+import { requestContext } from './server/request'
 import { getConfig } from './internal/state'
 
 function currentCartId(): string | undefined {

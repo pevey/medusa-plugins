@@ -1,3 +1,7 @@
+// lib/helpers — client-safe, reusable helpers. No `$app/server` / request-scoped
+// state, so they're re-exported from the package barrel and are safe to call from
+// your own remote functions. (Server-only code lives in lib/server; private wiring
+// in lib/internal.)
 import type { StoreCart } from '@medusajs/types'
 
 /**

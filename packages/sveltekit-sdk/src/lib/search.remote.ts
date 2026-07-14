@@ -1,6 +1,6 @@
 import { query } from '$app/server'
 import * as v from 'valibot'
-import { requestContext } from './internal/request'
+import { requestContext } from './server/request'
 
 /**
  * Generic storefront search (requires the search plugin on the backend). Returns

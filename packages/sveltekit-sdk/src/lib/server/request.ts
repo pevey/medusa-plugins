@@ -1,6 +1,6 @@
 import { getRequestEvent } from '$app/server'
-import { getClient, getConfig } from './state'
-import { resolveContext } from './context'
+import { getClient, getConfig } from '../internal/state'
+import { resolveContext } from '../internal/context'
 import type { MedusaContext } from '../types'
 
 /** Resolve the Medusa context for the current request. */
