@@ -26,15 +26,13 @@ async function getCategoryCore(client: Medusa, a: BySlug, headers?: Record<strin
   return product_categories.length ? product_categories[0] : null
 }
 
-export const getProductCategories = prerender(async () => listCategoriesCore(getClient()).catch(() => []), {
+export const getProductCategories = prerender(async () => listCategoriesCore(getClient()), {
   dynamic: true
 })
 
-export const getProductCategory = prerender(
-  bySlugSchema,
-  async (a: BySlug) => getCategoryCore(getClient(), a).catch(() => null),
-  { dynamic: true }
-)
+export const getProductCategory = prerender(bySlugSchema, async (a: BySlug) => getCategoryCore(getClient(), a), {
+  dynamic: true
+})
 
 export const getProductCategoriesQuery = query(async () => {
   const ctx = requestContext()

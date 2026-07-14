@@ -26,15 +26,13 @@ async function getCollectionCore(client: Medusa, a: BySlug, headers?: Record<str
   return collections.length ? collections[0] : null
 }
 
-export const getCollections = prerender(async () => listCollectionsCore(getClient()).catch(() => []), {
+export const getCollections = prerender(async () => listCollectionsCore(getClient()), {
   dynamic: true
 })
 
-export const getCollection = prerender(
-  bySlugSchema,
-  async (a: BySlug) => getCollectionCore(getClient(), a).catch(() => null),
-  { dynamic: true }
-)
+export const getCollection = prerender(bySlugSchema, async (a: BySlug) => getCollectionCore(getClient(), a), {
+  dynamic: true
+})
 
 export const getCollectionsQuery = query(async () => {
   const ctx = requestContext()

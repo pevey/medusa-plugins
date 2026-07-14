@@ -59,17 +59,18 @@ async function getProductCore(client: Medusa, a: ProductArgs, headers?: Record<s
   return products.length ? products[0] : null
 }
 
-// Prerender (cacheable, request-independent). Region: explicit arg ?? config default.
-// Swallow to empty so a flaky backend can't fail a consumer's build.
+// Prerender (cacheable, request-independent). Region: explicit arg ?? config default
+// ?? single-region auto-detect. Errors propagate — a consumer that wants a flaky backend
+// to warn instead of failing the build sets `kit.prerender.handleHttpError` in its config.
 export const getProducts = prerender(
   v.optional(regionSchema, {}),
-  async (a: RegionArgs) => listProductsCore(getClient(), await withDefaultRegion(a)).catch(() => []),
+  async (a: RegionArgs) => listProductsCore(getClient(), await withDefaultRegion(a)),
   { dynamic: true }
 )
 
 export const getProduct = prerender(
   productArgsSchema,
-  async (a: ProductArgs) => getProductCore(getClient(), await withDefaultRegion(a)).catch(() => null),
+  async (a: ProductArgs) => getProductCore(getClient(), await withDefaultRegion(a)),
   { dynamic: true }
 )
 
