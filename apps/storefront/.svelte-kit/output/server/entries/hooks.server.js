@@ -9,11 +9,20 @@ import "../chunks/shared.js";
 import "@sveltejs/kit/internal";
 import "../chunks/query.js";
 import "@medusajs/js-sdk";
-import "cookie";
 import "../chunks/regions.remote.js";
 import "../chunks/products.remote.js";
+import "../chunks/categories.remote.js";
+import "../chunks/collections.remote.js";
 import "../chunks/cart.remote.js";
+import "../chunks/promotions.remote.js";
+import "../chunks/payment.remote.js";
+import "../chunks/braintree.remote.js";
+import "../chunks/orders.remote.js";
 import "../chunks/auth.remote.js";
+import "../chunks/customer.remote.js";
+import "../chunks/address.remote.js";
+import "../chunks/search.remote.js";
+import "../chunks/forms.remote.js";
 function createMedusaHandle(config) {
   setConfig(config);
   return async ({ event, resolve }) => {

@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { resolveContext } from './context';
 import { resolveConfig } from './config';
-const config = resolveConfig({ baseUrl: 'http://x:9000', publishableKey: 'pk', defaultRegionId: 'reg_default', defaultCountryCode: 'us' });
+const config = resolveConfig({
+    baseUrl: 'http://x:9000',
+    publishableKey: 'pk',
+    defaultRegionId: 'reg_default',
+    defaultCountryCode: 'us'
+});
 const fakeClient = {};
 function cookiesFrom(map) {
     return { get: (name) => map[name] };

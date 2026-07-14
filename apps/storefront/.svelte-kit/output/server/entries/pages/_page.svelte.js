@@ -1,7 +1,6 @@
 import "../../chunks/async.js";
 import { a as ensure_array_like, b as save, e as escape_html } from "../../chunks/root.js";
 import "@medusajs/js-sdk";
-import "cookie";
 import "../../chunks/url.js";
 import "@sveltejs/kit/internal/server";
 import "../../chunks/utils.js";
@@ -11,8 +10,18 @@ import "@sveltejs/kit/internal";
 import "../../chunks/query.js";
 import { g as getRegions } from "../../chunks/regions.remote.js";
 import { g as getProducts } from "../../chunks/products.remote.js";
+import "../../chunks/categories.remote.js";
+import "../../chunks/collections.remote.js";
 import "../../chunks/cart.remote.js";
+import "../../chunks/promotions.remote.js";
+import "../../chunks/payment.remote.js";
+import "../../chunks/braintree.remote.js";
+import "../../chunks/orders.remote.js";
 import "../../chunks/auth.remote.js";
+import "../../chunks/customer.remote.js";
+import "../../chunks/address.remote.js";
+import "../../chunks/search.remote.js";
+import "../../chunks/forms.remote.js";
 function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     $$renderer2.push(`<h1>Regions</h1> <ul><!--[-->`);

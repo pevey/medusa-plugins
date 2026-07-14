@@ -7,7 +7,7 @@ import "./shared.js";
 import "@sveltejs/kit/internal";
 import "./query.js";
 import { g as getConfig, a as getClient } from "./state.js";
-import { b as buildSessionHeader } from "./session.js";
+import { f as buildSessionHeader } from "./index.js";
 function resolveContext(client, config, cookies) {
   const region_id = cookies.get(config.cookies.region) || config.defaultRegionId || "";
   const country_code = cookies.get(config.cookies.country) || config.defaultCountryCode || "";

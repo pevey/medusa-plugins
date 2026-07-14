@@ -4,12 +4,11 @@ import "./root.js";
 import "./utils.js";
 import { c as command } from "./command.js";
 import { f as form } from "./form.js";
-import { invalid } from "@sveltejs/kit";
+import "@sveltejs/kit";
 import "./query.js";
 import { init_remote_functions } from "@sveltejs/kit/internal";
-import { o as object, p as pipe, b as minLength, s as string, e as email } from "./index.js";
-import { g as getConfig, c as createAuthClient, a as getClient } from "./state.js";
-import { p as parseSetCookieSession } from "./session.js";
+import { a as object, p as pipe, e as email, n as nonEmpty, s as string, d as parseSetCookieSession } from "./index.js";
+import { c as createAuthClient, g as getConfig, a as getClient } from "./state.js";
 const m = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   get login() {
@@ -17,25 +16,24 @@ const m = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   },
   get logout() {
     return logout;
+  },
+  get register() {
+    return register;
+  },
+  get requestResetPassword() {
+    return requestResetPassword;
+  },
+  get resetPassword() {
+    return resetPassword;
   }
 }, Symbol.toStringTag, { value: "Module" }));
-const login = form(object({
-  email: pipe(string(), email()),
-  password: pipe(string(), minLength(1))
-}), async ({ email: email2, password }, issue) => {
+const credentialsSchema = object({
+  email: pipe(string(), nonEmpty(), email()),
+  password: pipe(string(), nonEmpty())
+});
+async function establishSession(token) {
   const cfg = getConfig();
   const { cookies } = getRequestEvent();
-  const authClient = createAuthClient();
-  let token;
-  try {
-    const result = await authClient.auth.login("customer", "emailpass", { email: email2, password });
-    if (typeof result !== "string") {
-      invalid(issue.email("Unsupported login flow"));
-    }
-    token = result;
-  } catch {
-    invalid(issue.email("Invalid email or password"));
-  }
   const res = await fetch(`${cfg.baseUrl}/auth/session`, {
     method: "POST",
     headers: {
@@ -46,11 +44,10 @@ const login = form(object({
     }
   });
   if (!res.ok)
-    invalid(issue.email("Could not establish session"));
-  const setCookies = res.headers.getSetCookie?.() ?? [];
-  const session = parseSetCookieSession(setCookies, cfg.backendSessionCookie, Date.now());
+    return false;
+  const session = parseSetCookieSession(res.headers.getSetCookie?.() ?? [], cfg.backendSessionCookie, Date.now());
   if (!session)
-    invalid(issue.email("No session returned by backend"));
+    return false;
   cookies.set(cfg.cookies.session, session.value, {
     path: "/",
     httpOnly: true,
@@ -65,11 +62,73 @@ const login = form(object({
       });
     }
   }
-  return { success: true };
+  return true;
+}
+const login = form(credentialsSchema, async ({ email: email2, password }) => {
+  const authClient = createAuthClient();
+  let token;
+  try {
+    const result = await authClient.auth.login("customer", "emailpass", { email: email2, password });
+    if (typeof result !== "string")
+      return { ok: false, code: "unsupported" };
+    token = result;
+  } catch (e) {
+    const err = e;
+    if (err.status === 401)
+      return { ok: false, code: "invalid_credentials" };
+    if (err.status === 429)
+      return { ok: false, code: "rate_limited" };
+    return { ok: false, code: "unknown" };
+  }
+  return await establishSession(token) ? { ok: true } : { ok: false, code: "unknown" };
+});
+const register = form(credentialsSchema, async ({ email: email2, password }) => {
+  const authClient = createAuthClient();
+  let token;
+  try {
+    const result = await authClient.auth.register("customer", "emailpass", { email: email2, password });
+    if (typeof result !== "string")
+      return { ok: false, code: "unsupported" };
+    token = result;
+  } catch (e) {
+    const err = e;
+    const message = String(err.message ?? "");
+    if (err.status === 401 || err.status === 409 || /exist/i.test(message))
+      return { ok: false, code: "email_exists" };
+    return { ok: false, code: "unknown" };
+  }
+  try {
+    await authClient.store.customer.create({ email: email2 }, {}, { Authorization: `Bearer ${token}` });
+  } catch {
+    return { ok: false, code: "unknown" };
+  }
+  const loginResult = await createAuthClient().auth.login("customer", "emailpass", { email: email2, password });
+  if (typeof loginResult !== "string")
+    return { ok: false, code: "unsupported" };
+  return await establishSession(loginResult) ? { ok: true } : { ok: false, code: "unknown" };
+});
+const requestResetPassword = form(object({ email: pipe(string(), nonEmpty(), email()) }), async ({ email: email2 }) => {
+  try {
+    await getClient().auth.resetPassword("customer", "emailpass", { identifier: email2 });
+  } catch {
+  }
+  return { ok: true };
+});
+const resetPassword = form(object({
+  password: pipe(string(), nonEmpty()),
+  token: pipe(string(), nonEmpty())
+}), async ({ password, token }) => {
+  try {
+    await getClient().auth.updateProvider("customer", "emailpass", { password }, token);
+    return { ok: true };
+  } catch {
+    return { ok: false, code: "unknown" };
+  }
 });
 const logout = command(async () => {
   const { cookies } = getRequestEvent();
   cookies.delete(getConfig().cookies.session, { path: "/" });
+  return { ok: true };
 });
 init_remote_functions(m, "../../packages/sveltekit-sdk/dist/auth.remote.js", "101ujqe");
 for (const [name, fn] of Object.entries(m)) {

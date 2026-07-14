@@ -1,3 +1,25 @@
+import * as cookie from "cookie";
+function parseSetCookieSession(setCookieHeaders, backendSessionCookie, now) {
+  for (const raw of setCookieHeaders) {
+    const parsed = cookie.parse(raw);
+    const value = parsed[backendSessionCookie];
+    if (value) {
+      const result = { value };
+      if (parsed["Expires"]) {
+        const expires = new Date(parsed["Expires"]).getTime();
+        if (!Number.isNaN(expires))
+          result.maxAge = Math.floor((expires - now) / 1e3);
+      }
+      return result;
+    }
+  }
+  return null;
+}
+function buildSessionHeader(sessionValue, backendSessionCookie) {
+  if (!sessionValue)
+    return {};
+  return { Cookie: `${backendSessionCookie}=${sessionValue}` };
+}
 const DEFAULT_CONFIG = {
   lang: void 0,
   message: void 0,
@@ -72,6 +94,10 @@ function _getStandardProps(context) {
   }
   return cached;
 }
+// @__NO_SIDE_EFFECTS__
+function _isValidObjectKey(object$1, key) {
+  return Object.prototype.hasOwnProperty.call(object$1, key) && key !== "__proto__" && key !== "prototype" && key !== "constructor";
+}
 const EMAIL_REGEX = /^[\w+-]+(?:\.[\w+-]+)*@[\da-z]+(?:[.-][\da-z]+)*\.[a-z]{2,}$/iu;
 // @__NO_SIDE_EFFECTS__
 function email(message$1) {
@@ -85,22 +111,6 @@ function email(message$1) {
     message: message$1,
     "~run"(dataset, config$1) {
       if (dataset.typed && !this.requirement.test(dataset.value)) _addIssue(this, "email", dataset, config$1);
-      return dataset;
-    }
-  };
-}
-// @__NO_SIDE_EFFECTS__
-function minLength(requirement, message$1) {
-  return {
-    kind: "validation",
-    type: "min_length",
-    reference: minLength,
-    async: false,
-    expects: `>=${requirement}`,
-    requirement,
-    message: message$1,
-    "~run"(dataset, config$1) {
-      if (dataset.typed && dataset.value.length < this.requirement) _addIssue(this, "length", dataset, config$1, { received: `${dataset.value.length}` });
       return dataset;
     }
   };
@@ -122,12 +132,46 @@ function minValue(requirement, message$1) {
   };
 }
 // @__NO_SIDE_EFFECTS__
+function nonEmpty(message$1) {
+  return {
+    kind: "validation",
+    type: "non_empty",
+    reference: nonEmpty,
+    async: false,
+    expects: "!0",
+    message: message$1,
+    "~run"(dataset, config$1) {
+      if (dataset.typed && dataset.value.length === 0) _addIssue(this, "length", dataset, config$1, { received: "0" });
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
 function getFallback(schema, dataset, config$1) {
   return typeof schema.fallback === "function" ? schema.fallback(dataset, config$1) : schema.fallback;
 }
 // @__NO_SIDE_EFFECTS__
 function getDefault(schema, dataset, config$1) {
   return typeof schema.default === "function" ? schema.default(dataset, config$1) : schema.default;
+}
+// @__NO_SIDE_EFFECTS__
+function boolean(message$1) {
+  return {
+    kind: "schema",
+    type: "boolean",
+    reference: boolean,
+    expects: "boolean",
+    async: false,
+    message: message$1,
+    get "~standard"() {
+      return /* @__PURE__ */ _getStandardProps(this);
+    },
+    "~run"(dataset, config$1) {
+      if (typeof dataset.value === "boolean") dataset.typed = true;
+      else _addIssue(this, "type", dataset, config$1);
+      return dataset;
+    }
+  };
 }
 // @__NO_SIDE_EFFECTS__
 function number(message$1) {
@@ -239,6 +283,74 @@ function optional(wrapped, default_) {
   };
 }
 // @__NO_SIDE_EFFECTS__
+function record(key, value$1, message$1) {
+  return {
+    kind: "schema",
+    type: "record",
+    reference: record,
+    expects: "Object",
+    async: false,
+    key,
+    value: value$1,
+    message: message$1,
+    get "~standard"() {
+      return /* @__PURE__ */ _getStandardProps(this);
+    },
+    "~run"(dataset, config$1) {
+      const input = dataset.value;
+      if (input && typeof input === "object") {
+        dataset.typed = true;
+        dataset.value = {};
+        for (const entryKey in input) if (/* @__PURE__ */ _isValidObjectKey(input, entryKey)) {
+          const entryValue = input[entryKey];
+          const keyDataset = this.key["~run"]({ value: entryKey }, config$1);
+          if (keyDataset.issues) {
+            const pathItem = {
+              type: "object",
+              origin: "key",
+              input,
+              key: entryKey,
+              value: entryValue
+            };
+            for (const issue of keyDataset.issues) {
+              issue.path = [pathItem];
+              dataset.issues?.push(issue);
+            }
+            if (!dataset.issues) dataset.issues = keyDataset.issues;
+            if (config$1.abortEarly) {
+              dataset.typed = false;
+              break;
+            }
+          }
+          const valueDataset = this.value["~run"]({ value: entryValue }, config$1);
+          if (valueDataset.issues) {
+            const pathItem = {
+              type: "object",
+              origin: "value",
+              input,
+              key: entryKey,
+              value: entryValue
+            };
+            for (const issue of valueDataset.issues) {
+              if (issue.path) issue.path.unshift(pathItem);
+              else issue.path = [pathItem];
+              dataset.issues?.push(issue);
+            }
+            if (!dataset.issues) dataset.issues = valueDataset.issues;
+            if (config$1.abortEarly) {
+              dataset.typed = false;
+              break;
+            }
+          }
+          if (!keyDataset.typed || !valueDataset.typed) dataset.typed = false;
+          if (keyDataset.typed) dataset.value[keyDataset.value] = valueDataset.value;
+        }
+      } else _addIssue(this, "type", dataset, config$1);
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
 function string(message$1) {
   return {
     kind: "schema",
@@ -253,6 +365,23 @@ function string(message$1) {
     "~run"(dataset, config$1) {
       if (typeof dataset.value === "string") dataset.typed = true;
       else _addIssue(this, "type", dataset, config$1);
+      return dataset;
+    }
+  };
+}
+// @__NO_SIDE_EFFECTS__
+function unknown() {
+  return {
+    kind: "schema",
+    type: "unknown",
+    reference: unknown,
+    expects: "unknown",
+    async: false,
+    get "~standard"() {
+      return /* @__PURE__ */ _getStandardProps(this);
+    },
+    "~run"(dataset) {
+      dataset.typed = true;
       return dataset;
     }
   };
@@ -278,12 +407,17 @@ function pipe(...pipe$1) {
   };
 }
 export {
-  optional as a,
-  minLength as b,
+  object as a,
+  boolean as b,
+  number as c,
+  parseSetCookieSession as d,
   email as e,
+  buildSessionHeader as f,
   minValue as m,
-  number as n,
-  object as o,
+  nonEmpty as n,
+  optional as o,
   pipe as p,
-  string as s
+  record as r,
+  string as s,
+  unknown as u
 };

@@ -104,7 +104,7 @@ const options = {
     app: ({ head, body, assets, nonce, env }) => '<!doctype html>\n<html lang="en">\n\n<head>\n	<meta charset="utf-8" />' + head + "\n</head>\n\n<body>\n	<div>" + body + "</div>\n</body>\n\n</html>",
     error
   },
-  version_hash: "1ponpso"
+  version_hash: "bas0t9"
 };
 async function get_hooks() {
   let handle;

@@ -1,4 +1,4 @@
-import type { MedusaContext } from '@pevey/sveltekit-medusa-sdk'
+import type { MedusaContext } from 'sveltekit-medusa-sdk'
 
 declare global {
 	namespace App {

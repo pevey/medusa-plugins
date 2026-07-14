@@ -33,3 +33,8 @@ export interface MedusaContext {
     country_code: string;
     headers(): Record<string, string>;
 }
+/** Structured result for auth forms so consumers map codes to their own copy/i18n. */
+export interface AuthResult {
+    ok: boolean;
+    code?: string;
+}

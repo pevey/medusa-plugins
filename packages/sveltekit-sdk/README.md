@@ -1,12 +1,12 @@
 # sveltekit-medusa-sdk
 
-A SvelteKit client for a [Medusa](https://medusajs.com) v2 backend built on top of the Medusa JS SDK. It is designed to access the Medusa backend **only from the storefront server**. It is not designed for having the client browser make network calls to the Medusa backend directly.
+A SvelteKit client for communicated with a [Medusa](https://medusajs.com) v2 backend built on top of the Medusa JS SDK. It is designed to access the Medusa backend **only from the storefront server**. It is not designed for having the client browser make network calls to the Medusa backend directly.
 
 This package is the successor to [sveltekit-medusa-client](https://www.npmjs.com/package/sveltekit-medusa-client), a SvelteKit library for communicating with a v1 Medusa backend.
 
 ## What changed from `sveltekit-medusa-client`
 
-The SvelteKit client for Medusa v1 exported a **class** (`new MedusaClient(url)`) that you instantiated inside each `load`/action/endpoint. This successor client for Medusa v2 is built around SvelteKit's **remote functions** feature. You import ready-made `query`/`command`/`form` functions (e.g. `getProducts`, `addToCart`, `login`) and call them directly from components. Under the hood they use a single shared `@medusajs/js-sdk` instance, configured once via a hook. Credentials and region are pulled from the request context and injected on every call. So you get the benefit of avoiding per-request client construction while still getting request-scoped automated pass-through of credentials from the browser to the Medusa backend.
+The SvelteKit client for Medusa v1 exported a **class** (`new MedusaClient(url)`) that you instantiated somewhere in your app and then imported into each load function, form action, or endpoint that needed Medusa access. This successor client for Medusa v2 is built around SvelteKit's **remote functions** feature. You import ready-made `query`/`command`/`form` functions (e.g. `getProducts`, `addToCart`, `login`) and call them directly from components. Under the hood, they use a single shared `@medusajs/js-sdk` instance, configured once via a hook. Credentials and region are pulled from the request context and injected on every call. So you get the benefit of avoiding per-request client construction while still getting request-scoped pass-through of credentials from the browser to the Medusa backend.
 
 ## Warning
 
@@ -129,12 +129,104 @@ debugging, that _your storefront_ set the cookie. Both names are configurable.
 </ul>
 ```
 
-Included in this release: `getRegions` (prerender), `getProducts`, `getCart` (queries),
-`addToCart`, `logout` (commands), and `login` (form).
+## Available Functions
 
-Functions are exported from the package root and are also available as subpath imports
-(`sveltekit-medusa-sdk/products`, `/cart`, `/auth`, `/regions`) if you prefer to
-import them individually.
+All functions are exported from the package root. Each `*.remote.ts` module is also available as a subpath import (e.g. `sveltekit-medusa-sdk/cart`, `sveltekit-medusa-sdk/auth`). Schemas are exported from `sveltekit-medusa-sdk/schemas`.
+
+Two conventions to know:
+
+- **Catalog reads ship two variants** — a **prerender** default (cacheable; takes explicit
+  `region_id`/`country_code` args) and a `*Query` twin (always fresh; reads region/country
+  from the request's cookies).
+- **Auth functions return a structured `{ ok: boolean, code?: string }`** so you can map
+  stable codes (`invalid_credentials`, `email_exists`, `rate_limited`, `unsupported`,
+  `unknown`) to your own copy/i18n.
+
+### regions
+
+- `getRegions` — prerender
+
+### products
+
+- `getProducts` — prerender
+- `getProduct` — prerender (by `id` or `slug`)
+- `getProductsQuery` — query
+- `getProductQuery` — query (by `id` or `slug`)
+
+### categories
+
+- `getProductCategories` — prerender
+- `getProductCategory` — prerender (by `id` or `slug`)
+- `getProductCategoriesQuery` — query
+- `getProductCategoryQuery` — query (by `id` or `slug`)
+
+### collections
+
+- `getCollections` — prerender
+- `getCollection` — prerender (by `id` or `slug`)
+- `getCollectionsQuery` — query
+- `getCollectionQuery` — query (by `id` or `slug`)
+
+### cart
+
+- `getCart` — query
+- `getCartById` — query
+- `createCart` — command
+- `addToCart` — command
+- `removeFromCart` — command
+- `updateCartItem` — command
+- `updateCart` — command
+- `selectShippingOption` — command
+- `getShippingOptions` — query
+- `completeCart` — command
+
+### promotions
+
+- `addPromotion` — command
+- `removePromotion` — command
+
+### payment
+
+- `listPaymentProviders` — query
+- `initiatePaymentSession` — command (generic, any provider)
+
+### braintree
+
+- `braintreeCheckoutForm` — form
+- `initiateBraintreePaymentSession` — command
+- `braintreeCheckoutSchema` — valibot schema (from `sveltekit-medusa-sdk/schemas`)
+
+### orders
+
+- `getOrders` — query
+- `getOrderById` — query
+
+### auth
+
+- `login` — form (returns `{ ok, code }`)
+- `register` — form (returns `{ ok, code }`)
+- `requestResetPassword` — form (returns `{ ok, code }`)
+- `resetPassword` — form (returns `{ ok, code }`)
+- `logout` — command (returns `{ ok, code }`)
+
+### customer
+
+- `getCustomer` — query
+- `updateCustomer` — command
+
+### address
+
+- `getAddresses` — query
+- `saveAddress` — form (create or update by `id`)
+- `deleteAddress` — command
+
+### search
+
+- `search` — query (requires the search plugin on the backend)
+
+### forms
+
+- `submitForm` — command (requires the forms plugin on the backend)
 
 ## Extending the client
 

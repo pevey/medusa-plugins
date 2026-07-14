@@ -11,7 +11,12 @@ describe('resolveConfig', () => {
         expect(c.debug).toBe(false);
     });
     it('honors overrides and partial cookie overrides', () => {
-        const c = resolveConfig({ ...base, cookies: { session: 'sess' }, transferCartOnLogin: false, backendSessionCookie: 'sid.backend' });
+        const c = resolveConfig({
+            ...base,
+            cookies: { session: 'sess' },
+            transferCartOnLogin: false,
+            backendSessionCookie: 'sid.backend'
+        });
         expect(c.cookies.session).toBe('sess');
         expect(c.cookies.region).toBe('region'); // untouched default
         expect(c.transferCartOnLogin).toBe(false);

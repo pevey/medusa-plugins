@@ -26,7 +26,7 @@ export const options = {
 		app: ({ head, body, assets, nonce, env }) => "<!doctype html>\n<html lang=\"en\">\n\n<head>\n\t<meta charset=\"utf-8\" />" + head + "\n</head>\n\n<body>\n\t<div>" + body + "</div>\n</body>\n\n</html>",
 		error
 	},
-	version_hash: "rfctbm"
+	version_hash: "1fyz26p"
 };
 
 export async function get_hooks() {
