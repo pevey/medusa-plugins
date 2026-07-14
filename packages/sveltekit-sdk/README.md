@@ -44,7 +44,7 @@ export default config
 		exclude: ['sveltekit-medusa-sdk'] // don't prebundle to prevent SvelteKit from dropping the remote functions in installed packages
 	},
 	ssr: {
-		noExternal: ['sveltekit-medusa-sdk'] // treat the package as internal to your app so that $app/server can resolve
+		noExternal: ['sveltekit-medusa-sdk'] // treat the package as internal to the app so that $app/server can resolve
 	},
 ```
 
