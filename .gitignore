@@ -30,3 +30,4 @@ coverage
 .medusa
 .cache
 .turbo
+.svelte-kit
