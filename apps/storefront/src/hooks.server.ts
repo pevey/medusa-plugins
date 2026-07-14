@@ -1,4 +1,4 @@
-import { createMedusaHandle } from 'sveltekit-medusa-sdk'
+import { createMedusaHandle } from 'sveltekit-medusa-sdk/server'
 import {
 	MEDUSA_BACKEND_URL,
 	MEDUSA_PUBLISHABLE_KEY,

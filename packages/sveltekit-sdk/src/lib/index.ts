@@ -20,9 +20,8 @@
 // compiles them to client stubs, so the `$app/server` dependency never reaches
 // the browser. Only non-remote, barrel-reachable modules must avoid lib/server.
 // ─────────────────────────────────────────────────────────────────────────────
-export { createMedusaHandle } from './hooks'
 export type { MedusaHandleConfig, MedusaContext, CookieNames, AuthResult } from './types'
-export { braintreeCheckoutSchema } from './schemas'
+export { braintreeCheckoutSchema } from './schemas/braintree'
 
 // Reusable client-safe helpers (see lib/helpers)
 export { formatBraintreeAddress } from './helpers/braintree'
@@ -33,25 +32,30 @@ export { getRegions } from './regions.remote'
 // Catalog (prerender defaults + query twins)
 export { getProducts, getProduct, getProductsQuery, getProductQuery } from './products.remote'
 export {
-  getProductCategories,
-  getProductCategory,
-  getProductCategoriesQuery,
-  getProductCategoryQuery
+	getProductCategories,
+	getProductCategory,
+	getProductCategoriesQuery,
+	getProductCategoryQuery
 } from './categories.remote'
-export { getCollections, getCollection, getCollectionsQuery, getCollectionQuery } from './collections.remote'
+export {
+	getCollections,
+	getCollection,
+	getCollectionsQuery,
+	getCollectionQuery
+} from './collections.remote'
 
 // Cart
 export {
-  getCart,
-  getCartById,
-  createCart,
-  addToCart,
-  removeFromCart,
-  updateCartItem,
-  updateCart,
-  selectShippingOption,
-  getShippingOptions,
-  completeCart
+	getCart,
+	getCartById,
+	createCart,
+	addToCart,
+	removeFromCart,
+	updateCartItem,
+	updateCart,
+	selectShippingOption,
+	getShippingOptions,
+	completeCart
 } from './cart.remote'
 
 // Promotions

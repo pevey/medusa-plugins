@@ -8,4 +8,5 @@
 // inside your own remote functions (`*.remote.ts`, which SvelteKit compiles to
 // client stubs) or other server-only code.
 // ─────────────────────────────────────────────────────────────────────────────
+export { createMedusaHandle } from './hooks'
 export { requestContext as getMedusaContext } from './request'

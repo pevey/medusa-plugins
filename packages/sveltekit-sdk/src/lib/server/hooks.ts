@@ -1,7 +1,7 @@
 import type { Handle } from '@sveltejs/kit'
-import { setConfig, getClient, getConfig } from './internal/state'
-import { resolveContext } from './internal/context'
-import type { MedusaHandleConfig, MedusaContext } from './types'
+import { setConfig, getClient, getConfig } from '../internal/state'
+import { resolveContext } from '../internal/context'
+import type { MedusaHandleConfig, MedusaContext } from '../types'
 
 /**
  * Configure the shared Medusa client (once, at module-eval time) and mirror a

@@ -1,3 +1,8 @@
+## 0.6.0
+
+- createMedusaHandle() is now exported from sveltekit-medusa-sdk/server
+- schemas moved to dedicated /schemas path
+
 ## 0.5.0
 
 - Reorganize non-remote functions into three folders: /internal, /helpers, and /server. This will enable import of requestContext() from sveltekit-medusa-sdk/server instead of straight from the barrel to avoid rolldown throwing guard errors incorrectly based on incomplete tree-shaking.

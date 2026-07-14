@@ -10,7 +10,9 @@ The SvelteKit client for Medusa v1 exported a **class** (`new MedusaClient(url)`
 
 ## Warning
 
-Remote functions are still classified as **experimental** by the SvelteKit team. Breaking changes in the remote functions API may be introduced between SvelteKit releases without a major version bump. Pin your SvelteKit version and review the changelog when upgrading until the feature stabilizes.
+Remote functions are still classified as **experimental** by the SvelteKit team. Breaking changes in the remote functions API may be introduced between SvelteKit releases without a major version bump. Moreover, shipping an external package with remote functions is bleeding edge and undocumented.
+
+This library is being developed with planned SvelteKit 3.0.0 features in mind and is targeted for stable release after 3.0.0 is out of preview. Usage in the meantime is intended only for testing and providing feedback. Pin your SvelteKit version and review the changelog when upgrading.
 
 ## Requirements
 
@@ -34,6 +36,18 @@ const config = {
 export default config
 ```
 
+- Vite configured to treat the package as internal to your app so that $app/server can resolve (ssr: noExternal). Also, prevent remote functions being dropped by the bundler in dev mode by excluding from optimizeDeps.
+
+```js
+// vite.config.js
+	optimizeDeps: {
+		exclude: ['sveltekit-medusa-sdk'] // don't prebundle to prevent SvelteKit from dropping the remote functions in installed packages
+	},
+	ssr: {
+		noExternal: ['sveltekit-medusa-sdk'] // treat the package as internal to your app so that $app/server can resolve
+	},
+```
+
 ## Installation
 
 ```bash
@@ -46,7 +60,7 @@ Wire the handle once in `src/hooks.server.ts` (the only place your private env i
 
 ```ts
 // src/hooks.server.ts
-import { createMedusaHandle } from 'sveltekit-medusa-sdk'
+import { createMedusaHandle } from 'sveltekit-medusa-sdk/server'
 import { MEDUSA_BACKEND_URL, MEDUSA_PUBLISHABLE_KEY } from '$env/static/private'
 
 export const handle = createMedusaHandle({
