@@ -1,6 +1,6 @@
 {
 	"name": "sveltekit-medusa-sdk",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "SvelteKit remote-function client for a Medusa v2 backend",
 	"author": "Lacey Pevey",
 	"license": "MIT",
@@ -50,7 +50,7 @@
 		"svelte": "^5.36.0"
 	},
 	"dependencies": {
-		"@medusajs/types": "^2.17.0",
+		"@medusajs/types": "^2.17.2",
 		"@pevey/medusa-sdk": "workspace:*",
 		"cookie": "^1.0.0",
 		"valibot": "^1.0.0"

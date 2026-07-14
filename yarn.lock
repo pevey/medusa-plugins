@@ -6730,7 +6730,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@medusajs/types@npm:2.17.2, @medusajs/types@npm:^2.17.0":
+"@medusajs/types@npm:2.17.2, @medusajs/types@npm:^2.17.2":
   version: 2.17.2
   resolution: "@medusajs/types@npm:2.17.2"
   dependencies:
@@ -31160,7 +31160,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sveltekit-medusa-sdk@workspace:packages/sveltekit-sdk"
   dependencies:
-    "@medusajs/types": "npm:^2.17.0"
+    "@medusajs/types": "npm:^2.17.2"
     "@pevey/medusa-sdk": "workspace:*"
     "@sveltejs/adapter-auto": "npm:^6.0.0"
     "@sveltejs/kit": "npm:^2.22.0"
