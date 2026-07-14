@@ -1,6 +1,6 @@
 # sveltekit-medusa-sdk
 
-A SvelteKit client for communicated with a [Medusa](https://medusajs.com) v2 backend built on top of the Medusa JS SDK. It is designed to access the Medusa backend **only from the storefront server**. It is not designed for having the client browser make network calls to the Medusa backend directly.
+A SvelteKit client for communicating with a [Medusa](https://medusajs.com) v2 backend built on top of the Medusa JS SDK. It is designed to access the Medusa backend **only from the storefront server**. It is not designed for having the client browser make network calls to the Medusa backend directly.
 
 This package is the successor to [sveltekit-medusa-client](https://www.npmjs.com/package/sveltekit-medusa-client), a SvelteKit library for communicating with a v1 Medusa backend.
 
@@ -109,10 +109,7 @@ export {}
 
 ### The `sid` cookie rename
 
-On login this library establishes a Medusa backend session and re-issues it to your
-storefront under a **neutral cookie name** (default `sid`) instead of Medusa's
-`connect.sid`. Two reasons: it makes it less obvious your backend is Medusa (a small hurdle
-against broad vulnerability scanning), and a distinct name tells you at a glance, while
+On login, this library establishes a Medusa backend session and re-issues it to your storefront under a **neutral cookie name** (default `sid`) instead of Medusa's`connect.sid`. Two reasons: it makes it less obvious your backend is Medusa (a small hurdle against broad vulnerability scanning), and a distinct name tells you at a glance, while
 debugging, that _your storefront_ set the cookie. Both names are configurable.
 
 ## Usage
@@ -135,12 +132,8 @@ All functions are exported from the package root. Each `*.remote.ts` module is a
 
 Two conventions to know:
 
-- **Catalog reads ship two variants** — a **prerender** default (cacheable; takes explicit
-  `region_id`/`country_code` args) and a `*Query` twin (always fresh; reads region/country
-  from the request's cookies).
-- **Auth functions return a structured `{ ok: boolean, code?: string }`** so you can map
-  stable codes (`invalid_credentials`, `email_exists`, `rate_limited`, `unsupported`,
-  `unknown`) to your own copy/i18n.
+- **Catalog reads ship two variants** — a **prerender** default (takes explicit `region_id`/`country_code` args) and a `*Query` twin (reads region/country from the request's cookies, can be updated dynamically).
+- **Auth functions return a structured `{ ok: boolean, code?: string }`** so you can map stable codes (`invalid_credentials`, `email_exists`, `rate_limited`, `unsupported`, `unknown`) to your own copy/i18n.
 
 ### regions
 
@@ -222,15 +215,15 @@ Two conventions to know:
 
 ### search
 
-- `search` — query (requires the search plugin on the backend)
+- `search` — query (requires medusa-plugin-search on the backend)
 
 ### forms
 
-- `submitForm` — command (requires the forms plugin on the backend)
+- `submitForm` — command (requires medusa-plugin-forms on the backend)
 
 ## Extending the client
 
-Because the library exposes its per-request context, you can add your own remote functions in your app that reuse the same configured Medusa instance. This is useful if you have custom routes added by your own Medusa plugins or if you want to customize any of the functions included in the library. Call `getMedusaContext()` within a custom remote function get an object with the relevant context ()`{ client, region_id, country_code, headers() }`) for the current request. Passing `headers()` sends the logged-in customer's session.
+Because the library exposes its per-request context, you can add your own remote functions in your app that reuse the same configured Medusa instance. This is useful if you have custom routes added by your own Medusa plugins or if you want to customize any of the functions included in the library. Call `getMedusaContext()` within a custom remote function get an object with the relevant context (`{ client, region_id, country_code, headers() }`) for the current request. Passing `headers()` sends the logged-in customer's session.
 
 ```ts
 // src/lib/orders.remote.ts
