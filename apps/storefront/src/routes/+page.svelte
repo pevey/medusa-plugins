@@ -1,8 +1,19 @@
 <script lang="ts">
-  import { getPing } from '@pevey/sveltekit-medusa-sdk'
-  import { getPing as getPingSubpath } from '@pevey/sveltekit-medusa-sdk/ping'
+  import { getRegions, getProducts } from '@pevey/sveltekit-medusa-sdk'
 </script>
 
-<h1>Discovery probe</h1>
-<p>barrel: {await getPing()}</p>
-<p>subpath: {await getPingSubpath()}</p>
+<h1>Regions</h1>
+<ul>
+  {#each await getRegions() as region}
+    <li>{region.name} ({region.currency_code})</li>
+  {/each}
+</ul>
+
+<h1>Products</h1>
+<ul>
+  {#each await getProducts() as product}
+    <li>{product.title}</li>
+  {:else}
+    <li>No products</li>
+  {/each}
+</ul>

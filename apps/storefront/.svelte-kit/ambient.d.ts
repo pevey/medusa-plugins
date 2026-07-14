@@ -38,6 +38,10 @@
  * The above values will be the same _even if_ different values for `ENVIRONMENT` or `PUBLIC_BASE_URL` are set at runtime, as they are statically replaced in your code with their build time values.
  */
 declare module '$env/static/private' {
+	export const MEDUSA_BACKEND_URL: string;
+	export const MEDUSA_PUBLISHABLE_KEY: string;
+	export const MEDUSA_DEFAULT_REGION_ID: string;
+	export const MEDUSA_DEFAULT_COUNTRY_CODE: string;
 	export const SHELL: string;
 	export const SESSION_MANAGER: string;
 	export const COREPACK_ENABLE_AUTO_PIN: string;
@@ -224,6 +228,10 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
+		MEDUSA_BACKEND_URL: string;
+		MEDUSA_PUBLISHABLE_KEY: string;
+		MEDUSA_DEFAULT_REGION_ID: string;
+		MEDUSA_DEFAULT_COUNTRY_CODE: string;
 		SHELL: string;
 		SESSION_MANAGER: string;
 		COREPACK_ENABLE_AUTO_PIN: string;
