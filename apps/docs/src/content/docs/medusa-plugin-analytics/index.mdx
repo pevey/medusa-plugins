@@ -25,12 +25,19 @@ Enable in your `medusa-config.ts` file. Example:
 ```ts
 module.exports = defineConfig({
 	//... other config
-	plugins: [
+	modules: [
 		{
-			resolve: 'medusa-plugin-analytics',
-			options: {}
+			resolve: '@medusajs/medusa/analytics',
+			options: {
+				providers: [
+					{
+						resolve: 'medusa-plugin-analytics',
+						id: 'private'
+					}
+				]
+			}
 		}
-		// ... other plugins
+		// ... other modules
 	]
 })
 ```
