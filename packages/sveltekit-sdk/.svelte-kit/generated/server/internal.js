@@ -23,10 +23,10 @@ export const options = {
 	service_worker_options: undefined,
 	server_error_boundaries: false,
 	templates: {
-		app: ({ head, body, assets, nonce, env }) => "<!doctype html>\n<html lang=\"en\">\n  <head><meta charset=\"utf-8\" />" + head + "</head>\n  <body><div>" + body + "</div></body>\n</html>\n",
+		app: ({ head, body, assets, nonce, env }) => "<!doctype html>\n<html lang=\"en\">\n\n<head>\n\t<meta charset=\"utf-8\" />" + head + "\n</head>\n\n<body>\n\t<div>" + body + "</div>\n</body>\n\n</html>",
 		error
 	},
-	version_hash: "2d97ed"
+	version_hash: "rfctbm"
 };
 
 export async function get_hooks() {

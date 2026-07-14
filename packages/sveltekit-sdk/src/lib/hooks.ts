@@ -10,11 +10,15 @@ import type { MedusaHandleConfig, MedusaContext } from './types'
  * context via `getRequestEvent()`, so they do not depend on this handle running.
  */
 export function createMedusaHandle(config: MedusaHandleConfig): Handle {
-  setConfig(config)
-  return async ({ event, resolve }) => {
-    // The consumer augments App.Locals with `medusa` (see README). The library
-    // can't see that augmentation in its own typecheck, so assert the shape here.
-    ;(event.locals as { medusa: MedusaContext }).medusa = resolveContext(getClient(), getConfig(), event.cookies)
-    return resolve(event)
-  }
+	setConfig(config)
+	return async ({ event, resolve }) => {
+		// The consumer augments App.Locals with `medusa` (see README). The library
+		// can't see that augmentation in its own typecheck, so assert the shape here.
+		;(event.locals as { medusa: MedusaContext }).medusa = resolveContext(
+			getClient(),
+			getConfig(),
+			event.cookies
+		)
+		return resolve(event)
+	}
 }

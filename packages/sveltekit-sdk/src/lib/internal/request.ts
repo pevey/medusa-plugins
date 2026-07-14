@@ -5,6 +5,6 @@ import type { MedusaContext } from '../types'
 
 /** Resolve the Medusa context for the current request. */
 export function requestContext(): MedusaContext {
-  const { cookies } = getRequestEvent()
-  return resolveContext(getClient(), getConfig(), cookies)
+	const { cookies } = getRequestEvent()
+	return resolveContext(getClient(), getConfig(), cookies)
 }
