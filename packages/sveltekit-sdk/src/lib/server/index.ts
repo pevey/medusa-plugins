@@ -8,5 +8,8 @@
 // inside your own remote functions (`*.remote.ts`, which SvelteKit compiles to
 // client stubs) or other server-only code.
 // ─────────────────────────────────────────────────────────────────────────────
+// Seals this entry to the server (see note above): SvelteKit's guard throws if a
+// client-reachable path statically imports `$app/server`.
+import '$app/server'
 export { createMedusaHandle } from './hooks'
 export { requestContext as getMedusaContext } from './request'

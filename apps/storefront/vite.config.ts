@@ -1,8 +1,23 @@
 import { sveltekit } from '@sveltejs/kit/vite'
 import { defineConfig } from 'vite'
+import adapter from '@sveltejs/adapter-auto'
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
 
+// kit 3.0.0-next: config is passed (flattened) to the `sveltekit(...)` plugin —
+// there is no `svelte.config.js` and no `kit:` wrapper.
 export default defineConfig({
-	plugins: [sveltekit()],
+	plugins: [
+		sveltekit({
+			preprocess: vitePreprocess(),
+			compilerOptions: { experimental: { async: true } },
+			adapter: adapter(),
+			experimental: { remoteFunctions: true },
+			// This is a reference/dev app; a prerender function (e.g. getRegions) that can't
+			// reach the backend at build time should warn, not fail the build (so it never
+			// blocks publishing the package).
+			prerender: { handleHttpError: 'warn' }
+		})
+	],
 	// In this monorepo the workspace library ships its own build-time copy of
 	// @sveltejs/kit and svelte. Dedupe so the app and the library share ONE
 	// instance — otherwise `invalid()` thrown from the library isn't recognized

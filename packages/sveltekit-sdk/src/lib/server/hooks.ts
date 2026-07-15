@@ -1,3 +1,6 @@
+// Seals this module to the server: SvelteKit's guard throws if a client-reachable
+// path statically imports `$app/server`, so a stray browser import fails loudly.
+import '$app/server'
 import type { Handle } from '@sveltejs/kit'
 import { setConfig, getClient, getConfig } from '../internal/state'
 import { resolveContext } from '../internal/context'

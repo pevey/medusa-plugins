@@ -1,3 +1,7 @@
+## 0.7.0
+
+- Update tooling to SvelteKit v3-next and widen peer dependency range
+
 ## 0.6.0
 
 - createMedusaHandle() is now exported from sveltekit-medusa-sdk/server

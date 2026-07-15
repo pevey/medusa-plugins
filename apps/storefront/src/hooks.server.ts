@@ -4,7 +4,7 @@ import {
 	MEDUSA_PUBLISHABLE_KEY,
 	MEDUSA_DEFAULT_REGION_ID,
 	MEDUSA_DEFAULT_COUNTRY_CODE
-} from '$env/static/private'
+} from '$app/env/private'
 
 export const handle = createMedusaHandle({
 	baseUrl: MEDUSA_BACKEND_URL,
