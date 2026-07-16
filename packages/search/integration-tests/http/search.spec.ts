@@ -35,7 +35,7 @@ const seed = (over: Partial<SearchDocumentInput>): SearchDocumentInput => ({
 	title: 'x',
 	snippet: null,
 	primary_text: 'x',
-	secondary_text: null,
+	body_text: null,
 	weight: 1,
 	sales_channel_ids: ['sc_retail'],
 	...over
@@ -122,6 +122,69 @@ medusaIntegrationTestRunner({
 			})
 		})
 
+		describe('hybrid tsvector lane', () => {
+			beforeAll(async () => {
+				await service.upsertDocument(seed({
+					entity_id: 'h_brew', slug: 'brewing-guide', title: 'Brewing Guide',
+					primary_text: 'Brewing Guide',
+					body_text: 'Our beans are roasted daily and shipped fresh to your door.'
+				}))
+				await seedSnapshot()
+			})
+			it('matches a token present only in the long body (not in primary_text)', async () => {
+				const hits = await service.search('roasted', 12, ['sc_retail'])
+				expect(hits.map((h) => h.slug)).toContain('brewing-guide')
+			})
+		})
+
+		describe('translations (forced via option)', () => {
+			beforeAll(async () => {
+				;(service as any).options_.translations = true
+				await service.upsertDocument(seed({ entity_id: 'loc_1', slug: 'loc-1', title: 'Coffee', primary_text: 'Coffee', body_text: 'beans' }))
+				const base = (await service.listSearchDocuments({ type: 'product', entity_id: 'loc_1' }))[0]
+				await service.upsertTranslation({ search_document_id: base.id, locale: 'es-ES', title: 'Café', snippet: null, primary_text: 'Café', body_text: 'granos molidos' })
+				await seedSnapshot()
+			})
+			afterAll(() => {
+				;(service as any).options_.translations = undefined
+			})
+
+			it('upsertTranslation writes a locale row with a matching body_tsv', async () => {
+				const base = (await service.listSearchDocuments({ type: 'product', entity_id: 'loc_1' }))[0]
+				const knex = (service as any).__container__.manager.getKnex()
+				const { rows } = await knex.raw(
+					`SELECT locale, body_tsv @@ websearch_to_tsquery('spanish','granos') AS m FROM search_document_translation WHERE search_document_id = ?`,
+					[base.id]
+				)
+				expect(rows).toHaveLength(1)
+				expect(rows[0].m).toBe(true)
+			})
+
+			it('localized search returns the translated title, and falls back to base for an untranslated locale', async () => {
+				const es = await service.search('café', 12, ['sc_retail'], 'es-ES')
+				expect(es.find((h) => h.slug === 'loc-1')?.title).toBe('Café')
+				const de = await service.search('coffee', 12, ['sc_retail'], 'de-DE')
+				expect(de.find((h) => h.slug === 'loc-1')?.title).toBe('Coffee')
+			})
+
+			it('pruneTranslations removes locales no longer present', async () => {
+				const base = (await service.listSearchDocuments({ type: 'product', entity_id: 'loc_1' }))[0]
+				await service.upsertTranslation({ search_document_id: base.id, locale: 'fr-FR', title: 'Café FR', snippet: null, primary_text: 'Café FR', body_text: null })
+				expect(await service.listSearchDocumentTranslations({ search_document_id: base.id })).toHaveLength(2)
+				await service.pruneTranslations(base.id, ['es-ES'])
+				const left = await service.listSearchDocumentTranslations({ search_document_id: base.id })
+				expect(left.map((r: any) => r.locale)).toEqual(['es-ES'])
+			})
+		})
+
+		describe('graceful degradation (translations off)', () => {
+			it('locale param is a no-op without the translation module', async () => {
+				const withLoc = await service.search('yirgachefe', 12, ['sc_retail'], 'es-ES')
+				const without = await service.search('yirgachefe', 12, ['sc_retail'])
+				expect(withLoc.map((h) => h.slug).sort()).toEqual(without.map((h) => h.slug).sort())
+			})
+		})
+
 		describe('workflows', () => {
 			it('indexes a published product with its available option values', async () => {
 				const { result } = await createProductsWorkflow(container).run({ input: { products: [decafProduct('Ethiopia Yirgacheffe', 'published')] } })
@@ -189,7 +252,7 @@ medusaIntegrationTestRunner({
 				const { result: keys } = await createApiKeysWorkflow(container).run({ input: { api_keys: [{ title: 'Retail PAK', type: 'publishable', created_by: 'test' }] } })
 				pak = keys[0].token
 				await linkSalesChannelsToApiKeyWorkflow(container).run({ input: { id: keys[0].id, add: [scId] } })
-				await service.upsertDocument(seed({ entity_id: 'rt_yirg', slug: 'ethiopia-yirgacheffe', title: 'Ethiopia Yirgacheffe', primary_text: 'Ethiopia Yirgacheffe Decaf', snippet: 'Floral', secondary_text: 'Floral', sales_channel_ids: [scId] }))
+				await service.upsertDocument(seed({ entity_id: 'rt_yirg', slug: 'ethiopia-yirgacheffe', title: 'Ethiopia Yirgacheffe', primary_text: 'Ethiopia Yirgacheffe Decaf', snippet: 'Floral', body_text: 'Floral', sales_channel_ids: [scId] }))
 				await seedSnapshot()
 			})
 
@@ -205,6 +268,12 @@ medusaIntegrationTestRunner({
 				const res = await api.get('/store/search?q=a', pk())
 				expect(res.status).toBe(200)
 				expect(res.data.hits).toEqual([])
+			})
+
+			it('accepts a locale param and still returns base hits when no translation exists', async () => {
+				const res = await api.get('/store/search?q=yirgachefe&locale=de-DE', pk())
+				expect(res.status).toBe(200)
+				expect(res.data.hits.map((h: any) => h.slug)).toContain('ethiopia-yirgacheffe')
 			})
 		})
 	}

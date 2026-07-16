@@ -33,6 +33,7 @@ export function buildProductDocument(p: ProductGraph): SearchDocumentInput {
 		}
 	}
 	const primary = [p.title, ...values].join(' ').trim()
+	const description = p.description?.trim() || null
 	return {
 		type: 'product',
 		entity_id: p.id,
@@ -41,7 +42,7 @@ export function buildProductDocument(p: ProductGraph): SearchDocumentInput {
 		title: p.title,
 		snippet: truncate(p.description),
 		primary_text: primary,
-		secondary_text: truncate(p.description),
+		body_text: description,
 		weight: 1,
 		sales_channel_ids: (p.sales_channels ?? []).map((s) => s.id)
 	}
@@ -56,7 +57,6 @@ export function buildCategoryDocument(c: CategoryGraph): SearchDocumentInput {
 		title: c.name,
 		snippet: null,
 		primary_text: c.name,
-		secondary_text: null,
 		weight: 0.9,
 		sales_channel_ids: null
 	}
@@ -71,7 +71,6 @@ export function buildCollectionDocument(c: CollectionGraph): SearchDocumentInput
 		title: c.title,
 		snippet: null,
 		primary_text: c.title,
-		secondary_text: null,
 		weight: 0.9,
 		sales_channel_ids: null
 	}

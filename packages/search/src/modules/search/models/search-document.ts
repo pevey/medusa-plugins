@@ -1,4 +1,5 @@
 import { model } from '@medusajs/framework/utils'
+import SearchDocumentTranslation from './search-document-translation'
 
 const SearchDocument = model
 	.define('search_document', {
@@ -10,9 +11,10 @@ const SearchDocument = model
 		title: model.text(),
 		snippet: model.text().nullable(),
 		primary_text: model.text(),
-		secondary_text: model.text().nullable(),
+		body_text: model.text().nullable(),
 		weight: model.number().default(1),
-		sales_channel_ids: model.array().nullable()
+		sales_channel_ids: model.array().nullable(),
+		translations: model.hasMany(() => SearchDocumentTranslation, { mappedBy: 'search_document' })
 	})
 	.indexes([{ on: ['type', 'entity_id'], unique: true }])
 

@@ -6,9 +6,18 @@ export type SearchDocumentInput = {
 	title: string
 	snippet: string | null
 	primary_text: string
-	secondary_text: string | null
+	body_text?: string | null
 	weight: number
 	sales_channel_ids: string[] | null
+}
+
+export type SearchTranslationInput = {
+	search_document_id: string
+	locale: string
+	title: string
+	snippet: string | null
+	primary_text: string
+	body_text?: string | null
 }
 
 export type SearchHit = {
@@ -26,6 +35,7 @@ export type SearchSource = {
 	entity: string
 	fields: string[]
 	reindexFilters?: Record<string, unknown>
+	translationReference?: string
 	visibility: (row: any) => boolean
 	buildDocument: (row: any) => SearchDocumentInput
 }
@@ -35,4 +45,8 @@ export type PluginOptions = {
 	weights?: Record<string, number>
 	wordSimilarityThreshold?: number
 	limit?: number
+	defaultLanguage?: string
+	bodyWeight?: number
+	localeTextSearchConfig?: Record<string, string>
+	translations?: boolean
 }

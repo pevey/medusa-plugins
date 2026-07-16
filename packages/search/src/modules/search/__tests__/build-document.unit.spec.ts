@@ -21,7 +21,7 @@ describe('buildProductDocument', () => {
 		expect(doc.entity_id).toBe('prod_1')
 		expect(doc.slug).toBe('ethiopia-yirgacheffe')
 		expect(doc.weight).toBe(1)
-		expect(doc.secondary_text).toBe('Floral, citrus')
+		expect(doc.body_text).toBe('Floral, citrus')
 		expect(doc.sales_channel_ids).toEqual(['sc_retail'])
 		expect(doc.primary_text).toBe('Ethiopia Yirgacheffe Decaf Whole Bean Regular')
 	})
@@ -29,8 +29,16 @@ describe('buildProductDocument', () => {
 	it('handles a product with no variants or channels', () => {
 		const doc = buildProductDocument({ id: 'prod_2', title: 'Sample', handle: 'sample' })
 		expect(doc.primary_text).toBe('Sample')
-		expect(doc.secondary_text).toBeNull()
+		expect(doc.body_text).toBeNull()
 		expect(doc.sales_channel_ids).toEqual([])
+	})
+
+	it('puts the full untruncated description in body_text and a truncated snippet', () => {
+		const longDesc = 'x'.repeat(500)
+		const doc = buildProductDocument({ id: 'p1', title: 'Coffee', handle: 'coffee', description: longDesc })
+		expect(doc.body_text).toBe(longDesc)
+		expect(doc.snippet!.length).toBeLessThanOrEqual(160)
+		expect('secondary_text' in doc).toBe(false)
 	})
 })
 
@@ -43,7 +51,6 @@ describe('buildCategoryDocument / buildCollectionDocument', () => {
 			slug: 'single-origin',
 			title: 'Single Origin',
 			primary_text: 'Single Origin',
-			secondary_text: null,
 			weight: 0.9,
 			sales_channel_ids: null,
 			group_slug: null

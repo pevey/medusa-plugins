@@ -26,6 +26,11 @@ paths:
           schema:
             type: string
             default: 12
+        - name: locale
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: OK
