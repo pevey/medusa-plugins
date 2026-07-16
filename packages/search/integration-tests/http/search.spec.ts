@@ -177,8 +177,8 @@ medusaIntegrationTestRunner({
 			})
 		})
 
-		describe('graceful degradation (translations off)', () => {
-			it('locale param is a no-op without the translation module', async () => {
+		describe('base floor', () => {
+			it('passing a locale never removes results (base returned when no translation matches)', async () => {
 				const withLoc = await service.search('yirgachefe', 12, ['sc_retail'], 'es-ES')
 				const without = await service.search('yirgachefe', 12, ['sc_retail'])
 				expect(withLoc.map((h) => h.slug).sort()).toEqual(without.map((h) => h.slug).sort())

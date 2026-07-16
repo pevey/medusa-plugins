@@ -3,7 +3,6 @@ import SearchDocument from './models/search-document'
 import SearchDocumentTranslation from './models/search-document-translation'
 import { buildRegistry } from './lib/sources'
 import { SIMPLE, configForLocale } from './lib/text-search-config'
-import { resolveTranslationModule } from './lib/translations'
 import type { SearchDocumentInput, SearchTranslationInput, SearchHit, SearchSource, PluginOptions } from './lib/types'
 
 class SearchModuleService extends MedusaService({
@@ -102,6 +101,11 @@ class SearchModuleService extends MedusaService({
 		return this.options_.translations === false
 	}
 
+	// Explicit `translations: true` forces the localized path even without module auto-detection.
+	translationsForced(): boolean {
+		return this.options_.translations === true
+	}
+
 	listSources(): SearchSource[] {
 		return [...this.registry_.values()]
 	}
@@ -124,11 +128,10 @@ class SearchModuleService extends MedusaService({
 		if (!manager) throw new Error('Database manager not available')
 		const knex = manager.getKnex()
 
-		// Localized path only when a locale is requested AND translations are active. Active =
-		// the `translations` option when set, else auto-detected via the module. Otherwise the
-		// base-only query below is byte-for-byte the monolingual behavior.
-		const translationsEnabled = this.options_.translations ?? !!resolveTranslationModule(this.container_)
-		const useLocale = !!locale && translationsEnabled
+		// Localized path when a locale is requested and translations aren't explicitly disabled.
+		// The store route decides whether translations are active (only it can resolve the
+		// translation module — this module's own container cannot) and passes a locale accordingly.
+		const useLocale = !!locale && this.options_.translations !== false
 		if (!useLocale) {
 			return this.searchBaseOnly(knex, clean, channelIds, baseCfg, bw, threshold, effectiveLimit)
 		}
