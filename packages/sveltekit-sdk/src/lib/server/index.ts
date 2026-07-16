@@ -13,3 +13,4 @@
 import '$app/server'
 export { createMedusaHandle } from './hooks'
 export { requestContext as getMedusaContext } from './request'
+export { forwardAnalytics, analyticsPOST, setTraits } from './analytics'

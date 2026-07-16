@@ -162,6 +162,13 @@ export const StoreTrackEvent = z.object({
 	event: z.string().min(1),
 	actor_id: z.string().optional(),
 	session_id: z.uuid().optional(),
-	properties: z.record(z.string(), z.unknown()).optional(),
-	sales_channel_id: z.string().optional()
+	properties: z.record(z.string(), z.unknown()).optional()
 })
+
+// Accepts either a single event or a bare array of events (no wrapper object),
+// so existing single-object clients keep working unchanged.
+export type StoreTrackEventBatchType = z.infer<typeof StoreTrackEventBatch>
+export const StoreTrackEventBatch = z.union([
+	StoreTrackEvent,
+	z.array(StoreTrackEvent).min(1).max(100)
+])

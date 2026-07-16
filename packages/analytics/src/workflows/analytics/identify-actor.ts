@@ -1,6 +1,11 @@
-import { createWorkflow, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
-import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
-import { Modules } from '@medusajs/framework/utils'
+import {
+	createWorkflow,
+	WorkflowResponse,
+	createStep,
+	StepResponse
+} from '@medusajs/framework/workflows-sdk'
+import { PRIVATE_ANALYTICS_MODULE } from '../../modules/analytics'
+import type { PrivateAnalyticsService } from '../../modules/analytics/service'
 
 type IdentifyActorInput = {
 	actor_id: string
@@ -12,15 +17,13 @@ type IdentifyActorInput = {
 const identifyActorStep = createStep(
 	'identify-actor-step',
 	async (input: IdentifyActorInput, { container }) => {
-		const analyticsService = container.resolve(Modules.ANALYTICS)
+		const service = container.resolve(PRIVATE_ANALYTICS_MODULE) as PrivateAnalyticsService
 
-		await analyticsService.identify({
+		await service.identifyActor({
 			actor_id: input.actor_id,
-			properties: {
-				...(input.properties ?? {}),
-				...(input.customer_id ? { customer_id: input.customer_id } : {}),
-				...(input.anonymous_id ? { anonymous_id: input.anonymous_id } : {})
-			}
+			customer_id: input.customer_id ?? null,
+			anonymous_id: input.anonymous_id ?? null,
+			properties: input.properties ?? null
 		})
 		return new StepResponse(undefined)
 	}

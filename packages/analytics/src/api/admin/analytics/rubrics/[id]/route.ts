@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { PRIVATE_ANALYTICS_MODULE } from '../../../../../modules/analytics'
 import type { PrivateAnalyticsService } from '../../../../../modules/analytics/service'
 import type { AdminUpdateRubricType } from '../../../../validators'
+import { invalidateRubricCache } from '../../../../../lib/rubric-gate'
 
 export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -31,5 +32,6 @@ export const POST = async (
 		id: req.params.id,
 		...req.validatedBody
 	})
+	invalidateRubricCache()
 	res.json({ rubric })
 }

@@ -7,6 +7,7 @@ import type {
 	AdminCreateRubricType,
 	AdminDeleteRubricsType
 } from '../../../validators'
+import { invalidateRubricCache } from '../../../../lib/rubric-gate'
 
 export const GET = async (
 	req: AuthenticatedMedusaRequest<AdminGetRubricsType>,
@@ -40,6 +41,7 @@ export const POST = async (
 	const privateAnalyticsService: PrivateAnalyticsService =
 		req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
 	const rubric = await privateAnalyticsService.createAnalyticsRubrics(req.validatedBody)
+	invalidateRubricCache()
 	res.json({ rubric })
 }
 
@@ -50,5 +52,6 @@ export const DELETE = async (
 	const privateAnalyticsService: PrivateAnalyticsService =
 		req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
 	await privateAnalyticsService.deleteAnalyticsRubrics(req.validatedBody.ids)
+	invalidateRubricCache()
 	res.json({ deleted: req.validatedBody.ids })
 }

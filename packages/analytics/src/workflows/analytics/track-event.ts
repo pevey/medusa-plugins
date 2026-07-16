@@ -1,6 +1,11 @@
-import { createWorkflow, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
-import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
-import { Modules } from '@medusajs/framework/utils'
+import {
+	createWorkflow,
+	WorkflowResponse,
+	createStep,
+	StepResponse
+} from '@medusajs/framework/workflows-sdk'
+import { PRIVATE_ANALYTICS_MODULE } from '../../modules/analytics'
+import type { PrivateAnalyticsService } from '../../modules/analytics/service'
 
 type TrackEventInput = {
 	event: string
@@ -8,24 +13,16 @@ type TrackEventInput = {
 	group_type?: string | null
 	group_id?: string | null
 	properties?: Record<string, unknown> | null
+	session_id?: string | null
+	source?: 'storefront' | 'backend'
 	sales_channel_id?: string | null
 }
 
 const trackEventStep = createStep(
 	'track-event-step',
 	async (input: TrackEventInput, { container }) => {
-		const analyticsService = container.resolve(Modules.ANALYTICS)
-		await analyticsService.track({
-			event: input.event,
-			actor_id: input.actor_id ?? undefined,
-			properties: {
-				...input.properties,
-				...(input.sales_channel_id ? { _sales_channel_id: input.sales_channel_id } : {})
-			},
-			...(input.group_type && input.group_id
-				? { group: { type: input.group_type, id: input.group_id } }
-				: {})
-		})
+		const service = container.resolve(PRIVATE_ANALYTICS_MODULE) as PrivateAnalyticsService
+		await service.trackEvent(input)
 		return new StepResponse(undefined)
 	}
 )
@@ -34,6 +31,23 @@ export const trackEventWorkflow = createWorkflow(
 	'track-event-workflow',
 	function (input: TrackEventInput) {
 		trackEventStep(input)
+		return new WorkflowResponse(undefined)
+	}
+)
+
+const trackEventsStep = createStep(
+	'track-events-step',
+	async (input: { events: TrackEventInput[] }, { container }) => {
+		const service = container.resolve(PRIVATE_ANALYTICS_MODULE) as PrivateAnalyticsService
+		await service.trackEvent(input.events)
+		return new StepResponse(undefined)
+	}
+)
+
+export const trackEventsWorkflow = createWorkflow(
+	'track-events-workflow',
+	function (input: { events: TrackEventInput[] }) {
+		trackEventsStep(input)
 		return new WorkflowResponse(undefined)
 	}
 )

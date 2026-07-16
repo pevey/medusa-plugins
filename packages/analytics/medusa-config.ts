@@ -10,13 +10,24 @@ module.exports = defineConfig({
 			storeCors: process.env.STORE_CORS || 'http://localhost:5173',
 			adminCors: process.env.ADMIN_CORS || 'http://localhost:5173,http://localhost:9000',
 			authCors: process.env.AUTH_CORS || 'http://localhost:5173,http://localhost:9000',
-			jwtSecret: process.env.JWT_SECRET,
-			cookieSecret: process.env.COOKIE_SECRET
+			jwtSecret: process.env.JWT_SECRET || 'test',
+			cookieSecret: process.env.COOKIE_SECRET || 'test'
 		}
 	},
 	modules: [
 		{
 			resolve: './src/modules/analytics'
+		},
+		{
+			resolve: '@medusajs/medusa/analytics',
+			options: {
+				providers: [
+					{
+						resolve: './src/providers/analytics-private',
+						id: 'private'
+					}
+				]
+			}
 		}
 	]
 })

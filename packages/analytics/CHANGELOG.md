@@ -1,3 +1,7 @@
+## 0.3.0
+
+- Moves core internals to separate Medusa workflows
+
 ## 0.2.3
 
 - Updated medusa packages to 2.17.2

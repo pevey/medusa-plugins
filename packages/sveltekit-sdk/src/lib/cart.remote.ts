@@ -3,6 +3,7 @@ import * as v from 'valibot'
 import { requestContext } from './server/request'
 import { getConfig } from './internal/state'
 import { getDefaultRegionId } from './internal/region'
+import { pendingAffiliateCode, applyAffiliateToCart } from './server/affiliate'
 import type { MedusaContext } from './types'
 
 // Always resolve `shipping_methods.name` on cart reads/mutations.
@@ -65,8 +66,12 @@ export const createCart = command(async () => {
   const ctx = requestContext()
   const { cart } = await ctx.client.store.cart.create(await createCartBody(ctx), cartRelations, ctx.headers())
   setCartCookie(cart.id)
-  getCart().set(cart)
-  return cart
+  // Apply a pending affiliate code captured before the cart existed.
+  const code = pendingAffiliateCode()
+  const withPromo = code ? await applyAffiliateToCart(ctx, cart.id, code) : null
+  const result = withPromo ?? cart
+  getCart().set(result)
+  return result
 })
 
 async function ensureCartId(ctx: MedusaContext): Promise<string> {
@@ -74,6 +79,9 @@ async function ensureCartId(ctx: MedusaContext): Promise<string> {
   if (existing) return existing
   const { cart } = await ctx.client.store.cart.create(await createCartBody(ctx), cartRelations, ctx.headers())
   setCartCookie(cart.id)
+  // Apply a pending affiliate code captured before the cart existed.
+  const code = pendingAffiliateCode()
+  if (code) await applyAffiliateToCart(ctx, cart.id, code)
   return cart.id
 }
 

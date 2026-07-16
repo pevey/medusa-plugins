@@ -78,3 +78,21 @@ export { getAddresses, saveAddress, deleteAddress } from './address.remote'
 // Generic primitives
 export { search } from './search.remote'
 export { submitForm } from './forms.remote'
+export { getReviews, createReview } from './reviews.remote'
+export {
+	getContentCollections,
+	getContentCollection,
+	getContentItems,
+	getContentItem
+} from './content.remote'
+
+// Analytics — layout component + tracking API + the framework-agnostic collector.
+// (Server-side beacon forwarder lives at `sveltekit-medusa-sdk/server`.)
+export { default as Analytics } from './components/Analytics.svelte'
+export { track, setTraits } from './analytics'
+export { createAnalyticsCollector } from '@pevey/medusa-sdk'
+export type { AnalyticsCollector } from '@pevey/medusa-sdk'
+
+// Affiliate — layout component that captures the affiliate code from the URL.
+export { default as Affiliate } from './components/Affiliate.svelte'
+export { captureAffiliate } from './affiliate.remote'

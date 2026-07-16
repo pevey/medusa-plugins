@@ -1,6 +1,6 @@
 # medusa-plugin-analytics
 
-Privacy-focused customer analytics for Medusa v2.
+Customer analytics for a Medusa v2 store that is completely self-hosted within Medusa itself. Enables insights and funnel metrics without sending customer data to a third-party.
 
 [Documentation](https://pevey.com/medusa-plugin-analytics)
 

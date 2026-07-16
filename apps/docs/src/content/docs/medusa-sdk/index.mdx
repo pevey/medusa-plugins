@@ -26,14 +26,7 @@ const sdk = new Medusa({
 })
 ```
 
-All [configuration options](https://docs.medusajs.com/resources/js-sdk#configuration) from `@medusajs/js-sdk` are supported, plus:
-
-| Option                     | Type     | Description                                      |
-| -------------------------- | -------- | ------------------------------------------------ |
-| `analytics.salesChannelId` | `string` | Default sales channel ID for analytics events    |
-| `analytics.cartId`         | `string` | Default actor ID (typically cart ID)             |
-| `analytics.batchSize`      | `number` | Flush when batch reaches this size (default: 10) |
-| `analytics.flushInterval`  | `number` | Flush interval in ms (default: 2000)             |
+All [configuration options](https://docs.medusajs.com/resources/js-sdk#configuration) from `@medusajs/js-sdk` are supported.
 
 ## Store
 
@@ -138,33 +131,106 @@ await sdk.admin.review.reject(['rev_789'])
 
 ## Analytics
 
-Privacy-focused event tracking with automatic batching. Events are sent to the Mildred analytics endpoint at `/store/ping`.
+Privacy-focused event tracking for `medusa-plugin-analytics`. Events are batched and delivered to the backend's `/store/ping` endpoint (one event or an array). Sales-channel attribution is derived server-side from the publishable key, and events are gated by the rubrics you define — so you only collect what you've configured.
+
+There are three pieces, lowest- to highest-level.
+
+### `store.analytics.track` — stateless primitive
+
+Send one event or a batch straight to `/store/ping`. Use it server-side, or as the building block behind the collector and framework forwarders.
 
 ```ts
-// Track an event
-sdk.analytics.track('product_viewed', {
-	properties: { product_id: 'prod_123' }
-})
-
-// Identify a customer
-sdk.analytics.identify('cust_123', {
-	anonymous_id: 'cart_abc'
-})
-
-// Set default actor/sales channel
-sdk.analytics.setCartId('cart_abc')
-sdk.analytics.setSalesChannelId('sc_123')
-
-// Force flush queued events
-await sdk.analytics.flush()
-
-// Cleanup (flushes and stops timer)
-await sdk.analytics.destroy()
+await sdk.store.analytics.track([
+	{ event: 'page_view', actor_id: 'cart_123', properties: { path: '/' } },
+	{ event: 'product_viewed', actor_id: 'cart_123', properties: { product_id: 'prod_1' } }
+])
 ```
 
-**Browser behavior:** Events are queued and flushed in batches (default: 10 events or every 2 seconds). On page unload, remaining events are sent via `navigator.sendBeacon` for reliability.
+### `createAnalyticsCollector` — browser batcher (recommended)
 
-**Server behavior:** Events are sent immediately with no batching.
+A framework-agnostic client-side batcher: it queues events and flushes them in batches to a **same-origin endpoint** — normal flushes via `fetch`, exit events via `sendBeacon`. That endpoint is a small route in your app that forwards to Medusa with the publishable key **and stamps identity** (`actor_id`) from a server-managed `anonymous_id` cookie.
+
+Why a same-origin endpoint instead of hitting Medusa directly? `sendBeacon` (needed to capture events as the tab closes) can't attach the publishable-key header, and the backend may not even be reachable from the browser. Routing through your own origin solves both, keeps the key server-side, and lets the server own identity — a stable anonymous id that survives across carts and orders (unlike a cart id, which is cleared on order completion), and that the client can't spoof.
+
+```ts
+import { createAnalyticsCollector } from '@pevey/medusa-sdk'
+
+const analytics = createAnalyticsCollector({
+	endpoint: '/api/analytics' // same-origin forwarding route (default)
+})
+
+analytics.track('product_viewed', { properties: { product_id: 'prod_1' } })
+analytics.setTraits({ plan_interest: 'pro' }) // attach traits to the visitor's identity
+// await analytics.flush()
+// await analytics.destroy()   // flush + stop timers/handlers (on teardown)
+```
+
+Config: `{ endpoint?, batchSize?, flushInterval? }` (defaults: `/api/analytics`, `10`, `2000`ms). The collector is self-managing — it starts its own timer and unload handler, so it works without any UI component. It never sends `actor_id`; the endpoint stamps it.
+
+#### Example: Next.js (App Router)
+
+Give every visitor a stable anonymous id (middleware — runs on first request):
+
+```ts
+// middleware.ts
+import { NextResponse } from 'next/server'
+export function middleware(req) {
+	const res = NextResponse.next()
+	if (!req.cookies.get('aid')) {
+		res.cookies.set('aid', crypto.randomUUID(), {
+			httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: 60 * 60 * 24 * 365
+		})
+	}
+	return res
+}
+```
+
+The forwarding route (server — has the key; stamps `actor_id` from the cookie):
+
+```tsx
+// app/api/analytics/route.ts
+import { cookies } from 'next/headers'
+import Medusa from '@pevey/medusa-sdk'
+
+const medusa = new Medusa({
+	baseUrl: process.env.MEDUSA_BACKEND_URL!,
+	publishableKey: process.env.MEDUSA_PUBLISHABLE_KEY!
+})
+
+export async function POST(req: Request) {
+	const actor_id = (await cookies()).get('aid')?.value
+	const body = await req.json()
+	const events = (Array.isArray(body) ? body : [body]).map((e) => ({ ...e, actor_id }))
+	await medusa.store.analytics.track(events)
+	return new Response(null, { status: 202 })
+}
+```
+
+A client provider that mounts the collector:
+
+```tsx
+// app/analytics-provider.tsx
+'use client'
+import { createContext, useContext, useRef, useEffect } from 'react'
+import { createAnalyticsCollector } from '@pevey/medusa-sdk'
+
+const Ctx = createContext<ReturnType<typeof createAnalyticsCollector> | null>(null)
+export const useAnalytics = () => useContext(Ctx)!
+
+export function AnalyticsProvider({ children }) {
+	const ref = useRef()
+	ref.current ??= createAnalyticsCollector({ endpoint: '/api/analytics' })
+	useEffect(() => () => ref.current.destroy(), [])
+	return <Ctx.Provider value={ref.current}>{children}</Ctx.Provider>
+}
+```
+
+```tsx
+// app/layout.tsx → <AnalyticsProvider>{children}</AnalyticsProvider>
+// any client component → useAnalytics().track('product_viewed', { properties: { id } })
+```
+
+> Using SvelteKit? `sveltekit-medusa-sdk` ships a ready-made `<Analytics>` component and forwarder, so you skip both files above.
 
 ## Authentication
 

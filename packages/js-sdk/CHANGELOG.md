@@ -1,3 +1,7 @@
+## 2.17.2e
+
+- Add coverage for medusa-plugin-reviews, medusa-plugin-content, medusa-plugin-affiliates, and medusa-plugin-analytics
+
 ## 2.17.2c
 
 - Fix type error in forms route

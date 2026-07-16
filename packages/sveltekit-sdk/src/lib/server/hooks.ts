@@ -12,9 +12,26 @@ import type { MedusaHandleConfig, MedusaContext } from '../types'
  * own load functions / endpoints. The library's remote functions resolve the same
  * context via `getRequestEvent()`, so they do not depend on this handle running.
  */
+// ~1 year — the anonymous id should outlive individual carts/sessions.
+const ANON_ID_MAX_AGE = 60 * 60 * 24 * 365
+
 export function createMedusaHandle(config: MedusaHandleConfig): Handle {
 	setConfig(config)
 	return async ({ event, resolve }) => {
+		// Assign a stable anonymous visitor id on first visit. Server-managed and
+		// httpOnly so the analytics forwarder can stamp it as an unspoofable
+		// actor_id, decoupled from the cart (which is deleted on order completion).
+		const anonCookie = getConfig().cookies.anonymousId
+		if (!event.cookies.get(anonCookie)) {
+			event.cookies.set(anonCookie, crypto.randomUUID(), {
+				path: '/',
+				maxAge: ANON_ID_MAX_AGE,
+				sameSite: 'lax',
+				httpOnly: true,
+				secure: true
+			})
+		}
+
 		// The consumer augments App.Locals with `medusa` (see README). The library
 		// can't see that augmentation in its own typecheck, so assert the shape here.
 		;(event.locals as { medusa: MedusaContext }).medusa = resolveContext(

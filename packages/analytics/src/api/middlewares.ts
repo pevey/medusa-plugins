@@ -23,7 +23,7 @@ import {
 	AdminGetSegment,
 	AdminUpdateSegment,
 	AdminGetSegmentMembers,
-	StoreTrackEvent
+	StoreTrackEventBatch
 } from './validators'
 
 export default defineMiddlewares({
@@ -252,7 +252,7 @@ export default defineMiddlewares({
 		{
 			matcher: '/store/ping',
 			method: ['POST'],
-			middlewares: [validateAndTransformBody(StoreTrackEvent)]
+			middlewares: [validateAndTransformBody(StoreTrackEventBatch)]
 		}
 	]
 })

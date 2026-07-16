@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
   title: Analytics API
-  version: 0.2.3
-  description: Privacy-first analytics plugin for Medusa v2
+  version: 0.3.0
+  description: Self-hosted analytics plugin for Medusa v2
 servers:
   - url: http://localhost:9000
     description: Local development
@@ -1075,27 +1075,6 @@ paths:
       summary: Create Ping
       tags:
         - Store
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                event:
-                  type: string
-                  minLength: 1
-                actor_id:
-                  type: string
-                session_id:
-                  type: string
-                properties:
-                  type: object
-                  additionalProperties: true
-                sales_channel_id:
-                  type: string
-              required:
-                - event
       responses:
         "200":
           description: OK

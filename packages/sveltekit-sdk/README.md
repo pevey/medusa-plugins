@@ -118,6 +118,12 @@ export {}
 | `cookies.region`       | `region`      | Region cookie name                                             |
 | `cookies.country`      | `country`     | Country cookie name                                            |
 | `cookies.cart`         | `cartid`      | Cart id cookie name                                            |
+| `cookies.anonymousId`  | `aid`         | Stable anonymous-visitor id (the analytics `actor_id`)         |
+| `affiliate.cookie`     | `aff`         | Affiliate-code cookie name                                     |
+| `affiliate.maxAgeDays` | `30`          | How long a captured affiliate code persists (sales cycle)      |
+| `affiliate.basis`      | `last-click`  | `last-click` (overwrite on new code) or `first-touch` (keep first) |
+| `analytics.clientIpHeader` | *(auto)*  | Override the header the client IP is read from (auto-detects CF / `X-Forwarded-For`) |
+| `analytics.omitIp`     | `false`       | Store only the country and drop the raw IP (IP-restricted jurisdictions) |
 | `transferCartOnLogin`  | `true`        | Transfer the anonymous cart to the customer on login           |
 | `debug`                | `false`       | Enable SDK debug logging                                       |
 
@@ -234,6 +240,121 @@ Two conventions to know:
 ### forms
 
 - `submitForm` — command (requires medusa-plugin-forms on the backend)
+
+### reviews
+
+- `getReviews` — query (approved reviews for a product; plus the customer's own pending reviews when signed in)
+- `createReview` — command (requires a signed-in customer; requires medusa-plugin-reviews on the backend)
+
+### content
+
+- `getContentCollections` — query (list collections)
+- `getContentCollection` — query (one collection by `slug`)
+- `getContentItems` — query (published items in a collection, with `tag`/`q`/paging)
+- `getContentItem` — query (one item by `slug` + `itemSlug`)
+
+Dynamic reads by default (edits show without a rebuild); wrap in `prerender` in your app for static content pages. Requires medusa-plugin-content on the backend.
+
+### affiliate
+
+- `<Affiliate>` — layout component that captures `?via=CODE` into a cookie and applies it to the cart
+- `captureAffiliate` — the underlying command (the component calls it; rarely used directly)
+
+See [Affiliate](#affiliate). Requires medusa-plugin-affiliates on the backend.
+
+### analytics
+
+- `<Analytics>` — headless layout component; `track` / `setTraits` — app-wide capture API
+- `analyticsPOST` / `forwardAnalytics` / `setTraits` — server-side (from `sveltekit-medusa-sdk/server`)
+
+Analytics is set up differently from the remote functions above — see [Analytics](#analytics) (requires medusa-plugin-analytics on the backend).
+
+## Analytics
+
+Analytics is the one feature that **doesn't** use a remote function. Capturing events as the tab closes needs `navigator.sendBeacon`, which can't attach the publishable key — so events are sent to a **same-origin endpoint** in your app that forwards them to Medusa (keeping the key server-side and working even when the backend isn't reachable from the browser). The SDK ships both halves: a headless `<Analytics>` component and the forwarder.
+
+Identity is server-managed: `createMedusaHandle` assigns each visitor a stable `anonymous_id` cookie, and the forwarder stamps it as `actor_id`. That id survives across carts and orders (a cart id is cleared on order completion) and the browser never sees it. On **login** the anonymous identity is automatically merged into the customer (past events are re-attributed); on **logout** a fresh anonymous id starts — so there is no client-side `identify` to call.
+
+Every visitor also gets a lightweight **identity record** with their **country** (and IP, unless `analytics.omitIp`), read server-side from the Cloudflare headers (`CF-IPCountry` / `CF-Connecting-IP`, falling back to `X-Forwarded-For`) and refreshed about once per session. That's what powers funnel geo drill-downs; it never leaves your infrastructure. Medusa can't see the visitor's IP itself (events are proxied through your server), which is why capture happens at the edge.
+
+**Attach your own traits** with `setTraits` — from the browser for things it knows, or server-side (`sveltekit-medusa-sdk/server`) for request-derived data like a first-touch country:
+
+```ts
+// server: e.g. inside your own remote function / +server.ts
+import { getRequestEvent } from '$app/server'
+import { setTraits } from 'sveltekit-medusa-sdk/server'
+
+const country = getRequestEvent().request.headers.get('cf-ipcountry')
+if (country) await setTraits({ first_country: country }) // your own first-touch guard
+```
+```svelte
+<!-- browser -->
+<script lang="ts">
+  import { setTraits } from 'sveltekit-medusa-sdk'
+  // setTraits({ plan_interest: 'pro' })
+</script>
+```
+
+**1. Add the component to your root layout.** It owns the browser-side batcher and registers an app-wide tracking API.
+
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script lang="ts">
+  import { Analytics } from 'sveltekit-medusa-sdk'
+  let { children } = $props()
+</script>
+
+<Analytics />
+{@render children()}
+```
+
+Props: `endpoint` (default `/api/analytics`), `batchSize`, `flushInterval`.
+
+**2. Create the forwarding endpoint** the component posts to — re-export the ready-made handler:
+
+```ts
+// src/routes/api/analytics/+server.ts
+export { analyticsPOST as POST } from 'sveltekit-medusa-sdk/server'
+```
+
+Need your own auth or rate-limiting around it? Call `forwardAnalytics(request)` from your own handler instead.
+
+**3. Track from anywhere.** `track` no-ops until `<Analytics>` has mounted (and on the server), so it's safe to call from any component or module:
+
+```svelte
+<script lang="ts">
+  import { track } from 'sveltekit-medusa-sdk'
+
+  function onView(id: string) {
+    track('product_viewed', { properties: { id } })
+  }
+</script>
+```
+
+Sales-channel attribution and event gating (rubrics) are handled backend-side by the analytics plugin. The framework-agnostic batcher, `createAnalyticsCollector`, is also re-exported if you want to drive it yourself.
+
+## Affiliate
+
+Attribute orders to affiliates with no cart wiring on the storefront. An affiliate is linked to a Medusa promotion (via medusa-plugin-affiliates); when a customer's order carries that promotion, the plugin credits the affiliate on the admin dashboard. This SDK's only job is to capture the affiliate's code from the URL and get it onto the cart.
+
+**Add the component to your layout** — it captures `?via=CODE` on landing (and on client-side navigation) into a cookie:
+
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script lang="ts">
+  import { Affiliate } from 'sveltekit-medusa-sdk'
+</script>
+
+<Affiliate />
+```
+
+Prop: `param` (the URL query param, default `via`). Cookie behavior is configured in `createMedusaHandle`:
+
+```ts
+affiliate: { cookie: 'aff', maxAgeDays: 30, basis: 'last-click' } // basis: 'last-click' | 'first-touch'
+```
+
+That's the whole setup. The captured code is applied to the cart automatically — immediately if a cart already exists, otherwise when the cart is first created (first add-to-cart). The affiliate plugin's cart guard enforces one affiliate code per cart and last-click replacement **server-side**, so none of that logic (and no discount math) lives in the browser.
 
 ## Extending the client
 

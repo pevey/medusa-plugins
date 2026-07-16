@@ -31,6 +31,10 @@ Replace "yarn add" with the correct command for your package manager if you are 
 
 The plugin's migration creates the `search_document` table and enables the `pg_trgm` extension — no manual database setup required.
 
+```bash
+yarn medusa db:migrate
+```
+
 ## Configuration
 
 Enable in your `medusa-config.ts` file. Example:
@@ -79,12 +83,12 @@ import { contentSource } from './src/lib/search-sources/content'
 
 ### Plugin options
 
-| Option                    | Type                                            | Default | Description                                                                                                                                                                                                                                     |
-| ------------------------- | ----------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sources`                 | `Array<'category' \| 'collection' \| SearchSource>` | `[]`    | Sources to index in addition to `product`, which is always on. Strings enable the matching built-in source. Objects register a custom source (see `SearchSource` below).                                                                        |
-| `weights`                 | `Record<string, number>`                        | `{}`    | Per-source score multiplier keyed by `SearchSource.type`. Missing entries default to `1`. Use values `< 1` to demote a source relative to products, `> 1` to boost it.                                                                          |
-| `wordSimilarityThreshold` | `number`                                        | `0.3`   | Minimum `pg_trgm.word_similarity_threshold` for a document to match. Lower = more typo-tolerant but more noise; higher = tighter but more misses. Applied as `SET LOCAL` inside each search transaction.                                       |
-| `limit`                   | `number`                                        | `12`    | Default result limit when the store `GET /store/search` request omits `limit`. The store endpoint caps user-supplied `limit` at 25 regardless.                                                                                                  |
+| Option                    | Type                                                | Default | Description                                                                                                                                                                                              |
+| ------------------------- | --------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sources`                 | `Array<'category' \| 'collection' \| SearchSource>` | `[]`    | Sources to index in addition to `product`, which is always on. Strings enable the matching built-in source. Objects register a custom source (see `SearchSource` below).                                 |
+| `weights`                 | `Record<string, number>`                            | `{}`    | Per-source score multiplier keyed by `SearchSource.type`. Missing entries default to `1`. Use values `< 1` to demote a source relative to products, `> 1` to boost it.                                   |
+| `wordSimilarityThreshold` | `number`                                            | `0.3`   | Minimum `pg_trgm.word_similarity_threshold` for a document to match. Lower = more typo-tolerant but more noise; higher = tighter but more misses. Applied as `SET LOCAL` inside each search transaction. |
+| `limit`                   | `number`                                            | `12`    | Default result limit when the store `GET /store/search` request omits `limit`. The store endpoint caps user-supplied `limit` at 25 regardless.                                                           |
 
 ### Custom sources
 
@@ -92,11 +96,11 @@ A `SearchSource` describes how to project one Medusa entity into a `search_docum
 
 ```ts
 type SearchSource = {
-	type: string                            // stable identifier, also the key for `weights`
-	entity: string                          // Query graph entity name (e.g. 'product_category')
-	fields: string[]                        // fields fetched during full reindex
+	type: string // stable identifier, also the key for `weights`
+	entity: string // Query graph entity name (e.g. 'product_category')
+	fields: string[] // fields fetched during full reindex
 	reindexFilters?: Record<string, unknown> // graph filters applied during reindex
-	visibility: (row: any) => boolean       // return false to exclude a row from the index
+	visibility: (row: any) => boolean // return false to exclude a row from the index
 	buildDocument: (row: any) => SearchDocumentInput
 }
 ```

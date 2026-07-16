@@ -2,6 +2,7 @@ import { form, command, getRequestEvent } from '$app/server'
 import * as v from 'valibot'
 import { createAuthClient, getClient, getConfig } from './internal/state'
 import { parseSetCookieSession } from './internal/session'
+import { stitchAnalyticsIdentity } from './server/analytics'
 import type { AuthResult } from './types'
 
 const credentialsSchema = v.object({
@@ -43,6 +44,8 @@ async function establishSession(token: string): Promise<boolean> {
         .catch(() => {})
     }
   }
+  // Merge the anonymous analytics identity into this customer (best-effort).
+  await stitchAnalyticsIdentity(session.value)
   return true
 }
 
@@ -115,6 +118,10 @@ export const resetPassword = form(
 
 export const logout = command(async (): Promise<AuthResult> => {
   const { cookies } = getRequestEvent()
-  cookies.delete(getConfig().cookies.session, { path: '/' })
+  const cfg = getConfig()
+  cookies.delete(cfg.cookies.session, { path: '/' })
+  // Start a fresh anonymous identity for the next visitor on this device (the
+  // handle re-issues one on the next request).
+  cookies.delete(cfg.cookies.anonymousId, { path: '/' })
   return { ok: true }
 })

@@ -1,3 +1,7 @@
+## 0.7.1
+
+- Add coverage for medusa-plugin-reviews, medusa-plugin-content, medusa-plugin-affiliates, and medusa-plugin-analytics
+
 ## 0.7.0
 
 - Update tooling to SvelteKit v3-next and widen peer dependency range

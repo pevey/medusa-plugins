@@ -1,7 +1,7 @@
 {
 	"name": "medusa-plugin-analytics",
-	"version": "0.2.3",
-	"description": "Privacy-first analytics plugin for Medusa v2",
+	"version": "0.3.0",
+	"description": "Self-hosted analytics plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"repository": {
 		"type": "git",
