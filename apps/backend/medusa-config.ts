@@ -36,10 +36,10 @@ module.exports = defineConfig({
 	},
 	featureFlags: {
 		caching: true, //https://docs.medusajs.com/resources/infrastructure-modules/caching#install-the-caching-module
-		index_engine: true //https://docs.medusajs.com/learn/fundamentals/module-links/index-module#content
+		index_engine: true, //https://docs.medusajs.com/learn/fundamentals/module-links/index-module#content
 		// rbac: true,
 		// rbac_filter_fields: true,
-		// translation: true,
+		translation: true
 	},
 	admin: {
 		disable: process.env.ADMIN_DISABLED === 'true' || false,
@@ -246,6 +246,9 @@ module.exports = defineConfig({
 					}
 				]
 			}
+		},
+		{
+			resolve: '@medusajs/medusa/translation'
 		},
 		{
 			resolve: '@medusajs/medusa/workflow-engine-redis',
