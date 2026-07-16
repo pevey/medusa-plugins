@@ -13,9 +13,13 @@
 		"@sveltejs/adapter-auto": "8.0.0-next.1",
 		"@sveltejs/kit": "3.0.0-next.8",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
+		"@tailwindcss/forms": "^0.5.11",
+		"@tailwindcss/typography": "^0.5.19",
+		"@tailwindcss/vite": "^4.3.0",
 		"svelte": "^5.56.4",
 		"svelte-check": "^4.0.0",
 		"sveltekit-medusa-sdk": "workspace:*",
+		"tailwindcss": "^4.3.0",
 		"typescript": "^6.0.0",
 		"valibot": "^1.0.0",
 		"vite": "^8.0.0"
