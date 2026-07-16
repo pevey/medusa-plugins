@@ -4,6 +4,16 @@
 	"description": "SvelteKit remote-function client for a Medusa v2 backend",
 	"author": "Lacey Pevey",
 	"license": "MIT",
+	"keywords": [
+		"svelte",
+		"sveltekit",
+		"medusa",
+		"medusa-plugin",
+		"storefront",
+		"ecommerce",
+		"headless",
+		"sdk"
+	],
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/pevey/medusa-plugins"
