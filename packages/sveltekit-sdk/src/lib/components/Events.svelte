@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/env'
-	import { createAnalyticsCollector } from '@pevey/medusa-sdk'
-	import { setCollector, clearCollector } from '../internal/analytics-singleton'
+	import { createCollector } from '@pevey/medusa-sdk'
+	import { setCollector, clearCollector } from '../internal/events-singleton'
 
 	interface Props {
 		endpoint?: string
@@ -9,7 +9,7 @@
 		flushInterval?: number
 	}
 
-	let { endpoint = '/api/analytics', batchSize, flushInterval }: Props = $props()
+	let { endpoint = '/api/ping', batchSize, flushInterval }: Props = $props()
 
 	// Create the collector once, browser-only, and register it as the singleton
 	// that `track`/`identify` delegate to. Identity is server-stamped, so there is
@@ -17,7 +17,7 @@
 	$effect(() => {
 		if (!browser) return
 
-		const collector = createAnalyticsCollector({ endpoint, batchSize, flushInterval })
+		const collector = createCollector({ endpoint, batchSize, flushInterval })
 		setCollector(collector)
 
 		return () => {

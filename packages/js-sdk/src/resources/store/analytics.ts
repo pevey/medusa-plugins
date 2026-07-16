@@ -8,7 +8,7 @@ export function createStoreAnalyticsResource(client: Client) {
 	return {
 		/**
 		 * Send one event or a batch of events to `/store/ping`. Stateless — the
-		 * batching client (`createAnalyticsCollector`) and server-side forwarders
+		 * batching client (`createCollector`) and server-side forwarders
 		 * build on this.
 		 */
 		track: async (

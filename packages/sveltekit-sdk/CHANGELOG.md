@@ -1,3 +1,7 @@
+## 0.8.0
+
+- Bump underlying Medusa sdk version
+
 ## 0.7.1
 
 - Add coverage for medusa-plugin-reviews, medusa-plugin-content, medusa-plugin-affiliates, and medusa-plugin-analytics

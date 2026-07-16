@@ -106,26 +106,26 @@ export {}
 
 ### Config options
 
-| Option                 | Default       | Description                                                    |
-| ---------------------- | ------------- | -------------------------------------------------------------- |
-| `baseUrl`              | —             | Medusa backend URL (required)                                  |
-| `publishableKey`       | —             | Medusa publishable API key (required)                          |
-| `globalHeaders`        | `{}`          | Headers sent on every backend request (e.g. Cloudflare Access) |
-| `defaultRegionId`      | —             | Fallback region when no `region` cookie is set                 |
-| `defaultCountryCode`   | —             | Fallback country when no `country` cookie is set               |
-| `backendSessionCookie` | `connect.sid` | The session cookie name Medusa issues                          |
-| `cookies.session`      | `sid`         | The session cookie name on your storefront (the rename)        |
-| `cookies.region`       | `region`      | Region cookie name                                             |
-| `cookies.country`      | `country`     | Country cookie name                                            |
-| `cookies.cart`         | `cartid`      | Cart id cookie name                                            |
-| `cookies.anonymousId`  | `aid`         | Stable anonymous-visitor id (the analytics `actor_id`)         |
-| `affiliate.cookie`     | `aff`         | Affiliate-code cookie name                                     |
-| `affiliate.maxAgeDays` | `30`          | How long a captured affiliate code persists (sales cycle)      |
-| `affiliate.basis`      | `last-click`  | `last-click` (overwrite on new code) or `first-touch` (keep first) |
-| `analytics.clientIpHeader` | *(auto)*  | Override the header the client IP is read from (auto-detects CF / `X-Forwarded-For`) |
-| `analytics.omitIp`     | `false`       | Store only the country and drop the raw IP (IP-restricted jurisdictions) |
-| `transferCartOnLogin`  | `true`        | Transfer the anonymous cart to the customer on login           |
-| `debug`                | `false`       | Enable SDK debug logging                                       |
+| Option                     | Default       | Description                                                                          |
+| -------------------------- | ------------- | ------------------------------------------------------------------------------------ |
+| `baseUrl`                  | —             | Medusa backend URL (required)                                                        |
+| `publishableKey`           | —             | Medusa publishable API key (required)                                                |
+| `globalHeaders`            | `{}`          | Headers sent on every backend request (e.g. Cloudflare Access)                       |
+| `defaultRegionId`          | —             | Fallback region when no `region` cookie is set                                       |
+| `defaultCountryCode`       | —             | Fallback country when no `country` cookie is set                                     |
+| `backendSessionCookie`     | `connect.sid` | The session cookie name Medusa issues                                                |
+| `cookies.session`          | `sid`         | The session cookie name on your storefront (the rename)                              |
+| `cookies.region`           | `region`      | Region cookie name                                                                   |
+| `cookies.country`          | `country`     | Country cookie name                                                                  |
+| `cookies.cart`             | `cartid`      | Cart id cookie name                                                                  |
+| `cookies.anonymousId`      | `aid`         | Stable anonymous-visitor id (the analytics `actor_id`)                               |
+| `affiliate.cookie`         | `aff`         | Affiliate-code cookie name                                                           |
+| `affiliate.maxAgeDays`     | `30`          | How long a captured affiliate code persists (sales cycle)                            |
+| `affiliate.basis`          | `last-click`  | `last-click` (overwrite on new code) or `first-touch` (keep first)                   |
+| `analytics.clientIpHeader` | _(auto)_      | Override the header the client IP is read from (auto-detects CF / `X-Forwarded-For`) |
+| `analytics.omitIp`         | `false`       | Store only the country and drop the raw IP (IP-restricted jurisdictions)             |
+| `transferCartOnLogin`      | `true`        | Transfer the anonymous cart to the customer on login                                 |
+| `debug`                    | `false`       | Enable SDK debug logging                                                             |
 
 ### The `sid` cookie rename
 
@@ -287,6 +287,7 @@ import { setTraits } from 'sveltekit-medusa-sdk/server'
 const country = getRequestEvent().request.headers.get('cf-ipcountry')
 if (country) await setTraits({ first_country: country }) // your own first-touch guard
 ```
+
 ```svelte
 <!-- browser -->
 <script lang="ts">
@@ -331,7 +332,7 @@ Need your own auth or rate-limiting around it? Call `forwardAnalytics(request)` 
 </script>
 ```
 
-Sales-channel attribution and event gating (rubrics) are handled backend-side by the analytics plugin. The framework-agnostic batcher, `createAnalyticsCollector`, is also re-exported if you want to drive it yourself.
+Sales-channel attribution and event gating (rubrics) are handled backend-side by the analytics plugin. The framework-agnostic batcher, `createCollector`, is also re-exported if you want to drive it yourself.
 
 ## Affiliate
 

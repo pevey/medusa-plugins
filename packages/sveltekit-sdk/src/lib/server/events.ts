@@ -70,7 +70,7 @@ function markIdentityRefreshed(): void {
  * Wire it up in a same-origin route the <Analytics> component points at:
  *
  * ```ts
- * // src/routes/api/analytics/+server.ts
+ * // src/routes/api/ping/+server.ts
  * export { analyticsPOST as POST } from 'sveltekit-medusa-sdk/server'
  * ```
  */

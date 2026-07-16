@@ -23,5 +23,11 @@ export default defineConfig({
 	// instance — otherwise `invalid()` thrown from the library isn't recognized
 	// by the app's form runtime (cross-realm `instanceof`). A real published
 	// consumer never installs the library's devDeps, so it wouldn't hit this.
-	resolve: { dedupe: ['@sveltejs/kit', 'svelte'] }
+	resolve: { dedupe: ['@sveltejs/kit', 'svelte'] },
+	optimizeDeps: {
+		exclude: ['sveltekit-medusa-sdk'] // don't prebundle to prevent SvelteKit from dropping the remote functions in installed packages
+	},
+	ssr: {
+		noExternal: ['sveltekit-medusa-sdk', 'cookie'] // treat the package as internal to the app so that $app/server can resolve
+	}
 })

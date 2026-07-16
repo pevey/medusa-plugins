@@ -2,7 +2,7 @@ import { form, command, getRequestEvent } from '$app/server'
 import * as v from 'valibot'
 import { createAuthClient, getClient, getConfig } from './internal/state'
 import { parseSetCookieSession } from './internal/session'
-import { stitchAnalyticsIdentity } from './server/analytics'
+import { stitchAnalyticsIdentity } from './server/events'
 import type { AuthResult } from './types'
 
 const credentialsSchema = v.object({

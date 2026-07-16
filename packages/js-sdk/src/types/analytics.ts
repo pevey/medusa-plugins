@@ -15,7 +15,7 @@ export interface CollectorConfig {
 	 * Same-origin URL the batched events are POSTed to (normal flush via fetch,
 	 * exit flush via sendBeacon). Point this at a storefront endpoint that
 	 * forwards to Medusa `/store/ping` with the publishable key. Default:
-	 * `/api/analytics`.
+	 * `/api/ping`.
 	 *
 	 * That endpoint is responsible for identity: it stamps `actor_id` from a
 	 * server-managed `anonymous_id` cookie (see the SvelteKit `forwardAnalytics`
