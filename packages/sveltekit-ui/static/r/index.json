@@ -1,0 +1,11 @@
+[
+	{
+		"name": "markdown",
+		"title": "Markdown",
+		"type": "registry:component",
+		"description": "Renders sanitized content HTML (e.g. body_html from the Medusa content plugin) in a shadcn-themed prose container with Shiki code styling.",
+		"dependencies": [],
+		"registryDependencies": [],
+		"relativeUrl": "markdown.json"
+	}
+]

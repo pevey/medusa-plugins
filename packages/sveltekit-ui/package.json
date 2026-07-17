@@ -1,0 +1,19 @@
+{
+	"name": "sveltekit-medusa-ui",
+	"version": "0.0.1",
+	"description": "Ready-made SvelteKit components for the Medusa plugin suite",
+	"author": "Lacey Pevey",
+	"license": "MIT",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"registry:build": "shadcn-svelte registry build",
+		"check": "svelte-check --tsconfig ./tsconfig.json"
+	},
+	"devDependencies": {
+		"shadcn-svelte": "^1.4.2",
+		"svelte": "^5.56.4",
+		"svelte-check": "^4.0.0",
+		"typescript": "^6.0.0"
+	}
+}

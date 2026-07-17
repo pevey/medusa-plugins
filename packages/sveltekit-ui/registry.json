@@ -1,0 +1,27 @@
+{
+	"$schema": "https://shadcn-svelte.com/schema/registry.json",
+	"name": "sveltekit-medusa-ui",
+	"homepage": "https://github.com/pevey/medusa-plugins",
+	"items": [
+		{
+			"name": "markdown",
+			"type": "registry:component",
+			"title": "Markdown",
+			"description": "Renders sanitized content HTML (e.g. body_html from the Medusa content plugin) in a shadcn-themed prose container with Shiki code styling.",
+			"dependencies": [],
+			"registryDependencies": [],
+			"files": [
+				{
+					"path": "src/lib/registry/markdown/markdown.svelte",
+					"type": "registry:component",
+					"target": "markdown/markdown.svelte"
+				},
+				{
+					"path": "src/lib/registry/markdown/markdown.css",
+					"type": "registry:file",
+					"target": "markdown/markdown.css"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,75 @@
+/* Prose + code styling for <Markdown>, themed via shadcn CSS variables so it
+   matches any shadcn-svelte project. Syntax-token colors come from the Shiki
+   dual theme emitted by the backend (--shiki-light / --shiki-dark); chrome maps
+   to shadcn tokens. Assumes Tailwind v4 shadcn tokens hold raw color values
+   (e.g. --foreground: oklch(...)). If the host stores hsl channels instead,
+   wrap the vars in hsl() below. */
+.markdown-prose {
+	color: var(--foreground);
+	line-height: 1.7;
+	font-size: 1rem;
+	max-width: none;
+}
+.markdown-prose :where(h1, h2, h3, h4, h5, h6) {
+	color: var(--foreground);
+	font-weight: 600;
+	line-height: 1.25;
+	margin: 1.5em 0 0.5em;
+}
+.markdown-prose h1 { font-size: 2em; }
+.markdown-prose h2 { font-size: 1.5em; }
+.markdown-prose h3 { font-size: 1.25em; }
+.markdown-prose p,
+.markdown-prose ul,
+.markdown-prose ol,
+.markdown-prose blockquote { margin: 1em 0; }
+.markdown-prose a {
+	color: var(--primary);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+.markdown-prose :where(ul, ol) { padding-left: 1.5em; }
+.markdown-prose ul { list-style: disc; }
+.markdown-prose ol { list-style: decimal; }
+.markdown-prose blockquote {
+	border-left: 3px solid var(--border);
+	padding-left: 1em;
+	color: var(--muted-foreground);
+}
+.markdown-prose hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
+.markdown-prose img { max-width: 100%; height: auto; border-radius: var(--radius, 0.5rem); }
+.markdown-prose :not(pre) > code {
+	background: var(--muted);
+	color: var(--foreground);
+	padding: 0.15em 0.35em;
+	border-radius: 0.3rem;
+	font-size: 0.9em;
+}
+.markdown-prose table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 1em 0;
+	font-size: 0.95em;
+}
+.markdown-prose :where(th, td) {
+	border: 1px solid var(--border);
+	padding: 0.5em 0.75em;
+	text-align: left;
+}
+.markdown-prose th { background: var(--muted); font-weight: 600; }
+
+/* Shiki: container is shadcn-themed; token colors come from the dual theme. */
+.markdown-prose pre.shiki {
+	background: var(--muted);
+	border: 1px solid var(--border);
+	border-radius: var(--radius, 0.5rem);
+	padding: 1em;
+	overflow-x: auto;
+	margin: 1em 0;
+}
+.markdown-prose pre.shiki code { font-size: 0.9em; }
+/* Light theme by default; flip to dark tokens under the host's .dark class
+   (shadcn dark mode toggles `.dark` on <html>). Plain CSS — this file is a
+   side-effect import, not compiled by Svelte, so no `:global()`. */
+.markdown-prose pre.shiki span { color: var(--shiki-light); }
+.dark .markdown-prose pre.shiki span { color: var(--shiki-dark); }

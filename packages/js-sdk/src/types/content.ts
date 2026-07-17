@@ -29,6 +29,7 @@ export interface ContentItem {
 	title: string
 	slug: string
 	body?: string
+	body_html?: string
 	format?: string
 	status: string
 	published_at?: string
@@ -60,6 +61,7 @@ export interface StoreContentListQuery {
 	limit?: number
 	offset?: number
 	fields?: string
+	render?: 'html'
 }
 
 export interface StoreContentCollectionListResponse {

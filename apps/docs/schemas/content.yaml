@@ -2494,6 +2494,13 @@ paths:
           required: false
           schema:
             type: string
+        - name: render
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - html
         - name: slug
           in: path
           required: true

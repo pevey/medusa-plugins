@@ -66,10 +66,16 @@ export const getContentItems = query(
 export const getContentItem = query(
 	v.object({
 		slug: v.pipe(v.string(), v.nonEmpty()),
-		itemSlug: v.pipe(v.string(), v.nonEmpty())
+		itemSlug: v.pipe(v.string(), v.nonEmpty()),
+		render: v.optional(v.picklist(['html']))
 	}),
-	async ({ slug, itemSlug }) => {
+	async ({ slug, itemSlug, render }) => {
 		const ctx = requestContext()
-		return ctx.client.store.content.retrieveItem(slug, itemSlug, {}, ctx.headers())
+		return ctx.client.store.content.retrieveItem(
+			slug,
+			itemSlug,
+			{ ...(render ? { render } : {}) },
+			ctx.headers()
+		)
 	}
 )
