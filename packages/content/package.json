@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-content",
-	"version": "0.2.4",
+	"version": "0.2.5",
 	"description": "Content management plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",
@@ -51,7 +51,16 @@
 	],
 	"dependencies": {
 		"@mdxeditor/editor": "3.54.0",
-		"multer": "1.4.5-lts.1"
+		"@shikijs/rehype": "^4.3.1",
+		"multer": "1.4.5-lts.1",
+		"rehype-sanitize": "^6.0.0",
+		"rehype-stringify": "^10.0.1",
+		"remark-gfm": "^4.0.1",
+		"remark-parse": "^11.0.0",
+		"remark-rehype": "^11.1.2",
+		"shiki": "^4.3.1",
+		"unified": "^11.0.5",
+		"unist-util-visit": "^5.1.0"
 	},
 	"scripts": {
 		"build": "medusa plugin:build",
@@ -60,7 +69,8 @@
 		"dev": "medusa plugin:develop",
 		"prepublishOnly": "medusa plugin:build",
 		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests",
-		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit"
+		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit",
+		"test:render": "medusa plugin:build && node integration-tests/render-smoke.mjs"
 	},
 	"devDependencies": {
 		"@medusajs/admin-sdk": "2.17.2",

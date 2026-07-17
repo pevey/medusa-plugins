@@ -91,7 +91,7 @@ export const CreateContentItemModal = ({ open, onOpenChange, contentCollection }
 				const url = result.files?.[0]?.url
 				if (!url) throw new Error('Upload returned no URL')
 				createItem(
-					{ title: data.title, slug: data.slug, content_collection_id: contentCollection.id, body: url },
+					{ title: data.title, slug: data.slug, body: url },
 					{
 						onSuccess: () => {
 							toast.success('Image uploaded')
@@ -113,7 +113,6 @@ export const CreateContentItemModal = ({ open, onOpenChange, contentCollection }
 				{
 					title: data.title,
 					slug: data.slug,
-					content_collection_id: contentCollection.id,
 					metadata: hasMetadataFields ? metadata : undefined
 				},
 				{

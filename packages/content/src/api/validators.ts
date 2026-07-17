@@ -268,5 +268,7 @@ export const StoreGetContentItems = createFindParams({ limit: 15, offset: 0 }).e
 })
 export type StoreGetContentItemsType = z.infer<typeof StoreGetContentItems>
 
-export const StoreGetContentItem = createFindParams()
+export const StoreGetContentItem = createFindParams().extend({
+	render: z.enum(['html']).optional()
+})
 export type StoreGetContentItemType = z.infer<typeof StoreGetContentItem>

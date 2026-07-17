@@ -27,10 +27,13 @@ import { sdk } from '../../../../../lib/sdk'
 type ContentItemLoaderData = { content_item: { id: string; title: string } }
 
 export async function loader({ params }: LoaderFunctionArgs) {
-	const { itemId } = params
-	return sdk.client.fetch<ContentItemLoaderData>(`/admin/content-items/${itemId}`, {
-		query: { fields: 'id,title' }
-	})
+	const { collectionId, itemId } = params
+	return sdk.client.fetch<ContentItemLoaderData>(
+		`/admin/content/${collectionId}/items/${itemId}`,
+		{
+			query: { fields: 'id,title' }
+		}
+	)
 }
 
 export const handle = {

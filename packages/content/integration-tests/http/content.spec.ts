@@ -1453,5 +1453,62 @@ medusaIntegrationTestRunner({
 				expect(res2.data).toEqual(res1.data)
 			})
 		})
+
+		// ── Public markdown rendering (opt-in wiring) ────────────────────────────
+		// The actual md→HTML render (remark/rehype/shiki — ESM-only) is verified in
+		// real Node by `yarn test:render`; Jest's experimental-vm-modules can't link
+		// the nested ESM tree. These cases cover the route wiring that does NOT invoke
+		// the renderer: the opt-out default, and the markdown-only format guard.
+		describe('Public — markdown rendering (opt-in wiring)', () => {
+			const ts = Date.now()
+			let mdCollectionId: string
+			let htmlCollectionId: string
+			let mdCollectionSlug: string
+			let htmlCollectionSlug: string
+			let mdItemSlug: string
+			let htmlItemSlug: string
+			const MD_BODY = '# Title\n\nHello **world**.'
+
+			beforeAll(async () => {
+				mdCollectionSlug = `md-wire-${ts}`
+				htmlCollectionSlug = `html-wire-${ts}`
+				mdItemSlug = `md-item-${ts}`
+				htmlItemSlug = `html-item-${ts}`
+				const [md, html] = await Promise.all([
+					api.post('/admin/content', { label: `MD ${ts}`, slug: mdCollectionSlug, format: 'md' }, auth()),
+					api.post('/admin/content', { label: `HTML ${ts}`, slug: htmlCollectionSlug, format: 'html' }, auth())
+				])
+				mdCollectionId = md.data.content_collection.id
+				htmlCollectionId = html.data.content_collection.id
+				await Promise.all([
+					api.post(`/admin/content/${mdCollectionId}/items`, { title: `MD ${ts}`, slug: mdItemSlug, body: MD_BODY, status: 'published' }, auth()),
+					api.post(`/admin/content/${htmlCollectionId}/items`, { title: `HTML ${ts}`, slug: htmlItemSlug, body: '<p>hi</p>', status: 'published' }, auth())
+				])
+				await seedSnapshot()
+			})
+
+			afterAll(async () => {
+				for (const cid of [mdCollectionId, htmlCollectionId]) {
+					const items = await api.get(`/admin/content/${cid}/items`, auth()).catch(() => null)
+					const ids = items?.data.content_items.map((i: any) => i.id) ?? []
+					if (ids.length) await api.delete(`/admin/content/${cid}/items`, { data: { ids }, ...auth() }).catch(() => {})
+				}
+				await api.delete('/admin/content', { data: { ids: [mdCollectionId, htmlCollectionId] }, ...auth() }).catch(() => {})
+			})
+
+			it('omits body_html when render is not requested', async () => {
+				const res = await api.get(`/content/${mdCollectionSlug}/items/${mdItemSlug}`)
+				expect(res.status).toBe(200)
+				expect(res.data.content_item.body).toBe(MD_BODY)
+				expect(res.data.content_item.body_html).toBeUndefined()
+			})
+
+			it('accepts ?render=html but does not render non-markdown formats (guard)', async () => {
+				const res = await api.get(`/content/${htmlCollectionSlug}/items/${htmlItemSlug}?render=html`)
+				expect(res.status).toBe(200) // param accepted (not 400)
+				expect(res.data.content_item.body).toBe('<p>hi</p>')
+				expect(res.data.content_item.body_html).toBeUndefined() // format guard: only md renders
+			})
+		})
 	}
 })
