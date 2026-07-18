@@ -1,0 +1,53 @@
+{
+	"name": "medusa-plugin-access",
+	"version": "0.1.0",
+	"files": [
+		".medusa/server"
+	],
+	"exports": {
+		"./package.json": "./package.json",
+		"./.medusa/server/src/modules/*": {
+			"types": "./.medusa/server/src/modules/*/index.d.ts",
+			"default": "./.medusa/server/src/modules/*/index.js"
+		},
+		"./modules/*": {
+			"types": "./.medusa/server/src/modules/*/index.d.ts",
+			"default": "./.medusa/server/src/modules/*/index.js"
+		},
+		"./utils/*": {
+			"types": "./.medusa/server/src/utils/*/index.d.ts",
+			"default": "./.medusa/server/src/utils/*/index.js"
+		},
+		"./*": {
+			"types": "./.medusa/server/src/*.d.ts",
+			"default": "./.medusa/server/src/*.js"
+		}
+	},
+	"scripts": {
+		"build": "medusa plugin:build",
+		"db:generate": "medusa plugin:db:generate && yarn build",
+		"clean:snapshots": "find . -name '.snapshot-*.json' -path '*/migrations/*' -delete",
+		"dev": "medusa plugin:develop",
+		"prepublishOnly": "medusa plugin:build",
+		"typecheck": "tsc --noEmit -p tsconfig.json",
+		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests"
+	},
+	"devDependencies": {
+		"@medusajs/cli": "2.17.2",
+		"@medusajs/framework": "2.17.2",
+		"@swc/core": "1.15.33",
+		"@swc/jest": "0.2.39",
+		"@types/jest": "30.0.0",
+		"@types/node": "20.0.0",
+		"jest": "29.7.0",
+		"ts-node": "10.9.2",
+		"typescript": "6.0.3"
+	},
+	"peerDependencies": {
+		"@medusajs/framework": "2.17.2",
+		"@medusajs/medusa": "2.17.2"
+	},
+	"engines": {
+		"node": ">=20"
+	}
+}

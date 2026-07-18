@@ -24492,6 +24492,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"medusa-plugin-access@workspace:packages/access":
+  version: 0.0.0-use.local
+  resolution: "medusa-plugin-access@workspace:packages/access"
+  dependencies:
+    "@medusajs/cli": "npm:2.17.2"
+    "@medusajs/framework": "npm:2.17.2"
+    "@swc/core": "npm:1.15.33"
+    "@swc/jest": "npm:0.2.39"
+    "@types/jest": "npm:30.0.0"
+    "@types/node": "npm:20.0.0"
+    jest: "npm:29.7.0"
+    ts-node: "npm:10.9.2"
+    typescript: "npm:6.0.3"
+  peerDependencies:
+    "@medusajs/framework": 2.17.2
+    "@medusajs/medusa": 2.17.2
+  languageName: unknown
+  linkType: soft
+
 "medusa-plugin-affiliates@workspace:*, medusa-plugin-affiliates@workspace:packages/affiliates":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-affiliates@workspace:packages/affiliates"

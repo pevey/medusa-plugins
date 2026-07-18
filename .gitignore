@@ -13,6 +13,7 @@ yarn-error.log
 /docs
 .idea
 .claude
+.superpowers
 CLAUDE.md
 
 coverage
