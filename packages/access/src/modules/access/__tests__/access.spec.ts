@@ -49,10 +49,10 @@ moduleIntegrationTestRunner<IAccessModuleService>({
       it("creates a role and a policy and links them", async () => {
         const role = await service.createAccessRoles({ name: "Editor" })
         const policy = await service.createAccessPolicies({
-          key: "product:read",
-          resource: "product",
+          key: "widget:read",
+          resource: "widget",
           operation: "read",
-          name: "ReadProduct",
+          name: "ReadWidget",
         })
         await service.createAccessRolePolicies({
           role_id: role.id,
@@ -60,7 +60,7 @@ moduleIntegrationTestRunner<IAccessModuleService>({
         })
 
         const forRole = await service.listPoliciesForRole(role.id)
-        expect(forRole.map((p: any) => p.key)).toContain("product:read")
+        expect(forRole.map((p: any) => p.key)).toContain("widget:read")
       })
 
       it("rejects a self-parent and a cycle", async () => {

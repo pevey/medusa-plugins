@@ -27,6 +27,7 @@ import {
   AccessRolePolicy,
 } from "../models"
 import { AccessRepository } from "../repositories"
+import { bootstrapSuperAdminWorkflow } from "../../../workflows/access/workflows/bootstrap-super-admin"
 
 type InjectedDependencies = {
   accessRepository: AccessRepository
@@ -80,6 +81,17 @@ export default class AccessModuleService
   __hooks = {
     onApplicationStart: async () => {
       await this.syncRegisteredPolicies()
+
+      // First-load bootstrap: grant super-admin to existing users so installing
+      // the plugin (which gates the whole admin) does not lock out the operator.
+      // Runs the workflow WITHOUT a container so its steps resolve sibling
+      // modules (user, query, link) from the global registry. Best-effort:
+      // in isolated contexts (e.g. the module test runner) this is skipped.
+      try {
+        await bootstrapSuperAdminWorkflow().run({})
+      } catch {
+        // no-op: bootstrap requires the full app (user module + links)
+      }
     },
   }
 
