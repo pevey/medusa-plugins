@@ -26,6 +26,55 @@ import {
 	AdminUpdateComplaintNote
 } from './validators'
 
+// Optional integration with medusa-plugin-access. When that plugin is
+// installed we (1) declare the `complaint` resource's policies so they become
+// assignable in the roles UI, and (2) gate the complaints admin routes behind
+// the matching permission — the access plugin's global /admin/* guard enforces
+// them. When the plugin is NOT installed, the require throws and we no-op: the
+// complaints routes stay ungated. This keeps access as a soft dependency (no
+// entry in package.json, no error when absent).
+try {
+	// `typeof import(...)` is a type-only import: it gives us full typings for
+	// the access utils (so these calls are type-checked) but is erased at
+	// compile time, so it adds no runtime dependency. medusa-plugin-access is
+	// declared only as an OPTIONAL peer dependency.
+	const {
+		definePolicies,
+		generateResourcePolicies,
+		requirePolicies
+	} = require('medusa-plugin-access') as typeof import('medusa-plugin-access')
+
+	definePolicies(generateResourcePolicies(['complaint']))
+
+	requirePolicies({
+		method: ['GET'],
+		matcher: '/admin/complaints',
+		policies: [{ resource: 'complaint', operation: 'read' }]
+	})
+	requirePolicies({
+		method: ['GET'],
+		matcher: '/admin/complaints/:id',
+		policies: [{ resource: 'complaint', operation: 'read' }]
+	})
+	requirePolicies({
+		method: ['POST'],
+		matcher: '/admin/complaints',
+		policies: [{ resource: 'complaint', operation: 'create' }]
+	})
+	requirePolicies({
+		method: ['POST'],
+		matcher: '/admin/complaints/:id',
+		policies: [{ resource: 'complaint', operation: 'update' }]
+	})
+	requirePolicies({
+		method: ['DELETE'],
+		matcher: '/admin/complaints',
+		policies: [{ resource: 'complaint', operation: 'delete' }]
+	})
+} catch {
+	// medusa-plugin-access not installed — complaints routes remain ungated.
+}
+
 const COMPLAINT_DOCUMENT_ALLOWED_MIME_TYPES = new Set([
 	'application/pdf',
 	'text/plain',

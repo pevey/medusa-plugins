@@ -68,18 +68,18 @@
 		"@medusajs/types": "^2.17.2",
 		"@pevey/medusa-sdk": "workspace:*",
 		"cookie": "^1.0.0",
-		"valibot": "^1.0.0"
+		"valibot": "^1.4.2"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "8.0.0-next.1",
-		"@sveltejs/kit": "3.0.0-next.8",
-		"@sveltejs/package": "3.0.0-next.2",
-		"@sveltejs/vite-plugin-svelte": "^7.0.0",
+		"@sveltejs/kit": "3.0.0-next.10",
+		"@sveltejs/package": "3.0.0-next.3",
+		"@sveltejs/vite-plugin-svelte": "^7.2.0",
 		"publint": "^0.3.0",
-		"svelte": "^5.56.4",
-		"svelte-check": "^4.0.0",
-		"typescript": "^6.0.0",
-		"vite": "^8.0.0",
-		"vitest": "^4.0.0"
+		"svelte": "^5.56.6",
+		"svelte-check": "^4.7.3",
+		"typescript": "^6.0.3",
+		"vite": "^8.1.5",
+		"vitest": "^4.1.10"
 	}
 }

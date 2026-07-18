@@ -1,8 +1,8 @@
-import tailwindcss from '@tailwindcss/vite';
-import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
-import adapter from '@sveltejs/adapter-auto';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import tailwindcss from '@tailwindcss/vite'
+import { sveltekit } from '@sveltejs/kit/vite'
+import { defineConfig } from 'vite'
+import adapter from '@sveltejs/adapter-auto'
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
 
 // kit 3.0.0-next: config is passed (flattened) to the `sveltekit(...)` plugin —
 // there is no `svelte.config.js` and no `kit:` wrapper.
@@ -14,6 +14,10 @@ export default defineConfig({
 			compilerOptions: { experimental: { async: true } },
 			adapter: adapter(),
 			experimental: { remoteFunctions: true },
+			alias: {
+				'$src/*': 'src/*',
+				$lib: 'src/lib'
+			},
 			// This is a reference/dev app; a prerender function (e.g. getRegions) that can't
 			// reach the backend at build time should warn, not fail the build (so it never
 			// blocks publishing the package).
@@ -33,4 +37,4 @@ export default defineConfig({
 	ssr: {
 		noExternal: ['sveltekit-medusa-sdk', 'cookie'] // treat the package as internal to the app so that $app/server can resolve
 	}
-});
+})

@@ -1,4 +1,4 @@
-import { defineEnvVars } from '@sveltejs/kit/hooks'
+import { defineEnvVars } from '@sveltejs/kit/env'
 import * as v from 'valibot'
 
 // SvelteKit 3 replaced `$env/*` with explicit environment variables. Every var

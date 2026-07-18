@@ -12,8 +12,8 @@
 	},
 	"devDependencies": {
 		"shadcn-svelte": "^1.4.2",
-		"svelte": "^5.56.4",
-		"svelte-check": "^4.0.0",
-		"typescript": "^6.0.0"
+		"svelte": "^5.56.6",
+		"svelte-check": "^4.7.3",
+		"typescript": "^6.0.3"
 	}
 }

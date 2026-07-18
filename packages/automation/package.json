@@ -53,7 +53,7 @@
 	],
 	"dependencies": {
 		"ipaddr.js": "2.2.0",
-		"undici": "6.21.1"
+		"undici": "6.27.0"
 	},
 	"scripts": {
 		"build": "medusa plugin:build",
@@ -82,7 +82,7 @@
 		"react-dom": "18.3.1",
 		"ts-node": "10.9.2",
 		"typescript": "6.0.3",
-		"vite": "8.0.8",
+		"vite": "8.1.5",
 		"yalc": "1.0.0-pre.53"
 	},
 	"peerDependencies": {

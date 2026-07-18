@@ -261,6 +261,10 @@ module.exports = defineConfig({
 	],
 	plugins: [
 		{
+			resolve: 'medusa-plugin-access',
+			options: {}
+		},
+		{
 			resolve: 'medusa-plugin-affiliates',
 			options: {
 				payoutBasis: 'placed',

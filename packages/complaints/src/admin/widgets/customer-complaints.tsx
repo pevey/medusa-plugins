@@ -13,6 +13,31 @@ export const config = defineWidgetConfig({
 const CustomerComplaintsWidget = ({ data: customer }: DetailWidgetProps<AdminCustomer>) => {
 	const navigate = useNavigate()
 
+	// Optional integration with medusa-plugin-access. This endpoint only exists
+	// when the access plugin is installed; if it isn't, the request 404s and we
+	// treat that as "no access control" (render for everyone). When it IS
+	// installed, we gate this widget on the `complaint:read` permission.
+	const { data: access, isLoading: accessLoading } = useQuery({
+		queryFn: async (): Promise<{ permissions: string[] } | null> => {
+			try {
+				return await sdk.client.fetch<{ permissions: string[] }>(
+					'/admin/access/me/permissions'
+				)
+			} catch {
+				return null
+			}
+		},
+		queryKey: ['access', 'me', 'permissions'],
+		retry: false,
+		staleTime: 5 * 60 * 1000
+	})
+
+	// access === null → plugin not installed → don't gate.
+	// access present  → require complaint:read.
+	const accessInstalled = !!access
+	const canReadComplaints =
+		!accessInstalled || !!access?.permissions?.includes('complaint:read')
+
 	const { data, isLoading } = useQuery<AdminComplaintsResponse>({
 		queryFn: () =>
 			sdk.client.fetch(`/admin/complaints`, {
@@ -22,8 +47,21 @@ const CustomerComplaintsWidget = ({ data: customer }: DetailWidgetProps<AdminCus
 					limit: 10
 				}
 			}),
-		queryKey: ['complaints', 'customer', customer.id]
+		queryKey: ['complaints', 'customer', customer.id],
+		// Wait for the access check, and skip the (guarded) request entirely when
+		// the user lacks permission — avoids firing a doomed 403.
+		enabled: !accessLoading && canReadComplaints
 	})
+
+	// Still resolving the permission check → render nothing yet.
+	if (accessLoading) {
+		return null
+	}
+
+	// Access plugin installed and the user can't read complaints → hide widget.
+	if (accessInstalled && !canReadComplaints) {
+		return null
+	}
 
 	const complaints = data?.complaints ?? []
 
