@@ -6,7 +6,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/pevey/medusa-plugins"
+		"url": "git+https://github.com/pevey/medusa-plugins"
 	},
 	"homepage": "https://pevey.com/medusa-plugin-search",
 	"files": [

@@ -4,7 +4,7 @@
 	"description": "SvelteKit components for rendering forms and validating form submissions that include cloudflare turnstile tokens for enhanced security",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/pevey/sveltekit-turnstile"
+		"url": "git+https://github.com/pevey/sveltekit-turnstile"
 	},
 	"homepage": "https://pevey.com/sveltekit-turnstile",
 	"author": "Lacey Pevey",

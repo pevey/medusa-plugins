@@ -4,7 +4,7 @@
 	"description": "A barebones SvelteKit implementation for concisely rendering Stripe Elements. Gets the job done with as little complexity as possible.",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/pevey/sveltekit-stripe"
+		"url": "git+https://github.com/pevey/sveltekit-stripe"
 	},
 	"homepage": "https://pevey.com/sveltekit-stripe",
 	"author": "Lacey Pevey",
