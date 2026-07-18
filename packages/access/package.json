@@ -14,9 +14,13 @@
 			"types": "./.medusa/server/src/modules/*/index.d.ts",
 			"default": "./.medusa/server/src/modules/*/index.js"
 		},
+		"./utils": {
+			"types": "./.medusa/server/src/utils/index.d.ts",
+			"default": "./.medusa/server/src/utils/index.js"
+		},
 		"./utils/*": {
-			"types": "./.medusa/server/src/utils/*/index.d.ts",
-			"default": "./.medusa/server/src/utils/*/index.js"
+			"types": "./.medusa/server/src/utils/*.d.ts",
+			"default": "./.medusa/server/src/utils/*.js"
 		},
 		"./*": {
 			"types": "./.medusa/server/src/*.d.ts",

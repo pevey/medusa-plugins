@@ -4,7 +4,7 @@ import {
   ModulesSdkTypes,
 } from "@medusajs/framework/types"
 import { AccessPolicy, AccessRole, AccessRolePolicy } from "../models"
-import { WILDCARD } from "../../../utils/policies"
+import { WILDCARD } from "../../../utils"
 
 export default async ({
   container,

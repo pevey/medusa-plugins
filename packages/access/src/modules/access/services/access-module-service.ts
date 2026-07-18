@@ -11,7 +11,7 @@ import {
   MedusaService,
   promiseAll,
 } from "@medusajs/framework/utils"
-import { Policy, WILDCARD } from "../../../utils/policies"
+import { Policy, WILDCARD } from "../../../utils"
 import {
   AccessRoleDTO,
   CreateAccessRoleParentDTO,
