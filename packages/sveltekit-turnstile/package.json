@@ -1,0 +1,67 @@
+{
+	"name": "sveltekit-turnstile",
+	"version": "2.0.2",
+	"description": "SvelteKit components for rendering forms and validating form submissions that include cloudflare turnstile tokens for enhanced security",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/pevey/sveltekit-turnstile"
+	},
+	"homepage": "https://pevey.com/sveltekit-turnstile",
+	"author": "Lacey Pevey",
+	"license": "MIT",
+	"keywords": [
+		"svelte",
+		"sveltekit",
+		"cloudflare",
+		"turnstile",
+		"form",
+		"validation",
+		"security"
+	],
+	"type": "module",
+	"files": [
+		"dist",
+		"!dist/**/*.test.*",
+		"!dist/**/*.spec.*"
+	],
+	"sideEffects": [
+		"**/*.css"
+	],
+	"svelte": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"svelte": "./dist/index.js"
+		},
+		"./Turnstile.svelte": {
+			"types": "./dist/Turnstile.svelte.d.ts",
+			"svelte": "./dist/Turnstile.svelte"
+		},
+		"./validateToken": {
+			"types": "./dist/validateToken.d.ts",
+			"svelte": "./dist/validateToken.js"
+		}
+	},
+	"scripts": {
+		"build": "svelte-kit sync && svelte-package && publint",
+		"prepublishOnly": "npm run build",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"lint": "svelte-check --tsconfig ./tsconfig.json"
+	},
+	"peerDependencies": {
+		"@sveltejs/kit": "^2.22.0 || ^3.0.0-next.0",
+		"svelte": "^5.36.0"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "8.0.0-next.1",
+		"@sveltejs/kit": "3.0.0-next.10",
+		"@sveltejs/package": "3.0.0-next.3",
+		"@sveltejs/vite-plugin-svelte": "^7.2.0",
+		"publint": "^0.3.0",
+		"svelte": "^5.56.6",
+		"svelte-check": "^4.7.3",
+		"typescript": "^6.0.3",
+		"vite": "^8.1.5"
+	}
+}
