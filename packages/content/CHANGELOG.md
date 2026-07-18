@@ -1,7 +1,7 @@
 ## 0.2.5
 
 - Add option to prerender markdown format content items as html by appending the query param ?render-html
-- Fix major admin UI bug introducted in 0.2.2 that caused posting from the create-content-item-modal to fail because it was sending a redundant field that caused validation to reject
+- Fix major admin UI bug introduced in 0.2.2 that caused posting from the create-content-item-modal to fail because it was sending a redundant field that caused validation to reject
 
 ## 0.2.4
 
