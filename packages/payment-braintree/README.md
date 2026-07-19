@@ -15,6 +15,7 @@ If you are not familiar with Medusa, you can learn more on [the project web site
 - Supports optional **3D Secure** (`enable3DSecure`), **vaulted payment methods** (`savePaymentMethod`), and **auto-capture** (`autoCapture`).
 - Per-customer **client-token caching** via Medusa's Caching module.
 - **Webhook handling** for Braintree settlement events.
+- **Line item data** and shipping/tax/discount amounts flow through to Braintree, giving B2B customers who use commercial cards much richer data for easier record-keeping.
 
 ## Why this provider
 
@@ -57,7 +58,6 @@ module.exports = defineConfig({
 							merchantId: process.env.BRAINTREE_MERCHANT_ID,
 							publicKey: process.env.BRAINTREE_PUBLIC_KEY,
 							privateKey: process.env.BRAINTREE_PRIVATE_KEY,
-							webhookSecret: process.env.BRAINTREE_WEBHOOK_SECRET,
 							enable3DSecure: process.env.BRAINTREE_ENABLE_3D_SECURE === 'true',
 							savePaymentMethod: true,
 							autoCapture: true
@@ -75,16 +75,16 @@ With `id: 'braintree'`, the provider is addressed from the storefront as **`pp_b
 
 ### Options
 
-| Option              | Type                                                 | Default    | Description                                                                         |
-| ------------------- | ---------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------- |
-| `environment`       | `'production' \| 'sandbox' \| 'development' \| 'qa'` | _required_ | Braintree environment. An unknown value falls back to Sandbox.                      |
-| `merchantId`        | `string`                                             | _required_ | Braintree merchant ID.                                                              |
-| `publicKey`         | `string`                                             | _required_ | Braintree public key.                                                               |
-| `privateKey`        | `string`                                             | _required_ | Braintree private key.                                                              |
-| `webhookSecret`     | `string`                                             | _required_ | Required at startup; webhook payloads are verified with Braintree's own signature.  |
-| `enable3DSecure`    | `boolean`                                            | `false`    | Require 3D Secure on the transaction (`options.threeDSecure.required`).             |
-| `savePaymentMethod` | `boolean`                                            | `false`    | Vault the payment method on success (`storeInVault`).                               |
-| `autoCapture`       | `boolean`                                            | `false`    | Submit for settlement immediately (capture on authorize) instead of authorize-only. |
+| Option              | Type                                                 | Default    | Description                                                                                        |
+| ------------------- | ---------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------- |
+| `environment`       | `'production' \| 'sandbox' \| 'development' \| 'qa'` | _required_ | Braintree environment. An unknown value falls back to Sandbox.                                     |
+| `merchantId`        | `string`                                             | _required_ | Braintree merchant ID.                                                                             |
+| `publicKey`         | `string`                                             | _required_ | Braintree public key.                                                                              |
+| `privateKey`        | `string`                                             | _required_ | Braintree private key.                                                                             |
+| `merchantAccountId` | `string`                                             | optional   | Braintree sub-merchant-account id — e.g. a per-currency account. Omit to use your account default. |
+| `enable3DSecure`    | `boolean`                                            | `false`    | Require 3D Secure on the transaction (`options.threeDSecure.required`).                            |
+| `savePaymentMethod` | `boolean`                                            | `false`    | Vault the payment method on success (`storeInVault`).                                              |
+| `autoCapture`       | `boolean`                                            | `false`    | Submit for settlement immediately (capture on authorize) instead of authorize-only.                |
 
 Enable the provider for the relevant region(s) in the Medusa admin under **Settings → Regions**.
 
@@ -142,15 +142,14 @@ await fetch(`/store/payment-collections/${collectionId}/payment-sessions`, {
 					postalCode,
 					countryCodeAlpha2
 				},
-				deviceData,
-				customFields: { medusa_payment_session_id: sessionId }
+				deviceData
 			}
 		}
 	})
 })
 ```
 
-**4. Complete the cart.** The provider runs `transaction.sale` with the nonce, `deviceData`, `billing`, `shipping`, `customer`, and `customFields`:
+**4. Complete the cart.** The provider runs `transaction.sale` with the nonce, `deviceData`, `billing`, `shipping`, and `customer`:
 
 ```ts
 await sdk.store.cart.complete(cart.id)
@@ -162,7 +161,31 @@ Notes:
 - **`customer` requires** `firstName`, `lastName`, and `email` (plus optional `phone`).
 - **`billing` / `shipping` require** `firstName`, `lastName`, `streetAddress`, `locality`, `region`, `postalCode`, and `countryCodeAlpha2` (with optional `extendedAddress`).
 - **`deviceData`** is Braintree's fraud/Kount data collector output and is sent as the transaction's top-level `deviceData`.
-- **Webhook correlation:** include `medusa_payment_session_id` in `customFields` (as above) so settlement webhooks can be matched back to the Medusa payment session.
+- **Level 2/3 data (optional):** include Braintree-shaped `lineItems` plus `shippingAmount` / `taxAmount` / `shippingTaxAmount` / `discountAmount` (amount strings) in `data.context` to pass line-item and tax detail — this can lower interchange on commercial/B2B cards.
+- **Webhook correlation is automatic** — the provider stamps the Medusa payment session id into Braintree's `orderId`, so settlement webhooks are matched back to the session with no storefront action or Braintree dashboard setup.
+
+## Custom fields
+
+Braintree custom fields let you attach your own metadata (a CRM id, a campaign code, etc.) to a transaction so it appears in Braintree reporting and webhooks. They are **not** required for Medusa webhook correlation — the provider handles that automatically via the transaction's `orderId`.
+
+**1. Register each field in the Braintree control panel first.** Under **Settings → Processing → Custom Fields**, add a field with an **API name** (for example `crm_id`) and a display name. Braintree **rejects any transaction that includes a custom-field key you have not registered**, so this step is required before you send one.
+
+**2. Send them from the storefront** in the payment session under `data.context.customFields`, as a flat map of `apiName` → string value (Braintree stores every custom-field value as a string):
+
+```ts
+data: {
+	payment_method_nonce: nonce,
+	context: {
+		// ...customer, billing, shipping, deviceData...
+		customFields: {
+			crm_id: '12345',
+			campaign: 'spring-sale'
+		}
+	}
+}
+```
+
+Send them in the same request that attaches the nonce and addresses (step 3 of [Storefront usage](#storefront-usage)); they are forwarded to `transaction.sale`. Keys must exactly match the API names you registered, and every value must be a string.
 
 ## Webhooks
 

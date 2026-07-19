@@ -28,7 +28,6 @@ const defaultOptions: BraintreeOptions = {
 	merchantId: 'test-merchant',
 	publicKey: 'test-public',
 	privateKey: 'test-private',
-	webhookSecret: 'test-secret',
 	enable3DSecure: false,
 	savePaymentMethod: false,
 	autoCapture: false

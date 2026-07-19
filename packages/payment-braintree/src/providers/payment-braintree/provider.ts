@@ -47,7 +47,7 @@ import type { Transaction, TransactionNotification, TransactionStatus } from 'br
 import Braintree from 'braintree'
 import { z } from 'zod'
 import { formatToTwoDecimalString } from './utils'
-import type { BraintreeOptions, CustomFields } from './types'
+import type { BraintreeOptions } from './types'
 
 export type BraintreeTransactionContext = PaymentProviderContext &
 	Pick<
@@ -55,7 +55,6 @@ export type BraintreeTransactionContext = PaymentProviderContext &
 		| 'billing'
 		| 'shipping'
 		| 'customFields'
-		| 'orderId'
 		| 'lineItems'
 		| 'shippingAmount'
 		| 'taxAmount'
@@ -72,6 +71,7 @@ export interface BraintreePaymentSessionData {
 	currency_code: string
 	payment_method_nonce?: string
 	account_holder?: PaymentAccountHolderDTO
+	session_id?: string
 	context?: BraintreeTransactionContext
 }
 
@@ -188,6 +188,7 @@ export class BraintreeProvider extends AbstractPaymentProvider<BraintreeOptions>
 			client_token: z.string().optional(),
 			amount: z.number().optional(),
 			currency_code: z.string().optional(),
+			session_id: z.string().optional(),
 			paymentMethodNonce: z.string().optional(),
 			payment_method_nonce: z.string().optional(),
 			braintreeTransaction: z.any().optional(),
@@ -195,7 +196,6 @@ export class BraintreeProvider extends AbstractPaymentProvider<BraintreeOptions>
 			account_holder: z.any().optional(),
 			context: z
 				.object({
-					orderId: z.string().optional(),
 					customerId: z.string().optional(),
 					customer: z
 						.object({
@@ -230,7 +230,12 @@ export class BraintreeProvider extends AbstractPaymentProvider<BraintreeOptions>
 						})
 						.optional(),
 					deviceData: z.string().optional(),
-					customFields: z.any().optional()
+					customFields: z.any().optional(),
+					lineItems: z.array(z.any()).optional(),
+					shippingAmount: z.string().optional(),
+					taxAmount: z.string().optional(),
+					shippingTaxAmount: z.string().optional(),
+					discountAmount: z.string().optional()
 				})
 				.optional()
 		})
@@ -273,7 +278,6 @@ export class BraintreeProvider extends AbstractPaymentProvider<BraintreeOptions>
 			'merchantId',
 			'publicKey',
 			'privateKey',
-			'webhookSecret',
 			'environment'
 		]
 
@@ -297,13 +301,11 @@ export class BraintreeProvider extends AbstractPaymentProvider<BraintreeOptions>
 		options.enable3DSecure = options.enable3DSecure ?? false
 		options.savePaymentMethod = options.savePaymentMethod ?? false
 		options.autoCapture = options.autoCapture ?? false
-		options.allowRefundOnRefunded = options.allowRefundOnRefunded ?? false
 
 		const booleanFields: (keyof BraintreeOptions)[] = [
 			'enable3DSecure',
 			'savePaymentMethod',
-			'autoCapture',
-			'allowRefundOnRefunded'
+			'autoCapture'
 		]
 		for (const field of booleanFields) {
 			if (isDefined(options[field]) && typeof options[field] !== 'boolean') {
@@ -548,7 +550,8 @@ export class BraintreeProvider extends AbstractPaymentProvider<BraintreeOptions>
 			payment_method_nonce: data?.payment_method_nonce as string,
 			amount: Number(input.amount),
 			currency_code: input.currency_code,
-			account_holder: input.context?.account_holder
+			account_holder: input.context?.account_holder,
+			session_id: paymentSessionId
 		}
 
 		return {
@@ -583,12 +586,29 @@ export class BraintreeProvider extends AbstractPaymentProvider<BraintreeOptions>
 			}
 		}
 
-		if (context?.orderId) transactionRequest.orderId = context.orderId
+		if (this.options_.merchantAccountId)
+			transactionRequest.merchantAccountId = this.options_.merchantAccountId
+
+		// Stamp the Medusa payment session id into Braintree's built-in orderId field so
+		// settlement webhooks can be correlated back to the session — no dashboard
+		// custom-field setup needed. (The Medusa order does not exist yet at sale time.)
+		const sessionId = sessionData.session_id ?? input.context?.idempotency_key
+		if (sessionId) transactionRequest.orderId = sessionId
+
 		if (context?.customer) transactionRequest.customer = context.customer
 		if (context?.shipping) transactionRequest.shipping = context.shipping
 		if (context?.billing) transactionRequest.billing = context.billing
 		if (context?.deviceData) transactionRequest.deviceData = context.deviceData
 		if (context?.customFields) transactionRequest.customFields = context.customFields
+
+		// Level 2/3 processing data (can lower interchange on commercial/B2B cards) when
+		// the storefront supplies Braintree-shaped line items and amount strings.
+		if (context?.lineItems) transactionRequest.lineItems = context.lineItems
+		if (context?.shippingAmount) transactionRequest.shippingAmount = context.shippingAmount
+		if (context?.taxAmount) transactionRequest.taxAmount = context.taxAmount
+		if (context?.shippingTaxAmount)
+			transactionRequest.shippingTaxAmount = context.shippingTaxAmount
+		if (context?.discountAmount) transactionRequest.discountAmount = context.discountAmount
 
 		try {
 			const saleResponse = await this.gateway.transaction.sale(transactionRequest)
@@ -934,14 +954,14 @@ export class BraintreeProvider extends AbstractPaymentProvider<BraintreeOptions>
 
 		const paymentData = await this.gateway.transaction.find(notification.transaction.id)
 
-		const customFields = paymentData.customFields as CustomFields
+		const sessionId = paymentData.orderId ?? ''
 
 		switch (notification.kind) {
 			case 'transaction_settled':
 				return {
 					action: PaymentActions.SUCCESSFUL,
 					data: {
-						session_id: customFields.medusa_payment_session_id ?? '',
+						session_id: sessionId,
 						amount: paymentData.amount
 					}
 				}
@@ -950,7 +970,7 @@ export class BraintreeProvider extends AbstractPaymentProvider<BraintreeOptions>
 				return {
 					action: PaymentActions.FAILED,
 					data: {
-						session_id: customFields.medusa_payment_session_id ?? '',
+						session_id: sessionId,
 						amount: paymentData.amount
 					}
 				}

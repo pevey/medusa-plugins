@@ -3,12 +3,11 @@ export interface BraintreeOptions {
 	merchantId: string
 	publicKey: string
 	privateKey: string
-	webhookSecret: string
 	enable3DSecure: boolean
 	savePaymentMethod: boolean
 	autoCapture: boolean
-	defaultCurrencyCode?: string
-	allowRefundOnRefunded?: boolean
+	/** Optional Braintree sub-merchant-account id — e.g. a per-currency account. */
+	merchantAccountId?: string
 }
 
 // Flexible map of custom fields returned by Braintree.

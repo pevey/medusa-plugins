@@ -220,11 +220,9 @@ module.exports = defineConfig({
 							environment:
 								process.env.BRAINTREE_ENVIRONMENT ||
 								(process.env.NODE_ENV !== 'production' ? 'sandbox' : 'production'),
-							defaultCurrencyCode: 'USD',
 							merchantId: process.env.BRAINTREE_MERCHANT_ID,
 							publicKey: process.env.BRAINTREE_PUBLIC_KEY,
 							privateKey: process.env.BRAINTREE_PRIVATE_KEY,
-							webhookSecret: process.env.BRAINTREE_WEBHOOK_SECRET,
 							enable3DSecure: process.env.BRAINTREE_ENABLE_3D_SECURE === 'true',
 							savePaymentMethod: true, // Save payment methods for future use
 							autoCapture: true // Automatically capture payments
