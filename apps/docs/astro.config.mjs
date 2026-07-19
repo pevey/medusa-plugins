@@ -39,7 +39,7 @@ export default defineConfig({
 			plugins: [starlightOpenAPI(apiPluginConfigs), starlightLlmsTxt()],
 			sidebar: [
 				{
-					label: 'medusa-js-sdk',
+					label: 'Medusa SDK',
 					items: [{ label: 'Overview', slug: 'medusa-js-sdk' }]
 				},
 				...plugins.map(p => buildPluginSidebar(p)),
@@ -47,6 +47,7 @@ export default defineConfig({
 					label: 'SvelteKit Packages',
 					items: [
 						{ label: 'sveltekit-medusa-sdk', slug: 'sveltekit-medusa-sdk' },
+						{ label: 'sveltekit-medusa-ui', slug: 'sveltekit-medusa-ui' },
 						{ label: 'sveltekit-stripe', slug: 'sveltekit-stripe' },
 						{ label: 'sveltekit-superfetch', slug: 'sveltekit-superfetch' },
 						{ label: 'sveltekit-turnstile', slug: 'sveltekit-turnstile' }

@@ -38,8 +38,9 @@ export const plugins = [
 // Non-plugin docs packages that are also README-driven. Their sidebar groups are
 // declared directly in astro.config.mjs; this list only feeds sync-readmes.mjs.
 export const otherReadmePackages = [
-	{ slug: 'medusa-js-sdk', label: 'medusa-js-sdk', dir: 'js-sdk' },
+	{ slug: 'medusa-js-sdk', label: 'Medusa SDK', dir: 'js-sdk' },
 	{ slug: 'sveltekit-medusa-sdk', label: 'sveltekit-medusa-sdk', dir: 'sveltekit-sdk' },
+	{ slug: 'sveltekit-medusa-ui', label: 'sveltekit-medusa-ui', dir: 'sveltekit-ui' },
 	{ slug: 'sveltekit-stripe', label: 'sveltekit-stripe', dir: 'sveltekit-stripe' },
 	{ slug: 'sveltekit-turnstile', label: 'sveltekit-turnstile', dir: 'sveltekit-turnstile' }
 ]
