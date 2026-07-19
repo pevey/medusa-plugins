@@ -1,4 +1,4 @@
-import Medusa from '@pevey/medusa-sdk'
+import Medusa from 'medusa-js-sdk'
 import { resolveConfig } from './config'
 import type { MedusaHandleConfig, ResolvedConfig } from '../types'
 

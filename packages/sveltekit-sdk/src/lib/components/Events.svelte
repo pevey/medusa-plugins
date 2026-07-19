@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/env'
-	import { createCollector } from '@pevey/medusa-sdk'
+	import { createCollector } from 'medusa-js-sdk'
 	import { setCollector, clearCollector } from '../internal/events-singleton'
 
 	interface Props {

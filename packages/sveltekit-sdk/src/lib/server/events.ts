@@ -2,7 +2,7 @@
 // guard throws on client import).
 import { getRequestEvent } from '$app/server'
 import type { RequestEvent } from '@sveltejs/kit'
-import type { AnalyticsEvent } from '@pevey/medusa-sdk'
+import type { AnalyticsEvent } from 'medusa-js-sdk'
 import { getClient, getConfig } from '../internal/state'
 
 // Throttle cookie for the per-session identity refresh (person-per-visitor).

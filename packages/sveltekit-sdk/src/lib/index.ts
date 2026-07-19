@@ -90,8 +90,8 @@ export {
 // (Server-side beacon forwarder lives at `sveltekit-medusa-sdk/server`.)
 export { default as Analytics } from './components/Events.svelte'
 export { track, setTraits } from './events'
-export { createCollector } from '@pevey/medusa-sdk'
-export type { Collector } from '@pevey/medusa-sdk'
+export { createCollector } from 'medusa-js-sdk'
+export type { Collector } from 'medusa-js-sdk'
 
 // Affiliate — layout component that captures the affiliate code from the URL.
 export { default as Affiliate } from './components/Affiliate.svelte'

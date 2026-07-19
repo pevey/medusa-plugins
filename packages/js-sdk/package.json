@@ -1,5 +1,5 @@
 {
-	"name": "@pevey/medusa-sdk",
+	"name": "medusa-js-sdk",
 	"version": "2.17.2-f",
 	"description": "Extended Medusa JS SDK with custom plugin support",
 	"author": "Lacey Pevey",
@@ -8,7 +8,7 @@
 		"type": "git",
 		"url": "git+https://github.com/pevey/medusa-plugins.git"
 	},
-	"homepage": "https://pevey.com/medusa-sdk",
+	"homepage": "https://pevey.com/medusa-js-sdk",
 	"type": "module",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",

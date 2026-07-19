@@ -1,4 +1,4 @@
-import type Medusa from '@pevey/medusa-sdk'
+import type Medusa from 'medusa-js-sdk'
 
 export interface CookieNames {
 	session: string

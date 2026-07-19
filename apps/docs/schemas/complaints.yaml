@@ -133,6 +133,44 @@ paths:
       summary: Create Complaint
       tags:
         - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                customer_id:
+                  type: string
+                order_id:
+                  type: string
+                product_id:
+                  type: string
+                stock_lot_id:
+                  type: string
+                serial_number_id:
+                  type: string
+                actionable:
+                  type: boolean
+                reportable:
+                  type: boolean
+                tag_ids:
+                  type: array
+                  items:
+                    type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  nullable: true
+              required:
+                - description
+                - customer_id
       responses:
         "200":
           description: OK
@@ -290,6 +328,49 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                number:
+                  type: number
+                status:
+                  type: string
+                description:
+                  type: string
+                customer_id:
+                  type: string
+                order_id:
+                  type: string
+                  nullable: true
+                product_id:
+                  type: string
+                  nullable: true
+                stock_lot_id:
+                  type: string
+                  nullable: true
+                serial_number_id:
+                  type: string
+                  nullable: true
+                actionable:
+                  type: boolean
+                reportable:
+                  type: boolean
+                tag_ids:
+                  type: array
+                  items:
+                    type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  nullable: true
       responses:
         "200":
           description: OK

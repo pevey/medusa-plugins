@@ -1,0 +1,3 @@
+# Docs Overview pages generated from package READMEs by scripts/sync-readmes.mjs.
+# Convention: generated pages are index.md; hand-authored pages are index.mdx.
+/src/content/docs/*/index.md

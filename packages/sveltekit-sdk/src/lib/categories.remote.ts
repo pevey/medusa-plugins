@@ -1,6 +1,6 @@
 import { prerender, query } from '$app/server'
 import * as v from 'valibot'
-import type Medusa from '@pevey/medusa-sdk'
+import type Medusa from 'medusa-js-sdk'
 import { getClient } from './internal/state'
 import { requestContext } from './server/request'
 

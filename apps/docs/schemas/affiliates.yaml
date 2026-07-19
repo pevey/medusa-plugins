@@ -13,6 +13,38 @@ paths:
       summary: List Affiliates
       tags:
         - Admin
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items: &a1
+              type: string
+              enum:
+                - active
+                - restricted
+                - inactive
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: OK
@@ -54,6 +86,34 @@ paths:
       summary: Create Affiliate
       tags:
         - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                  nullable: true
+                currency_code:
+                  type: string
+                  nullable: true
+                address:
+                  type: string
+                first_promotion:
+                  type: string
+              required:
+                - name
+                - email
+                - address
+                - first_promotion
       responses:
         "200":
           description: OK
@@ -101,6 +161,32 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a1
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
         - name: id
           in: path
           required: true
@@ -151,6 +237,33 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                  nullable: true
+                currency_code:
+                  type: string
+                  nullable: true
+                primary_address_id:
+                  type: string
+                status:
+                  type: string
+                  enum:
+                    - active
+                    - restricted
+                    - inactive
       responses:
         "200":
           description: OK
@@ -267,6 +380,21 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  minLength: 1
+                discount_value:
+                  type: number
+                end_date:
+                  type: string
+                  nullable: true
       responses:
         "200":
           description: OK
@@ -378,6 +506,31 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: basis
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - placed
+              - captured
+              - completed
+        - name: window
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - day
+              - week
+              - month
+              - year
+              - all
+        - name: promotion_id
+          in: query
+          required: false
+          schema:
+            type: string
         - name: id
           in: path
           required: true

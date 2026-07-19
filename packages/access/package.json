@@ -1,6 +1,15 @@
 {
 	"name": "medusa-plugin-access",
 	"version": "0.1.0",
+	"description": "Access management for Medusa v2.",
+	"author": "Lacey Pevey",
+	"license": "UNLICENSED",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/pevey/medusa-plugins.git"
+	},
+	"homepage": "https://pevey.com/medusa-plugin-access",
+	"keywords": [],
 	"files": [
 		".medusa/server"
 	],

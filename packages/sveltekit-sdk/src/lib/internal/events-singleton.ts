@@ -2,7 +2,7 @@
 // the <Analytics> layout component. `track`/`identify` (public, in ../events)
 // delegate to it. Only ever set in the browser, so SSR keeps it null (no
 // cross-request state leak).
-import type { Collector } from '@pevey/medusa-sdk'
+import type { Collector } from 'medusa-js-sdk'
 
 let collector: Collector | null = null
 

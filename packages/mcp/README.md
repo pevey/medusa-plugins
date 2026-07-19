@@ -1,8 +1,4 @@
----
-title: MCP
-description: MCP server and LLM chat plugin for Medusa v2
-prev: false
----
+# medusa-plugin-mcp
 
 MCP server and LLM chat plugin for Medusa v2. Exposes Medusa data and operations to LLMs via the Model Context Protocol, with an admin chat UI and package-based tool discovery from installed plugins.
 

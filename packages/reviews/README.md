@@ -21,10 +21,16 @@ If you are not familiar with Medusa, you can learn more on [the project web site
 Inside your medusa backend root folder:
 
 ```bash
-yarn add medusa-plugin-reviews
+yarn add medusa-plugin-ratings
 ```
 
 Replace "yarn add" with the correct command for your package manager if you are using (for example) npm, pnpm, or bun.
+
+After installing the plugin, you must run Medusa's migration tool to create the plugin's database tables.
+
+```bash
+yarn medusa db:migrate
+```
 
 ## Configuration
 

@@ -4,7 +4,7 @@
 // stamps identity server-side. No-ops until <Analytics> has mounted (and always
 // on the server). Identity stitching happens automatically on login (see the
 // auth flow) — there is no client-side identify.
-import type { TrackOptions } from '@pevey/medusa-sdk'
+import type { TrackOptions } from 'medusa-js-sdk'
 import { getCollector } from './internal/events-singleton'
 
 export function track(event: string, options?: TrackOptions): void {

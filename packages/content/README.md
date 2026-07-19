@@ -31,6 +31,12 @@ yarn add medusa-plugin-content
 
 Replace "yarn add" with the correct command for your package manager if you are using (for example) npm, pnpm, or bun.
 
+After installing the plugin, you must run Medusa's migration tool to create the plugin's database tables.
+
+```bash
+yarn medusa db:migrate
+```
+
 ## Configuration
 
 Enable in your `medusa-config.ts` file. Example:

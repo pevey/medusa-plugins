@@ -247,6 +247,17 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tag:
+                  type: string
+                tag_id:
+                  type: string
       responses:
         "200":
           description: OK

@@ -5,9 +5,10 @@
 	"private": true,
 	"scripts": {
 		"generate:openapi": "node scripts/generate-openapi.mjs",
+		"sync:readmes": "node scripts/sync-readmes.mjs",
 		"deploy": "wrangler pages deploy dist --commit-dirty=true",
-		"dev": "astro dev",
-		"build": "node scripts/generate-openapi.mjs && astro build",
+		"dev": "node scripts/sync-readmes.mjs && astro dev",
+		"build": "node scripts/generate-openapi.mjs && node scripts/sync-readmes.mjs && astro build",
 		"preview": "astro preview",
 		"astro": "astro"
 	},

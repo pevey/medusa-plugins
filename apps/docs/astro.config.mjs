@@ -4,34 +4,12 @@ import { defineConfig } from 'astro/config'
 import tailwindcss from '@tailwindcss/vite'
 import starlightOpenAPI from 'starlight-openapi'
 import starlightLlmsTxt from 'starlight-llms-txt'
+import { plugins } from './docs-packages.mjs'
 
 // Load generated sidebar data (operation links grouped by tag per plugin)
 const apiSidebar = JSON.parse(
 	readFileSync(new URL('./schemas/_sidebar.json', import.meta.url), 'utf-8')
 )
-
-// All plugins sorted alphabetically by label
-const plugins = [
-	{ slug: 'medusa-plugin-affiliates', label: 'Affiliates', schemaFile: 'affiliates' },
-	{ slug: 'medusa-plugin-analytics', label: 'Analytics', schemaFile: 'analytics' },
-	{ slug: 'medusa-plugin-automation', label: 'Automation', schemaFile: 'automation' },
-	{ slug: 'medusa-plugin-barcodes', label: 'Barcodes', schemaFile: 'barcodes' },
-	{ slug: 'medusa-plugin-braintree', label: 'Braintree Payments' },
-	{ slug: 'medusa-plugin-complaints', label: 'Complaints', schemaFile: 'complaints' },
-	{ slug: 'medusa-plugin-content', label: 'Content', schemaFile: 'content' },
-	{ slug: 'medusa-plugin-customer-tags', label: 'Customer Tags', schemaFile: 'customer-tags' },
-	{ slug: 'medusa-plugin-forms', label: 'Forms', schemaFile: 'forms' },
-	{ slug: 'medusa-plugin-mcp', label: 'MCP', schemaFile: 'mcp' },
-	{ slug: 'medusa-plugin-order-notes', label: 'Order Notes', schemaFile: 'order-notes' },
-	{ slug: 'medusa-plugin-r2', label: 'R2 File Storage' },
-	{ slug: 'medusa-plugin-ratings', label: 'Reviews', schemaFile: 'reviews' },
-	{ slug: 'medusa-plugin-search', label: 'Search', schemaFile: 'search' },
-	{ slug: 'medusa-plugin-ses', label: 'SES Notifications' },
-	{ slug: 'medusa-plugin-statistics', label: 'Statistics', schemaFile: 'statistics' },
-	{ slug: 'medusa-plugin-tax-lookup', label: 'Tax Lookup' },
-	{ slug: 'medusa-plugin-tracing', label: 'Tracing', schemaFile: 'tracing' },
-	{ slug: 'medusa-plugin-veeqo', label: 'Veeqo', schemaFile: 'veeqo' }
-]
 
 // Build OpenAPI plugin configs
 const apiPluginConfigs = plugins
@@ -61,13 +39,14 @@ export default defineConfig({
 			plugins: [starlightOpenAPI(apiPluginConfigs), starlightLlmsTxt()],
 			sidebar: [
 				{
-					label: '@pevey/medusa-sdk',
-					items: [{ label: 'Overview', slug: 'medusa-sdk' }]
+					label: 'medusa-js-sdk',
+					items: [{ label: 'Overview', slug: 'medusa-js-sdk' }]
 				},
 				...plugins.map(p => buildPluginSidebar(p)),
 				{
 					label: 'SvelteKit Packages',
 					items: [
+						{ label: 'sveltekit-medusa-sdk', slug: 'sveltekit-medusa-sdk' },
 						{ label: 'sveltekit-stripe', slug: 'sveltekit-stripe' },
 						{ label: 'sveltekit-superfetch', slug: 'sveltekit-superfetch' },
 						{ label: 'sveltekit-turnstile', slug: 'sveltekit-turnstile' }

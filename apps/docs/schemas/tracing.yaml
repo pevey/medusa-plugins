@@ -100,6 +100,38 @@ paths:
       summary: Create Stock Lot
       tags:
         - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inventory_item_id:
+                  type: string
+                stock_location_id:
+                  type: string
+                lot_number:
+                  type: string
+                description:
+                  type: string
+                  nullable: true
+                enabled:
+                  type: boolean
+                  default: true
+                initial_quantity:
+                  type: number
+                stocked_quantity:
+                  type: number
+                metadata:
+                  type: object
+                  additionalProperties: true
+                  nullable: true
+              required:
+                - inventory_item_id
+                - stock_location_id
+                - lot_number
+                - enabled
       responses:
         "200":
           description: OK

@@ -1,6 +1,6 @@
 import { buildSessionHeader } from './session'
 import type { MedusaContext, ResolvedConfig } from '../types'
-import type Medusa from '@pevey/medusa-sdk'
+import type Medusa from 'medusa-js-sdk'
 
 export interface CookieReader {
 	get(name: string): string | undefined

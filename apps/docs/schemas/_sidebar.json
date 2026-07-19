@@ -1,4 +1,104 @@
 {
+	"medusa-plugin-access": [
+		{
+			"label": "Admin",
+			"collapsed": true,
+			"items": [
+				{
+					"label": "List Policies",
+					"link": "/medusa-plugin-access/api/operations/getadminaccesspolicies/"
+				},
+				{
+					"label": "Create Policy",
+					"link": "/medusa-plugin-access/api/operations/postadminaccesspolicies/"
+				},
+				{
+					"label": "List Assignable",
+					"link": "/medusa-plugin-access/api/operations/getadminaccesspoliciesassignable/"
+				},
+				{
+					"label": "Get Policy",
+					"link": "/medusa-plugin-access/api/operations/getadminaccesspoliciesbyid/"
+				},
+				{
+					"label": "Update Policy",
+					"link": "/medusa-plugin-access/api/operations/postadminaccesspoliciesbyid/"
+				},
+				{
+					"label": "Delete Policy",
+					"link": "/medusa-plugin-access/api/operations/deleteadminaccesspoliciesbyid/"
+				},
+				{
+					"label": "List Roles",
+					"link": "/medusa-plugin-access/api/operations/getadminaccesspoliciesbyidroles/"
+				},
+				{
+					"label": "List Roles",
+					"link": "/medusa-plugin-access/api/operations/getadminaccessroles/"
+				},
+				{
+					"label": "Create Role",
+					"link": "/medusa-plugin-access/api/operations/postadminaccessroles/"
+				},
+				{
+					"label": "List Assignable",
+					"link": "/medusa-plugin-access/api/operations/getadminaccessrolesassignable/"
+				},
+				{
+					"label": "Get Role",
+					"link": "/medusa-plugin-access/api/operations/getadminaccessrolesbyid/"
+				},
+				{
+					"label": "Update Role",
+					"link": "/medusa-plugin-access/api/operations/postadminaccessrolesbyid/"
+				},
+				{
+					"label": "Delete Role",
+					"link": "/medusa-plugin-access/api/operations/deleteadminaccessrolesbyid/"
+				},
+				{
+					"label": "List Policies",
+					"link": "/medusa-plugin-access/api/operations/getadminaccessrolesbyidpolicies/"
+				},
+				{
+					"label": "Create Policy",
+					"link": "/medusa-plugin-access/api/operations/postadminaccessrolesbyidpolicies/"
+				},
+				{
+					"label": "Delete Policy",
+					"link": "/medusa-plugin-access/api/operations/deleteadminaccessrolesbyidpoliciesbypolicy_id/"
+				},
+				{
+					"label": "List Users",
+					"link": "/medusa-plugin-access/api/operations/getadminaccessrolesbyidusers/"
+				},
+				{
+					"label": "Create User",
+					"link": "/medusa-plugin-access/api/operations/postadminaccessrolesbyidusers/"
+				},
+				{
+					"label": "Batch Delete Users",
+					"link": "/medusa-plugin-access/api/operations/deleteadminaccessrolesbyidusers/"
+				},
+				{
+					"label": "List Roles",
+					"link": "/medusa-plugin-access/api/operations/getadminusersbyidaccessroles/"
+				},
+				{
+					"label": "Create Role",
+					"link": "/medusa-plugin-access/api/operations/postadminusersbyidaccessroles/"
+				},
+				{
+					"label": "Batch Delete Roles",
+					"link": "/medusa-plugin-access/api/operations/deleteadminusersbyidaccessroles/"
+				},
+				{
+					"label": "Delete Role",
+					"link": "/medusa-plugin-access/api/operations/deleteadminusersbyidaccessrolesbyrole_id/"
+				}
+			]
+		}
+	],
 	"medusa-plugin-affiliates": [
 		{
 			"label": "Admin",

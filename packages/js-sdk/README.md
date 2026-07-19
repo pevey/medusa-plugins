@@ -1,17 +1,19 @@
-# @pevey/medusa
+# medusa-js-sdk
 
-Extended Medusa JS SDK with support for custom plugins. Drop-in replacement for `@medusajs/js-sdk` that adds typed methods for Reviews, Content, Forms, and Analytics alongside all core Medusa functionality.
+Extended Medusa JS SDK with support for a set of [custom plugins](https://github.com/pevey/medusa-plugins). If you don't use these plugins, you probably want the official [@medusajs/js-sdk](https://www.npmjs.com/package/@medusajs/js-sdk) package instead.
+
+Drop-in replacement for `@medusajs/js-sdk` that adds typed methods for Reviews, Content, Forms, and Analytics alongside all core Medusa storefront functionality. (No Admin functionality.)
 
 ## Installation
 
 ```bash
-yarn add "@pevey/medusa-sdk"
+yarn add "medusa-js-sdk"
 ```
 
 ## Setup
 
 ```ts
-import Medusa from '@pevey/medusa-sdk'
+import Medusa from 'medusa-js-sdk'
 
 const sdk = new Medusa({
 	baseUrl: 'http://localhost:9000',
@@ -149,7 +151,7 @@ A framework-agnostic client-side batcher: it queues events and flushes them in b
 Why a same-origin endpoint instead of hitting Medusa directly? `sendBeacon` (needed to capture events as the tab closes) can't attach the publishable-key header, and the backend may not even be reachable from the browser. Routing through your own origin solves both, keeps the key server-side, and lets the server own identity — a stable anonymous id that survives across carts and orders (unlike a cart id, which is cleared on order completion), and that the client can't spoof.
 
 ```ts
-import { createAnalyticsCollector } from '@pevey/medusa-sdk'
+import { createAnalyticsCollector } from 'medusa-js-sdk'
 
 const analytics = createAnalyticsCollector({
 	endpoint: '/api/analytics' // same-origin forwarding route (default)
@@ -174,7 +176,11 @@ export function middleware(req) {
 	const res = NextResponse.next()
 	if (!req.cookies.get('aid')) {
 		res.cookies.set('aid', crypto.randomUUID(), {
-			httpOnly: true, sameSite: 'lax', secure: true, path: '/', maxAge: 60 * 60 * 24 * 365
+			httpOnly: true,
+			sameSite: 'lax',
+			secure: true,
+			path: '/',
+			maxAge: 60 * 60 * 24 * 365
 		})
 	}
 	return res
@@ -186,7 +192,7 @@ The forwarding route (server — has the key; stamps `actor_id` from the cookie)
 ```tsx
 // app/api/analytics/route.ts
 import { cookies } from 'next/headers'
-import Medusa from '@pevey/medusa-sdk'
+import Medusa from 'medusa-js-sdk'
 
 const medusa = new Medusa({
 	baseUrl: process.env.MEDUSA_BACKEND_URL!,
@@ -196,7 +202,7 @@ const medusa = new Medusa({
 export async function POST(req: Request) {
 	const actor_id = (await cookies()).get('aid')?.value
 	const body = await req.json()
-	const events = (Array.isArray(body) ? body : [body]).map((e) => ({ ...e, actor_id }))
+	const events = (Array.isArray(body) ? body : [body]).map(e => ({ ...e, actor_id }))
 	await medusa.store.analytics.track(events)
 	return new Response(null, { status: 202 })
 }
@@ -208,7 +214,7 @@ A client provider that mounts the collector:
 // app/analytics-provider.tsx
 'use client'
 import { createContext, useContext, useRef, useEffect } from 'react'
-import { createAnalyticsCollector } from '@pevey/medusa-sdk'
+import { createAnalyticsCollector } from 'medusa-js-sdk'
 
 const Ctx = createContext<ReturnType<typeof createAnalyticsCollector> | null>(null)
 export const useAnalytics = () => useContext(Ctx)!
@@ -282,5 +288,5 @@ import type {
 	MedusaConfig,
 	Config,
 	ClientHeaders
-} from '@pevey/medusa-sdk'
+} from 'medusa-js-sdk'
 ```

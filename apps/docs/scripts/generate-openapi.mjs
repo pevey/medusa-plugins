@@ -9,7 +9,7 @@
  * 3. Outputs an openapi.yaml per plugin into apps/docs/schemas/
  */
 
-import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { stringify } from 'yaml'
 
@@ -17,24 +17,83 @@ const ROOT = resolve(import.meta.dirname, '../../..')
 const PACKAGES_DIR = join(ROOT, 'packages')
 const OUTPUT_DIR = resolve(import.meta.dirname, '../schemas')
 
+// Recursively collect `.ts` files under `dir` that are either named `<name>.ts`
+// (anywhere in the tree) or live inside a directory literally named `<name>`
+// (the split-file convention). This finds a plugin's route/validator definitions
+// whether they sit in a single `src/api/middlewares.ts`, a `src/api/middlewares/`
+// directory, or nested per-route `src/api/**/middlewares.ts` files. `_`-prefixed
+// files are skipped.
+function collectApiFiles(dir, name) {
+	const out = []
+	function walk(d) {
+		let entries
+		try {
+			entries = readdirSync(d, { withFileTypes: true })
+		} catch {
+			return
+		}
+		for (const e of entries) {
+			const p = join(d, e.name)
+			if (e.isDirectory()) {
+				walk(p)
+			} else if (e.isFile() && e.name.endsWith('.ts') && !e.name.startsWith('_')) {
+				const parent = d.split('/').pop()
+				if (e.name === `${name}.ts` || parent === name) out.push(p)
+			}
+		}
+	}
+	walk(dir)
+	return out
+}
+
 // ── Middleware Parser ────────────────────────────────────────────────────────
 
 function parseMiddlewares(source) {
 	const routes = []
 
-	// Find each route block by matching the opening pattern, then use balanced bracket matching
-	const startRegex = /\{\s*matcher:\s*['"]([^'"]+)['"]\s*,\s*method:\s*\[([^\]]*)\]\s*,/g
-	let startMatch
-	while ((startMatch = startRegex.exec(source)) !== null) {
-		const matcherPath = startMatch[1]
-		const methodsStr = startMatch[2]
+	// Find each route object by locating its `matcher`, walking back to the
+	// enclosing `{`, then reading the whole block. This is order-independent, so
+	// it handles both `{ matcher, method, ... }` and `{ method, matcher, ... }`.
+	const matcherRegex = /matcher:\s*['"]([^'"]+)['"]/g
+	const seen = new Set()
+	let mm
+	while ((mm = matcherRegex.exec(source)) !== null) {
+		// Walk backward from the matcher to the enclosing object's opening brace.
+		let depth = 0
+		let blockStart = -1
+		for (let j = mm.index; j >= 0; j--) {
+			const ch = source[j]
+			if (ch === '}') depth++
+			else if (ch === '{') {
+				if (depth === 0) {
+					blockStart = j
+					break
+				}
+				depth--
+			}
+		}
+		if (blockStart === -1 || seen.has(blockStart)) continue
 
-		// Extract the full block using balanced braces from the opening {
-		const blockStart = startMatch.index
+		// Skip route-shaped objects passed as a function argument, e.g.
+		// `requirePolicies({ matcher, method, policies })` — those are access-policy
+		// declarations, not route definitions. Real routes are array elements
+		// (preceded by `[` or `,`); a call argument's `{` is preceded by `(`.
+		let before = blockStart - 1
+		while (before >= 0 && /\s/.test(source[before])) before--
+		if (source[before] === '(') continue
+
+		seen.add(blockStart)
+
 		const fullBlock = extractBalanced(source, blockStart, '{', '}')
 		if (!fullBlock) continue
 
-		const methods = methodsStr.match(/['"](\w+)['"]/g)?.map(m => m.replace(/['"]/g, '')) || []
+		// A route object must declare a `method` array. Blocks without one (e.g. a
+		// catch-all `{ matcher: '/admin/*', middlewares: [guard] }`) are not routes.
+		const methodMatch = fullBlock.match(/method:\s*\[([^\]]*)\]/)
+		if (!methodMatch) continue
+
+		const matcherPath = mm[1]
+		const methods = methodMatch[1].match(/['"](\w+)['"]/g)?.map(m => m.replace(/['"]/g, '')) || []
 		const authenticated =
 			fullBlock.includes('authenticate(') && !fullBlock.includes('allowUnauthenticated')
 
@@ -158,7 +217,9 @@ function parseZodExpression(expr) {
 
 function extractObjectBody(expr) {
 	// Find .extend({ or z.object({ and extract the balanced braces content
-	const startPatterns = [/\.extend\(\s*\{/, /z\.object\(\s*\{/]
+	// Tolerate whitespace/newlines between `z` and `.object(` (e.g. `z\n  .object({`)
+	// and a trailing `.strict()`/chain — some plugins format validators multi-line.
+	const startPatterns = [/\.extend\(\s*\{/, /z\s*\.\s*object\(\s*\{/]
 	for (const pattern of startPatterns) {
 		const match = pattern.exec(expr)
 		if (match) {
@@ -669,24 +730,20 @@ function main() {
 	}
 
 	for (const pkg of packages) {
-		const middlewaresFile = join(PACKAGES_DIR, pkg, 'src/api/middlewares.ts')
-		const middlewaresDir = join(PACKAGES_DIR, pkg, 'src/api/middlewares')
-		const validatorsFile = join(PACKAGES_DIR, pkg, 'src/api/validators.ts')
-		const validatorsDir = join(PACKAGES_DIR, pkg, 'src/api/validators')
+		const apiDir = join(PACKAGES_DIR, pkg, 'src/api')
+		if (!existsSync(apiDir)) continue
 
-		if (!existsSync(middlewaresFile)) continue
+		// Discover route + validator definitions across the whole api tree, so a
+		// plugin that splits its middlewares/validators into nested per-route files
+		// is picked up as well as one that keeps them in a single root file.
+		const middlewareFiles = collectApiFiles(apiDir, 'middlewares')
+		if (middlewareFiles.length === 0) continue
 
 		console.log(`Processing ${pkg}...`)
 
-		// Parse routes from main middlewares file and any split middleware files
-		let routes = parseMiddlewares(readFileSync(middlewaresFile, 'utf-8'))
-		if (existsSync(middlewaresDir)) {
-			const files = readdirSync(middlewaresDir).filter(
-				f => f.endsWith('.ts') && !f.startsWith('_')
-			)
-			for (const file of files) {
-				routes.push(...parseMiddlewares(readFileSync(join(middlewaresDir, file), 'utf-8')))
-			}
+		let routes = []
+		for (const file of middlewareFiles) {
+			routes.push(...parseMiddlewares(readFileSync(file, 'utf-8')))
 		}
 
 		if (routes.length === 0) {
@@ -695,15 +752,8 @@ function main() {
 		}
 
 		let schemas = {}
-		if (existsSync(validatorsFile)) {
-			schemas = parseValidators(readFileSync(validatorsFile, 'utf-8'))
-		} else if (existsSync(validatorsDir)) {
-			// Read all .ts files in the validators directory
-			const files = readdirSync(validatorsDir).filter(f => f.endsWith('.ts'))
-			for (const file of files) {
-				const fileSrc = readFileSync(join(validatorsDir, file), 'utf-8')
-				Object.assign(schemas, parseValidators(fileSrc))
-			}
+		for (const file of collectApiFiles(apiDir, 'validators')) {
+			Object.assign(schemas, parseValidators(readFileSync(file, 'utf-8')))
 		}
 
 		const spec = generateOpenAPI(pkg, routes, schemas)
@@ -729,84 +779,6 @@ function main() {
 	const sidebarPath = join(OUTPUT_DIR, '_sidebar.json')
 	writeFileSync(sidebarPath, JSON.stringify(sidebarData, null, '\t'), 'utf-8')
 	console.log(`\nGenerated sidebar data at ${sidebarPath}`)
-
-	// ── Sync README → overview pages ─────────────────────────────────────────
-	const DOCS_DIR = resolve(import.meta.dirname, '../src/content/docs')
-
-	// Map package dirs to docs slugs and display titles
-	const readmeMappings = [
-		{ dir: 'affiliates', slug: 'medusa-plugin-affiliates', title: 'Affiliates' },
-		{ dir: 'analytics', slug: 'medusa-plugin-analytics', title: 'Analytics' },
-		{ dir: 'barcodes', slug: 'medusa-plugin-barcodes', title: 'Barcodes' },
-		{ dir: 'complaints', slug: 'medusa-plugin-complaints', title: 'Complaints' },
-		{ dir: 'content', slug: 'medusa-plugin-content', title: 'Content' },
-		{ dir: 'customer-tags', slug: 'medusa-plugin-customer-tags', title: 'Customer Tags' },
-		{ dir: 'file-r2', slug: 'medusa-plugin-r2', title: 'R2 File Storage' },
-		{ dir: 'forms', slug: 'medusa-plugin-forms', title: 'Forms' },
-		// { dir: 'majel', slug: 'majel', title: 'Majel' },
-		// { dir: 'mildred', slug: 'mildred', title: 'Mildred' },
-		{ dir: 'notification-ses', slug: 'medusa-plugin-ses', title: 'SES Notifications' },
-		{ dir: 'order-notes', slug: 'medusa-plugin-order-notes', title: 'Order Notes' },
-		{ dir: 'payment-braintree', slug: 'medusa-plugin-braintree', title: 'Braintree Payments' },
-		{ dir: 'reviews', slug: 'medusa-plugin-ratings', title: 'Reviews' },
-		{ dir: 'search', slug: 'medusa-plugin-search', title: 'Search' },
-		{ dir: 'statistics', slug: 'medusa-plugin-statistics', title: 'Statistics' },
-		{ dir: 'tax-lookup', slug: 'medusa-plugin-tax-lookup', title: 'Tax Lookup' },
-		{ dir: 'tracing', slug: 'medusa-plugin-tracing', title: 'Tracing' },
-		{ dir: 'veeqo', slug: 'medusa-plugin-veeqo', title: 'Veeqo' },
-		{ dir: 'automation', slug: 'medusa-plugin-automation', title: 'Automation' }
-	]
-
-	let synced = 0
-	for (const m of readmeMappings) {
-		const readmePath = join(PACKAGES_DIR, m.dir, 'README.md')
-		const pkgPath = join(PACKAGES_DIR, m.dir, 'package.json')
-		if (!existsSync(pkgPath)) continue
-
-		const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
-		const desc = pkg.description || `${m.title} plugin for Medusa v2.`
-
-		let body = ''
-		if (existsSync(readmePath)) {
-			body = readFileSync(readmePath, 'utf-8')
-				.split('\n')
-				.filter(
-					line =>
-						!line.match(/^#\s+/) &&
-						!line.match(/^\[Documentation\]/) &&
-						!line.includes('not familiar with Medusa')
-				)
-				.join('\n')
-				.replace(/^\n+/, '')
-				.replace(/\n{3,}/g, '\n\n')
-		}
-		if (!body.trim()) body = `${desc}\n`
-
-		const mdx = `---\ntitle: ${m.title}\ndescription: ${desc}\nprev: false\n---\n\n${body}`
-		const outDir = join(DOCS_DIR, m.slug)
-		if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true })
-		writeFileSync(join(outDir, 'index.mdx'), mdx)
-		synced++
-	}
-	// Sync SDK README (different structure — full README as single page, no boilerplate stripping)
-	const sdkReadmePath = join(PACKAGES_DIR, 'js-sdk', 'README.md')
-	if (existsSync(sdkReadmePath)) {
-		const sdkReadme = readFileSync(sdkReadmePath, 'utf-8')
-		const sdkBody = sdkReadme
-			.split('\n')
-			.filter(line => !line.match(/^#\s+@pevey/))
-			.join('\n')
-			.replace(/^\n+/, '')
-			.replace(/\n{3,}/g, '\n\n')
-
-		const sdkMdx = `---\ntitle: "@pevey/medusa"\ndescription: Extended Medusa JS SDK with custom plugin support\nprev: false\n---\n\n${sdkBody}`
-		const sdkDir = join(DOCS_DIR, 'medusa-sdk')
-		if (!existsSync(sdkDir)) mkdirSync(sdkDir, { recursive: true })
-		writeFileSync(join(sdkDir, 'index.mdx'), sdkMdx)
-		synced++
-	}
-
-	console.log(`Synced ${synced} README → overview pages`)
 
 	console.log(`Done! Generated ${generated} OpenAPI specs.`)
 }
