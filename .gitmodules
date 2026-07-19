@@ -1,6 +1,10 @@
-[submodule "apps/apnea-storefront"]
-	path = apps/apnea-storefront
-	url = git@github.com:apneasci/medusa-storefront.git
-[submodule "apps/apnea-backend"]
-	path = apps/apnea-backend
-	url = git@github.com:apneasci/medusa-backend.git
+# [submodule "apps/apnea-storefront"]
+# 	path = apps/apnea-storefront
+# 	url = git@github.com:apneasci/medusa-storefront.git
+# [submodule "apps/apnea-backend"]
+# 	path = apps/apnea-backend
+# 	url = git@github.com:apneasci/medusa-backend.git
+[submodule "packages/sveltekit-stripe"]
+	path = packages/sveltekit-stripe
+	url = git@github.com:pevey/sveltekit-stripe.git
+	branch = main
