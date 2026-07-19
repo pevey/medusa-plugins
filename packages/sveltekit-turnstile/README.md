@@ -51,11 +51,52 @@ events during the Svelte 5 migration):
 <Turnstile
    siteKey={PUBLIC_TURNSTILE_SITE_KEY}
    onCallback={(token) => console.log('token', token)}
-   onError={() => console.log('error')}
+   onError={(code) => console.log('error', code)}
    onExpired={() => console.log('expired')}
    onTimeout={() => console.log('timeout')}
+   onBeforeInteractive={() => console.log('entering interactive challenge')}
+   onAfterInteractive={() => console.log('left interactive challenge')}
+   onUnsupported={() => console.log('browser unsupported')}
 />
 ```
+
+### Field name
+
+The hidden input holding the token is named `cf-turnstile-response` by default (matching
+Cloudflare's default). Read it server-side with `data.get('cf-turnstile-response')`, or
+override it with the `fieldName` prop:
+
+```svelte
+<Turnstile siteKey={PUBLIC_TURNSTILE_SITE_KEY} fieldName="token" />
+```
+
+### Deferred execution
+
+By default the challenge runs as soon as the widget renders. Set `execution="execute"` to
+render an idle widget and run the challenge on demand via the bound `widget` controls —
+useful for running the challenge at form submit, on a route guard, or before a protected
+request:
+
+```svelte
+<script>
+   import { Turnstile } from 'sveltekit-turnstile'
+   import { PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public'
+
+   let widget = $state()
+   let token = $state('')
+</script>
+
+<Turnstile
+   siteKey={PUBLIC_TURNSTILE_SITE_KEY}
+   execution="execute"
+   bind:widget
+   onCallback={(t) => (token = t)}
+/>
+
+<button onclick={() => widget?.execute()}>Verify</button>
+```
+
+The `widget` object exposes `{ id, execute(), reset(), getResponse(), isExpired() }`.
 
 server-side (+page.server.js)
 
@@ -68,7 +109,7 @@ export const actions = {
    default: async ({request}) => {
 
       const data = await request.formData()
-      const token = data.get('token')
+      const token = data.get('cf-turnstile-response')
       console.log(token)
 
       const success = await validateToken(token, SECRET_TURNSTILE_KEY)
@@ -83,6 +124,53 @@ export const actions = {
 ```
 
 Errors from within the components will be caused by a missing site key.  Any errors are caught within a try/catch block and displayed in the console.  Be sure to check the browser console if you have difficulty.
+
+## Pre-clearance
+
+Cloudflare [pre-clearance](https://developers.cloudflare.com/cloudflare-challenges/concepts/clearance/)
+lets a solved Turnstile widget issue a `cf_clearance` cookie so the visitor bypasses
+subsequent WAF challenges on your zone.
+
+Two prerequisites, both configured in Cloudflare (not in this package):
+
+1. **Enable pre-clearance on the widget** in the Turnstile dashboard (the widget's
+   Settings → "opt for pre-clearance" → Yes → choose a level).
+2. **The widget must be served on the same hostname as the protected zone** — the cookie
+   is scoped to that zone.
+
+When those are in place, solving the widget sets `cf_clearance` automatically (it is an
+httpOnly cookie, so it is not readable from JavaScript). You still receive and must
+validate the Turnstile token server-side.
+
+### `getClearance` helper
+
+For flows where you want to obtain clearance programmatically (e.g. before a protected
+`fetch`, without placing a `<Turnstile>` in your markup), use `getClearance`:
+
+```svelte
+<script>
+   import { getClearance } from 'sveltekit-turnstile'
+   import { PUBLIC_TURNSTILE_SITE_KEY } from '$env/static/public'
+
+   async function ensureClearance() {
+      const token = await getClearance(PUBLIC_TURNSTILE_SITE_KEY)
+      // cf_clearance is now set for the zone; subsequent requests pass the WAF.
+      // Validate `token` server-side with validateToken before trusting it.
+      await fetch('/protected', {
+         method: 'POST',
+         headers: { 'content-type': 'application/json' },
+         body: JSON.stringify({ token })
+      })
+   }
+</script>
+```
+
+`getClearance(siteKey, options?)` renders a hidden widget (off-screen, `interaction-only`
+by default so it only appears if Cloudflare requires interaction), runs the challenge,
+resolves the token, and cleans up. It rejects on error, an unsupported browser, or a
+timeout (when `timeoutMs` is set). Options:
+`{ action, cData, container, appearance, theme, language, size, execution, timeoutMs }`.
+It must be called in the browser.
 
 ## Acknowledgment
 

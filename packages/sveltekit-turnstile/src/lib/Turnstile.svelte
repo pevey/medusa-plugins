@@ -1,4 +1,14 @@
 <script lang="ts">
+	import type {
+		TurnstileAppearance,
+		TurnstileExecution,
+		TurnstileRefresh,
+		TurnstileRetry,
+		TurnstileSize,
+		TurnstileTheme,
+		TurnstileWidget
+	} from './types.js'
+	import type { Attachment } from 'svelte/attachments'
 	import { browser } from '$app/env'
 	import { onMount } from 'svelte'
 	import { turnstileLoaded } from './stores.js'
@@ -8,25 +18,33 @@
 		fieldName?: string
 		action?: string
 		cData?: string
-		retry?: 'auto' | 'never'
+		retry?: TurnstileRetry
 		retryInterval?: number
-		theme?: 'light' | 'dark' | 'auto'
-		size?: string
+		theme?: TurnstileTheme
+		size?: TurnstileSize
 		forms?: boolean
 		tabIndex?: number
 		language?: string
-		refreshExpired?: 'auto' | 'manual' | 'never'
-		refreshTimeout?: 'auto' | 'manual' | 'never'
-		appearance?: 'always' | 'execute' | 'interaction-only'
+		refreshExpired?: TurnstileRefresh
+		refreshTimeout?: TurnstileRefresh
+		appearance?: TurnstileAppearance
+		execution?: TurnstileExecution
+		feedbackEnabled?: boolean
+		offlabelShowPrivacy?: boolean
+		offlabelShowHelp?: boolean
 		onCallback?: (token: string) => void
-		onError?: () => void
+		onError?: (code: string) => void
 		onExpired?: () => void
 		onTimeout?: () => void
+		onBeforeInteractive?: () => void
+		onAfterInteractive?: () => void
+		onUnsupported?: () => void
+		widget?: TurnstileWidget
 	}
 
 	let {
 		siteKey,
-		fieldName = 'token',
+		fieldName = 'cf-turnstile-response',
 		action = undefined,
 		cData = undefined,
 		retry = 'auto',
@@ -39,10 +57,18 @@
 		refreshExpired = 'auto',
 		refreshTimeout = 'auto',
 		appearance = 'always',
+		execution = 'render',
+		feedbackEnabled = true,
+		offlabelShowPrivacy = undefined,
+		offlabelShowHelp = undefined,
 		onCallback,
 		onError,
 		onExpired,
-		onTimeout
+		onTimeout,
+		onBeforeInteractive,
+		onAfterInteractive,
+		onUnsupported,
+		widget = $bindable()
 	}: Props = $props()
 
 	let mounted = $state(false)
@@ -58,36 +84,24 @@
 		turnstileLoaded.set(true)
 	}
 
-	// A fresh object whenever any option changes, so `{#key config}` recreates the
-	// widget on option changes — this replaces the old `{#key $$props}`.
-	const config = $derived({
-		siteKey,
-		fieldName,
-		action,
-		cData,
-		retry,
-		retryInterval,
-		theme,
-		size,
-		forms,
-		tabIndex,
-		language,
-		refreshExpired,
-		refreshTimeout,
-		appearance
-	})
-
-	const turnstile = (node: HTMLElement) => {
+	// Attachments are reactive: this re-runs (tearing down and re-rendering the widget)
+	// whenever any render option read below changes. The `on*` callbacks are only
+	// referenced inside handler closures, so they are not tracked and never force a
+	// re-render. `widget` is assigned (not read) here, so it does not create a loop.
+	const turnstile: Attachment<HTMLElement> = (node) => {
 		try {
 			const id = window.turnstile.render(node, {
 				sitekey: siteKey,
 				'response-field-name': fieldName,
+				'response-field': forms,
 				'timeout-callback': () => onTimeout?.(),
 				'expired-callback': () => onExpired?.(),
-				'error-callback': () => onError?.(),
+				'error-callback': (code: string) => onError?.(code),
+				'before-interactive-callback': () => onBeforeInteractive?.(),
+				'after-interactive-callback': () => onAfterInteractive?.(),
+				'unsupported-callback': () => onUnsupported?.(),
 				callback: (token: string) => onCallback?.(token),
 				'retry-interval': retryInterval,
-				'response-field': forms,
 				tabindex: tabIndex,
 				action,
 				retry,
@@ -97,12 +111,24 @@
 				language,
 				'refresh-expired': refreshExpired,
 				'refresh-timeout': refreshTimeout,
-				appearance
+				appearance,
+				execution,
+				'feedback-enabled': feedbackEnabled,
+				'offlabel-show-privacy': offlabelShowPrivacy,
+				'offlabel-show-help': offlabelShowHelp
 			})
-			return {
-				destroy: () => {
-					window.turnstile.remove(id)
-				}
+
+			widget = {
+				id,
+				execute: () => window.turnstile.execute(node),
+				reset: () => window.turnstile.reset(id),
+				getResponse: () => window.turnstile.getResponse(id),
+				isExpired: () => window.turnstile.isExpired(id)
+			}
+
+			return () => {
+				window.turnstile.remove(id)
+				widget = undefined
 			}
 		} catch (error) {
 			console.error(error)
@@ -117,7 +143,5 @@
 </svelte:head>
 
 {#if mounted && $turnstileLoaded}
-	{#key config}
-		<div use:turnstile></div>
-	{/key}
+	<div {@attach turnstile}></div>
 {/if}

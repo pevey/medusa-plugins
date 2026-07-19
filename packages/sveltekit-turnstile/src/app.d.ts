@@ -1,5 +1,7 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
+import type { TurnstileInstance } from './lib/types.js'
+
 declare global {
 	namespace App {
 		// interface Error {}
@@ -9,8 +11,8 @@ declare global {
 		// interface Platform {}
 	}
 	interface Window {
-		turnstile: any
+		turnstile: TurnstileInstance
 	}
 }
 
-export {};
+export {}

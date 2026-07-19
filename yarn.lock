@@ -31534,6 +31534,7 @@ __metadata:
     svelte-check: "npm:^4.7.3"
     typescript: "npm:^6.0.3"
     vite: "npm:^8.1.5"
+    vitest: "npm:^4.1.10"
   peerDependencies:
     "@sveltejs/kit": ^2.22.0 || ^3.0.0-next.0
     svelte: ^5.36.0

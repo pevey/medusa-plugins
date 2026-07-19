@@ -1,9 +1,9 @@
 {
 	"servers": {
-		"medusa": {
-			"type": "http",
-			"url": "https://docs.medusajs.com/mcp"
-		},
+		// "medusa": {
+		// 	"type": "http",
+		// 	"url": "https://docs.medusajs.com/mcp"
+		// },
 		"svelte": {
 			"url": "https://mcp.svelte.dev/mcp"
 		}

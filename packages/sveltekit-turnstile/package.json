@@ -1,6 +1,6 @@
 {
 	"name": "sveltekit-turnstile",
-	"version": "2.0.2",
+	"version": "3.0.0",
 	"description": "SvelteKit components for rendering forms and validating form submissions that include cloudflare turnstile tokens for enhanced security",
 	"repository": {
 		"type": "git",
@@ -41,13 +41,18 @@
 		"./validateToken": {
 			"types": "./dist/validateToken.d.ts",
 			"svelte": "./dist/validateToken.js"
+		},
+		"./getClearance": {
+			"types": "./dist/getClearance.d.ts",
+			"svelte": "./dist/getClearance.js"
 		}
 	},
 	"scripts": {
 		"build": "svelte-kit sync && svelte-package && publint",
 		"prepublishOnly": "npm run build",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"lint": "svelte-check --tsconfig ./tsconfig.json"
+		"lint": "svelte-check --tsconfig ./tsconfig.json",
+		"test:unit": "vitest run"
 	},
 	"peerDependencies": {
 		"@sveltejs/kit": "^2.22.0 || ^3.0.0-next.0",
@@ -62,6 +67,7 @@
 		"svelte": "^5.56.6",
 		"svelte-check": "^4.7.3",
 		"typescript": "^6.0.3",
-		"vite": "^8.1.5"
+		"vite": "^8.1.5",
+		"vitest": "^4.1.10"
 	}
 }

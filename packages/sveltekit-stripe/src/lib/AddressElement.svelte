@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { StripeAddressElement, StripeAddressElementOptions } from '@stripe/stripe-js'
+	import type { Attachment } from 'svelte/attachments'
 	import { onMount } from 'svelte'
 	import { dev } from '$app/env'
 	import { stripeElements } from './stores.js'
@@ -50,7 +51,7 @@
 		}
 	})
 
-	const addressElement = (node: HTMLElement) => {
+	const addressElement: Attachment<HTMLElement> = (node) => {
 		try {
 			addressContainer = $stripeElements?.create('address', options)
 			addressContainer?.mount(node)
@@ -64,15 +65,13 @@
 		} catch (e) {
 			if (dev) console.error(e)
 		}
-		return {
-			destroy: () => {
-				if (addressContainer) addressContainer.destroy()
-				stripeElements.set(undefined)
-			}
+		return () => {
+			if (addressContainer) addressContainer.destroy()
+			stripeElements.set(undefined)
 		}
 	}
 </script>
 
 {#if mounted && elements}
-	<div use:addressElement></div>
+	<div {@attach addressElement}></div>
 {/if}

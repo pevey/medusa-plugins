@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { StripePaymentElement, StripePaymentElementOptions } from '@stripe/stripe-js'
+	import type { Attachment } from 'svelte/attachments'
 	import { onMount } from 'svelte'
 	import { dev } from '$app/env'
 	import { stripeElements } from './stores.js'
@@ -25,22 +26,20 @@
 		}
 	})
 
-	const paymentElement = (node: HTMLElement) => {
+	const paymentElement: Attachment<HTMLElement> = (node) => {
 		try {
 			paymentContainer = $stripeElements?.create('payment', paymentElementOptions)
 			paymentContainer?.mount(node)
 		} catch (e) {
 			if (dev) console.error(e)
 		}
-		return {
-			destroy: () => {
-				if (paymentContainer) paymentContainer.destroy()
-				stripeElements.set(undefined)
-			}
+		return () => {
+			if (paymentContainer) paymentContainer.destroy()
+			stripeElements.set(undefined)
 		}
 	}
 </script>
 
 {#if mounted && elements}
-	<div use:paymentElement></div>
+	<div {@attach paymentElement}></div>
 {/if}
