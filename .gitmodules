@@ -6,3 +6,9 @@
 	path = packages/sveltekit-turnstile
 	url = git@github.com:pevey/sveltekit-turnstile.git
 	branch = main
+[submodule "packages/sveltekit-ui"]
+	path = packages/sveltekit-ui
+	url = git@github.com:pevey/sveltekit-medusa-ui.git
+[submodule "packages/sveltekit-sdk"]
+	path = packages/sveltekit-sdk
+	url = git@github.com:pevey/sveltekit-medusa-sdk.git

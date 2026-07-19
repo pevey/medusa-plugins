@@ -1,1 +1,0 @@
-export { braintreeCheckoutSchema } from './braintree'
