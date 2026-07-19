@@ -8,3 +8,7 @@
 	path = packages/sveltekit-stripe
 	url = git@github.com:pevey/sveltekit-stripe.git
 	branch = main
+[submodule "packages/sveltekit-turnstile"]
+	path = packages/sveltekit-turnstile
+	url = git@github.com:pevey/sveltekit-turnstile.git
+	branch = main
