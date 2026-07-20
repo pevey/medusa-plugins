@@ -7,21 +7,37 @@
 		"dev": "vite dev --port 5180",
 		"build": "vite build",
 		"preview": "vite preview",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"test:e2e": "playwright test",
+		"test": "playwright test"
 	},
 	"devDependencies": {
+		"@internationalized/date": "^3.12.0",
+		"@lucide/svelte": "^1.25.0",
+		"@playwright/test": "^1.61.1",
 		"@sveltejs/adapter-auto": "8.0.0-next.1",
 		"@sveltejs/kit": "3.0.0-next.10",
 		"@sveltejs/vite-plugin-svelte": "^7.2.0",
 		"@tailwindcss/forms": "^0.5.11",
 		"@tailwindcss/typography": "^0.5.20",
 		"@tailwindcss/vite": "^4.3.3",
+		"bits-ui": "^2.16.3",
+		"clsx": "^2.1.1",
+		"embla-carousel-autoplay": "^8.6.0",
+		"embla-carousel-svelte": "^8.6.0",
+		"playwright": "^1.61.1",
+		"shadcn-svelte": "^1.4.2",
 		"svelte": "^5.56.6",
 		"svelte-check": "^4.7.3",
 		"sveltekit-medusa-sdk": "workspace:*",
+		"tailwind-merge": "^3.6.0",
+		"tailwind-variants": "^3.2.2",
 		"tailwindcss": "^4.3.3",
 		"typescript": "^6.0.3",
 		"valibot": "^1.4.2",
 		"vite": "^8.1.5"
+	},
+	"dependencies": {
+		"mode-watcher": "1.1.0"
 	}
 }
