@@ -1,16 +1,22 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { MedusaContainer } from '@medusajs/framework/types'
+import type { ZodRawShape } from 'zod'
 import { z } from 'zod'
-import { dispatchAndRecord } from 'medusa-plugin-automation/lib/dispatch'
+import { dispatchAndRecord } from '../lib/dispatch'
+import { AUTOMATION_MODULE } from '../modules/automation'
 
-export function registerAutomationTools(
-	server: McpServer,
-	scope: MedusaContainer,
-	moduleKey: string
-): void {
-	const automationService = scope.resolve(moduleKey) as any
+// Minimal structural type of medusa-plugin-mcp's tool registry — duck-typed so this package needs no dependency on medusa-plugin-mcp to contribute tools.
+type McpToolRegistry = {
+	registerTool: (
+		name: string,
+		config: { description: string; inputSchema: ZodRawShape; write?: boolean },
+		handler: (args: any) => Promise<{ content: { type: 'text'; text: string }[] }>
+	) => void
+}
 
-	server.registerTool(
+export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContainer): void {
+	const automationService = scope.resolve(AUTOMATION_MODULE) as any
+
+	registry.registerTool(
 		'list_automations',
 		{
 			description: 'List automation triggers with their status, type, and event configuration.',
@@ -23,21 +29,23 @@ export function registerAutomationTools(
 			const filters: Record<string, unknown> = {}
 			if (is_active !== undefined) filters.is_active = is_active
 
-			const [triggers, count] = await automationService.listAndCountAutomationTriggers(
-				filters,
-				{ take: limit, order: { created_at: 'DESC' } }
-			)
+			const [triggers, count] = await automationService.listAndCountAutomationTriggers(filters, {
+				take: limit,
+				order: { created_at: 'DESC' }
+			})
 
 			return {
-				content: [{
-					type: 'text' as const,
-					text: JSON.stringify({ triggers, count }, null, 2)
-				}]
+				content: [
+					{
+						type: 'text' as const,
+						text: JSON.stringify({ triggers, count }, null, 2)
+					}
+				]
 			}
 		}
 	)
 
-	server.registerTool(
+	registry.registerTool(
 		'get_automation',
 		{
 			description: 'Fetch a single automation trigger by ID with its actions.',
@@ -61,21 +69,27 @@ export function registerAutomationTools(
 			)
 
 			return {
-				content: [{
-					type: 'text' as const,
-					text: JSON.stringify({ trigger, actions }, null, 2)
-				}]
+				content: [
+					{
+						type: 'text' as const,
+						text: JSON.stringify({ trigger, actions }, null, 2)
+					}
+				]
 			}
 		}
 	)
 
-	server.registerTool(
+	registry.registerTool(
 		'list_automation_deliveries',
 		{
-			description: 'View delivery history for an automation action. Filter by status and date range.',
+			description:
+				'View delivery history for an automation action. Filter by status and date range.',
 			inputSchema: {
 				action_id: z.string().describe('The automation action ID'),
-				status: z.enum(['pending', 'success', 'failed']).optional().describe('Filter by delivery status'),
+				status: z
+					.enum(['pending', 'success', 'failed'])
+					.optional()
+					.describe('Filter by delivery status'),
 				since: z.string().optional().describe('Only include deliveries after this ISO date'),
 				until: z.string().optional().describe('Only include deliveries before this ISO date'),
 				limit: z.coerce.number().int().min(1).max(100).optional().default(20)
@@ -97,21 +111,29 @@ export function registerAutomationTools(
 			)
 
 			return {
-				content: [{
-					type: 'text' as const,
-					text: JSON.stringify({ deliveries, count }, null, 2)
-				}]
+				content: [
+					{
+						type: 'text' as const,
+						text: JSON.stringify({ deliveries, count }, null, 2)
+					}
+				]
 			}
 		}
 	)
 
-	server.registerTool(
+	registry.registerTool(
 		'trigger_automation',
 		{
-			description: 'Manually fire all active actions on an automation trigger with a given payload.',
+			description:
+				'Manually fire all active actions on an automation trigger with a given payload.',
+			write: true,
 			inputSchema: {
 				trigger_id: z.string().describe('The automation trigger ID'),
-				payload: z.record(z.string(), z.unknown()).optional().default({}).describe('The payload to dispatch')
+				payload: z
+					.record(z.string(), z.unknown())
+					.optional()
+					.default({})
+					.describe('The payload to dispatch')
 			}
 		},
 		async ({ trigger_id, payload }) => {
@@ -130,7 +152,9 @@ export function registerAutomationTools(
 			)
 
 			if (actions.length === 0) {
-				return { content: [{ type: 'text' as const, text: 'No active actions on this trigger.' }] }
+				return {
+					content: [{ type: 'text' as const, text: 'No active actions on this trigger.' }]
+				}
 			}
 
 			const results = await Promise.allSettled(
@@ -142,30 +166,46 @@ export function registerAutomationTools(
 				)
 			)
 
-			const succeeded = results.filter(r => r.status === 'fulfilled' && r.value.status === 'success').length
+			const succeeded = results.filter(
+				r => r.status === 'fulfilled' && r.value.status === 'success'
+			).length
 			const failed = results.length - succeeded
 
 			return {
-				content: [{
-					type: 'text' as const,
-					text: JSON.stringify({
-						triggered: actions.length,
-						succeeded,
-						failed
-					}, null, 2)
-				}]
+				content: [
+					{
+						type: 'text' as const,
+						text: JSON.stringify(
+							{
+								triggered: actions.length,
+								succeeded,
+								failed
+							},
+							null,
+							2
+						)
+					}
+				]
 			}
 		}
 	)
 
-	server.registerTool(
+	registry.registerTool(
 		'retry_deliveries',
 		{
-			description: 'Replay failed deliveries using their stored request payloads. Provide specific delivery IDs or filters to select which deliveries to retry.',
+			description:
+				'Replay failed deliveries using their stored request payloads. Provide specific delivery IDs or filters to select which deliveries to retry.',
+			write: true,
 			inputSchema: {
 				delivery_ids: z.array(z.string()).optional().describe('Specific delivery IDs to retry'),
-				action_id: z.string().optional().describe('Filter by action ID (required when not using delivery_ids)'),
-				status: z.enum(['pending', 'success', 'failed']).optional().describe('Filter by delivery status'),
+				action_id: z
+					.string()
+					.optional()
+					.describe('Filter by action ID (required when not using delivery_ids)'),
+				status: z
+					.enum(['pending', 'success', 'failed'])
+					.optional()
+					.describe('Filter by delivery status'),
 				since: z.string().optional().describe('Only retry deliveries after this ISO date'),
 				until: z.string().optional().describe('Only retry deliveries before this ISO date')
 			}
@@ -187,16 +227,18 @@ export function registerAutomationTools(
 						...(until ? { $lte: new Date(until) } : {})
 					}
 				}
-				;[deliveries] = await automationService.listAndCountAutomationDeliveries(
-					filters,
-					{ take: 1000, order: { created_at: 'ASC' } }
-				)
+				;[deliveries] = await automationService.listAndCountAutomationDeliveries(filters, {
+					take: 1000,
+					order: { created_at: 'ASC' }
+				})
 			} else {
 				return {
-					content: [{
-						type: 'text' as const,
-						text: 'Provide either delivery_ids or action_id to select deliveries to retry.'
-					}]
+					content: [
+						{
+							type: 'text' as const,
+							text: 'Provide either delivery_ids or action_id to select deliveries to retry.'
+						}
+					]
 				}
 			}
 
@@ -239,10 +281,12 @@ export function registerAutomationTools(
 			}
 
 			return {
-				content: [{
-					type: 'text' as const,
-					text: JSON.stringify({ retried: deliveries.length, succeeded, failed }, null, 2)
-				}]
+				content: [
+					{
+						type: 'text' as const,
+						text: JSON.stringify({ retried: deliveries.length, succeeded, failed }, null, 2)
+					}
+				]
 			}
 		}
 	)

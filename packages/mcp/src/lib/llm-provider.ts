@@ -1,6 +1,11 @@
+export type TextBlock = { type: 'text'; text: string }
+export type ToolUseBlock = { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
+export type ToolResultBlock = { type: 'tool_result'; tool_use_id: string; content: string; is_error?: boolean }
+export type ContentBlock = TextBlock | ToolUseBlock | ToolResultBlock
+
 export type ChatMessage = {
 	role: 'user' | 'assistant'
-	content: string
+	content: ContentBlock[]
 }
 
 export type ToolDefinition = {
@@ -9,27 +14,23 @@ export type ToolDefinition = {
 	inputSchema: Record<string, unknown>
 }
 
-export type ToolCall = {
-	name: string
-	args: Record<string, unknown>
-}
-
-export type LlmResponse = {
-	content: string
-	toolCalls: ToolCall[]
-}
+export type StreamEvent =
+	| { type: 'text'; delta: string }
+	| { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
+	| { type: 'done'; stopReason: 'end' | 'tool_use' }
 
 export interface LlmProvider {
 	/**
-	 * Send a single turn to the LLM. If the LLM wants to call tools,
-	 * return the tool calls in the response.  The caller handles
-	 * the tool-use loop.
+	 * Stream a single turn from the LLM. Yields text deltas and tool-use
+	 * blocks as they arrive, terminating with a `done` event carrying the
+	 * stop reason. The caller handles the tool-use loop.
 	 */
-	chat(params: {
+	chatStream(params: {
 		messages: ChatMessage[]
 		tools: ToolDefinition[]
 		systemPrompt: string
-	}): Promise<LlmResponse>
+		signal?: AbortSignal
+	}): AsyncIterable<StreamEvent>
 }
 
 import type { McpPluginOptions } from '../types'
@@ -44,10 +45,6 @@ export function createProvider(options: McpPluginOptions): LlmProvider {
 		case 'openai': {
 			const { OpenAiProvider } = require('./providers/openai')
 			return new OpenAiProvider(options.model, options.apiKey!, options.baseUrl)
-		}
-		case 'ollama': {
-			const { OllamaProvider } = require('./providers/ollama')
-			return new OllamaProvider(options.model, options.baseUrl)
 		}
 		default:
 			throw new Error(`Unknown LLM provider: ${options.provider}`)

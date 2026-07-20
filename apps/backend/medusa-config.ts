@@ -330,11 +330,14 @@ module.exports = defineConfig({
 		{
 			resolve: 'medusa-plugin-mcp',
 			options: {
-				provider: process.env.MCP_LLM_PROVIDER || 'ollama',
+				provider: process.env.MCP_LLM_PROVIDER || 'openai',
 				model: process.env.MCP_LLM_MODEL || 'qwen3.6',
-				apiKey: process.env.MCP_LLM_API_KEY,
-				baseUrl: process.env.MCP_LLM_BASE_URL,
-				systemPrompt: process.env.MCP_SYSTEM_PROMPT
+				apiKey: process.env.MCP_LLM_API_KEY || 'local',
+				baseUrl: process.env.MCP_LLM_BASE_URL || 'http://localhost:11434/v1',
+				systemPrompt: process.env.MCP_SYSTEM_PROMPT,
+				toolPackages: ['medusa-plugin-automation/mcp'],
+				...(process.env.MCP_CHAT_RETENTION_DAYS ? { chatRetentionDays: Number(process.env.MCP_CHAT_RETENTION_DAYS) } : {}),
+				...(process.env.MCP_MAX_HISTORY_TURNS ? { maxHistoryTurns: Number(process.env.MCP_MAX_HISTORY_TURNS) } : {})
 			}
 		},
 		{

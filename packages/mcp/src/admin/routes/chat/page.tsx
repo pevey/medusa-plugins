@@ -1,9 +1,13 @@
-import { useState, useRef, useEffect, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { defineRouteConfig } from '@medusajs/admin-sdk'
 import { Robot } from '@medusajs/icons'
 import { Button, Container, Heading, Input, Text } from '@medusajs/ui'
-import { useChat } from '../../hooks/chat'
+import { useChat, type ChatMessage as ChatMessageType, type ContentBlock } from '../../hooks/chat'
+import { useSessionMessages } from '../../hooks/sessions'
+import { foldToolResults } from '../../lib/chat-messages'
 import { ChatMessage } from '../../components/chat-message'
+import { SessionSidebar } from '../../components/session-sidebar'
 
 export const config = defineRouteConfig({
 	label: 'Chat',
@@ -12,57 +16,120 @@ export const config = defineRouteConfig({
 
 export const handle = { breadcrumb: () => 'Chat' }
 
-type Message = {
-	role: 'user' | 'assistant'
-	content: string
-	toolCalls?: Array<{ name: string; args: Record<string, unknown>; result: string }>
+// Immutably applies `updater` to the content of the trailing assistant
+// message (the one currently being streamed into).
+const updateTrailingAssistant = (
+	messages: ChatMessageType[],
+	updater: (content: ContentBlock[]) => ContentBlock[]
+): ChatMessageType[] => {
+	if (messages.length === 0) return messages
+	const last = messages[messages.length - 1]
+	if (last.role !== 'assistant') return messages
+	return [...messages.slice(0, -1), { ...last, content: updater(last.content) }]
 }
 
 const ChatPage = () => {
-	const [messages, setMessages] = useState<Message[]>([])
+	const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
+	const [pendingOpenId, setPendingOpenId] = useState<string | null>(null)
+	const [messages, setMessages] = useState<ChatMessageType[]>([])
 	const [input, setInput] = useState('')
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const { mutate: sendChat, isPending } = useChat()
+	const { send, stop, streaming } = useChat()
+	// Only fetches when the user explicitly opens an existing session
+	// (via onSelect). Deliberately NOT keyed off activeSessionId — that
+	// also changes mid-stream via onSession, and hydrating from that
+	// would overwrite the live-updating pane with partial DB state.
+	const openQuery = useSessionMessages(pendingOpenId)
+	const qc = useQueryClient()
 
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
 	}, [messages])
 
+	// Opening a session: hydrate the pane from its persisted (wire-shaped)
+	// messages, folding tool_result messages back onto their tool_use card.
+	useEffect(() => {
+		if (openQuery.data) {
+			setMessages(foldToolResults(openQuery.data.messages))
+			setActiveSessionId(pendingOpenId)
+			setPendingOpenId(null)
+		}
+	}, [openQuery.data])
+
+	const onNew = () => {
+		if (streaming) return
+		setActiveSessionId(null)
+		setMessages([])
+		setPendingOpenId(null)
+	}
+
+	const onSelect = (id: string) => {
+		if (streaming) return
+		if (id !== activeSessionId) setPendingOpenId(id)
+	}
+
 	const handleSend = () => {
 		const text = input.trim()
-		if (!text || isPending) return
+		if (!text || streaming) return
 
-		const userMessage: Message = { role: 'user', content: text }
-		const updatedMessages = [...messages, userMessage]
-		setMessages(updatedMessages)
+		const userMessage: ChatMessageType = { role: 'user', content: [{ type: 'text', text }] }
+		const assistantMessage: ChatMessageType = { role: 'assistant', content: [] }
+
+		setMessages((prev) => [...prev, userMessage, assistantMessage])
 		setInput('')
 
-		// Send only role+content to the API (strip toolCalls)
-		const apiMessages = updatedMessages.map(({ role, content }) => ({ role, content }))
-
-		sendChat(apiMessages, {
-			onSuccess: (data) => {
-				setMessages(prev => [
-					...prev,
-					{
-						role: 'assistant',
-						content: data.content,
-						toolCalls: data.tool_calls
-					}
-				])
-			},
-			onError: (err) => {
-				setMessages(prev => [
-					...prev,
-					{
-						role: 'assistant',
-						content: `Error: ${err instanceof Error ? err.message : 'Something went wrong'}`
-					}
-				])
+		send(
+			{ session_id: activeSessionId, text },
+			{
+				onSession: (id) => {
+					if (!activeSessionId) setActiveSessionId(id)
+					qc.invalidateQueries({ queryKey: ['mcp-chat-sessions'] })
+				},
+				onText: (delta) => {
+					setMessages((prev) =>
+						updateTrailingAssistant(prev, (content) => {
+							const last = content[content.length - 1]
+							if (last?.type === 'text') {
+								return [...content.slice(0, -1), { ...last, text: last.text + delta }]
+							}
+							return [...content, { type: 'text', text: delta }]
+						})
+					)
+				},
+				onToolCall: (call) => {
+					setMessages((prev) =>
+						updateTrailingAssistant(prev, (content) => [
+							...content,
+							{ type: 'tool_use', id: call.id, name: call.name, input: call.args }
+						])
+					)
+				},
+				onToolResult: (result) => {
+					setMessages((prev) =>
+						updateTrailingAssistant(prev, (content) =>
+							content.map((b) =>
+								b.type === 'tool_use' && b.id === result.id
+									? { ...b, result: result.result, is_error: result.is_error }
+									: b
+							)
+						)
+					)
+				},
+				onDone: () => {
+					qc.invalidateQueries({ queryKey: ['mcp-chat-sessions'] })
+				},
+				onError: (message) => {
+					setMessages((prev) =>
+						updateTrailingAssistant(prev, (content) => [
+							...content,
+							{ type: 'text', text: `\n\n**Error:** ${message}` }
+						])
+					)
+				}
 			}
-		})
+		)
 	}
 
 	const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -72,8 +139,14 @@ const ChatPage = () => {
 		}
 	}
 
+	const lastMessage = messages[messages.length - 1]
+	const isThinking = streaming && lastMessage?.role === 'assistant' && lastMessage.content.length === 0
+
 	return (
-		<div className="flex flex-col h-[calc(100vh-120px)] p-4">
+		<div className="flex h-[calc(100vh-120px)] p-4 gap-4">
+			<Container className="p-0 overflow-hidden">
+				<SessionSidebar activeId={activeSessionId} onNew={onNew} onSelect={onSelect} disabled={streaming} />
+			</Container>
 			<Container className="flex flex-col flex-1 p-0 overflow-hidden">
 				<div className="px-6 py-4 border-b border-ui-border-base">
 					<Heading level="h1">Chat</Heading>
@@ -92,14 +165,9 @@ const ChatPage = () => {
 						</div>
 					)}
 					{messages.map((msg, i) => (
-						<ChatMessage
-							key={i}
-							role={msg.role}
-							content={msg.content}
-							toolCalls={msg.toolCalls}
-						/>
+						<ChatMessage key={i} message={msg} />
 					))}
-					{isPending && (
+					{isThinking && (
 						<div className="self-start">
 							<Text size="small" className="text-ui-fg-muted animate-pulse">Thinking...</Text>
 						</div>
@@ -116,16 +184,18 @@ const ChatPage = () => {
 							onChange={(e) => setInput(e.target.value)}
 							onKeyDown={handleKeyDown}
 							placeholder="Ask a question..."
-							disabled={isPending}
+							disabled={streaming}
 							className="flex-1"
 						/>
-						<Button
-							onClick={handleSend}
-							disabled={!input.trim() || isPending}
-							isLoading={isPending}
-						>
-							Send
-						</Button>
+						{streaming ? (
+							<Button onClick={stop} variant="secondary">
+								Stop
+							</Button>
+						) : (
+							<Button onClick={handleSend} disabled={!input.trim()}>
+								Send
+							</Button>
+						)}
 					</div>
 				</div>
 			</Container>

@@ -1,41 +1,25 @@
-import { randomUUID } from 'node:crypto'
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
-import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js'
 import { createMcpServer } from '../../../mcp/server'
-
-// Store transports by session ID for stateful MCP connections
-const sessions: Record<string, StreamableHTTPServerTransport> = {}
+import { MCP_MODULE, McpService } from '../../../modules/mcp'
 
 export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	try {
-		const sessionId = req.headers['mcp-session-id'] as string | undefined
-		let transport: StreamableHTTPServerTransport
+		const options = (req.scope.resolve(MCP_MODULE) as McpService).getOptions()
+		const actor = { id: req.auth_context?.actor_id, type: req.auth_context?.actor_type }
 
-		if (sessionId && sessions[sessionId]) {
-			// Reuse existing session transport
-			transport = sessions[sessionId]
-		} else if (!sessionId && isInitializeRequest(req.body)) {
-			// New initialization request
-			transport = new StreamableHTTPServerTransport({
-				sessionIdGenerator: () => randomUUID(),
-				enableJsonResponse: true,
-				onsessioninitialized: (id) => {
-					sessions[id] = transport
-				}
-			})
+		// Stateless: a fresh server + transport per request. This server only serves tools
+		// (no server-initiated notifications), so no session state is needed — and this works
+		// correctly across multiple server/worker instances, with nothing to leak.
+		const server = await createMcpServer(req.scope, options, actor)
+		const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
 
-			const server = await createMcpServer(req.scope)
-			await server.connect(transport)
-		} else {
-			res.status(400).json({
-				jsonrpc: '2.0',
-				error: { code: -32000, message: 'Bad Request: No valid session. Send initialize first.' },
-				id: null
-			})
-			return
-		}
+		res.on('close', () => {
+			transport.close()
+			server.close()
+		})
 
+		await server.connect(transport)
 		await transport.handleRequest(req, res, req.body)
 	} catch (err) {
 		console.error('[MCP] Error:', err)

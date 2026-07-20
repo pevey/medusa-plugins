@@ -1,3 +1,7 @@
+## 0.4.0
+
+- Added tool registration for optional medusa-plugin-mcp integration
+
 ## 0.3.2
 
 - Updated medusa packages to 2.17.2

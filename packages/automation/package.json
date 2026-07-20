@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-automation",
-	"version": "0.3.2",
+	"version": "0.4.0",
 	"description": "Automation plugin for Medusa v2 with triggers, actions, and HMAC signing",
 	"author": "Lacey Pevey",
 	"repository": {
@@ -41,6 +41,10 @@
 		".": {
 			"types": "./.medusa/server/src/modules/automation/index.d.ts",
 			"default": "./.medusa/server/src/modules/automation/index.js"
+		},
+		"./mcp": {
+			"types": "./.medusa/server/src/mcp/index.d.ts",
+			"default": "./.medusa/server/src/mcp/index.js"
 		}
 	},
 	"keywords": [

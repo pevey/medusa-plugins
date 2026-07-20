@@ -21447,6 +21447,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"html-url-attributes@npm:^3.0.0":
+  version: 3.0.1
+  resolution: "html-url-attributes@npm:3.0.1"
+  checksum: 10c0/496e4908aa8b77665f348b4b03521901794f648b8ac34a581022cd6f2c97934d5c910cd91bc6593bbf2994687549037bc2520fcdc769b31484f29ffdd402acd0
+  languageName: node
+  linkType: hard
+
 "html-void-elements@npm:^3.0.0":
   version: 3.0.0
   resolution: "html-void-elements@npm:3.0.0"
@@ -24579,7 +24586,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"medusa-plugin-automation@npm:0.3.2, medusa-plugin-automation@workspace:*, medusa-plugin-automation@workspace:packages/automation":
+"medusa-plugin-automation@npm:0.3.2":
+  version: 0.3.2
+  resolution: "medusa-plugin-automation@npm:0.3.2"
+  dependencies:
+    ipaddr.js: "npm:2.2.0"
+    undici: "npm:6.21.1"
+  peerDependencies:
+    "@medusajs/framework": 2.17.2
+    "@medusajs/js-sdk": 2.17.2
+    "@medusajs/medusa": 2.17.2
+  checksum: 10c0/201fdf5a8f6e22f01941a4f2219409febec79dd1c3e6c57bfb49e22632b659d0be6530f077d91b6c2a0a89546d713488e9edcffd10fd9b8595a1bb2c21bec385
+  languageName: node
+  linkType: hard
+
+"medusa-plugin-automation@workspace:*, medusa-plugin-automation@workspace:packages/automation":
   version: 0.0.0-use.local
   resolution: "medusa-plugin-automation@workspace:packages/automation"
   dependencies:
@@ -24822,19 +24843,24 @@ __metadata:
     "@medusajs/cli": "npm:2.17.2"
     "@medusajs/framework": "npm:2.17.2"
     "@medusajs/icons": "npm:2.17.2"
+    "@medusajs/test-utils": "npm:2.17.2"
     "@medusajs/ui": "npm:4.1.19"
     "@modelcontextprotocol/sdk": "npm:1.29.0"
+    "@swc/core": "npm:1.15.33"
+    "@swc/jest": "npm:0.2.39"
+    "@types/jest": "npm:30.0.0"
     "@types/node": "npm:20.0.0"
     "@types/react": "npm:18.3.2"
     "@types/react-dom": "npm:18.2.25"
+    jest: "npm:29.7.0"
     medusa-plugin-automation: "npm:0.3.2"
     medusa-plugin-statistics: "npm:0.2.2"
-    ollama: "npm:0.6.3"
     openai: "npm:4.98.0"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
-    recharts: "npm:2.15.3"
+    react-markdown: "npm:10.1.0"
+    remark-gfm: "npm:4.0.1"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
   peerDependencies:
@@ -27010,15 +27036,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ollama@npm:0.6.3":
-  version: 0.6.3
-  resolution: "ollama@npm:0.6.3"
-  dependencies:
-    whatwg-fetch: "npm:^3.6.20"
-  checksum: 10c0/040742dd1f96ad06d5508e387d8d953b3cfab527427f5dd463be7ccd589877eccfbf13ccea0bcb4d6b044a90a327c82c3089834fd3c0ea7243bb830a9c07295d
-  languageName: node
-  linkType: hard
-
 "omggif@npm:^1.0.10, omggif@npm:^1.0.9":
   version: 1.0.10
   resolution: "omggif@npm:1.0.10"
@@ -28957,6 +28974,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-markdown@npm:10.1.0":
+  version: 10.1.0
+  resolution: "react-markdown@npm:10.1.0"
+  dependencies:
+    "@types/hast": "npm:^3.0.0"
+    "@types/mdast": "npm:^4.0.0"
+    devlop: "npm:^1.0.0"
+    hast-util-to-jsx-runtime: "npm:^2.0.0"
+    html-url-attributes: "npm:^3.0.0"
+    mdast-util-to-hast: "npm:^13.0.0"
+    remark-parse: "npm:^11.0.0"
+    remark-rehype: "npm:^11.0.0"
+    unified: "npm:^11.0.0"
+    unist-util-visit: "npm:^5.0.0"
+    vfile: "npm:^6.0.0"
+  peerDependencies:
+    "@types/react": ">=18"
+    react: ">=18"
+  checksum: 10c0/4a5dc7d15ca6d05e9ee95318c1904f83b111a76f7588c44f50f1d54d4c97193b84e4f64c4b592057c989228238a2590306cedd0c4d398e75da49262b2b5ae1bf
+  languageName: node
+  linkType: hard
+
 "react-refresh@npm:^0.17.0":
   version: 0.17.0
   resolution: "react-refresh@npm:0.17.0"
@@ -29592,7 +29631,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remark-gfm@npm:^4.0.1":
+"remark-gfm@npm:4.0.1, remark-gfm@npm:^4.0.1":
   version: 4.0.1
   resolution: "remark-gfm@npm:4.0.1"
   dependencies:
@@ -32440,6 +32479,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"undici@npm:6.21.1":
+  version: 6.21.1
+  resolution: "undici@npm:6.21.1"
+  checksum: 10c0/d604080e4f8db89b35a63b483b5f96a5f8b19ec9f716e934639345449405809d2997e1dd7212d67048f210e54534143384d712bd9075e4394f0788895ef9ca8e
+  languageName: node
+  linkType: hard
+
 "undici@npm:6.27.0":
   version: 6.27.0
   resolution: "undici@npm:6.27.0"
@@ -33346,7 +33392,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"whatwg-fetch@npm:^3.4.1, whatwg-fetch@npm:^3.6.20":
+"whatwg-fetch@npm:^3.4.1":
   version: 3.6.20
   resolution: "whatwg-fetch@npm:3.6.20"
   checksum: 10c0/fa972dd14091321d38f36a4d062298df58c2248393ef9e8b154493c347c62e2756e25be29c16277396046d6eaa4b11bd174f34e6403fff6aaca9fb30fa1ff46d

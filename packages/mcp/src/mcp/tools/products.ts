@@ -1,9 +1,9 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import type { McpToolRegistry } from '../registry'
 import { MedusaContainer } from '@medusajs/framework/types'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { z } from 'zod'
 
-export function registerProductTools(server: McpServer, scope: MedusaContainer) {
+export function registerProductTools(server: McpToolRegistry, scope: MedusaContainer) {
 	const query = scope.resolve(ContainerRegistrationKeys.QUERY)
 
 	server.registerTool(
