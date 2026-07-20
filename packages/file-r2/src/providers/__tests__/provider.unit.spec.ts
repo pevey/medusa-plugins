@@ -118,6 +118,45 @@ describe('R2FileService — constructor', () => {
 	})
 })
 
+// ─── Constructor — endpoint-includes-bucket warning ───────────────────────────
+
+describe('R2FileService — endpoint includes bucket (warn, non-mutating)', () => {
+	it('warns when the public endpoint ends with the bucket name', () => {
+		makeService({
+			endpoint: 'https://account.r2.cloudflarestorage.com/public-bucket'
+		})
+		expect(mockLogger.warn).toHaveBeenCalledWith(
+			expect.stringContaining('ends with the bucket name')
+		)
+	})
+
+	it('warns when the private endpoint ends with the private bucket name', () => {
+		makeService({
+			privateEndpoint: 'https://account.r2.cloudflarestorage.com/private-bucket'
+		})
+		expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('private-bucket'))
+	})
+
+	it('does NOT mutate the endpoint in 1.1.x (warn only)', () => {
+		const endpoint = 'https://account.r2.cloudflarestorage.com/public-bucket'
+		const svc = makeService({ endpoint })
+		expect((svc as any).config_.endpoint).toBe(endpoint)
+	})
+
+	it('does not warn when endpoints are the account host only', () => {
+		makeService()
+		expect(mockLogger.warn).not.toHaveBeenCalled()
+	})
+
+	it('does not warn when a trailing path segment merely contains the bucket name', () => {
+		// "public-bucket-archive" !== "public-bucket": only an exact final segment counts
+		makeService({
+			endpoint: 'https://account.r2.cloudflarestorage.com/public-bucket-archive'
+		})
+		expect(mockLogger.warn).not.toHaveBeenCalled()
+	})
+})
+
 // ─── upload() — public ACL ────────────────────────────────────────────────────
 
 describe('R2FileService — upload() — public', () => {

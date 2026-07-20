@@ -40,6 +40,36 @@ function decodeFileContent(content: string, mimeType?: string): Buffer {
 	return isTextContent ? Buffer.from(content, 'utf8') : Buffer.from(content, 'binary')
 }
 
+/**
+ * Cloudflare's R2 dashboard shows the S3 API endpoint with the bucket name
+ * appended (with a copy button), e.g.
+ * `https://<account>.r2.cloudflarestorage.com/my-bucket`. But the S3 client is
+ * also given the bucket separately, so leaving it on the endpoint doubles it
+ * into every object key (`my-bucket/my-bucket/<file>`). This returns the
+ * endpoint with a trailing path segment equal to the bucket name removed;
+ * otherwise it returns the endpoint unchanged.
+ */
+export function stripBucketFromEndpoint(
+	endpoint: string | undefined,
+	bucket: string | undefined
+): string | undefined {
+	if (!endpoint || !bucket) {
+		return endpoint
+	}
+	let url: URL
+	try {
+		url = new URL(endpoint)
+	} catch {
+		return endpoint
+	}
+	const segments = url.pathname.split('/').filter(Boolean)
+	if (segments.length === 0 || segments[segments.length - 1] !== bucket) {
+		return endpoint
+	}
+	segments.pop()
+	return url.origin + (segments.length ? `/${segments.join('/')}` : '')
+}
+
 type InjectedDependencies = {
 	logger: Logger
 }
@@ -100,8 +130,29 @@ export class R2FileProvider extends AbstractFileProviderService {
 			privateEndpoint: options.privateEndpoint
 		}
 		this.logger_ = logger
+		this.warnIfEndpointIncludesBucket(this.config_.endpoint, this.config_.bucket)
+		this.warnIfEndpointIncludesBucket(this.config_.privateEndpoint, this.config_.privateBucket)
 		this.client_ = this.getClient()
 		this.privateClient_ = this.getClient(true)
+	}
+
+	/**
+	 * Warn when an endpoint ends with the bucket name — a very common mistake
+	 * because Cloudflare's dashboard offers a copy button for the endpoint with
+	 * the bucket already appended. Leaving it on doubles the bucket into every
+	 * object path. This does not modify the endpoint (see 2.0.0, which strips it).
+	 */
+	protected warnIfEndpointIncludesBucket(endpoint?: string, bucket?: string): void {
+		const cleaned = stripBucketFromEndpoint(endpoint, bucket)
+		if (endpoint && cleaned !== endpoint) {
+			this.logger_.warn(
+				`[medusa-plugin-r2] The configured endpoint "${endpoint}" ends with the bucket name ` +
+					`"${bucket}". The R2 S3 API endpoint must be the account host only (e.g. "${cleaned}") — ` +
+					`the bucket is supplied separately via the bucket option. Leaving it on the endpoint doubles ` +
+					`the bucket into every object path (objects land at "${bucket}/${bucket}/<file>"). Remove ` +
+					`"/${bucket}" from the endpoint. (medusa-plugin-r2 v2.0.0 strips this automatically.)`
+			)
+		}
 	}
 
 	protected getClient(priv: boolean = false): S3Client {

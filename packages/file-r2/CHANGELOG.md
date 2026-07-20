@@ -1,6 +1,14 @@
+## 2.0.0
+
+- Potentially BREAKING CHANGE: If you have previously configured your R2 endpoints with the bucket name appended, the provider will now automatically strip the bucket name to prevent unecessary nesting (e.g., /bucket-name/bucket-name/image.png)
+
+## 1.1.4
+
+- Shows a warning on startup if your endpoint configuration (options.endpoint) appends the bucket name. Starting in v2.0.0, the bucket name will be stripped by default, requiring a migration of saved objects.
+
 ## 1.1.3
 
-- Mirror the changes made to the Medusa file-s3 provider in PR https://github.com/medusajs/medusa/pull/15811, decode upload content by MIME type to stop binary file corruption
+- Mirrors the changes made to the Medusa file-s3 provider in PR https://github.com/medusajs/medusa/pull/15811, decode upload content by MIME type to stop binary file corruption
 
 ## 1.1.2
 
