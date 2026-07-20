@@ -26,7 +26,7 @@ export const plugins = [
 	{ slug: 'medusa-plugin-mcp', label: 'MCP', schemaFile: 'mcp', dir: 'mcp' },
 	{ slug: 'medusa-plugin-order-notes', label: 'Order Notes', schemaFile: 'order-notes', dir: 'order-notes' },
 	{ slug: 'medusa-plugin-r2', label: 'R2 File Storage', dir: 'file-r2' },
-	{ slug: 'medusa-plugin-ratings', label: 'Reviews', schemaFile: 'reviews', dir: 'reviews' },
+	{ slug: 'medusa-plugin-ratings', label: 'Reviews', schemaFile: 'ratings', dir: 'ratings' },
 	{ slug: 'medusa-plugin-search', label: 'Search', schemaFile: 'search', dir: 'search' },
 	{ slug: 'medusa-plugin-ses', label: 'SES Notifications', dir: 'notification-ses' },
 	{ slug: 'medusa-plugin-statistics', label: 'Statistics', schemaFile: 'statistics', dir: 'statistics' },

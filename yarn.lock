@@ -24938,9 +24938,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"medusa-plugin-ratings@workspace:*, medusa-plugin-ratings@workspace:packages/reviews":
+"medusa-plugin-ratings@workspace:*, medusa-plugin-ratings@workspace:packages/ratings":
   version: 0.0.0-use.local
-  resolution: "medusa-plugin-ratings@workspace:packages/reviews"
+  resolution: "medusa-plugin-ratings@workspace:packages/ratings"
   dependencies:
     "@medusajs/admin-sdk": "npm:2.17.2"
     "@medusajs/cli": "npm:2.17.2"

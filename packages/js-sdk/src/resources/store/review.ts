@@ -1,4 +1,4 @@
-// Source: packages/reviews/src/api/store/ + packages/reviews/src/api/validators.ts
+// Source: packages/ratings/src/api/store/ + packages/ratings/src/api/validators.ts
 // Routes: GET/POST /store/reviews/:productId
 
 import type { Client, ClientHeaders } from '@medusajs/js-sdk'

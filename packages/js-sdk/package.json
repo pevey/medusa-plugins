@@ -39,6 +39,5 @@
 	},
 	"engines": {
 		"node": ">=18"
-	},
-	"gitHead": "4ec3aeec50258fb700d4eb70582dbbef7f2874aa"
+	}
 }

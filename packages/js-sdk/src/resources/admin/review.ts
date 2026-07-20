@@ -1,4 +1,4 @@
-// Source: packages/reviews/src/api/admin/ + packages/reviews/src/api/validators.ts
+// Source: packages/ratings/src/api/admin/ + packages/ratings/src/api/validators.ts
 // Routes: GET/POST/DELETE /admin/reviews, POST /admin/reviews/approve, POST /admin/reviews/reject
 
 import type { Client, ClientHeaders } from '@medusajs/js-sdk'

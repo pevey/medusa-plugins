@@ -97,6 +97,5 @@
 	"dependencies": {
 		"jimp": "0.22.12",
 		"pdf-lib": "1.17.1"
-	},
-	"gitHead": "4ec3aeec50258fb700d4eb70582dbbef7f2874aa"
+	}
 }

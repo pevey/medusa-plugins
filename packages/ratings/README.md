@@ -1,8 +1,8 @@
-# medusa-plugin-reviews
+# medusa-plugin-ratings
 
 Product review and rating plugin for Medusa v2 with admin moderation workflow.
 
-[Documentation](https://pevey.com/medusa-plugin-reviews)
+[Documentation](https://pevey.com/medusa-plugin-ratings)
 
 If you are not familiar with Medusa, you can learn more on [the project web site](https://www.medusajs.com/).
 

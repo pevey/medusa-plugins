@@ -1,4 +1,4 @@
-// Source: packages/reviews/src/api/validators.ts
+// Source: packages/ratings/src/api/validators.ts
 // Routes: GET/POST /store/reviews/:productId, GET/POST/DELETE /admin/reviews
 
 export interface Review {
