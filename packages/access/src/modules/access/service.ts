@@ -4,6 +4,7 @@ import {
 	InjectTransactionManager,
 	MedusaContext,
 	MedusaService,
+	Modules,
 	promiseAll
 } from '@medusajs/framework/utils'
 import { Policy, WILDCARD } from '../../utils'
@@ -17,7 +18,7 @@ import {
 } from './types'
 import { AccessPolicy, AccessRole, AccessRoleParent, AccessRolePolicy } from './models'
 import { AccessRepository } from './repositories'
-import { bootstrapSuperAdminWorkflow } from '../../workflows/access/workflows/bootstrap-super-admin'
+import { BOOTSTRAP_SUPER_ADMIN_EVENT } from '../../workflows/access/workflows/bootstrap-super-admin'
 
 type InjectedDependencies = {
 	accessRepository: AccessRepository
@@ -49,34 +50,44 @@ export class AccessModuleService
 	protected readonly accessPolicyService: ModulesSdkTypes.IMedusaInternalService<
 		InferEntityType<typeof AccessPolicy>
 	>
+	protected readonly container_: InjectedDependencies
 
-	constructor({
-		accessRepository,
-		accessRoleService,
-		accessPolicyService,
-		accessRolePolicyService
-	}: InjectedDependencies) {
+	constructor(container: InjectedDependencies) {
 		// @ts-ignore
 		super(...arguments)
-		this.accessRepository_ = accessRepository
-		this.accessRolePolicyService = accessRolePolicyService
-		this.accessRoleService = accessRoleService
-		this.accessPolicyService = accessPolicyService
+		this.container_ = container
+		this.accessRepository_ = container.accessRepository
+		this.accessRolePolicyService = container.accessRolePolicyService
+		this.accessRoleService = container.accessRoleService
+		this.accessPolicyService = container.accessPolicyService
 	}
 
 	__hooks = {
+		// Medusa calls this after ALL modules finish loading (and after subscribers
+		// are registered), but it runs bound to the module service, whose container
+		// cannot resolve cross-module services like `query`/`link` — so we can't run
+		// the bootstrap workflow here directly. Instead we emit an event and let a
+		// subscriber (which receives the full app container) run the workflow. This
+		// mirrors the search plugin's seed-on-startup pattern.
 		onApplicationStart: async () => {
 			await this.syncRegisteredPolicies()
 
 			// First-load bootstrap: grant super-admin to existing users so installing
 			// the plugin (which gates the whole admin) does not lock out the operator.
-			// Runs the workflow WITHOUT a container so its steps resolve sibling
-			// modules (user, query, link) from the global registry. Best-effort:
-			// in isolated contexts (e.g. the module test runner) this is skipped.
+			const logger = (this.container_ as any).logger ?? console
 			try {
-				await bootstrapSuperAdminWorkflow().run({})
-			} catch {
-				// no-op: bootstrap requires the full app (user module + links)
+				const eventBus = (this.container_ as any)[Modules.EVENT_BUS]
+				if (!eventBus) {
+					logger.warn?.(
+						'[access] cannot bootstrap super-admin on startup — event bus module is not configured'
+					)
+					return
+				}
+				await eventBus.emit({ name: BOOTSTRAP_SUPER_ADMIN_EVENT, data: {} })
+			} catch (error) {
+				logger.error?.(
+					`[access] failed to emit super-admin bootstrap event: ${(error as Error).message}`
+				)
 			}
 		}
 	}
