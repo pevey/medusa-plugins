@@ -50,7 +50,7 @@
 		"image hosting"
 	],
 	"dependencies": {
-		"@mdxeditor/editor": "^3.54.0",
+		"@mdxeditor/editor": "^4.1.0",
 		"@shikijs/rehype": "^4.3.1",
 		"multer": "^2.2.0",
 		"rehype-sanitize": "^6.0.0",
