@@ -13,18 +13,16 @@
 		"astro": "astro"
 	},
 	"dependencies": {
-		"@astrojs/cloudflare": "13.3.1",
-		"@astrojs/starlight": "0.38.5",
+		"@astrojs/starlight": "0.41.3",
 		"@astrojs/starlight-tailwind": "5.0.0",
 		"@fontsource/inter": "5",
 		"@fontsource/roboto-mono": "5",
 		"@tailwindcss/vite": "4.3.3",
-		"astro": "6.2.2",
-		"sharp": "0.33",
-		"starlight-llms-txt": "0.8.1",
-		"starlight-openapi": "0.25.0",
+		"astro": "7.1.1",
+		"starlight-llms-txt": "0.11.0",
+		"starlight-openapi": "0.26.0",
 		"tailwindcss": "4.3.3",
-		"vite": "7.3.2",
+		"vite": "8.1.5",
 		"yaml": "2.9.0"
 	},
 	"installConfig": {
