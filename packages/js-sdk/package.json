@@ -30,8 +30,8 @@
 		"prepublishOnly": "tsc && tsc-alias"
 	},
 	"dependencies": {
-		"@medusajs/js-sdk": "2.17.2",
-		"@medusajs/types": "2.17.2"
+		"@medusajs/js-sdk": "^2.17.2",
+		"@medusajs/types": "^2.17.2"
 	},
 	"devDependencies": {
 		"tsc-alias": "^1.9.1",

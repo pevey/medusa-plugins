@@ -56,7 +56,7 @@
 		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit"
 	},
 	"dependencies": {
-		"recharts": "2.15.0"
+		"recharts": "^2.15.0"
 	},
 	"devDependencies": {
 		"@medusajs/admin-sdk": "2.17.2",
@@ -80,9 +80,9 @@
 		"yalc": "1.0.0-pre.53"
 	},
 	"peerDependencies": {
-		"@medusajs/framework": "2.17.2",
-		"@medusajs/js-sdk": "2.17.2",
-		"@medusajs/medusa": "2.17.2"
+		"@medusajs/framework": "^2.17.2",
+		"@medusajs/js-sdk": "^2.17.2",
+		"@medusajs/medusa": "^2.17.2"
 	},
 	"engines": {
 		"node": ">=20"
