@@ -130,29 +130,35 @@ export class R2FileProvider extends AbstractFileProviderService {
 			privateEndpoint: options.privateEndpoint
 		}
 		this.logger_ = logger
-		this.warnIfEndpointIncludesBucket(this.config_.endpoint, this.config_.bucket)
-		this.warnIfEndpointIncludesBucket(this.config_.privateEndpoint, this.config_.privateBucket)
+		this.config_.endpoint = this.normalizeEndpoint(this.config_.endpoint, this.config_.bucket)
+		this.config_.privateEndpoint = this.normalizeEndpoint(
+			this.config_.privateEndpoint,
+			this.config_.privateBucket
+		)
 		this.client_ = this.getClient()
 		this.privateClient_ = this.getClient(true)
 	}
 
 	/**
-	 * Warn when an endpoint ends with the bucket name — a very common mistake
-	 * because Cloudflare's dashboard offers a copy button for the endpoint with
-	 * the bucket already appended. Leaving it on doubles the bucket into every
-	 * object path. This does not modify the endpoint (see 2.0.0, which strips it).
+	 * Strip a trailing bucket-name path segment from an endpoint — a very common
+	 * mistake because Cloudflare's dashboard offers a copy button for the endpoint
+	 * with the bucket already appended. The S3 client is given the bucket
+	 * separately, so leaving it on the endpoint doubles the bucket into every
+	 * object path (`bucket/bucket/<file>`). We strip it and log that we did, so
+	 * the change is visible in the logs.
 	 */
-	protected warnIfEndpointIncludesBucket(endpoint?: string, bucket?: string): void {
+	protected normalizeEndpoint(endpoint?: string, bucket?: string): string | undefined {
 		const cleaned = stripBucketFromEndpoint(endpoint, bucket)
 		if (endpoint && cleaned !== endpoint) {
 			this.logger_.warn(
-				`[medusa-plugin-r2] The configured endpoint "${endpoint}" ends with the bucket name ` +
-					`"${bucket}". The R2 S3 API endpoint must be the account host only (e.g. "${cleaned}") — ` +
-					`the bucket is supplied separately via the bucket option. Leaving it on the endpoint doubles ` +
-					`the bucket into every object path (objects land at "${bucket}/${bucket}/<file>"). Remove ` +
-					`"/${bucket}" from the endpoint. (medusa-plugin-r2 v2.0.0 strips this automatically.)`
+				`[medusa-plugin-r2] Stripped the bucket name "${bucket}" from the configured endpoint ` +
+					`("${endpoint}" → "${cleaned}"). The R2 S3 API endpoint must be the account host only; ` +
+					`the bucket is supplied separately via the bucket option. If you previously relied on the ` +
+					`doubled path ("${bucket}/${bucket}/<file>"), migrate existing objects to the un-nested ` +
+					`path or set the endpoint to keep the bucket segment intentionally.`
 			)
 		}
+		return cleaned
 	}
 
 	protected getClient(priv: boolean = false): S3Client {

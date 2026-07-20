@@ -118,42 +118,57 @@ describe('R2FileService — constructor', () => {
 	})
 })
 
-// ─── Constructor — endpoint-includes-bucket warning ───────────────────────────
+// ─── Constructor — endpoint-includes-bucket auto-strip (2.0.0) ────────────────
 
-describe('R2FileService — endpoint includes bucket (warn, non-mutating)', () => {
-	it('warns when the public endpoint ends with the bucket name', () => {
+describe('R2FileService — endpoint includes bucket (auto-strip)', () => {
+	it('strips the bucket name from the public endpoint', () => {
+		const svc = makeService({
+			endpoint: 'https://account.r2.cloudflarestorage.com/public-bucket'
+		})
+		expect((svc as any).config_.endpoint).toBe('https://account.r2.cloudflarestorage.com')
+	})
+
+	it('strips the bucket name from the private endpoint', () => {
+		const svc = makeService({
+			privateEndpoint: 'https://account.r2.cloudflarestorage.com/private-bucket'
+		})
+		expect((svc as any).config_.privateEndpoint).toBe('https://account.r2.cloudflarestorage.com')
+	})
+
+	it('warns when it strips the bucket from an endpoint', () => {
 		makeService({
 			endpoint: 'https://account.r2.cloudflarestorage.com/public-bucket'
 		})
-		expect(mockLogger.warn).toHaveBeenCalledWith(
-			expect.stringContaining('ends with the bucket name')
-		)
+		expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('Stripped the bucket name'))
 	})
 
-	it('warns when the private endpoint ends with the private bucket name', () => {
+	it('passes the stripped endpoint to the S3 client', () => {
 		makeService({
-			privateEndpoint: 'https://account.r2.cloudflarestorage.com/private-bucket'
+			endpoint: 'https://account.r2.cloudflarestorage.com/public-bucket'
 		})
-		expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('private-bucket'))
+		const clientConfig = (S3Client as jest.MockedClass<typeof S3Client>).mock.calls[0][0] as any
+		expect(clientConfig.endpoint).toBe('https://account.r2.cloudflarestorage.com')
 	})
 
-	it('does NOT mutate the endpoint in 1.1.x (warn only)', () => {
-		const endpoint = 'https://account.r2.cloudflarestorage.com/public-bucket'
+	it('leaves the endpoint untouched when it is the account host only', () => {
+		const svc = makeService()
+		expect((svc as any).config_.endpoint).toBe(baseOptions.endpoint)
+		expect(mockLogger.warn).not.toHaveBeenCalled()
+	})
+
+	it('does not strip when a trailing path segment merely contains the bucket name', () => {
+		// "public-bucket-archive" !== "public-bucket": only an exact final segment is stripped
+		const endpoint = 'https://account.r2.cloudflarestorage.com/public-bucket-archive'
 		const svc = makeService({ endpoint })
 		expect((svc as any).config_.endpoint).toBe(endpoint)
-	})
-
-	it('does not warn when endpoints are the account host only', () => {
-		makeService()
 		expect(mockLogger.warn).not.toHaveBeenCalled()
 	})
 
-	it('does not warn when a trailing path segment merely contains the bucket name', () => {
-		// "public-bucket-archive" !== "public-bucket": only an exact final segment counts
-		makeService({
-			endpoint: 'https://account.r2.cloudflarestorage.com/public-bucket-archive'
+	it('preserves a non-bucket path prefix while stripping only the bucket segment', () => {
+		const svc = makeService({
+			endpoint: 'https://account.r2.cloudflarestorage.com/base/public-bucket'
 		})
-		expect(mockLogger.warn).not.toHaveBeenCalled()
+		expect((svc as any).config_.endpoint).toBe('https://account.r2.cloudflarestorage.com/base')
 	})
 })
 
