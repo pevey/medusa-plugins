@@ -15077,7 +15077,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:25.6.0, @types/node@npm:>=10.0.0, @types/node@npm:>=13.7.0, @types/node@npm:>=20.0.0, @types/node@npm:>=8.1.0":
+"@types/node@npm:*, @types/node@npm:>=10.0.0, @types/node@npm:>=13.7.0, @types/node@npm:>=20.0.0, @types/node@npm:>=8.1.0":
   version: 25.6.0
   resolution: "@types/node@npm:25.6.0"
   dependencies:
@@ -15093,10 +15093,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@types/node@npm:20.0.0"
-  checksum: 10c0/34d67327d4145b406c0eff4f4b76a1d38a5ace393918381db0991e24ed0cc084450eb3341a80fca074e3eed1c4ae445e92749fd475026a16f14d2305871c280d
+"@types/node@npm:22.20.1":
+  version: 22.20.1
+  resolution: "@types/node@npm:22.20.1"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10c0/f2ba54d3d1fb92e1c57c78d32c3a17655b1e87363b707136f55c422b4838d4054901ce5d27f75bb0e5ecb7ebfee3804e0987822d22b473473008091857a09353
   languageName: node
   linkType: hard
 
@@ -16348,7 +16350,7 @@ __metadata:
     "@testing-library/dom": "npm:10.4.1"
     "@testing-library/react": "npm:16.3.2"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:25.6.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     "@vitejs/plugin-react": "npm:6.0.3"
@@ -24201,7 +24203,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24230,7 +24232,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24260,7 +24262,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24305,7 +24307,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     ipaddr.js: "npm:^2.4.0"
@@ -24338,7 +24340,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24369,7 +24371,7 @@ __metadata:
     "@swc/jest": "npm:0.2.39"
     "@types/braintree": "npm:3.4.4"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     braintree: "npm:^3.38.0"
@@ -24400,7 +24402,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24440,7 +24442,7 @@ __metadata:
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
     "@types/multer": "npm:2.2.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24479,7 +24481,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24509,7 +24511,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24542,7 +24544,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24582,7 +24584,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24612,7 +24614,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     axios: "npm:1.18.1"
@@ -24643,7 +24645,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24671,7 +24673,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     jest: "npm:29.7.0"
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
@@ -24695,7 +24697,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/nodemailer": "npm:8.0.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
@@ -24727,7 +24729,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     "@types/react-grid-layout": "npm:2.1.0"
@@ -24760,7 +24762,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24790,7 +24792,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
@@ -24820,7 +24822,7 @@ __metadata:
     "@swc/core": "npm:1.15.46"
     "@swc/jest": "npm:0.2.39"
     "@types/jest": "npm:30.0.0"
-    "@types/node": "npm:20.0.0"
+    "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     async-sema: "npm:^3.1.1"

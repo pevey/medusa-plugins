@@ -15,7 +15,7 @@ const PINNED_DEV_TOOLING = {
 	typescript: "6.0.3",
 	vite: "8.1.5",
 	vitest: "4.1.10",
-	"@types/node": "20.0.0",
+	"@types/node": "22.20.1",
 };
 
 // Medusa framework peers must be ranges, not exact pins. `^2.17.2` accepts the
