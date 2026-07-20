@@ -86,10 +86,13 @@ async function embedImageNative(target: PDFDocument, bytes: Buffer, mime: string
 }
 
 async function embedImageViaJimp(target: PDFDocument, bytes: Buffer): Promise<PDFPage> {
+	// Lazily required so jimp (a heavy dep) only loads for formats pdf-lib can't
+	// embed natively. Cast to the type-only import so the 1.x API stays type-checked
+	// without eagerly loading the module.
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	const Jimp = require('jimp')
+	const { Jimp } = require('jimp') as typeof import('jimp')
 	const image = await Jimp.read(bytes)
-	const pngBuf: Buffer = await image.getBufferAsync(Jimp.MIME_PNG)
+	const pngBuf = Buffer.from(await image.getBuffer('image/png'))
 	return embedImageNative(target, pngBuf, 'image/png')
 }
 

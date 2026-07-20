@@ -86,6 +86,23 @@ describe('embedAttachment', () => {
 		if (result.embedded) expect(result.pages_added).toBe(1)
 	})
 
+	// Exercises the jimp decode path (embedImageViaJimp): formats pdf-lib can't embed
+	// natively are decoded to PNG via jimp. Fixtures are real 3x2 images encoded in
+	// each format. This guards the jimp integration — a jimp major bump that changes
+	// its import shape or buffer API would fail here rather than break silently in prod.
+	it.each([
+		['image/bmp', 'shot.bmp', 'Qk1QAAAAAAAAADYAAAAoAAAAAwAAAAIAAAABABgAAAAAABoAAAAAAAAAAAAAAAAAAAAAAAAAzGYzzGYzAP8AAQEBAAD/zGYzzGYzAQEBAQE='],
+		['image/gif', 'shot.gif', 'R0lGODlhAwACAIEAAA7rHjNmy/8AAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQICAAAACwAAAAAAwACAAACA1QeUAA7']
+	])('decodes a %s image via jimp and embeds it as one page', async (mime, filename, b64) => {
+		const pdf = await PDFDocument.create()
+		const fonts = await makeFonts(pdf)
+		const doc = makeDoc({ mime_type: mime, filename })
+		const result = await embedAttachment(pdf, 1, doc, Buffer.from(b64, 'base64'), fonts)
+		expect(result.embedded).toBe(true)
+		if (result.embedded) expect(result.pages_added).toBe(1)
+		expect(pdf.getPageCount()).toBe(1)
+	})
+
 	it('embeds a PDF attachment, copying its pages', async () => {
 		const sourceDoc = await PDFDocument.create()
 		sourceDoc.addPage([200, 200])
