@@ -809,18 +809,6 @@
 			"collapsed": true,
 			"items": [
 				{
-					"label": "List Mcp",
-					"link": "/medusa-plugin-mcp/api/operations/getadminmcp/"
-				},
-				{
-					"label": "Create Mcp",
-					"link": "/medusa-plugin-mcp/api/operations/postadminmcp/"
-				},
-				{
-					"label": "Batch Delete Mcp",
-					"link": "/medusa-plugin-mcp/api/operations/deleteadminmcp/"
-				},
-				{
 					"label": "Create Chat",
 					"link": "/medusa-plugin-mcp/api/operations/postadminchat/"
 				}
