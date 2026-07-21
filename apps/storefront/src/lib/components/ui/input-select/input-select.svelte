@@ -30,8 +30,11 @@
 	}: Props = $props()
 
 	// shadcn-trigger-like native <select> style (appearance-none + pr-8 make room for the chevron).
+	// The OS-rendered options popup won't reliably follow `color-scheme` (esp. GTK/Linux), so we color
+	// the <option> elements explicitly with the popover tokens — which browsers DO respect — so the
+	// dropdown is readable in dark mode regardless of native popup theming.
 	const selectClass =
-		'border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 aria-invalid:border-destructive h-9 w-full appearance-none rounded-md border bg-transparent px-3 py-1 pr-8 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm'
+		'border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 aria-invalid:border-destructive [&>option]:bg-popover [&>option]:text-popover-foreground h-9 w-full appearance-none rounded-md border bg-transparent px-3 py-1 pr-8 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm'
 
 	const issues = $derived(field.issues())
 	const invalid = $derived(issues && issues.length > 0 ? 'true' : undefined)
