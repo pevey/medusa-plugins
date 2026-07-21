@@ -920,6 +920,17 @@ describe('R2FileService — getUploadStream()', () => {
 		expect(result.key).toMatch(/^photo-TESTULID/)
 	})
 
+	it('returns an empty top-level url for private upload (private bucket is not behind the CDN)', async () => {
+		const svc = makeService()
+		const result = await svc.getUploadStream({
+			filename: 'secret.zip',
+			mimeType: 'application/zip',
+			access: 'private'
+		})
+		expect(result.url).toBe('')
+		expect(result.fileKey).toMatch(/^secret-TESTULID/)
+	})
+
 	it('promise resolves to empty url for private upload', async () => {
 		mockUploadDone.mockResolvedValue({})
 		const svc = makeService()
