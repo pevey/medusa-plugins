@@ -1,20 +1,18 @@
 <script lang="ts">
 	import * as Select from '$lib/components/ui/select/index.js'
 	import { userPrefersMode, setMode } from 'mode-watcher'
-	import type { RemoteForm } from '@sveltejs/kit'
+	import type { RemoteFormField } from '@sveltejs/kit'
 
 	interface Props {
 		size?: 'sm' | 'default'
 		class?: string
 		'aria-label'?: string
-		form?: RemoteForm<any, any>
-		field?: string
+		field?: RemoteFormField<any>
 	}
 	let {
 		size = 'default',
 		class: className = '',
 		'aria-label': ariaLabel = 'Theme',
-		form,
 		field
 	}: Props = $props()
 
@@ -33,16 +31,9 @@
 	}
 </script>
 
-{#if form && field}
-	<!-- Additive form participation: a visually-hidden native input carries the remote-form
-	     binding; its value mirrors the theme so a settings form submits the choice. -->
-	<input
-		class="sr-only"
-		tabindex={-1}
-		aria-hidden="true"
-		{...form.fields[field].as('text')}
-		value={value}
-	/>
+{#if field}
+	<!-- Additive form participation: hidden native input carries the light|dark|system string. -->
+	<input class="sr-only" tabindex={-1} aria-hidden="true" {...field.as('text')} value={value} />
 {/if}
 <Select.Root type="single" {value} {onValueChange}>
 	<Select.Trigger {size} class={className} aria-label={ariaLabel}>{triggerLabel}</Select.Trigger>

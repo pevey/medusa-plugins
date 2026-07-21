@@ -1,22 +1,20 @@
 <script lang="ts">
 	import { Switch } from '$lib/components/ui/switch/index.js'
 	import { mode, setMode } from 'mode-watcher'
-	import type { RemoteForm } from '@sveltejs/kit'
+	import type { RemoteFormField } from '@sveltejs/kit'
 
 	interface Props {
 		onMode?: 'light' | 'dark'
 		size?: 'sm' | 'default'
 		class?: string
 		'aria-label'?: string
-		form?: RemoteForm<any, any>
-		field?: string
+		field?: RemoteFormField<any>
 	}
 	let {
 		onMode = 'light',
 		size = 'default',
 		class: className = '',
 		'aria-label': ariaLabel = 'Toggle theme',
-		form,
 		field
 	}: Props = $props()
 
@@ -28,16 +26,9 @@
 	}
 </script>
 
-{#if form && field}
+{#if field}
 	<!-- Additive form participation: a visually-hidden native checkbox carries the remote-form
-	     binding; its checked state mirrors the theme so a settings form submits the choice.
-	     `type="checkbox"` is supplied by `.as('checkbox')`. -->
-	<input
-		class="sr-only"
-		tabindex={-1}
-		aria-hidden="true"
-		{...form.fields[field].as('checkbox')}
-		checked={checked}
-	/>
+	     binding (via the `field` proxy); its checked state mirrors the theme. -->
+	<input class="sr-only" tabindex={-1} aria-hidden="true" {...field.as('checkbox')} checked={checked} />
 {/if}
 <Switch {size} {checked} {onCheckedChange} class={className} aria-label={ariaLabel} />
