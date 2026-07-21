@@ -10,5 +10,17 @@ export const variables = defineEnvVars({
 	MEDUSA_BACKEND_URL: { schema: v.string() },
 	MEDUSA_PUBLISHABLE_KEY: { schema: v.string() },
 	MEDUSA_DEFAULT_REGION_ID: { schema: v.optional(v.string()) },
-	MEDUSA_DEFAULT_COUNTRY_CODE: { schema: v.optional(v.string()) }
+	MEDUSA_DEFAULT_COUNTRY_CODE: { schema: v.optional(v.string()) },
+	GOOGLE_PLACES_API_KEY: {
+		public: true,
+		schema: v.string()
+	},
+	STRIPE_KEY: {
+		public: true,
+		schema: v.string()
+	},
+	STRIPE_REDIRECT_URL: {
+		public: true,
+		schema: v.string()
+	}
 })

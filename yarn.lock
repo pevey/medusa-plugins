@@ -3369,6 +3369,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@googlemaps/js-api-loader@npm:2.1.1, @googlemaps/js-api-loader@npm:^2.1.1":
+  version: 2.1.1
+  resolution: "@googlemaps/js-api-loader@npm:2.1.1"
+  dependencies:
+    "@types/google.maps": "npm:^3.53.1"
+  checksum: 10c0/06cb6eaf686b838be51efd8293010b7bee42e341e9ad41b42a0ee8909cf06cc5711ba6cfdbcd0c62ff05c8ba35d8622c34130e738bc5844011c8bc457d14de64
+  languageName: node
+  linkType: hard
+
 "@graphql-codegen/core@npm:^4.0.2":
   version: 4.0.2
   resolution: "@graphql-codegen/core@npm:4.0.2"
@@ -14953,6 +14962,13 @@ __metadata:
     "@types/qs": "npm:*"
     "@types/serve-static": "npm:^1"
   checksum: 10c0/f42b616d2c9dbc50352c820db7de182f64ebbfa8dba6fb6c98e5f8f0e2ef3edde0131719d9dc6874803d25ad9ca2d53471d0fec2fbc60a6003a43d015bab72c4
+  languageName: node
+  linkType: hard
+
+"@types/google.maps@npm:3.65.2, @types/google.maps@npm:^3.53.1":
+  version: 3.65.2
+  resolution: "@types/google.maps@npm:3.65.2"
+  checksum: 10c0/790aed74128385bfa6c8b41c6bf18b8f1901e6c7b7c806615e904e9093703a8238f8b2504027ebe714e95f9cd5b2a94fd63306f8b71907a23ba24673754843ea
   languageName: node
   linkType: hard
 
@@ -30942,6 +30958,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "storefront@workspace:apps/storefront"
   dependencies:
+    "@googlemaps/js-api-loader": "npm:^2.1.1"
     "@internationalized/date": "npm:^3.12.0"
     "@lucide/svelte": "npm:^1.25.0"
     "@playwright/test": "npm:^1.61.1"
@@ -30951,6 +30968,7 @@ __metadata:
     "@tailwindcss/forms": "npm:^0.5.11"
     "@tailwindcss/typography": "npm:^0.5.20"
     "@tailwindcss/vite": "npm:^4.3.3"
+    "@types/google.maps": "npm:3.65.2"
     bits-ui: "npm:^2.16.3"
     clsx: "npm:^2.1.1"
     embla-carousel-autoplay: "npm:^8.6.0"
@@ -31396,11 +31414,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "sveltekit-medusa-ui@workspace:packages/sveltekit-ui"
   dependencies:
+    "@googlemaps/js-api-loader": "npm:2.1.1"
     "@internationalized/date": "npm:^3.12.0"
     "@lucide/svelte": "npm:^1.25.0"
     "@medusajs/types": "npm:2.17.2"
     "@sveltejs/vite-plugin-svelte": "npm:7.2.0"
     "@tailwindcss/vite": "npm:4.3.3"
+    "@types/google.maps": "npm:3.65.2"
     "@vitest/browser-playwright": "npm:4.1.10"
     bits-ui: "npm:2.18.1"
     clsx: "npm:2.1.1"

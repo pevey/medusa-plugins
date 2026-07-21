@@ -21,6 +21,7 @@
 		"@tailwindcss/forms": "^0.5.11",
 		"@tailwindcss/typography": "^0.5.20",
 		"@tailwindcss/vite": "^4.3.3",
+		"@types/google.maps": "3.65.2",
 		"bits-ui": "^2.16.3",
 		"clsx": "^2.1.1",
 		"embla-carousel-autoplay": "^8.6.0",
@@ -38,6 +39,7 @@
 		"vite": "^8.1.5"
 	},
 	"dependencies": {
+		"@googlemaps/js-api-loader": "^2.1.1",
 		"mode-watcher": "1.1.0"
 	}
 }

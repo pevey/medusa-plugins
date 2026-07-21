@@ -11,9 +11,15 @@ export default defineConfig({
 		tailwindcss(),
 		sveltekit({
 			preprocess: vitePreprocess(),
-			compilerOptions: { experimental: { async: true } },
+			compilerOptions: {
+				experimental: {
+					async: true
+				}
+			},
 			adapter: adapter(),
-			experimental: { remoteFunctions: true },
+			experimental: {
+				remoteFunctions: true
+			},
 			alias: {
 				'$src/*': 'src/*',
 				$lib: 'src/lib'
@@ -21,7 +27,9 @@ export default defineConfig({
 			// This is a reference/dev app; a prerender function (e.g. getRegions) that can't
 			// reach the backend at build time should warn, not fail the build (so it never
 			// blocks publishing the package).
-			prerender: { handleHttpError: 'warn' }
+			prerender: {
+				handleHttpError: 'warn'
+			}
 		})
 	],
 	// In this monorepo the workspace library ships its own build-time copy of
