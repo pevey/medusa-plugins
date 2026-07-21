@@ -16,6 +16,35 @@ import { PassThrough, Readable, Writable } from 'stream'
 import { ulid } from 'ulid'
 
 /**
+ * Sanitizes a file path by:
+ * - Normalizing slashes to posix format
+ * - Stripping leading slashes
+ * - Resolving relative path segments (.)
+ * - Removing path traversal segments (..)
+ *
+ * Copied verbatim from medusajs/medusa#16010 to stay aligned with the upstream
+ * s3 provider. Guarantee relied on by callers: the result never begins with `..`,
+ * so prepending a trusted prefix makes that prefix an inviolable root.
+ */
+export function sanitizeFilePath(filePath: string): string {
+	const cleanPath = filePath.replace(/\\/g, '/').replace(/^\/+/, '')
+	const normalizedPath = path.posix.normalize(cleanPath)
+	return normalizedPath
+		.split('/')
+		.filter(segment => segment !== '..' && segment !== '.')
+		.join('/')
+}
+
+/**
+ * Encode an object key for use in a URL path. Preserved directory slashes must
+ * stay literal `/`, so encode each segment independently rather than the whole
+ * key (a whole-key encodeURIComponent would turn separators into %2F).
+ */
+export function encodeKeyForUrl(key: string): string {
+	return key.split('/').map(encodeURIComponent).join('/')
+}
+
+/**
  * Decodes the string `content` of an uploaded file into a Buffer.
  *
  * Upload inputs arrive as a string that may be base64, UTF-8 text (e.g. a CSV
@@ -197,6 +226,24 @@ export class R2FileProvider extends AbstractFileProviderService {
 		return new S3Client(config)
 	}
 
+	/**
+	 * Sanitize the untrusted `prefix + filename` composite into a storage path,
+	 * rejecting input that resolves to nothing (e.g. a traversal-only filename
+	 * like `../..`, which would otherwise yield a degenerate `globalPrefix`-only
+	 * key). Note: this is intentionally stricter than the upstream s3 provider
+	 * (medusajs/medusa#16010), which silently accepts the empty result.
+	 */
+	protected sanitizeRequiredPath(prefix: string, filename: string): string {
+		const sanitized = sanitizeFilePath(`${prefix}${filename}`)
+		if (!sanitized) {
+			throw new MedusaError(
+				MedusaError.Types.INVALID_DATA,
+				`Filename "${filename}" resolves to an empty path after path traversal sanitization`
+			)
+		}
+		return sanitized
+	}
+
 	async upload(
 		file: FileTypes.ProviderUploadFileDTO & { prefix?: string }
 	): Promise<FileTypes.ProviderFileResultDTO> {
@@ -209,9 +256,11 @@ export class R2FileProvider extends AbstractFileProviderService {
 			throw new MedusaError(MedusaError.Types.INVALID_DATA, `No filename provided`)
 		}
 
-		const parsedFilename = path.parse(file.filename)
+		const parsedFilename = path.posix.parse(this.sanitizeRequiredPath(prefix, file.filename))
 
-		const fileKey = `${this.config_.globalPrefix}${prefix}${parsedFilename.name}-${ulid()}${parsedFilename.ext}`
+		const fileKey = `${this.config_.globalPrefix}${
+			parsedFilename.dir ? `${parsedFilename.dir}/` : ''
+		}${parsedFilename.name}-${ulid()}${parsedFilename.ext}`
 
 		const content = decodeFileContent(file.content, file.mimeType)
 
@@ -237,7 +286,7 @@ export class R2FileProvider extends AbstractFileProviderService {
 		}
 
 		const url =
-			file.access === 'public' ? `${this.config_.fileUrl}/${encodeURIComponent(fileKey)}` : ''
+			file.access === 'public' ? `${this.config_.fileUrl}/${encodeKeyForUrl(fileKey)}` : ''
 
 		return {
 			url,
@@ -258,8 +307,10 @@ export class R2FileProvider extends AbstractFileProviderService {
 		}
 
 		const prefix = fileData.prefix ?? ''
-		const parsedFilename = path.parse(fileData.filename)
-		const fileKey = `${this.config_.globalPrefix}${prefix}${parsedFilename.name}-${ulid()}${parsedFilename.ext}`
+		const parsedFilename = path.posix.parse(this.sanitizeRequiredPath(prefix, fileData.filename))
+		const fileKey = `${this.config_.globalPrefix}${
+			parsedFilename.dir ? `${parsedFilename.dir}/` : ''
+		}${parsedFilename.name}-${ulid()}${parsedFilename.ext}`
 
 		const pass = new PassThrough()
 
@@ -278,13 +329,19 @@ export class R2FileProvider extends AbstractFileProviderService {
 			}
 		})
 		const promise = upload.done().then(() => ({
-			url: fileData.access === 'public' ? `${this.config_.fileUrl}/${fileKey}` : '',
+			url:
+				fileData.access === 'public'
+					? `${this.config_.fileUrl}/${encodeKeyForUrl(fileKey)}`
+					: '',
 			key: fileKey
 		}))
 		return {
 			writeStream: pass,
 			promise,
-			url: `${this.config_.fileUrl}/${fileKey}`,
+			url:
+				fileData.access === 'public'
+					? `${this.config_.fileUrl}/${encodeKeyForUrl(fileKey)}`
+					: '',
 			fileKey
 		}
 	}
@@ -376,7 +433,7 @@ export class R2FileProvider extends AbstractFileProviderService {
 	}
 
 	async getPresignedUploadUrl(
-		fileData: FileTypes.ProviderGetPresignedUploadUrlDTO
+		fileData: FileTypes.ProviderGetPresignedUploadUrlDTO & { prefix?: string }
 	): Promise<FileTypes.ProviderFileResultDTO> {
 		// For r2, only the private bucket supports presigned urls
 		if (fileData.access === 'public') {
@@ -388,7 +445,8 @@ export class R2FileProvider extends AbstractFileProviderService {
 		if (!fileData?.filename) {
 			throw new MedusaError(MedusaError.Types.INVALID_DATA, `No filename provided`)
 		}
-		const fileKey = `${this.config_.globalPrefix}${fileData.filename}`
+		const prefix = fileData.prefix ?? ''
+		const fileKey = `${this.config_.globalPrefix}${this.sanitizeRequiredPath(prefix, fileData.filename)}`
 		const command = new PutObjectCommand({
 			Bucket: this.config_.privateBucket!,
 			ContentType: fileData.mimeType,

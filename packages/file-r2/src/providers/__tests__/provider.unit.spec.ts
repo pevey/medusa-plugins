@@ -9,7 +9,7 @@ import {
 import { Upload } from '@aws-sdk/lib-storage'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { MedusaError } from '@medusajs/framework/utils'
-import { R2FileProvider, R2FileProviderConfig } from '../r2/provider'
+import { R2FileProvider, R2FileProviderConfig, sanitizeFilePath, encodeKeyForUrl } from '../r2/provider'
 
 jest.mock('@aws-sdk/client-s3')
 jest.mock('@aws-sdk/lib-storage')
@@ -172,6 +172,52 @@ describe('R2FileService — endpoint includes bucket (auto-strip)', () => {
 	})
 })
 
+// ─── path helpers ─────────────────────────────────────────────────────────────
+
+describe('sanitizeFilePath', () => {
+	it('passes a clean nested path through unchanged', () => {
+		expect(sanitizeFilePath('vendor_123/logo.png')).toBe('vendor_123/logo.png')
+	})
+
+	it('strips leading slashes', () => {
+		expect(sanitizeFilePath('/leading/slash.png')).toBe('leading/slash.png')
+	})
+
+	it('converts backslashes to forward slashes', () => {
+		expect(sanitizeFilePath('a\\b\\c.png')).toBe('a/b/c.png')
+	})
+
+	it('removes .. traversal segments', () => {
+		expect(sanitizeFilePath('../../etc/passwd')).toBe('etc/passwd')
+	})
+
+	it('resolves . current-dir segments', () => {
+		expect(sanitizeFilePath('./vendor/./logo.png')).toBe('vendor/logo.png')
+	})
+
+	it('collapses interior traversal', () => {
+		expect(sanitizeFilePath('a/../b/c.png')).toBe('b/c.png')
+	})
+
+	it('reduces a pure-traversal path to empty string', () => {
+		expect(sanitizeFilePath('../..')).toBe('')
+	})
+
+	it('does NOT decode percent-encoded separators (matches upstream)', () => {
+		expect(sanitizeFilePath('..%2f..%2ffoo.png')).toBe('..%2f..%2ffoo.png')
+	})
+})
+
+describe('encodeKeyForUrl', () => {
+	it('preserves slash separators', () => {
+		expect(encodeKeyForUrl('a/b/c.png')).toBe('a/b/c.png')
+	})
+
+	it('encodes in-segment special characters without touching slashes', () => {
+		expect(encodeKeyForUrl('media/my file.png')).toBe('media/my%20file.png')
+	})
+})
+
 // ─── upload() — public ACL ────────────────────────────────────────────────────
 
 describe('R2FileService — upload() — public', () => {
@@ -316,6 +362,74 @@ describe('R2FileService — upload() — public', () => {
 		// path.parse('archive.tar.gz').ext === '.gz'
 		expect(result.key).toMatch(/\.gz$/)
 	})
+
+	it('preserves a sanitized subdirectory carried in the filename', async () => {
+		const svc = makeService({ globalPrefix: 'media/' })
+		const result = await svc.upload({
+			filename: 'vendor_123/logo.png',
+			mimeType: 'image/png',
+			content: 'aGVsbG8=',
+			access: 'public'
+		})
+		expect(result.key).toBe('media/vendor_123/logo-TESTULID0000000000000000.png')
+	})
+
+	it('treats filename-path and prefix as equivalent ways to nest', async () => {
+		const svc = makeService()
+		const viaFilename = await svc.upload({
+			filename: 'mypath/myfile.txt',
+			mimeType: 'text/plain',
+			content: 'aGVsbG8=',
+			access: 'public'
+		})
+		const viaPrefix = await svc.upload({
+			filename: 'myfile.txt',
+			mimeType: 'text/plain',
+			content: 'aGVsbG8=',
+			access: 'public',
+			prefix: 'mypath/'
+		} as any)
+		expect(viaFilename.key).toBe('mypath/myfile-TESTULID0000000000000000.txt')
+		expect(viaPrefix.key).toBe(viaFilename.key)
+	})
+
+	it('strips path traversal from the filename, confining the key under globalPrefix', async () => {
+		const svc = makeService({ globalPrefix: 'media/' })
+		const result = await svc.upload({
+			filename: '../../etc/passwd.png',
+			mimeType: 'image/png',
+			content: 'aGVsbG8=',
+			access: 'public'
+		})
+		expect(result.key).toBe('media/etc/passwd-TESTULID0000000000000000.png')
+		expect(result.key.startsWith('media/')).toBe(true)
+	})
+
+	it('does not let a malicious per-file prefix escape globalPrefix', async () => {
+		const svc = makeService({ globalPrefix: 'media/' })
+		const result = await svc.upload({
+			filename: 'logo.png',
+			mimeType: 'image/png',
+			content: 'aGVsbG8=',
+			access: 'public',
+			prefix: '../../'
+		} as any)
+		expect(result.key).toBe('media/logo-TESTULID0000000000000000.png')
+		expect(result.key.startsWith('media/')).toBe(true)
+	})
+
+	it('per-segment-encodes the url so subdirectory slashes survive', async () => {
+		const svc = makeService({ globalPrefix: 'media/' })
+		const result = await svc.upload({
+			filename: 'vendor 1/logo.png',
+			mimeType: 'image/png',
+			content: 'aGVsbG8=',
+			access: 'public'
+		})
+		expect(result.url).toBe(
+			'https://cdn.example.com/media/vendor%201/logo-TESTULID0000000000000000.png'
+		)
+	})
 })
 
 // ─── upload() — content decoding (#14120 regression) ──────────────────────────
@@ -413,6 +527,18 @@ describe('R2FileService — upload() — validation', () => {
 		const svc = makeService()
 		await expect(
 			svc.upload({ mimeType: 'image/jpeg', content: 'aGVsbG8=', access: 'public' } as any)
+		).rejects.toThrow(MedusaError)
+	})
+
+	it('throws when the filename resolves to an empty path after sanitization', async () => {
+		const svc = makeService({ globalPrefix: 'media/' })
+		await expect(
+			svc.upload({
+				filename: '../..',
+				mimeType: 'image/png',
+				content: 'aGVsbG8=',
+				access: 'public'
+			})
 		).rejects.toThrow(MedusaError)
 	})
 
@@ -609,6 +735,51 @@ describe('R2FileService — getPresignedUploadUrl()', () => {
 			} as any)
 		).rejects.toThrow(MedusaError)
 	})
+
+	it('throws when the filename resolves to an empty path after sanitization', async () => {
+		const svc = makeService({ globalPrefix: 'docs/' })
+		await expect(
+			svc.getPresignedUploadUrl({
+				filename: '../..',
+				mimeType: 'application/pdf',
+				access: 'private'
+			})
+		).rejects.toThrow(MedusaError)
+	})
+
+	it('strips path traversal from the filename, keeping the key under globalPrefix', async () => {
+		const svc = makeService({ globalPrefix: 'docs/' })
+		const result = await svc.getPresignedUploadUrl({
+			filename: '../../secret/contract.pdf',
+			mimeType: 'application/pdf',
+			access: 'private'
+		})
+		expect(result.key).toBe('docs/secret/contract.pdf')
+		expect(result.key.startsWith('docs/')).toBe(true)
+	})
+
+	it('honors a per-file prefix without ulid or dir splitting', async () => {
+		const svc = makeService({ globalPrefix: 'docs/' })
+		const result = await svc.getPresignedUploadUrl({
+			filename: 'contract.pdf',
+			mimeType: 'application/pdf',
+			access: 'private',
+			prefix: 'vendor_9/'
+		} as any)
+		expect(result.key).toBe('docs/vendor_9/contract.pdf')
+	})
+
+	it('does not let a malicious prefix escape globalPrefix', async () => {
+		const svc = makeService({ globalPrefix: 'docs/' })
+		const result = await svc.getPresignedUploadUrl({
+			filename: 'contract.pdf',
+			mimeType: 'application/pdf',
+			access: 'private',
+			prefix: '../../'
+		} as any)
+		expect(result.key).toBe('docs/contract.pdf')
+		expect(result.key.startsWith('docs/')).toBe(true)
+	})
 })
 
 // ─── getDownloadStream() ──────────────────────────────────────────────────────
@@ -690,6 +861,17 @@ describe('R2FileService — getUploadStream()', () => {
 		).rejects.toThrow(MedusaError)
 	})
 
+	it('throws when the filename resolves to an empty path after sanitization', async () => {
+		const svc = makeService({ globalPrefix: 'media/' })
+		await expect(
+			svc.getUploadStream({
+				filename: '../..',
+				mimeType: 'image/png',
+				access: 'public'
+			} as any)
+		).rejects.toThrow(MedusaError)
+	})
+
 	it('returns writeStream, promise, url, and fileKey', async () => {
 		const svc = makeService()
 		const result = await svc.getUploadStream({
@@ -749,5 +931,18 @@ describe('R2FileService — getUploadStream()', () => {
 		const result = await promise
 		expect(result.url).toBe('')
 		expect(result.key).toMatch(/^secret-TESTULID/)
+	})
+
+	it('preserves subdirectories and per-segment-encodes the returned url', async () => {
+		const svc = makeService({ globalPrefix: 'media/' })
+		const result = await svc.getUploadStream({
+			filename: 'vendor 1/clip.mp4',
+			mimeType: 'video/mp4',
+			access: 'public'
+		} as any)
+		expect(result.fileKey).toBe('media/vendor 1/clip-TESTULID0000000000000000.mp4')
+		expect(result.url).toBe(
+			'https://cdn.example.com/media/vendor%201/clip-TESTULID0000000000000000.mp4'
+		)
 	})
 })

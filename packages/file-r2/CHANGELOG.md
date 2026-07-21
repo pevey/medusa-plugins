@@ -1,3 +1,9 @@
+## 2.0.1
+
+- Preserves path in filekeys instead of always stripping to filename + ext. In other words, a file DTO with { filename: 'mypath/myfile.txt' } is now functionally the same as { filename: 'myfile.txt', prefix: 'mypath/' }
+- Path traversal segments (..) and leading slashes are stripped, so keys always resolve within the configured globalPrefix
+- Pure traversal filenames (e.g., '../..') are rejected with INVALID_DATA error
+
 ## 2.0.0
 
 - Potentially BREAKING CHANGE: If you have previously configured your R2 endpoints with the bucket name appended, the provider will now automatically strip the bucket name to prevent unecessary nesting (e.g., /bucket-name/bucket-name/image.png)
