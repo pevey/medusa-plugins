@@ -26,6 +26,7 @@
 		"clsx": "^2.1.1",
 		"embla-carousel-autoplay": "^8.6.0",
 		"embla-carousel-svelte": "^8.6.0",
+		"isomorphic-dompurify": "^3.19.0",
 		"playwright": "^1.61.1",
 		"shadcn-svelte": "^1.4.2",
 		"svelte": "^5.56.6",
