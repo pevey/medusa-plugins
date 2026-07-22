@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-tracing",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"description": "Inventory tracing plugin for Medusa v2 with stock lots and serial numbers",
 	"author": "Lacey Pevey",
 	"license": "MIT",

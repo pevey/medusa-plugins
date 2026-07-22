@@ -1,3 +1,7 @@
+## 0.2.3
+
+- Fix input variable name in create lot POST in stock lots widget for inventory item page (location_id --> stock_location_id).
+
 ## 0.2.2
 
 - Updated medusa packages to 2.17.2

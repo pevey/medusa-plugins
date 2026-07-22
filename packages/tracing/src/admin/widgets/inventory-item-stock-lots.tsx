@@ -57,7 +57,7 @@ const InventoryItemStockLotsWidget = ({
 			method: 'POST',
 			body: {
 				inventory_item_id: inventoryItem.id,
-				location_id: selectedLocationId,
+				stock_location_id: selectedLocationId,
 				lot_number: newLotNumber,
 				stocked_quantity: newQuantity
 			}
