@@ -30982,6 +30982,7 @@ __metadata:
     tailwind-merge: "npm:^3.6.0"
     tailwind-variants: "npm:^3.2.2"
     tailwindcss: "npm:^4.3.3"
+    tw-animate-css: "npm:^1.4.0"
     typescript: "npm:^6.0.3"
     valibot: "npm:^1.4.2"
     vite: "npm:^8.1.5"
@@ -32125,6 +32126,13 @@ __metadata:
   bin:
     turbo: bin/turbo
   checksum: 10c0/081a8a4f4afe4026bde29ef9d0c98a1403437e9e72cd066973a82ec2f2482a1c6bd34973a997a23131520f37b9c063ba29a79583e18d0d70eeed8cd6baa1a003
+  languageName: node
+  linkType: hard
+
+"tw-animate-css@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "tw-animate-css@npm:1.4.0"
+  checksum: 10c0/6cfbc19ccc73883ec80ef1f9147f43e736cb01ee99c8172968b37eb81b720523d30e38b1a96aef92db3c586d864204db5510b51744ddacbbf0ad8e3c7fb56ec7
   languageName: node
   linkType: hard
 
