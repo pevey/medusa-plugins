@@ -1,3 +1,7 @@
+## 0.2.3
+
+- Add readonly two-way link between product and review
+
 ## 0.2.2
 
 - Updated medusa packages to 2.17.2
