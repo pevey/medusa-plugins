@@ -81,3 +81,48 @@ export function isAvailable(
 		}) ?? false
 	)
 }
+
+// Purchasable = a variant is selected AND it can be bought now (unmanaged, backorderable,
+// or positive managed stock). Distinct from `inStock` (which ignores backorder) so option
+// availability display is unchanged.
+export function isPurchasable(variant: StoreProductVariant | null): boolean {
+	if (!variant) return false
+	if (variant.manage_inventory === false) return true
+	if (variant.allow_backorder) return true
+	return (variant.inventory_quantity ?? 0) > 0
+}
+
+// The inclusive upper bound for a quantity control: capped to managed stock when the variant
+// is stock-limited (managed & no backorder), otherwise the caller's `max`.
+export function effectiveMax(variant: StoreProductVariant | null, max: number): number {
+	if (variant && variant.manage_inventory !== false && !variant.allow_backorder) {
+		return Math.min(variant.inventory_quantity ?? 0, max)
+	}
+	return max
+}
+
+// The list of selectable quantities: min, min+step, … ≤ effectiveMax. Empty when out of stock.
+export function quantityRange(
+	variant: StoreProductVariant | null,
+	opts: { min: number; step: number; max: number }
+): number[] {
+	const hi = effectiveMax(variant, opts.max)
+	const out: number[] = []
+	for (let n = opts.min; n <= hi; n += opts.step) out.push(n)
+	return out
+}
+
+// Clamp `n` into [min, hi]; when hi < min (empty range / OOS) fall back to min.
+export function clampQuantity(n: number, min: number, hi: number): number {
+	if (hi < min) return min
+	return Math.min(Math.max(n, min), hi)
+}
+
+// Clamp a URL-supplied quantity against a variant's managed stock (floor 1). No-op when the
+// variant isn't stock-limited. Lets `Product.Root` expose a quantity the button can trust.
+export function clampToStock(n: number, variant: StoreProductVariant | null): number {
+	if (variant && variant.manage_inventory !== false && !variant.allow_backorder) {
+		return Math.max(1, Math.min(n, variant.inventory_quantity ?? 0))
+	}
+	return Math.max(1, n)
+}

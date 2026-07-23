@@ -12,6 +12,9 @@ export type ProductContext = {
 	resolveVariant: (optionId: string, valueId: string) => string
 	buildHref: (variantId: string) => string
 	variantParam: string
+	readonly quantity: number
+	buildQuantityHref: (quantity: number) => string
+	quantityParam: string
 }
 
 const KEY = Symbol('product')
@@ -24,4 +27,9 @@ export function getProductContext(): ProductContext {
 	const ctx = getContext<ProductContext>(KEY)
 	if (!ctx) throw new Error('Product.* must be used within <Product.Root>')
 	return ctx
+}
+
+// Non-throwing lookup for components that may render standalone (CTAs, QuantitySelect).
+export function getProductContextOptional(): ProductContext | null {
+	return getContext<ProductContext>(KEY) ?? null
 }

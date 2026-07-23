@@ -15,10 +15,17 @@
 		 */
 		product?: StoreProduct | null
 		variantParam?: string
+		quantityParam?: string
 		class?: string
 		children: Snippet
 	}
-	let { product, variantParam = 'v', class: className = '', children }: Props = $props()
+	let {
+		product,
+		variantParam = 'v',
+		quantityParam = 'quantity',
+		class: className = '',
+		children
+	}: Props = $props()
 
 	// Everything is `$derived` (no `$effect`) so it works during SSR. Selection lives in the
 	// URL (`?v=`), which is the reactive source of truth via `$app/state`.
@@ -34,11 +41,25 @@
 		resolvedProduct?.variants?.find((v) => v.id === selectedVariantId) ?? null
 	)
 
-	function buildHref(variantId: string): string {
+	// Quantity lives in the URL exactly like variant selection (SSR-safe, shareable). Stock-clamped
+	// on read so a stale ?quantity= against a low-stock variant reads correctly everywhere.
+	const quantity = $derived.by(() => {
+		const raw = parseInt(page.url.searchParams.get(quantityParam) ?? '', 10)
+		const n = Number.isFinite(raw) && raw >= 1 ? raw : 1
+		return logic.clampToStock(n, selectedVariant)
+	})
+
+	function buildParamHref(param: string, value: string): string {
 		const sp = new URLSearchParams(page.url.searchParams.toString())
-		if (variantId) sp.set(variantParam, variantId)
+		if (value) sp.set(param, value)
 		const q = sp.toString()
 		return q ? `?${q}` : page.url.pathname
+	}
+	function buildHref(variantId: string): string {
+		return buildParamHref(variantParam, variantId)
+	}
+	function buildQuantityHref(quantity: number): string {
+		return buildParamHref(quantityParam, String(quantity))
 	}
 
 	// Reactive context via getters (no `$effect`, no `$state` sync) — SSR-safe.
@@ -59,7 +80,14 @@
 		isAvailable: (valueId) => logic.isAvailable(resolvedProduct, selectedVariant, valueId),
 		resolveVariant: (optionId, valueId) =>
 			logic.resolveVariant(resolvedProduct, selectedVariant, optionId, valueId),
-		buildHref
+		buildHref,
+		get quantity() {
+			return quantity
+		},
+		buildQuantityHref,
+		get quantityParam() {
+			return quantityParam
+		}
 	})
 </script>
 
