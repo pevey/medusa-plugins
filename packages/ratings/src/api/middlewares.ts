@@ -1,4 +1,9 @@
-import { authenticate, defineMiddlewares, validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework/http'
+import {
+	authenticate,
+	defineMiddlewares,
+	validateAndTransformBody,
+	validateAndTransformQuery
+} from '@medusajs/framework/http'
 import {
 	AdminApproveReviewAction,
 	AdminRejectReviewAction,
@@ -12,13 +17,32 @@ import {
 
 export default defineMiddlewares([
 	{
+		matcher: '/admin/products/:id',
+		middlewares: [
+			(req, res, next) => {
+				;(req.allowed ??= []).push('review')
+				next()
+			}
+		]
+	},
+	{
 		matcher: '/admin/reviews',
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetReviews, {
 				defaults: [
-					'id', 'status', 'rating', 'title', 'author_name', 'author_email',
-					'product_id', 'order_id', 'customer_id', 'created_at', 'updated_at'
+					'id',
+					'status',
+					'rating',
+					'title',
+					'author_name',
+					'author_email',
+					'product_id',
+					'order_id',
+					'customer_id',
+					'created_at',
+					'updated_at',
+					'product.*'
 				],
 				isList: true,
 				defaultLimit: 20
@@ -36,9 +60,21 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetReview, {
 				defaults: [
-					'id', 'status', 'rating', 'title', 'body', 'author_name', 'author_email',
-					'product_id', 'order_id', 'customer_id', 'metadata',
-					'created_at', 'updated_at', 'activity.*'
+					'id',
+					'status',
+					'rating',
+					'title',
+					'body',
+					'author_name',
+					'author_email',
+					'product_id',
+					'order_id',
+					'customer_id',
+					'metadata',
+					'created_at',
+					'updated_at',
+					'activity.*',
+					'product.*'
 				],
 				isList: false
 			})
@@ -66,12 +102,27 @@ export default defineMiddlewares([
 	},
 	// ── Store ────────────────────────────────────────────────────────────────
 	{
+		matcher: '/store/products',
+		middlewares: [
+			(req, res, next) => {
+				;(req.allowed ??= []).push('review')
+				next()
+			}
+		]
+	},
+	{
+		matcher: '/store/products/:id',
+		middlewares: [
+			(req, res, next) => {
+				;(req.allowed ??= []).push('review')
+				next()
+			}
+		]
+	},
+	{
 		matcher: '/store/reviews/:productId',
 		method: ['POST'],
-		middlewares: [
-			authenticate('customer', 'bearer'),
-			validateAndTransformBody(StoreCreateReview)
-		]
+		middlewares: [authenticate('customer', 'bearer'), validateAndTransformBody(StoreCreateReview)]
 	},
 	{
 		matcher: '/store/reviews/:productId',
@@ -80,8 +131,15 @@ export default defineMiddlewares([
 			authenticate('customer', 'bearer', { allowUnauthenticated: true }),
 			validateAndTransformQuery(StoreGetReviews, {
 				defaults: [
-					'id', 'status', 'rating', 'title', 'body', 'author_name',
-					'product_id', 'customer_id', 'created_at'
+					'id',
+					'status',
+					'rating',
+					'title',
+					'body',
+					'author_name',
+					'product_id',
+					'customer_id',
+					'created_at'
 				],
 				isList: true,
 				defaultLimit: 20
