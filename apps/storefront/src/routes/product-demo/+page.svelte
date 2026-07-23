@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Product from '$lib/components/ui/product'
 	import { AddToCartButton, AddToCartToggle } from '$lib/components/ui/cta'
+	import { CartDrawer } from '$lib/components/ui/cart'
 	import { getCart } from 'sveltekit-medusa-sdk'
 	import ThemeButton from '$lib/components/ui/theme/theme-button.svelte'
 
@@ -20,6 +21,11 @@
 
 <div class="mx-auto max-w-2xl space-y-8 p-8" data-testid="product-demo">
 	<ThemeButton />
+	<CartDrawer
+		onupdate={(c) => console.log('cart updated', c)}
+		onremove={(c) => console.log('item removed', c)}
+		onerror={(e) => console.error('cart error', e)}
+	/>
 
 	<!-- 1. In-context flow: options + quantity + add all read from Product context.
 	     URL carries ?v= (variant) and ?quantity=; refresh/share reproduces the selection. -->
