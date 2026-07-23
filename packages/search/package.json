@@ -49,9 +49,9 @@
 		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit"
 	},
 	"devDependencies": {
-		"@medusajs/cli": "2.17.2",
-		"@medusajs/framework": "2.17.2",
-		"@medusajs/test-utils": "2.17.2",
+		"@medusajs/cli": "2.18.0",
+		"@medusajs/framework": "2.18.0",
+		"@medusajs/test-utils": "2.18.0",
 		"@swc/core": "1.15.46",
 		"@swc/jest": "0.2.39",
 		"@types/jest": "30.0.0",

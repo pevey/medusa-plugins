@@ -55,10 +55,10 @@
 		"braintree": "^3.38.0"
 	},
 	"devDependencies": {
-		"@medusajs/admin-sdk": "2.17.2",
-		"@medusajs/cli": "2.17.2",
-		"@medusajs/framework": "2.17.2",
-		"@medusajs/icons": "2.17.2",
+		"@medusajs/admin-sdk": "2.18.0",
+		"@medusajs/cli": "2.18.0",
+		"@medusajs/framework": "2.18.0",
+		"@medusajs/icons": "2.18.0",
 		"@medusajs/ui": "4.1.19",
 		"@swc/core": "1.15.46",
 		"@swc/jest": "0.2.39",

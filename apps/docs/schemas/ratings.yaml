@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Ratings API
-  version: 0.2.2
+  version: 0.2.3
   description: Product review and rating plugin for Medusa v2 with moderation workflow
 servers:
   - url: http://localhost:9000
@@ -81,6 +81,8 @@ paths:
                           type: integer
                         title:
                           type: string
+                        body:
+                          type: string
                         author_name:
                           type: string
                         author_email:
@@ -97,6 +99,8 @@ paths:
                         updated_at:
                           type: string
                           format: date-time
+                        product:
+                          type: object
                   count:
                     type: integer
                   limit:
@@ -211,6 +215,8 @@ paths:
                         type: string
                         format: date-time
                       activity:
+                        type: object
+                      product:
                         type: object
     post:
       operationId: postAdminReviewsByid
