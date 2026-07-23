@@ -6,9 +6,12 @@ import Price from './product-price.svelte'
 import Options from './product-options.svelte'
 import OptionButton from './product-option-button.svelte'
 import QuantitySelect from './product-quantity-select.svelte'
+import JsonLd from './product-jsonld.svelte'
 
-export { Root, Title, Subtitle, Description, Price, Options, OptionButton, QuantitySelect }
+export { Root, Title, Subtitle, Description, Price, Options, OptionButton, QuantitySelect, JsonLd }
 export { getProductContext, getProductContextOptional, setProductContext } from './ctx.svelte.js'
 export type { ProductContext } from './ctx.svelte.js'
 export { formatPrice } from './format-price.js'
+export { productSchema } from './product-schema.js'
+export type { ProductSchemaOpts } from './product-schema.js'
 export * as logic from './product-logic.js'

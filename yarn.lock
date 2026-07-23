@@ -30290,6 +30290,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"schema-dts-lib@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "schema-dts-lib@npm:1.0.0"
+  peerDependencies:
+    typescript: ">=4.9.5"
+  checksum: 10c0/18b5d1ceb57f1e57073fe5a94c035201b924562dfed77ebf472767fde853014d7d0baab31e2006383c07b5608439b6e72c375cd9798c4d655a6c514355fdb527
+  languageName: node
+  linkType: hard
+
+"schema-dts@npm:2.0.0, schema-dts@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "schema-dts@npm:2.0.0"
+  dependencies:
+    schema-dts-lib: "npm:^1.0.0"
+  checksum: 10c0/139e2178b0609549338e9b8b970e34f44f342a3f75911806d0e4221f1e0ab2c09a482133f9fa1f55a29c4ec7fdb3cace056853368a9db487c572bc408db2b2c9
+  languageName: node
+  linkType: hard
+
 "scrypt-kdf@npm:^2.0.1":
   version: 2.0.1
   resolution: "scrypt-kdf@npm:2.0.1"
@@ -31220,6 +31238,7 @@ __metadata:
     isomorphic-dompurify: "npm:^3.19.0"
     mode-watcher: "npm:1.1.0"
     playwright: "npm:^1.61.1"
+    schema-dts: "npm:^2.0.0"
     shadcn-svelte: "npm:^1.4.2"
     svelte: "npm:^5.56.6"
     svelte-check: "npm:^4.7.3"
@@ -31674,6 +31693,7 @@ __metadata:
     isomorphic-dompurify: "npm:^3.19.0"
     mode-watcher: "npm:1.1.0"
     playwright: "npm:1.61.1"
+    schema-dts: "npm:2.0.0"
     shadcn-svelte: "npm:^1.4.2"
     svelte: "npm:^5.56.6"
     svelte-check: "npm:^4.7.3"

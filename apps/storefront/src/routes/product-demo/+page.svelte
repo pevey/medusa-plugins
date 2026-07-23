@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as Product from '$lib/components/ui/product'
+	import { Metadata } from '$lib/components/ui/seo'
 	import { AddToCartButton, AddToCartToggle } from '$lib/components/ui/cta'
 	import { CartDrawer } from '$lib/components/ui/cart'
 	import { getCart } from 'sveltekit-medusa-sdk'
@@ -19,6 +20,9 @@
 	const cart = $derived(await getCart())
 </script>
 
+<!-- Per-page <title>/description/canonical/OG/Twitter tags; merges MetaProvider site defaults. -->
+<Metadata config={{ title: data.product?.title, description: data.product?.description ?? undefined }} />
+
 <div class="mx-auto max-w-2xl space-y-8 p-8" data-testid="product-demo">
 	<ThemeButton />
 	<CartDrawer
@@ -30,6 +34,13 @@
 	<!-- 1. In-context flow: options + quantity + add all read from Product context.
 	     URL carries ?v= (variant) and ?quantity=; refresh/share reproduces the selection. -->
 	<Product.Root product={data.product}>
+		<!-- Emits Product JSON-LD (name/description/image/Offer|AggregateOffer/availability, plus
+		     review aggregate when the route includes `review`). `transform` lets you graft extra
+		     fields onto the auto schema, e.g. a brand:
+		<Product.JsonLd
+			transform={(schema) => ({ ...schema, brand: { '@type': 'Brand', name: 'Mildred' } })}
+		/> -->
+		<Product.JsonLd />
 		<Product.Title />
 		<Product.Subtitle />
 		<Product.Description />
