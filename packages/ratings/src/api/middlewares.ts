@@ -35,6 +35,7 @@ export default defineMiddlewares([
 					'status',
 					'rating',
 					'title',
+					'body',
 					'author_name',
 					'author_email',
 					'product_id',

@@ -109,10 +109,10 @@ const ReviewsPage = () => {
 		columnHelper.accessor('body', {
 			header: 'Preview',
 			cell: ({ getValue }) => {
-				const v = getValue() as string
+				const v = (getValue() as string | undefined) ?? ''
 				return (
 					<Text size="small" className="text-ui-fg-subtle truncate max-w-[280px]">
-						{v.length > 60 ? `${v.slice(0, 60)}…` : v}
+						{v.length > 60 ? `${v.slice(0, 60)}…` : v || '—'}
 					</Text>
 				)
 			}
