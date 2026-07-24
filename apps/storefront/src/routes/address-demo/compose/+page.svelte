@@ -19,7 +19,7 @@
 		<a class="underline" href="/address-demo">← back to preset</a>
 	</p>
 	<form {...addressCompose}>
-		<Root form={addressCompose} apiKey={GOOGLE_PLACES_API_KEY} {provinceConfig}>
+		<Root form={addressCompose} googlePlacesApiKey={GOOGLE_PLACES_API_KEY} {provinceConfig}>
 			<div class="grid gap-3">
 				<Email /><FirstName /><LastName /><Autocomplete /><Country /><Province /><PostalCode /><City />
 			</div>

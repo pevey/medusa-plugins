@@ -33,7 +33,7 @@ export type UpdateCartFn = (args: UpdateCartArgs) => Promise<StoreCart | null>
 
 export type Country = { code: string; name: string }
 
-export type AddressCommit = () => Promise<StoreCart | null>
+export type UpdateAddress = () => Promise<StoreCart | null>
 
 export type AddressContext = {
 	readonly form: RemoteForm<any, any>
@@ -41,13 +41,13 @@ export type AddressContext = {
 	readonly regions: StoreRegion[] | undefined
 	readonly countries: Country[]
 	readonly provinceConfig: ProvinceConfig
-	readonly apiKey: string | undefined
+	readonly googlePlacesApiKey: string | undefined
 	readonly isAutocomplete: boolean
 	readonly billingSameAsShipping: boolean
 	readonly showBilling: boolean
 	readonly expanded: boolean
 	setExpanded: (v: boolean) => void
-	commit: AddressCommit
+	updateAddress: UpdateAddress
 	onchange: (event: Event) => void
 	save: () => Promise<void>
 	setRegionForCountry: (code: string) => Promise<void>

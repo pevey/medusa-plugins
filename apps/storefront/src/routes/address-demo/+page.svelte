@@ -18,7 +18,7 @@
 		<a class="underline" href="/address-demo/compose">compose-your-own →</a>
 	</p>
 	<form {...address}>
-		<AddressForm form={address} apiKey={GOOGLE_PLACES_API_KEY} {provinceConfig} />
+		<AddressForm form={address} googlePlacesApiKey={GOOGLE_PLACES_API_KEY} {provinceConfig} />
 		<button class="bg-primary text-primary-foreground mt-4 h-9 rounded-md px-4 text-sm font-medium">Save</button>
 	</form>
 </div>

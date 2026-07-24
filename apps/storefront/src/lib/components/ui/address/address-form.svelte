@@ -18,7 +18,7 @@
 
 	let props: {
 		form: RemoteForm<any, any>
-		apiKey?: string
+		googlePlacesApiKey?: string
 		provinceConfig?: ProvinceConfig
 		getCart?: GetCartFn
 		getRegions?: GetRegionsFn

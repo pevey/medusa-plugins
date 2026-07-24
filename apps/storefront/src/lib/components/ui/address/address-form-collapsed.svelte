@@ -14,11 +14,11 @@
 	import PostalCode from './address-postal-code.svelte'
 	import City from './address-city.svelte'
 	import Phone from './address-phone.svelte'
-	import type { GetCartFn, GetRegionsFn, UpdateCartFn, ProvinceConfig, AddressCommit } from './types.js'
+	import type { GetCartFn, GetRegionsFn, UpdateCartFn, ProvinceConfig } from './types.js'
 
 	let props: {
 		form: RemoteForm<any, any>
-		apiKey?: string
+		googlePlacesApiKey?: string
 		provinceConfig?: ProvinceConfig
 		getCart?: GetCartFn
 		getRegions?: GetRegionsFn
@@ -27,7 +27,6 @@
 		onaddresschange?: (cart: StoreCart) => void
 		onregionchange?: (regionId: string, country: string) => void
 		onerror?: (err: unknown) => void
-		registerCommit?: (commit: AddressCommit) => void
 		class?: string
 	} = $props()
 </script>
@@ -47,15 +46,18 @@
 	<!-- Structured block: PRESENT-but-clipped while collapsed so browser autofill can fill it and
 	     fire events (sr-only = clip, never display:none). tabindex -1 keeps keyboard focus out of the
 	     invisible fields; autofill (programmatic) is unaffected by tabindex. -->
-	<div
-		data-collapsed-fields
-		class={ctx.expanded ? 'grid grid-cols-2 gap-x-2' : 'sr-only'}
-	>
+	<div data-collapsed-fields class={ctx.expanded ? 'grid grid-cols-2 gap-x-2' : 'sr-only'}>
 		<div class="col-span-2"><AddressLine1 tabindex={ctx.expanded ? undefined : -1} /></div>
 		<div class="col-span-2"><Line2 tabindex={ctx.expanded ? undefined : -1} /></div>
-		<div class="col-span-2 md:col-span-1"><Country tabindex={ctx.expanded ? undefined : -1} /></div>
-		<div class="col-span-2 md:col-span-1"><Province tabindex={ctx.expanded ? undefined : -1} /></div>
-		<div class="col-span-2 md:col-span-1"><PostalCode tabindex={ctx.expanded ? undefined : -1} /></div>
+		<div class="col-span-2 md:col-span-1">
+			<Country tabindex={ctx.expanded ? undefined : -1} />
+		</div>
+		<div class="col-span-2 md:col-span-1">
+			<Province tabindex={ctx.expanded ? undefined : -1} />
+		</div>
+		<div class="col-span-2 md:col-span-1">
+			<PostalCode tabindex={ctx.expanded ? undefined : -1} />
+		</div>
 		<div class="col-span-2 md:col-span-1"><City tabindex={ctx.expanded ? undefined : -1} /></div>
 		<div class="col-span-2"><Phone tabindex={ctx.expanded ? undefined : -1} /></div>
 	</div>

@@ -10,15 +10,19 @@
 		countriesFromRegions
 	} from 'sveltekit-medusa-sdk'
 	import { cn } from '$lib/utils.js'
-	import { setAddressContext } from './ctx.svelte.js'
+	import { setAddressContext, getAddressHostOptional } from './ctx.svelte.js'
 	import { buildUpdatePayload, resolveCountryValue, ADDRESS_KEYS } from './address-logic.js'
-	import { defaultProvinceConfig, resolveProvinceValue, type ProvinceConfig } from '../input-province/provinces'
-	import type { GetCartFn, GetRegionsFn, UpdateCartFn, AddressCommit } from './types.js'
+	import {
+		defaultProvinceConfig,
+		resolveProvinceValue,
+		type ProvinceConfig
+	} from '../input-province/provinces'
+	import type { GetCartFn, GetRegionsFn, UpdateCartFn } from './types.js'
 	import type { NormalizedAddress } from '../google-places-autocomplete/types'
 
 	interface Props {
 		form: RemoteForm<any, any>
-		apiKey?: string
+		googlePlacesApiKey?: string
 		provinceConfig?: ProvinceConfig
 		getCart?: GetCartFn
 		getRegions?: GetRegionsFn
@@ -27,13 +31,12 @@
 		onaddresschange?: (cart: StoreCart) => void
 		onregionchange?: (regionId: string, country: string) => void
 		onerror?: (err: unknown) => void
-		registerCommit?: (commit: AddressCommit) => void
 		class?: string
 		children: Snippet
 	}
 	let {
 		form,
-		apiKey,
+		googlePlacesApiKey,
 		provinceConfig = defaultProvinceConfig,
 		getCart = sdkGetCart as unknown as GetCartFn,
 		getRegions = sdkGetRegions as unknown as GetRegionsFn,
@@ -42,7 +45,6 @@
 		onaddresschange,
 		onregionchange,
 		onerror,
-		registerCommit,
 		class: className = '',
 		children
 	}: Props = $props()
@@ -52,7 +54,18 @@
 	const regionsRes = untrack(() => getRegions())
 	const wait = untrack(() => debounceMs)
 
-	// Guards against a debounced `rawSave` firing mid-`commit()` and racing its own updateCart.
+	// Read the optional host context ONCE during init (not in onMount — getContext must run while the
+	// component is initialising). A wrapping Checkout.Root fills this; standalone Address leaves it null.
+	const addressHost = getAddressHostOptional()
+
+	// Notify the public callback AND the optional host of every committed cart change, so a host like
+	// Checkout.Root can re-fetch shipping options (which depend on the shipping address/region).
+	function notifyChange(cart: StoreCart) {
+		onaddresschange?.(cart)
+		addressHost?.onAddressChange?.(cart)
+	}
+
+	// Guards against a debounced `rawSave` firing mid-`updateAddress()` and racing its own updateCart.
 	let committing = false
 
 	let billingSameAsShipping = $state(true)
@@ -64,15 +77,23 @@
 	const countries = () => countriesFromRegions(regionsRes.current ?? [])
 
 	// Fields whose fill (autofill/manual) reveals the collapsed structured block.
-	const STRUCTURED = ['address_1', 'address_2', 'city', 'province', 'postal_code', 'country_code', 'phone']
+	const STRUCTURED = [
+		'address_1',
+		'address_2',
+		'city',
+		'province',
+		'postal_code',
+		'country_code',
+		'phone'
+	]
 	const isStructured = (name: string) => STRUCTURED.includes(name.replace(/^billing_/, ''))
 
-	// ---- hand-rolled cancelable/awaitable debounce (replaces p-debounce so commit() can flush) ----
+	// ---- hand-rolled cancelable/awaitable debounce (replaces p-debounce so updateAddress() can flush) ----
 	let timer: ReturnType<typeof setTimeout> | undefined
 	let pending: Promise<void> | null = null
 	let resolvePending: (() => void) | null = null
 	function save(): Promise<void> {
-		if (!pending) pending = new Promise((r) => (resolvePending = r))
+		if (!pending) pending = new Promise(r => (resolvePending = r))
 		if (timer) clearTimeout(timer)
 		timer = setTimeout(runSave, wait)
 		return pending
@@ -104,16 +125,22 @@
 			// display name), so a raw autofill value like "United States" must be normalized before use.
 			const resolvedCountry = country ? resolveCountryValue(list, country) : country
 			if (country) form.fields[`${prefix}country_code`]?.set(resolvedCountry)
-			if (prov) form.fields[`${prefix}province`]?.set(resolveProvinceValue(provinceConfig, resolvedCountry, prov))
+			if (prov)
+				form.fields[`${prefix}province`]?.set(
+					resolveProvinceValue(provinceConfig, resolvedCountry, prov)
+				)
 		}
 	}
 
 	// ---- read live DOM values within Root's subtree into the form fields (catches silent fills) ----
 	function reconcileFromDom() {
 		if (rootEl) {
-			const controls = rootEl.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input[name], select[name]')
+			const controls = rootEl.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
+				'input[name], select[name]'
+			)
 			for (const el of controls) {
-				if (el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio')) continue
+				if (el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio'))
+					continue
 				const f = form.fields[el.name]
 				if (f && f.value() !== el.value) f.set(el.value)
 			}
@@ -125,7 +152,7 @@
 		if (committing) return
 		try {
 			const updated = await updateCart(buildUpdatePayload(get, showBilling))
-			if (updated) onaddresschange?.(updated)
+			if (updated) notifyChange(updated)
 		} catch (e) {
 			onerror?.(e)
 		}
@@ -134,7 +161,7 @@
 		reconcileFromDom()
 		await save()
 	}
-	async function commit(): Promise<StoreCart | null> {
+	async function updateAddress(): Promise<StoreCart | null> {
 		committing = true
 		cancelSave()
 		reconcileFromDom()
@@ -144,7 +171,7 @@
 		await setRegionForCountry(get('country_code'))
 		try {
 			const updated = await updateCart(buildUpdatePayload(get, showBilling))
-			if (updated) onaddresschange?.(updated)
+			if (updated) notifyChange(updated)
 			return updated
 		} catch (e) {
 			onerror?.(e)
@@ -163,10 +190,13 @@
 		const region = regionForCountry(regions, code)
 		if (!region || cartQuery.current?.region_id === region.id) return
 		try {
-			const updated = await updateCart({ region_id: region.id, shipping_address: { country_code: code } as any })
+			const updated = await updateCart({
+				region_id: region.id,
+				shipping_address: { country_code: code } as any
+			})
 			if (updated) {
 				onregionchange?.(region.id, code)
-				onaddresschange?.(updated)
+				notifyChange(updated)
 			}
 		} catch (e) {
 			onerror?.(e)
@@ -196,8 +226,8 @@
 		if (same) {
 			for (const k of ADDRESS_KEYS) form.fields[`billing_${k}`]?.set('')
 			updateCart({ billing_address: {} })
-				.then((u) => u && onaddresschange?.(u))
-				.catch((e) => onerror?.(e))
+				.then(u => u && notifyChange(u))
+				.catch(e => onerror?.(e))
 		}
 	}
 
@@ -215,18 +245,38 @@
 	}
 
 	setAddressContext({
-		get form() { return form },
-		get cart() { return cartQuery.current },
-		get regions() { return regionsRes.current },
-		get countries() { return countries() },
-		get provinceConfig() { return provinceConfig },
-		get apiKey() { return apiKey },
-		get isAutocomplete() { return !!apiKey },
-		get billingSameAsShipping() { return billingSameAsShipping },
-		get showBilling() { return showBilling },
-		get expanded() { return expanded },
+		get form() {
+			return form
+		},
+		get cart() {
+			return cartQuery.current
+		},
+		get regions() {
+			return regionsRes.current
+		},
+		get countries() {
+			return countries()
+		},
+		get provinceConfig() {
+			return provinceConfig
+		},
+		get googlePlacesApiKey() {
+			return googlePlacesApiKey
+		},
+		get isAutocomplete() {
+			return !!googlePlacesApiKey
+		},
+		get billingSameAsShipping() {
+			return billingSameAsShipping
+		},
+		get showBilling() {
+			return showBilling
+		},
+		get expanded() {
+			return expanded
+		},
 		setExpanded,
-		commit,
+		updateAddress,
 		onchange,
 		save,
 		setRegionForCountry,
@@ -235,9 +285,12 @@
 	})
 
 	onMount(() => {
-		registerCommit?.(commit)
+		addressHost?.registerUpdateAddress?.(updateAddress)
 		// Expand by default when the user asked to skip motion/choreography (a11y).
-		if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+		if (
+			typeof window !== 'undefined' &&
+			window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+		) {
 			expanded = true
 		}
 		const c = cartQuery.current
@@ -245,11 +298,24 @@
 			form.fields.email?.set(c.email ?? '')
 			const s = c.shipping_address ?? {}
 			for (const k of ADDRESS_KEYS) form.fields[k]?.set((s as any)[k] ?? '')
-			form.fields.province?.set(resolveProvinceValue(provinceConfig, (s as any)?.country_code, (s as any)?.province ?? ''))
+			form.fields.province?.set(
+				resolveProvinceValue(
+					provinceConfig,
+					(s as any)?.country_code,
+					(s as any)?.province ?? ''
+				)
+			)
 			const b = c.billing_address
-			if (b && Object.entries(b).some(([k, v]) => k !== 'id' && !!v)) billingSameAsShipping = false
+			if (b && Object.entries(b).some(([k, v]) => k !== 'id' && !!v))
+				billingSameAsShipping = false
 			for (const k of ADDRESS_KEYS) form.fields[`billing_${k}`]?.set((b as any)?.[k] ?? '')
-			form.fields.billing_province?.set(resolveProvinceValue(provinceConfig, (b as any)?.country_code, (b as any)?.province ?? ''))
+			form.fields.billing_province?.set(
+				resolveProvinceValue(
+					provinceConfig,
+					(b as any)?.country_code,
+					(b as any)?.province ?? ''
+				)
+			)
 			form.fields.hideBilling?.set(billingSameAsShipping)
 			// A hydrated cart already has an address → show the structured fields.
 			if ((s as any)?.address_1 || (s as any)?.city) expanded = true
@@ -259,7 +325,12 @@
 
 <div bind:this={rootEl} class={cn('', className)} oninput={ondelegatedinput}>
 	{#if form.fields?.hideBilling}
-		<input class="hidden" aria-hidden="true" tabindex="-1" {...form.fields.hideBilling.as('checkbox', true)} />
+		<input
+			class="hidden"
+			aria-hidden="true"
+			tabindex="-1"
+			{...form.fields.hideBilling.as('checkbox', true)}
+		/>
 	{/if}
 	{@render children()}
 </div>

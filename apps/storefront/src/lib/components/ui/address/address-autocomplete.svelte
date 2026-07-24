@@ -24,7 +24,7 @@
 {#if ctx.isAutocomplete}
 	<Field.Field>
 		{#if label}<Field.FieldLabel>{label}</Field.FieldLabel>{/if}
-		<GooglePlacesAutocomplete apiKey={ctx.apiKey!} {placeholder} initialValue={field.value()} {onselect} {oninput} class={className} />
+		<GooglePlacesAutocomplete apiKey={ctx.googlePlacesApiKey!} {placeholder} initialValue={field.value()} {onselect} {oninput} class={className} />
 	</Field.Field>
 {:else}
 	<InputText {field} {label} {placeholder} autocomplete="address-line1" onchange={ctx.onchange} class={className} />
