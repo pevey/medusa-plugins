@@ -20,6 +20,8 @@ export type GooglePlacesAutocompleteProps = {
 	icons?: GpacIcons
 	fields?: string[]
 	class?: string
-	onselect?: (address: NormalizedAddress, place: google.maps.places.Place) => void
+	// If the handler returns a string, it replaces the visible input value after selection — e.g.
+	// collapse the field to just the street line once the other parts are distributed elsewhere.
+	onselect?: (address: NormalizedAddress, place: google.maps.places.Place) => void | string | Promise<void | string>
 	oninput?: (text: string) => void
 }

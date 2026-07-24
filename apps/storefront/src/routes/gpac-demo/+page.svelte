@@ -12,7 +12,7 @@
 
 	<section class="space-y-1">
 		<span class="text-sm font-medium">Default (chrome stripped, shadcn-themed)</span>
-		<GooglePlacesAutocomplete apiKey={key} onselect={a => (selected = a)} />
+		<GooglePlacesAutocomplete apiKey={key} onselect={(a) => { selected = a }} />
 	</section>
 
 	<section class="space-y-1">
