@@ -227,6 +227,17 @@ module.exports = defineConfig({
 							savePaymentMethod: true, // Save payment methods for future use
 							autoCapture: true // Automatically capture payments
 						}
+					},
+					{
+						resolve: '@medusajs/medusa/payment-stripe',
+						id: 'stripe',
+						options: {
+							apiKey: process.env.STRIPE_API_KEY,
+							webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+							capture: true,
+							automatic_payment_methods: true,
+							payment_description: process.env.STRIPE_PAYMENT_DESCRIPTION
+						}
 					}
 				]
 			}
@@ -336,8 +347,12 @@ module.exports = defineConfig({
 				baseUrl: process.env.MCP_LLM_BASE_URL || 'http://localhost:11434/v1',
 				systemPrompt: process.env.MCP_SYSTEM_PROMPT,
 				toolPackages: ['medusa-plugin-automation/mcp'],
-				...(process.env.MCP_CHAT_RETENTION_DAYS ? { chatRetentionDays: Number(process.env.MCP_CHAT_RETENTION_DAYS) } : {}),
-				...(process.env.MCP_MAX_HISTORY_TURNS ? { maxHistoryTurns: Number(process.env.MCP_MAX_HISTORY_TURNS) } : {})
+				...(process.env.MCP_CHAT_RETENTION_DAYS
+					? { chatRetentionDays: Number(process.env.MCP_CHAT_RETENTION_DAYS) }
+					: {}),
+				...(process.env.MCP_MAX_HISTORY_TURNS
+					? { maxHistoryTurns: Number(process.env.MCP_MAX_HISTORY_TURNS) }
+					: {})
 			}
 		},
 		{
