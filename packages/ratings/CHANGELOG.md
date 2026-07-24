@@ -1,3 +1,7 @@
+## 0.2.4
+
+- Fix product route field validator entries that were not method-scoped
+
 ## 0.2.3
 
 - Add readonly two-way link between product and review

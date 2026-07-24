@@ -18,7 +18,9 @@ import {
 export default defineMiddlewares([
 	{
 		matcher: '/admin/products/:id',
+		method: ['GET'], // A middleware entry without method is registered by Medusa as app.use(matcher)
 		middlewares: [
+			// @ts-ignore
 			(req, res, next) => {
 				;(req.allowed ??= []).push('review')
 				next()
@@ -104,7 +106,9 @@ export default defineMiddlewares([
 	// ── Store ────────────────────────────────────────────────────────────────
 	{
 		matcher: '/store/products',
+		method: ['GET'],
 		middlewares: [
+			// @ts-ignore
 			(req, res, next) => {
 				;(req.allowed ??= []).push('review')
 				next()
@@ -113,7 +117,9 @@ export default defineMiddlewares([
 	},
 	{
 		matcher: '/store/products/:id',
+		method: ['GET'],
 		middlewares: [
+			// @ts-ignore
 			(req, res, next) => {
 				;(req.allowed ??= []).push('review')
 				next()
