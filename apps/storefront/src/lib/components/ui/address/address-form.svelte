@@ -24,6 +24,7 @@
 		getRegions?: GetRegionsFn
 		updateCart?: UpdateCartFn
 		debounceMs?: number
+		restrictToCurrentRegion?: boolean
 		onaddresschange?: (cart: StoreCart) => void
 		onregionchange?: (regionId: string, country: string) => void
 		onerror?: (err: unknown) => void

@@ -53,6 +53,11 @@
 	}: Props = $props()
 
 	const cartQuery = untrack(() => getCart())
+	// Payment providers for the cart's CURRENT region (rides the cart — reactive across region switches,
+	// unlike the cookie-scoped listPaymentProviders). Needs getCart to expand region.payment_providers.id.
+	const availableProviders = $derived(
+		((cartQuery.current?.region?.payment_providers ?? []) as { id: string }[]).map((p) => p.id)
+	)
 	let placing = $state(false)
 	let error = $state<unknown>(null)
 	let order = $state<StoreOrder | null>(null)
@@ -65,6 +70,12 @@
 	}
 	function registerAddress(fn: UpdateAddress) {
 		addressStep = fn
+	}
+	// Surface an error (e.g. an address/region-switch cart update that failed) in the checkout error
+	// banner instead of letting it be swallowed.
+	function reportError(e: unknown) {
+		error = e
+		onerror?.(e)
 	}
 
 	async function placeOrder() {
@@ -117,6 +128,8 @@
 		get error() { return error },
 		get order() { return order },
 		get shippingOptions() { return [] }, // Delivery fetches its own; kept for parts that want it
+		get availableProviders() { return availableProviders },
+		hasProvider: (id: string) => availableProviders.includes(id),
 		registerAddress,
 		registerPayment: (fn) => { paymentStep = fn },
 		registerShippingRefresh: (fn) => { shippingRefresh = fn },
@@ -131,7 +144,8 @@
 	// options whenever the address/region changes (options depend on the shipping address).
 	setAddressHost({
 		registerUpdateAddress: registerAddress,
-		onAddressChange: () => { shippingRefresh?.() }
+		onAddressChange: () => { shippingRefresh?.() },
+		onError: reportError
 	})
 </script>
 

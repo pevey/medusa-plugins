@@ -17,7 +17,7 @@
 		resolveProvinceValue,
 		type ProvinceConfig
 	} from '../input-province/provinces'
-	import type { GetCartFn, GetRegionsFn, UpdateCartFn } from './types.js'
+	import type { GetCartFn, GetRegionsFn, UpdateCartFn, UpdateCartArgs } from './types.js'
 	import type { NormalizedAddress } from '../google-places-autocomplete/types'
 
 	interface Props {
@@ -28,6 +28,9 @@
 		getRegions?: GetRegionsFn
 		updateCart?: UpdateCartFn
 		debounceMs?: number
+		/** When true, offer only the current region's countries and never switch region from the address
+		 *  (pinned-region checkout). Default false = full shippable set + self-correcting region switch. */
+		restrictToCurrentRegion?: boolean
 		onaddresschange?: (cart: StoreCart) => void
 		onregionchange?: (regionId: string, country: string) => void
 		onerror?: (err: unknown) => void
@@ -42,6 +45,7 @@
 		getRegions = sdkGetRegions as unknown as GetRegionsFn,
 		updateCart = sdkUpdateCart as unknown as UpdateCartFn,
 		debounceMs = 200,
+		restrictToCurrentRegion = false,
 		onaddresschange,
 		onregionchange,
 		onerror,
@@ -64,6 +68,12 @@
 		onaddresschange?.(cart)
 		addressHost?.onAddressChange?.(cart)
 	}
+	// Surface a cart-update failure to the public callback AND the host (Checkout.Root), so it isn't
+	// swallowed — e.g. a region switch rejected because a cart product has no price for the new region.
+	function notifyError(err: unknown) {
+		onerror?.(err)
+		addressHost?.onError?.(err)
+	}
 
 	// Guards against a debounced `rawSave` firing mid-`updateAddress()` and racing its own updateCart.
 	let committing = false
@@ -74,7 +84,14 @@
 	let rootEl: HTMLElement
 
 	const get = (name: string) => form.fields[name]?.value() ?? ''
-	const countries = () => countriesFromRegions(regionsRes.current ?? [])
+	// The selectable delivery countries. `restrictToCurrentRegion` narrows to the cart's current region
+	// (pinned-region checkout); otherwise the full shippable set across all regions (self-correcting).
+	const countries = () => {
+		const regions = regionsRes.current ?? []
+		if (!restrictToCurrentRegion) return countriesFromRegions(regions)
+		const current = regions.find((r) => r.id === cartQuery.current?.region_id)
+		return countriesFromRegions(current ? [current] : regions)
+	}
 
 	// Fields whose fill (autofill/manual) reveals the collapsed structured block.
 	const STRUCTURED = [
@@ -148,13 +165,27 @@
 		normalizeCodes()
 	}
 
+	// Build the update payload WITH the region_id for the chosen country, so region + address commit
+	// atomically. Medusa validates the shipping country against the payload's region (the NEW region
+	// when region_id is present), so bundling region_id avoids "Country X is not within region Y" when
+	// the selected country belongs to a different region than the cart's current one. Skipped under
+	// `restrictToCurrentRegion` (region is pinned).
+	function payloadWithRegion(): UpdateCartArgs {
+		const payload = buildUpdatePayload(get, showBilling)
+		if (!restrictToCurrentRegion) {
+			const region = regionForCountry(regionsRes.current ?? [], get('country_code'))
+			if (region) payload.region_id = region.id
+		}
+		return payload
+	}
+
 	const rawSave = async () => {
 		if (committing) return
 		try {
-			const updated = await updateCart(buildUpdatePayload(get, showBilling))
+			const updated = await updateCart(payloadWithRegion())
 			if (updated) notifyChange(updated)
 		} catch (e) {
-			onerror?.(e)
+			notifyError(e)
 		}
 	}
 	async function reconcileAndSave() {
@@ -165,16 +196,14 @@
 		committing = true
 		cancelSave()
 		reconcileFromDom()
-		// Reconcile the region before the final save: a browser autofill that only fires `input`
-		// (not `change`) on the country <select> would otherwise skip setRegionForCountry entirely,
-		// so the payload below would omit region_id and a multi-region cart update could be rejected.
-		await setRegionForCountry(get('country_code'))
 		try {
-			const updated = await updateCart(buildUpdatePayload(get, showBilling))
+			// payloadWithRegion() carries region_id for the chosen country, so region + address commit
+			// atomically — this also covers a browser autofill that only fired `input` (not `change`).
+			const updated = await updateCart(payloadWithRegion())
 			if (updated) notifyChange(updated)
 			return updated
 		} catch (e) {
-			onerror?.(e)
+			notifyError(e)
 			return null
 		} finally {
 			committing = false
@@ -186,6 +215,9 @@
 	}
 
 	async function setRegionForCountry(code: string) {
+		// Pinned-region checkout: never switch region from the address — this also clamps a browser
+		// autofill that injects an out-of-region country (which the country list wouldn't even offer).
+		if (restrictToCurrentRegion) return
 		const regions = regionsRes.current ?? (await regionsRes)
 		const region = regionForCountry(regions, code)
 		if (!region || cartQuery.current?.region_id === region.id) return
@@ -199,7 +231,7 @@
 				notifyChange(updated)
 			}
 		} catch (e) {
-			onerror?.(e)
+			notifyError(e)
 		}
 	}
 
@@ -227,7 +259,7 @@
 			for (const k of ADDRESS_KEYS) form.fields[`billing_${k}`]?.set('')
 			updateCart({ billing_address: {} })
 				.then(u => u && notifyChange(u))
-				.catch(e => onerror?.(e))
+				.catch(e => notifyError(e))
 		}
 	}
 
@@ -241,6 +273,32 @@
 		set('country_code', addr.country_code)
 		expanded = true
 		if (!prefix) await setRegionForCountry(addr.country_code)
+		await save()
+	}
+
+	/**
+	 * Populate the form from Stripe's AddressElement value (name + address + phone), then reconcile the
+	 * region and commit — the Elements-mode analog of `setAddressFromAutocomplete`. Stripe returns the
+	 * country as an uppercase ISO-2 (`AU`); Medusa uses lowercase. `firstName`/`lastName` are present
+	 * when the element uses `display: { name: 'split' }`, else we split the combined `name`.
+	 */
+	async function setAddressFromStripe(value: any) {
+		const a = value?.address ?? {}
+		const country = String(a.country ?? '').toLowerCase()
+		const first = value?.firstName ?? String(value?.name ?? '').split(' ')[0] ?? ''
+		const last = value?.lastName ?? String(value?.name ?? '').split(' ').slice(1).join(' ')
+		const set = (n: string, val: string) => form.fields[n]?.set(val ?? '')
+		set('first_name', first)
+		set('last_name', last)
+		set('address_1', a.line1 ?? '')
+		set('address_2', a.line2 ?? '')
+		set('city', a.city ?? '')
+		set('province', resolveProvinceValue(provinceConfig, country, a.state ?? ''))
+		set('postal_code', a.postal_code ?? '')
+		set('country_code', country)
+		if (value?.phone) set('phone', value.phone)
+		expanded = true
+		await setRegionForCountry(country)
 		await save()
 	}
 
@@ -281,7 +339,8 @@
 		save,
 		setRegionForCountry,
 		setBillingSameAsShipping,
-		setAddressFromAutocomplete
+		setAddressFromAutocomplete,
+		setAddressFromStripe
 	})
 
 	onMount(() => {

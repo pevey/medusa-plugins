@@ -18,10 +18,15 @@ export { default as SummaryGiftCard } from './checkout-summary-gift-card.svelte'
 export { default as SummaryTotal } from './checkout-summary-total.svelte'
 export { default as SummaryCustom } from './checkout-summary-custom.svelte'
 export { default as BraintreePayment } from './checkout-braintree-payment.svelte'
+export { default as StripeElements } from './checkout-stripe-elements.svelte'
+export { default as StripePayment } from './checkout-stripe-payment.svelte'
+export { default as StripeAddress } from './checkout-stripe-address.svelte'
 export { default as PlaceOrder } from './checkout-place-order.svelte'
 export { default as Confirmation } from './checkout-confirmation.svelte'
 export { default as CheckoutError } from './checkout-error.svelte'
 export { default as CheckoutBraintree } from './checkout-braintree.svelte'
+export { default as CheckoutStripe } from './checkout-stripe.svelte'
+export { default as CheckoutAuto } from './checkout-auto.svelte'
 export {
 	setCheckoutContext,
 	getCheckoutContext,
@@ -29,7 +34,8 @@ export {
 	setCheckoutLineContext,
 	getCheckoutLineContext
 } from './ctx.svelte.js'
-export { runPlaceOrder, resolveRedirect, getBraintreeClientToken } from './checkout-logic.js'
+export { runPlaceOrder, resolveRedirect, resolveProvider, getBraintreeClientToken, getStripeClientSecret } from './checkout-logic.js'
+export { buildStripeAppearance } from './stripe-appearance.js'
 export { formatPrice } from './format-price.js'
 export type {
 	CheckoutLine,
@@ -44,6 +50,7 @@ export type {
 	AddPromotionFn,
 	RemovePromotionFn,
 	InitiateBraintreeFn,
+	InitiatePaymentSessionFn,
 	CompleteCartFn,
 	CheckoutContext,
 	CheckoutLineContext

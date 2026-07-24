@@ -33,6 +33,15 @@ export async function runPlaceOrder(steps: PlaceOrderSteps): Promise<{ order: St
 	}
 }
 
+/**
+ * Pick the payment provider to render: the first of the cart region's `available` provider ids that
+ * this checkout `supported`s. Returns undefined when the region offers no supported provider (caller
+ * then renders nothing + warns). Structured so a future multi-provider selector is additive.
+ */
+export function resolveProvider(available: string[], supported: string[]): string | undefined {
+	return available.find((id) => supported.includes(id))
+}
+
 export function resolveRedirect(
 	redirectTo: string | ((order: StoreOrder) => string) | undefined,
 	order: StoreOrder
@@ -41,10 +50,28 @@ export function resolveRedirect(
 	return typeof redirectTo === 'function' ? redirectTo(order) : redirectTo
 }
 
-/** Extract the Braintree client_token from an initiate-session response. */
-export function getBraintreeClientToken(session: any, providerId: string): string | undefined {
+/**
+ * Find a provider's payment-session `data` in an initiate-session response. Medusa returns the
+ * payment-collection with its sessions; each session's `data` is the raw provider payload (the
+ * Braintree client-token blob, or the Stripe PaymentIntent). Falls back to the first session.
+ */
+function getProviderSessionData(session: any, providerId: string): any | undefined {
 	const sessions = session?.payment_collection?.payment_sessions
 	if (!Array.isArray(sessions)) return undefined
 	const s = sessions.find((ps: any) => ps?.provider_id === providerId) ?? sessions[0]
-	return s?.data?.client_token
+	return s?.data
+}
+
+/** Extract the Braintree client_token from an initiate-session response. */
+export function getBraintreeClientToken(session: any, providerId: string): string | undefined {
+	return getProviderSessionData(session, providerId)?.client_token
+}
+
+/**
+ * Extract the Stripe client_secret from an initiate-session response. The Stripe provider stores the
+ * full PaymentIntent as the session `data` (verified: `stripe-base.getStatus` → `{ data: intent }`),
+ * so the secret lives at `…payment_sessions[].data.client_secret`.
+ */
+export function getStripeClientSecret(session: any, providerId: string): string | undefined {
+	return getProviderSessionData(session, providerId)?.client_secret
 }

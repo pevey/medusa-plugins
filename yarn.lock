@@ -14332,7 +14332,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stripe/stripe-js@npm:^9.10.0":
+"@stripe/stripe-js@npm:9.10.0, @stripe/stripe-js@npm:^9.10.0":
   version: 9.10.0
   resolution: "@stripe/stripe-js@npm:9.10.0"
   checksum: 10c0/5dafc662545880bd28d92433def810f82ffb6aa62ea098ff8907dbb635ad4be176852c15fbf9f9434e40fa9ae5769720276f23ebe4579fda7d4c71b45d675517
@@ -17090,7 +17090,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"braintree-web@npm:^3.143.0":
+"braintree-web@npm:3.143.0, braintree-web@npm:^3.143.0":
   version: 3.143.0
   resolution: "braintree-web@npm:3.143.0"
   dependencies:
@@ -31555,6 +31555,7 @@ __metadata:
     "@internationalized/date": "npm:^3.12.0"
     "@lucide/svelte": "npm:^1.25.0"
     "@playwright/test": "npm:^1.61.1"
+    "@stripe/stripe-js": "npm:^9.10.0"
     "@sveltejs/adapter-auto": "npm:8.0.0-next.1"
     "@sveltejs/kit": "npm:3.0.0-next.10"
     "@sveltejs/vite-plugin-svelte": "npm:^7.2.0"
@@ -31576,6 +31577,7 @@ __metadata:
     svelte: "npm:^5.56.6"
     svelte-check: "npm:^4.7.3"
     sveltekit-medusa-sdk: "workspace:*"
+    sveltekit-stripe: "workspace:*"
     tailwind-merge: "npm:^3.6.0"
     tailwind-variants: "npm:^3.2.2"
     tailwindcss: "npm:^4.3.3"
@@ -32016,13 +32018,14 @@ __metadata:
     "@internationalized/date": "npm:^3.12.0"
     "@lucide/svelte": "npm:^1.25.0"
     "@medusajs/types": "npm:2.18.0"
+    "@stripe/stripe-js": "npm:9.10.0"
     "@sveltejs/vite-plugin-svelte": "npm:7.2.0"
     "@tailwindcss/vite": "npm:4.3.3"
     "@types/braintree-web": "npm:3.96.17"
     "@types/google.maps": "npm:3.65.2"
     "@vitest/browser-playwright": "npm:4.1.10"
     bits-ui: "npm:2.18.1"
-    braintree-web: "npm:^3.143.0"
+    braintree-web: "npm:3.143.0"
     clsx: "npm:2.1.1"
     embla-carousel-svelte: "npm:8.6.0"
     isomorphic-dompurify: "npm:^3.19.0"
@@ -32032,6 +32035,8 @@ __metadata:
     shadcn-svelte: "npm:^1.4.2"
     svelte: "npm:^5.56.6"
     svelte-check: "npm:^4.7.3"
+    sveltekit-medusa-sdk: "workspace:*"
+    sveltekit-stripe: "workspace:*"
     tailwind-merge: "npm:3.6.0"
     tailwind-variants: "npm:3.2.2"
     tailwindcss: "npm:4.3.3"
@@ -32039,10 +32044,21 @@ __metadata:
     vite: "npm:8.1.5"
     vitest: "npm:4.1.10"
     vitest-browser-svelte: "npm:3.0.0"
+  peerDependencies:
+    "@stripe/stripe-js": ">=5 <10"
+    braintree-web: ^3.143.0
+    sveltekit-stripe: ">=4"
+  peerDependenciesMeta:
+    "@stripe/stripe-js":
+      optional: true
+    braintree-web:
+      optional: true
+    sveltekit-stripe:
+      optional: true
   languageName: unknown
   linkType: soft
 
-"sveltekit-stripe@workspace:packages/sveltekit-stripe":
+"sveltekit-stripe@workspace:*, sveltekit-stripe@workspace:packages/sveltekit-stripe":
   version: 0.0.0-use.local
   resolution: "sveltekit-stripe@workspace:packages/sveltekit-stripe"
   dependencies:

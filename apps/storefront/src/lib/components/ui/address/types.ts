@@ -53,4 +53,6 @@ export type AddressContext = {
 	setRegionForCountry: (code: string) => Promise<void>
 	setBillingSameAsShipping: (same: boolean) => void
 	setAddressFromAutocomplete: (addr: NormalizedAddress, prefix?: string) => Promise<void>
+	/** Elements-mode analog: populate from Stripe's AddressElement value (name + address + phone). */
+	setAddressFromStripe: (value: unknown) => Promise<void>
 }

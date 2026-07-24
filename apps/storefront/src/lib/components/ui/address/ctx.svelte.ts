@@ -25,6 +25,9 @@ export type AddressHost = {
 	// Called after every committed cart update (address edit, region switch), so a host like
 	// Checkout.Root can react — e.g. re-fetch shipping options, which depend on the shipping address.
 	onAddressChange?: (cart: StoreCart) => void
+	// Called when a cart update fails (e.g. a region switch rejected because a product has no price for
+	// the new region), so the host can surface it — otherwise address-save errors are swallowed.
+	onError?: (err: unknown) => void
 }
 export function setAddressHost(host: AddressHost) {
 	setContext(ADDRESS_HOST, host)

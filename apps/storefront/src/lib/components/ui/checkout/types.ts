@@ -16,6 +16,7 @@ export type SelectShippingOptionFn = (optionId: string) => Promise<StoreCart | n
 export type AddPromotionFn = (code: string) => Promise<StoreCart | null>
 export type RemovePromotionFn = (code: string) => Promise<StoreCart | null>
 export type InitiateBraintreeFn = (args: { provider_id: string; data?: { payment_method_nonce?: string; deviceData?: string } }) => Promise<any>
+export type InitiatePaymentSessionFn = (args: { provider_id: string }) => Promise<any>
 export type CompleteCartFn = () => Promise<StoreOrder | StoreCart | null>
 
 export type CheckoutContext = {
@@ -25,6 +26,9 @@ export type CheckoutContext = {
 	readonly error: unknown
 	readonly order: StoreOrder | null
 	readonly shippingOptions: any[]
+	/** Payment provider ids enabled for the cart's current region (from `region.payment_providers`). */
+	readonly availableProviders: string[]
+	hasProvider: (id: string) => boolean
 	registerAddress: (fn: UpdateAddress) => void
 	registerPayment: (fn: AuthorizePayment) => void
 	registerShippingRefresh: (fn: () => void | Promise<void>) => void
