@@ -3,11 +3,11 @@
 	import { Button } from '$lib/components/ui/button/index.js'
 	import MinusIcon from '@lucide/svelte/icons/minus'
 	import PlusIcon from '@lucide/svelte/icons/plus'
-	import { getCartContext, getLineItemContext } from './ctx.svelte.js'
+	import { getCartContext, getCartLineContext } from './ctx.svelte.js'
 
 	let { min = 1, max = 9999, class: className = '' }: { min?: number; max?: number; class?: string } = $props()
 	const ctx = getCartContext()
-	const { item } = getLineItemContext()
+	const { item } = getCartLineContext()
 
 	// Seeds from item.quantity and auto-resyncs when the server-confirmed quantity changes,
 	// while still allowing local typing. Writable $derived — no $effect.

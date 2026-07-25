@@ -15,10 +15,10 @@ export type CartContext = {
 	updateItem: (itemId: string, quantity: number) => Promise<void>
 	removeItem: (itemId: string) => Promise<void>
 }
-export type LineItemContext = { readonly item: CartLine }
+export type CartLineContext = { readonly item: CartLine }
 
 const CART = Symbol('cart')
-const LINE = Symbol('cart-line-item')
+const LINE = Symbol('cart-line')
 
 export function setCartContext(ctx: CartContext) {
 	setContext(CART, ctx)
@@ -31,11 +31,11 @@ export function getCartContext(): CartContext {
 export function getCartContextOptional(): CartContext | null {
 	return getContext<CartContext>(CART) ?? null
 }
-export function setLineItemContext(ctx: LineItemContext) {
+export function setCartLineContext(ctx: CartLineContext) {
 	setContext(LINE, ctx)
 }
-export function getLineItemContext(): LineItemContext {
-	const ctx = getContext<LineItemContext>(LINE)
-	if (!ctx) throw new Error('Cart line parts must be used within <Cart.LineItem>')
+export function getCartLineContext(): CartLineContext {
+	const ctx = getContext<CartLineContext>(LINE)
+	if (!ctx) throw new Error('Cart line parts must be used within <Cart.Item>')
 	return ctx
 }

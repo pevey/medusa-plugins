@@ -1,24 +1,14 @@
 <script lang="ts">
 	import { cn } from '$lib/utils.js'
-	import { getCartContext } from './ctx.svelte.js'
+	import { getCartLineContext } from './ctx.svelte.js'
 	import { formatPrice } from './format-price.js'
-	let {
-		class: className = '',
-		locale = 'en-US',
-		label = 'Subtotal'
-	}: { class?: string; locale?: string; label?: string } = $props()
-	const ctx = getCartContext()
-	const currency = $derived(
-		(ctx.cart as { currency_code?: string } | null | undefined)?.currency_code ?? 'usd'
-	)
-	const formatted = $derived(ctx.subtotal == null ? '' : formatPrice(ctx.subtotal, currency, locale))
+	let { class: className = '', locale = 'en-US' }: { class?: string; locale?: string } = $props()
+	const { item } = getCartLineContext()
+	const currencyCode = $derived((item as { currency_code?: string }).currency_code ?? 'usd')
+	// Medusa's computed line subtotal (accounts for item-level adjustments); falls back to
+	// unit_price × quantity when the cart wasn't fetched with computed totals.
+	const amount = $derived(item.subtotal ?? (item.unit_price != null ? item.unit_price * item.quantity : undefined))
+	const formatted = $derived(formatPrice(amount, currencyCode, locale))
 </script>
 
-{#if formatted}
-	<div
-		data-cart-item-subtotal
-		class={cn('flex items-center justify-between text-base font-medium', className)}
-	>
-		<span>{label}</span><span>{formatted}</span>
-	</div>
-{/if}
+{#if formatted}<p data-cart-item-subtotal class={cn('text-sm font-medium', className)}>{formatted}</p>{/if}

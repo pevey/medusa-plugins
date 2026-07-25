@@ -8,7 +8,7 @@
 	import Price from './cart-price.svelte'
 	import Quantity from './cart-quantity.svelte'
 	import Remove from './cart-remove.svelte'
-	import ItemSubtotal from './cart-item-subtotal.svelte'
+	import Subtotal from './cart-subtotal.svelte'
 	import Checkout from './cart-checkout.svelte'
 	import type { GetCartFn, UpdateCartItemFn, RemoveFromCartFn, LineHrefFn } from './types.js'
 	import type { StoreCart } from '@medusajs/types'
@@ -57,7 +57,7 @@
 			</Items>
 
 			<div class="sticky bottom-0 mt-auto border-t bg-popover py-4">
-				<ItemSubtotal class="px-2" />
+				<Subtotal class="px-2" />
 				<p class="mt-1 px-2 text-sm text-muted-foreground">Shipping and taxes calculated at checkout.</p>
 				<div class="mt-4 px-2">
 					<Checkout />

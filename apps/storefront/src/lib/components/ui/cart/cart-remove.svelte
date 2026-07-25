@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { cn } from '$lib/utils.js'
-	import { getCartContext, getLineItemContext } from './ctx.svelte.js'
+	import { getCartContext, getCartLineContext } from './ctx.svelte.js'
 	import type { Snippet } from 'svelte'
 	let { class: className = '', children }: { class?: string; children?: Snippet } = $props()
 	const ctx = getCartContext()
-	const { item } = getLineItemContext()
+	const { item } = getCartLineContext()
 </script>
 
 <button

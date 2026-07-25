@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { cn } from '$lib/utils.js'
-	import { getCartContext, getLineItemContext } from './ctx.svelte.js'
+	import { getCartContext, getCartLineContext } from './ctx.svelte.js'
 	let { class: className = '', fallback }: { class?: string; fallback?: string } = $props()
 	const ctx = getCartContext()
-	const { item } = getLineItemContext()
+	const { item } = getCartLineContext()
 	const src = $derived(item.thumbnail || fallback || '')
 </script>
 
