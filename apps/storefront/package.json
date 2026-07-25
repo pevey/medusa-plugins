@@ -21,7 +21,6 @@
 		"@tailwindcss/forms": "^0.5.11",
 		"@tailwindcss/typography": "^0.5.20",
 		"@tailwindcss/vite": "^4.3.3",
-		"@types/braintree-web": "^3.96.17",
 		"@types/google.maps": "3.65.2",
 		"bits-ui": "^2.16.3",
 		"clsx": "^2.1.1",
@@ -45,9 +44,9 @@
 	"dependencies": {
 		"@googlemaps/js-api-loader": "^2.1.1",
 		"@stripe/stripe-js": "^9.10.0",
-		"braintree-web": "^3.143.0",
 		"mode-watcher": "1.1.0",
 		"stripe": "^22.3.2",
+		"sveltekit-braintree": "workspace:*",
 		"sveltekit-stripe": "workspace:*"
 	}
 }

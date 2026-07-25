@@ -14,6 +14,7 @@
 	import Shipping from './checkout-summary-shipping.svelte'
 	import Tax from './checkout-summary-tax.svelte'
 	import Total from './checkout-summary-total.svelte'
+	import BraintreeHostedFields from './checkout-braintree-hosted-fields.svelte'
 	import BraintreePayment from './checkout-braintree-payment.svelte'
 	import PlaceOrder from './checkout-place-order.svelte'
 	import Confirmation from './checkout-confirmation.svelte'
@@ -42,7 +43,9 @@
 		<Summary>
 			<Subtotal /><SummaryDiscount /><Shipping /><Tax /><Total />
 		</Summary>
-		<BraintreePayment />
+		<BraintreeHostedFields>
+			<BraintreePayment />
+		</BraintreeHostedFields>
 		<CheckoutError />
 		<PlaceOrder />
 	</div>
