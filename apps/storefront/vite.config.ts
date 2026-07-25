@@ -44,5 +44,8 @@ export default defineConfig({
 	},
 	ssr: {
 		noExternal: ['sveltekit-medusa-sdk', 'cookie'] // treat the package as internal to the app so that $app/server can resolve
+	},
+	server: {
+		allowedHosts: ['storefront.pevey.dev']
 	}
 })

@@ -31574,6 +31574,7 @@ __metadata:
     playwright: "npm:^1.61.1"
     schema-dts: "npm:^2.0.0"
     shadcn-svelte: "npm:^1.4.2"
+    stripe: "npm:^22.3.2"
     svelte: "npm:^5.56.6"
     svelte-check: "npm:^4.7.3"
     sveltekit-medusa-sdk: "workspace:*"

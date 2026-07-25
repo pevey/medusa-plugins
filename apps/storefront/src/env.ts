@@ -19,6 +19,9 @@ export const variables = defineEnvVars({
 		public: true,
 		schema: v.string()
 	},
+	// Server-only secret (imported from `$app/env/private`) — used by the StripeExpressCheckout
+	// demo's PaymentIntent command. Same value as the Medusa backend's STRIPE_API_KEY.
+	STRIPE_SECRET_KEY: { schema: v.string() },
 	STRIPE_REDIRECT_URL: {
 		public: true,
 		schema: v.string()

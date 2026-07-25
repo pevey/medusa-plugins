@@ -93,3 +93,78 @@ export function getBraintreeClientToken(session: any, providerId: string): strin
 export function getStripeClientSecret(session: any, providerId: string): string | undefined {
 	return getProviderSessionData(session, providerId)?.client_secret
 }
+
+/** Which elements:false payment UI a Stripe provider id maps to (null = not yet wired). */
+export function resolveStripeMethod(providerId: string): 'card' | 'ideal' | null {
+	if (providerId === 'pp_stripe_stripe') return 'card'
+	if (providerId === 'pp_stripe-ideal_stripe') return 'ideal'
+	return null
+}
+
+/** Stripe `billing_details` built from the cart's shipping address (for confirm<Method>Payment). */
+export function cartBillingDetails(cart: any): {
+	name?: string
+	email?: string
+	phone?: string
+	address?: {
+		line1?: string
+		line2?: string
+		city?: string
+		postal_code?: string
+		state?: string
+		country?: string
+	}
+} {
+	const s = cart?.shipping_address
+	if (!cart) return {}
+	const name = [s?.first_name, s?.last_name].filter(Boolean).join(' ') || undefined
+	return {
+		name,
+		email: cart?.email || undefined,
+		phone: s?.phone || undefined,
+		address: s
+			? {
+					line1: s.address_1 || undefined,
+					line2: s.address_2 || undefined,
+					city: s.city || undefined,
+					postal_code: s.postal_code || undefined,
+					state: s.province || undefined,
+					country: s.country_code || undefined
+				}
+			: undefined
+	}
+}
+
+/** Map Medusa shipping options to the Stripe Express Checkout shipping-rate shape. */
+export function medusaShippingToStripeRates(
+	options: any[]
+): { id: string; displayName: string; amount: number }[] {
+	return (options ?? []).map((o) => ({ id: o.id, displayName: o.name, amount: o.amount ?? 0 }))
+}
+
+/** Map a wallet's billing/shipping details (Express Checkout) to a Medusa cart-update payload. */
+export function walletAddressToMedusa(
+	billing: any,
+	shipping?: { name?: string; address?: any }
+): { email?: string; shipping_address?: any; billing_address?: any } {
+	const toAddr = (name?: string, a?: any) => {
+		if (!a) return undefined
+		const [first_name, ...rest] = String(name ?? '').trim().split(' ')
+		return {
+			first_name: first_name || undefined,
+			last_name: rest.join(' ') || undefined,
+			phone: billing?.phone || undefined,
+			address_1: a.line1 || undefined,
+			address_2: a.line2 || undefined,
+			city: a.city || undefined,
+			province: a.state || undefined,
+			postal_code: a.postal_code || undefined,
+			country_code: a.country ? String(a.country).toLowerCase() : undefined
+		}
+	}
+	return {
+		email: billing?.email || undefined,
+		shipping_address: toAddr(shipping?.name ?? billing?.name, shipping?.address ?? billing?.address),
+		billing_address: toAddr(billing?.name, billing?.address)
+	}
+}

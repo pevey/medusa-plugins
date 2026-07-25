@@ -2,6 +2,8 @@
 	import { getRegions, getProducts } from 'sveltekit-medusa-sdk'
 </script>
 
+<p><a href="/product-demo" class="text-primary text-lg font-medium underline">→ Product demo</a></p>
+
 <h1>Regions</h1>
 <ul>
 	{#each await getRegions() as region}

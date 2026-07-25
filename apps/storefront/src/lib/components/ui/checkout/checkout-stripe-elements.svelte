@@ -4,6 +4,7 @@
 	import { initiatePaymentSession as sdkInitiate } from 'sveltekit-medusa-sdk'
 	import { getStripeClientSecret } from './checkout-logic.js'
 	import { buildStripeAppearance, resolveInputSurface } from './stripe-appearance.js'
+	import { setStripeClientSecretContext } from './stripe-cs-context.js'
 	import type { InitiatePaymentSessionFn } from './types.js'
 
 	interface Props {
@@ -25,6 +26,12 @@
 	// initiate the Medusa payment session first, then mount <Elements> around the address + payment
 	// surfaces. (Amount stays Medusa's — it manages/updates the intent server-side; see the spec.)
 	let clientSecret = $state<string | null>(null)
+	// Expose the clientSecret to elements:false payment components (checkout-stripe-card / -ideal).
+	setStripeClientSecretContext({
+		get clientSecret() {
+			return clientSecret
+		}
+	})
 
 	onMount(async () => {
 		try {

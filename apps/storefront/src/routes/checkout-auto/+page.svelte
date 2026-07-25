@@ -7,5 +7,5 @@
 	publishableKey={STRIPE_KEY}
 	returnUrl={STRIPE_REDIRECT_URL}
 	googlePlacesApiKey={GOOGLE_PLACES_API_KEY}
-	config={{ pp_stripe_stripe: { elements: true } }}
+	config={{ pp_stripe_stripe: { elements: false }, 'pp_stripe-ideal_stripe': { elements: false } }}
 />

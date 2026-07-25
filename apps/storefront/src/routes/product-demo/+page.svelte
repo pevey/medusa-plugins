@@ -21,14 +21,16 @@
 </script>
 
 <!-- Per-page <title>/description/canonical/OG/Twitter tags; merges MetaProvider site defaults. -->
-<Metadata config={{ title: data.product?.title, description: data.product?.description ?? undefined }} />
+<Metadata
+	config={{ title: data.product?.title, description: data.product?.description ?? undefined }}
+/>
 
 <div class="mx-auto max-w-2xl space-y-8 p-8" data-testid="product-demo">
 	<ThemeButton />
 	<CartDrawer
-		onupdate={(c) => console.log('cart updated', c)}
-		onremove={(c) => console.log('item removed', c)}
-		onerror={(e) => console.error('cart error', e)}
+		onupdate={c => console.log('cart updated', c)}
+		onremove={c => console.log('item removed', c)}
+		onerror={e => console.error('cart error', e)}
 	/>
 
 	<!-- 1. In-context flow: options + quantity + add all read from Product context.
@@ -38,7 +40,7 @@
 		     review aggregate when the route includes `review`). `transform` lets you graft extra
 		     fields onto the auto schema, e.g. a brand:
 		<Product.JsonLd
-			transform={(schema) => ({ ...schema, brand: { '@type': 'Brand', name: 'Mildred' } })}
+			transform={(schema) => ({ ...schema, brand: { '@type': 'Brand', name: 'Test' } })}
 		/> -->
 		<Product.JsonLd />
 		<Product.Title />
@@ -96,4 +98,13 @@
 			{/if}
 		</svelte:boundary>
 	</section>
+
+	<nav class="flex flex-col gap-2 border-t pt-6">
+		<a href="/checkout-auto" class="text-primary text-lg font-medium underline"
+			>→ Checkout (auto)</a
+		>
+		<a href="/express-demo" class="text-primary text-lg font-medium underline"
+			>→ Express Checkout (wallet buy)</a
+		>
+	</nav>
 </div>

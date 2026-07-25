@@ -26,6 +26,8 @@
 		/** Stripe confirmPayment return_url (needed when a region uses Stripe). */
 		returnUrl?: string
 		restrictToCurrentRegion?: boolean
+		/** Show the Apple/Google Pay Express Checkout button (elements:false card path only). Default true. */
+		allowExpressCheckout?: boolean
 		initiatePaymentSession?: InitiatePaymentSessionFn
 		getCart?: GetCartFn
 		updateCartItem?: UpdateCartItemFn
@@ -48,6 +50,7 @@
 		publishableKey,
 		returnUrl,
 		restrictToCurrentRegion,
+		allowExpressCheckout = true,
 		initiatePaymentSession,
 		...rest
 	}: Props = $props()
@@ -62,6 +65,7 @@
 			{publishableKey}
 			{returnUrl}
 			{restrictToCurrentRegion}
+			{allowExpressCheckout}
 			{initiatePaymentSession}
 		/>
 	</Root>

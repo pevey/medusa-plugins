@@ -6,6 +6,7 @@
 	import { resolveCheckoutProvider } from './checkout-logic.js'
 	import BraintreeBody from './checkout-braintree-body.svelte'
 	import StripeBody from './checkout-stripe-body.svelte'
+	import StripeContainer from './checkout-stripe-container.svelte'
 	import type { InitiatePaymentSessionFn } from './types.js'
 
 	type ProviderConfig = { elements?: boolean }
@@ -17,6 +18,7 @@
 		publishableKey,
 		returnUrl,
 		restrictToCurrentRegion,
+		allowExpressCheckout = true,
 		initiatePaymentSession
 	}: {
 		form: RemoteForm<any, any>
@@ -26,6 +28,7 @@
 		publishableKey?: string
 		returnUrl?: string
 		restrictToCurrentRegion?: boolean
+		allowExpressCheckout?: boolean
 		initiatePaymentSession?: InitiatePaymentSessionFn
 	} = $props()
 
@@ -39,19 +42,27 @@
 	<BraintreeBody {form} {googlePlacesApiKey} {restrictToCurrentRegion} />
 {:else if resolved?.kind === 'stripe'}
 	{@const elements = config?.[resolved.id]?.elements ?? true}
-	{@const _warn =
-		import.meta.env.DEV &&
-		resolved.id === 'pp_stripe_stripe' &&
-		elements === false &&
-		console.warn('[CheckoutAuto] pp_stripe_stripe config elements:false (split-card) is not built yet — using Elements')}
-	<StripeBody
-		{form}
-		providerId={resolved.id}
-		publishableKey={publishableKey ?? ''}
-		returnUrl={returnUrl ?? ''}
-		{restrictToCurrentRegion}
-		{initiatePaymentSession}
-	/>
+	{#if elements}
+		<StripeBody
+			{form}
+			providerId={resolved.id}
+			publishableKey={publishableKey ?? ''}
+			returnUrl={returnUrl ?? ''}
+			{restrictToCurrentRegion}
+			{initiatePaymentSession}
+		/>
+	{:else}
+		<StripeContainer
+			{form}
+			providerId={resolved.id}
+			publishableKey={publishableKey ?? ''}
+			returnUrl={returnUrl ?? ''}
+			{googlePlacesApiKey}
+			{restrictToCurrentRegion}
+			{allowExpressCheckout}
+			{initiatePaymentSession}
+		/>
+	{/if}
 {:else if unsupported}
 	{@const _err =
 		import.meta.env.DEV &&
