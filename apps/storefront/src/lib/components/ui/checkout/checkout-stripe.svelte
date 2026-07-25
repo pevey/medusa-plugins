@@ -14,6 +14,8 @@
 		form?: RemoteForm<any, any>
 		/** Stripe publishable key (pk_...). */
 		publishableKey: string
+		/** Medusa Stripe provider id (default `pp_stripe_stripe`). */
+		providerId?: string
 		/** Required by Stripe's confirmPayment (even with redirect:'if_required'). */
 		returnUrl: string
 		restrictToCurrentRegion?: boolean
@@ -35,6 +37,7 @@
 	let {
 		form = braintreeCheckoutForm as unknown as RemoteForm<any, any>,
 		publishableKey,
+		providerId,
 		returnUrl,
 		restrictToCurrentRegion,
 		initiatePaymentSession,
@@ -44,6 +47,6 @@
 
 <form {...form}>
 	<Root {form} {...rest}>
-		<Body {form} {publishableKey} {returnUrl} {restrictToCurrentRegion} {initiatePaymentSession} />
+		<Body {form} {publishableKey} {providerId} {returnUrl} {restrictToCurrentRegion} {initiatePaymentSession} />
 	</Root>
 </form>

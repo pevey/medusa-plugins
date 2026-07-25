@@ -33,7 +33,7 @@
 </script>
 
 <Root {...props}>
-	<div class="grid grid-cols-2 gap-x-2">
+	<div class="grid grid-cols-2 gap-x-2 gap-y-4">
 		<div class="col-span-2"><Email /></div>
 		<div class="col-span-2 md:col-span-1"><FirstName /></div>
 		<div class="col-span-2 md:col-span-1"><LastName /></div>

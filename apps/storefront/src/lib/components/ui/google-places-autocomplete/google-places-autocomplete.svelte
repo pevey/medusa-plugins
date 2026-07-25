@@ -13,7 +13,6 @@
 <script lang="ts">
 	import { importLibrary } from '@googlemaps/js-api-loader'
 	import { onMount, onDestroy } from 'svelte'
-	import { mode } from 'mode-watcher'
 	import { twMerge } from 'tailwind-merge'
 	import { installGpacShadowStyling } from './shadow-dom'
 	import { componentsToAddress } from './address'
@@ -36,11 +35,6 @@
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let ref = $state<any>(null)
 	let placeholderEl: HTMLInputElement
-
-	// color-scheme follows the active theme so the shadow-internal input renders light/dark.
-	$effect(() => {
-		if (ref) ref.style.colorScheme = mode.current ?? 'light'
-	})
 
 	onMount(async () => {
 		installGpacShadowStyling() // install-before-create; guarded, so repeat calls are free
@@ -87,5 +81,18 @@
 	:global(gmp-place-autocomplete:focus-within) {
 		border-color: var(--ring) !important;
 		box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent) !important;
+	}
+	/* Match the shadow input's fill to the shadcn `InputText`: transparent over the page in light, the
+	   `bg-input/30` lift in dark. `::part(input)` can't do it — GPAC_SHADOW_CSS sets the input background
+	   with `!important` INSIDE the shadow, and inner `!important` wins the ::part cascade. Instead set a
+	   custom property on the HOST from outer CSS (which CAN use `.dark`); custom props inherit into the
+	   shadow, where the injected rule applies it via `var(--gpac-input-bg)`. Pure CSS → reactive on toggle. */
+	:global(gmp-place-autocomplete) {
+		--gpac-input-bg: transparent;
+		color-scheme: light;
+	}
+	:global(.dark gmp-place-autocomplete) {
+		--gpac-input-bg: color-mix(in oklab, var(--input) 30%, transparent);
+		color-scheme: dark;
 	}
 </style>

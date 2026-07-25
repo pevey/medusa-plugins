@@ -3,14 +3,10 @@
 	// (reads `availableProviders` off its context). Structured so a multi-provider selector is additive.
 	import type { RemoteForm } from '@sveltejs/kit'
 	import { getCheckoutContext } from './ctx.svelte.js'
-	import { resolveProvider } from './checkout-logic.js'
+	import { resolveCheckoutProvider } from './checkout-logic.js'
 	import BraintreeBody from './checkout-braintree-body.svelte'
 	import StripeBody from './checkout-stripe-body.svelte'
 	import type { InitiatePaymentSessionFn } from './types.js'
-
-	const BRAINTREE = 'pp_braintree_braintree'
-	const STRIPE = 'pp_stripe_stripe'
-	const SUPPORTED = [BRAINTREE, STRIPE]
 
 	type ProviderConfig = { elements?: boolean }
 
@@ -34,21 +30,23 @@
 	} = $props()
 
 	const ctx = getCheckoutContext()
-	const active = $derived(resolveProvider(ctx.availableProviders, SUPPORTED))
+	const resolved = $derived(resolveCheckoutProvider(ctx.availableProviders))
 	// The region offers a provider, but none this checkout supports → render nothing (dev logs which).
-	const unsupported = $derived(!active && ctx.availableProviders.length > 0 ? ctx.availableProviders[0] : null)
+	const unsupported = $derived(!resolved && ctx.availableProviders.length > 0 ? ctx.availableProviders[0] : null)
 </script>
 
-{#if active === BRAINTREE}
+{#if resolved?.kind === 'braintree'}
 	<BraintreeBody {form} {googlePlacesApiKey} {restrictToCurrentRegion} />
-{:else if active === STRIPE}
-	{@const elements = config?.[STRIPE]?.elements ?? true}
+{:else if resolved?.kind === 'stripe'}
+	{@const elements = config?.[resolved.id]?.elements ?? true}
 	{@const _warn =
 		import.meta.env.DEV &&
+		resolved.id === 'pp_stripe_stripe' &&
 		elements === false &&
 		console.warn('[CheckoutAuto] pp_stripe_stripe config elements:false (split-card) is not built yet — using Elements')}
 	<StripeBody
 		{form}
+		providerId={resolved.id}
 		publishableKey={publishableKey ?? ''}
 		returnUrl={returnUrl ?? ''}
 		{restrictToCurrentRegion}

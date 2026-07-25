@@ -42,6 +42,24 @@ export function resolveProvider(available: string[], supported: string[]): strin
 	return available.find((id) => supported.includes(id))
 }
 
+/** Which checkout body renders a provider id. The whole Stripe FAMILY (`pp_stripe-*`: card, iDEAL,
+ *  Bancontact, …) routes to the Stripe body; Braintree to the Braintree body; anything else = null. */
+export type CheckoutProviderKind = 'stripe' | 'braintree'
+export function classifyProvider(id: string): CheckoutProviderKind | null {
+	if (id.startsWith('pp_stripe')) return 'stripe'
+	if (id === 'pp_braintree_braintree') return 'braintree'
+	return null
+}
+
+/** First available provider this checkout can render, with the body that renders it. */
+export function resolveCheckoutProvider(available: string[]): { id: string; kind: CheckoutProviderKind } | null {
+	for (const id of available) {
+		const kind = classifyProvider(id)
+		if (kind) return { id, kind }
+	}
+	return null
+}
+
 export function resolveRedirect(
 	redirectTo: string | ((order: StoreOrder) => string) | undefined,
 	order: StoreOrder

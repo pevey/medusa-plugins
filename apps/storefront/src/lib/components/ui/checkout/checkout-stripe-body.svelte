@@ -26,19 +26,21 @@
 	let {
 		form,
 		publishableKey,
+		providerId,
 		returnUrl,
 		restrictToCurrentRegion,
 		initiatePaymentSession
 	}: {
 		form: RemoteForm<any, any>
 		publishableKey: string
+		providerId?: string
 		returnUrl: string
 		restrictToCurrentRegion?: boolean
 		initiatePaymentSession?: InitiatePaymentSessionFn
 	} = $props()
 </script>
 
-<StripeElements {publishableKey} {initiatePaymentSession}>
+<StripeElements {publishableKey} {providerId} {initiatePaymentSession}>
 	<div class="mx-auto grid max-w-5xl gap-8 p-4 md:grid-cols-2">
 		<div class="space-y-4">
 			<AddressRoot {form} {restrictToCurrentRegion}>

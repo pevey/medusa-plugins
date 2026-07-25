@@ -46,7 +46,16 @@
 	<div role="radiogroup">
 		{#each options as option (option.id)}
 			<label class="flex items-center gap-2 py-1 text-sm">
-				<input type="radio" name="checkout-shipping-option" value={option.id} bind:group={selected} {onchange} />
+				<!-- No `name`: this radio lives inside the checkout <form> (a SvelteKit RemoteForm) whose
+				     input handler treats any NAMED input as a form field and throws on a non-field name
+				     ("Invalid path checkout-shipping-option"). Selection is driven entirely by Svelte
+				     `bind:group` (+ `onchange`), which needs no DOM name; `role="radiogroup"` on the wrapper
+				     carries the group semantics. -->
+				<!-- @tailwindcss/forms fills the checked radio with the text color + a white center dot, and
+				     keeps a white control background. Theme tokens flip in dark mode (text-primary → near-
+				     white → invisible on the white fill), so use FIXED neutrals: a consistent gray control
+				     both modes. `focus:ring-0` removes the plugin's focus ring (selection is the indicator). -->
+				<input type="radio" value={option.id} bind:group={selected} {onchange} class="border-gray-300 text-gray-700 focus:ring-0 focus:ring-offset-0 size-4" />
 				<span>{option.name}</span>
 				<span class="ml-auto">{formatPrice(option.amount, ctx.cart?.currency_code ?? 'usd')}</span>
 			</label>

@@ -3,19 +3,20 @@
 	import { Elements } from 'sveltekit-stripe'
 	import { initiatePaymentSession as sdkInitiate } from 'sveltekit-medusa-sdk'
 	import { getStripeClientSecret } from './checkout-logic.js'
-	import { buildStripeAppearance } from './stripe-appearance.js'
+	import { buildStripeAppearance, resolveInputSurface } from './stripe-appearance.js'
 	import type { InitiatePaymentSessionFn } from './types.js'
-
-	const PROVIDER = 'pp_stripe_stripe'
 
 	interface Props {
 		/** Stripe publishable key (pk_...). */
 		publishableKey: string
+		/** Medusa Stripe provider id — any `pp_stripe-*` (card, iDEAL, Bancontact, …). */
+		providerId?: string
 		initiatePaymentSession?: InitiatePaymentSessionFn
 		children: Snippet
 	}
 	let {
 		publishableKey,
+		providerId = 'pp_stripe_stripe',
 		initiatePaymentSession = sdkInitiate as unknown as InitiatePaymentSessionFn,
 		children
 	}: Props = $props()
@@ -27,19 +28,19 @@
 
 	onMount(async () => {
 		try {
-			const session = await initiatePaymentSession({ provider_id: PROVIDER })
-			clientSecret = getStripeClientSecret(session, PROVIDER) ?? null
+			const session = await initiatePaymentSession({ provider_id: providerId })
+			clientSecret = getStripeClientSecret(session, providerId) ?? null
 			// Surface the common misconfig instead of sitting silently on the loading state: no
 			// client_secret means there's no active cart, or its region isn't configured for Stripe.
 			if (import.meta.env.DEV && !clientSecret) {
 				console.warn(
-					`[CheckoutStripe] no client_secret from "${PROVIDER}" — is there an active cart whose region has Stripe enabled?`,
+					`[CheckoutStripe] no client_secret from "${providerId}" — is there an active cart whose region has this Stripe provider enabled?`,
 					session
 				)
 			}
 		} catch (e) {
 			clientSecret = null
-			if (import.meta.env.DEV) console.error(`[CheckoutStripe] initiate "${PROVIDER}" session failed`, e)
+			if (import.meta.env.DEV) console.error(`[CheckoutStripe] initiate "${providerId}" session failed`, e)
 		}
 	})
 </script>
@@ -47,7 +48,7 @@
 {#if clientSecret}
 	<Elements
 		publicKey={publishableKey}
-		elementsOptions={{ clientSecret, appearance: buildStripeAppearance() }}
+		elementsOptions={{ clientSecret, appearance: buildStripeAppearance({ inputSurface: resolveInputSurface() }) }}
 	>
 		{@render children()}
 	</Elements>

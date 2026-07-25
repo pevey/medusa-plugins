@@ -222,6 +222,14 @@
 		const region = regionForCountry(regions, code)
 		if (!region || cartQuery.current?.region_id === region.id) return
 		try {
+			// Switch the region AND commit the new country in ONE atomic updateCart — Medusa validates the
+			// country against the NEW region because region_id rides in the same payload. Medusa blanks the
+			// rest of the shipping address; the full address is re-sent right after by the normal save path
+			// (structured form → rawSave's atomic payloadWithRegion; Stripe AddressElement →
+			// setAddressFromStripe on complete). We must NOT re-send it here as a SECOND updateCart: that
+			// call reads the form's country_code, which is STALE during a Stripe AddressElement change (the
+			// element writes the form only on `complete`), so it raced this switch and sent e.g. "au" into
+			// the just-set Spain region → "Country au is not within region Spain" (400).
 			const updated = await updateCart({
 				region_id: region.id,
 				shipping_address: { country_code: code } as any
@@ -352,33 +360,17 @@
 		) {
 			expanded = true
 		}
-		const c = cartQuery.current
-		if (c) {
-			form.fields.email?.set(c.email ?? '')
-			const s = c.shipping_address ?? {}
-			for (const k of ADDRESS_KEYS) form.fields[k]?.set((s as any)[k] ?? '')
-			form.fields.province?.set(
-				resolveProvinceValue(
-					provinceConfig,
-					(s as any)?.country_code,
-					(s as any)?.province ?? ''
-				)
-			)
-			const b = c.billing_address
-			if (b && Object.entries(b).some(([k, v]) => k !== 'id' && !!v))
-				billingSameAsShipping = false
-			for (const k of ADDRESS_KEYS) form.fields[`billing_${k}`]?.set((b as any)?.[k] ?? '')
-			form.fields.billing_province?.set(
-				resolveProvinceValue(
-					provinceConfig,
-					(b as any)?.country_code,
-					(b as any)?.province ?? ''
-				)
-			)
-			form.fields.hideBilling?.set(billingSameAsShipping)
-			// A hydrated cart already has an address → show the structured fields.
-			if ((s as any)?.address_1 || (s as any)?.city) expanded = true
-		}
+		// The FORM is the SINGLE source of truth for the address; data flows only OUTWARD from it
+		// (form → cart on commit, form → surfaces on hydration). We deliberately never hydrate the form
+		// FROM the cart: a fresh page load (hard refresh / return visit) starts blank, so a returning
+		// visitor never sees their own saved address silently auto-filled from a lingering cart cookie
+		// (that reads as creepy). Saved-address prefill for signed-in customers is a separate, explicit
+		// opt-in — see [[project_address_saved_prepopulation]]. In-session the shared form persists across
+		// provider swaps, so surfaces read it, not the (possibly Medusa-blanked) cart.
+		form.fields.hideBilling?.set(billingSameAsShipping)
+		// If the form already carries an address (e.g. an in-session swap re-mounted this Root), keep the
+		// structured fields shown rather than collapsing back to the autocomplete.
+		if (form.fields.address_1?.value() || form.fields.city?.value()) expanded = true
 	})
 </script>
 

@@ -8,7 +8,7 @@
 <label class={cn('flex items-center gap-2 py-3 text-sm', className)}>
 	<input
 		type="checkbox"
-		class="border-input text-primary size-4 rounded-sm border"
+		class="border-gray-300 text-gray-700 focus:ring-0 focus:ring-offset-0 size-4 rounded-sm border"
 		checked={ctx.billingSameAsShipping}
 		onchange={(e) => ctx.setBillingSameAsShipping(e.currentTarget.checked)}
 	/>

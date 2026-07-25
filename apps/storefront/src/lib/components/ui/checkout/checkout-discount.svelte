@@ -14,7 +14,7 @@
 </script>
 <section data-checkout-discount class={cn('', className)}>
 	<div class="flex gap-2">
-		<input type="text" bind:value={code} {placeholder} class="border-input h-9 w-full rounded-md border bg-transparent px-2.5 text-sm" onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), apply())} />
+		<input type="text" bind:value={code} {placeholder} class="border-input focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 h-9 w-full min-w-0 rounded-md border bg-transparent px-2.5 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground md:text-sm" onkeydown={(e) => e.key === 'Enter' && (e.preventDefault(), apply())} />
 		<button type="button" disabled={ctx.placing} onclick={apply} class="bg-secondary text-secondary-foreground h-9 rounded-md px-3 text-sm">Redeem</button>
 	</div>
 	{#if promotions.length}

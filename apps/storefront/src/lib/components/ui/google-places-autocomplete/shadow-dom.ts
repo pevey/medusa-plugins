@@ -64,7 +64,8 @@ export const GPAC_SHADOW_CSS = `
 		font-size: var(--gpac-input-font-size, 0.875rem) !important;
 		line-height: var(--gpac-input-line-height, 1.25rem) !important;
 		color: var(--foreground) !important;
-		background: transparent !important;
+		/* Fill set by the host's --gpac-input-bg (outer CSS, theme-reactive); transparent = show page. */
+		background: var(--gpac-input-bg, transparent) !important;
 		border: none !important;
 		outline: none !important;
 		box-shadow: none !important;

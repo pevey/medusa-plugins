@@ -41,7 +41,7 @@
 	// shadcn-trigger-like native <select> styling (from input-select): appearance-none + pr-8 for the
 	// chevron; explicit [&>option] popover tokens so the OS popup is readable in dark mode.
 	const selectClass =
-		'border-input focus-visible:border-ring focus-visible:ring-ring/50 [&>option]:bg-popover [&>option]:text-popover-foreground h-9 w-full appearance-none rounded-md border bg-transparent px-3 py-1 pr-8 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm'
+		'border-input focus-visible:border-ring focus-visible:ring-ring/50 [&>option]:bg-popover [&>option]:text-popover-foreground h-9 w-full appearance-none rounded-md border bg-transparent dark:bg-input/30 px-3 py-1 pr-8 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm'
 </script>
 
 <div class="relative">

@@ -12,6 +12,7 @@
 	import { cn } from '$lib/utils.js'
 	import { getCheckoutContextOptional } from './ctx.svelte.js'
 	import { getBraintreeClientToken } from './checkout-logic.js'
+	import { domCssVarResolver, resolveInputSurface } from './stripe-appearance.js'
 	import type { InitiateBraintreeFn } from './types.js'
 
 	const PROVIDER = 'pp_braintree_braintree'
@@ -37,6 +38,9 @@
 
 	let hostedFields: any = $state(null)
 	let client: any = $state(null)
+	// Opaque equivalent of the shadcn input's translucent lift, so the hosted-field iframe (which can't
+	// paint a translucent fill) matches the plain inputs beside it. Also backs the container gap/corners.
+	let surfaceColor = $state('')
 
 	async function authorizePayment() {
 		try {
@@ -67,8 +71,36 @@
 		if (!authorization) return
 
 		client = await braintree.client.create({ authorization })
+		// Theme the hosted-field IFRAMES with shadcn tokens. Braintree's `styles` can't read the parent
+		// document's CSS custom properties (cross-origin iframe) and only styles TEXT (the field's
+		// background comes from our container div), so we resolve CONCRETE values — same approach as the
+		// Stripe appearance. Colors are round-tripped to rgb (Braintree, like Stripe, won't take oklch).
+		const resolve = domCssVarResolver()
+		const fg = resolve('--foreground', true)
+		// The iframe input renders with the browser's default (light) form-control background — solid
+		// white — and Braintree's `allowedStyles` whitelist has NO `background`/`background-color`/
+		// `color-scheme`, so we can't set it directly. The one whitelisted property that CAN paint the
+		// field is `box-shadow`: a large OPAQUE inset shadow fills the input, covering the white.
+		// (`-webkit-box-shadow` for Safari — the same trick that defeats the yellow autofill background.)
+		// We fill with `resolveInputSurface()` — the OPAQUE equivalent of the shadcn input's translucent
+		// lift — so the field matches the plain inputs beside it, not the flat page. `-webkit-text-fill-
+		// color` keeps text visible over the shadow.
+		surfaceColor = resolveInputSurface()
+		const fieldStyles = {
+			input: {
+				'box-shadow': `inset 0 0 0 1000px ${surfaceColor}`,
+				'-webkit-box-shadow': `inset 0 0 0 1000px ${surfaceColor}`,
+				'font-size': '14px',
+				'font-family': resolve('--font-sans', false) || 'inherit',
+				color: fg,
+				'-webkit-text-fill-color': fg
+			},
+			'::placeholder': { color: resolve('--muted-foreground', true) },
+			'input.invalid': { color: resolve('--destructive', true) }
+		}
 		hostedFields = await braintree.hostedFields.create({
 			client,
+			styles: fieldStyles,
 			fields: {
 				number: { container: '#checkout-card-number' },
 				expirationDate: { container: '#checkout-expiration-date' },
@@ -91,14 +123,14 @@
 <section data-checkout-braintree-payment class={cn('grid grid-cols-2 gap-3', className)}>
 	<div class="col-span-2">
 		<span class="mb-1 block text-sm font-medium">{cardNumberLabel}</span>
-		<div id="checkout-card-number" class="h-9 rounded-md border border-input bg-transparent px-3 shadow-xs"></div>
+		<div id="checkout-card-number" class="h-9 rounded-md border border-input bg-background px-3 shadow-xs" style="background-color: {surfaceColor}"></div>
 	</div>
 	<div>
 		<span class="mb-1 block text-sm font-medium">{expirationDateLabel}</span>
-		<div id="checkout-expiration-date" class="h-9 rounded-md border border-input bg-transparent px-3 shadow-xs"></div>
+		<div id="checkout-expiration-date" class="h-9 rounded-md border border-input bg-background px-3 shadow-xs" style="background-color: {surfaceColor}"></div>
 	</div>
 	<div>
 		<span class="mb-1 block text-sm font-medium">{cvvLabel}</span>
-		<div id="checkout-cvv" class="h-9 rounded-md border border-input bg-transparent px-3 shadow-xs"></div>
+		<div id="checkout-cvv" class="h-9 rounded-md border border-input bg-background px-3 shadow-xs" style="background-color: {surfaceColor}"></div>
 	</div>
 </section>
