@@ -17113,7 +17113,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"braintree@npm:^3.38.0":
+"braintree@npm:3.38.0, braintree@npm:^3.38.0":
   version: 3.38.0
   resolution: "braintree@npm:3.38.0"
   dependencies:
@@ -31986,6 +31986,35 @@ __metadata:
   checksum: 10c0/32ba252188058248a69f572b328c88fa5ced3f1d7f1f4d1b0c105d3b4f4d73ac4b6f2431f20cbd88df24c467c771287c9fd5380f0fd9156ec8f8c72817751b92
   languageName: node
   linkType: hard
+
+"sveltekit-braintree@workspace:packages/sveltekit-braintree":
+  version: 0.0.0-use.local
+  resolution: "sveltekit-braintree@workspace:packages/sveltekit-braintree"
+  dependencies:
+    "@sveltejs/adapter-auto": "npm:8.0.0-next.1"
+    "@sveltejs/kit": "npm:3.0.0-next.10"
+    "@sveltejs/package": "npm:3.0.0-next.3"
+    "@sveltejs/vite-plugin-svelte": "npm:^7.2.0"
+    "@types/braintree": "npm:3.4.4"
+    "@types/braintree-web": "npm:3.96.17"
+    braintree: "npm:3.38.0"
+    braintree-web: "npm:3.143.0"
+    publint: "npm:^0.3.21"
+    svelte: "npm:^5.56.6"
+    svelte-check: "npm:^4.7.3"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
+  peerDependencies:
+    "@sveltejs/kit": ^2.22.0 || ^3.0.0-next.0
+    braintree: ^3.38.0
+    braintree-web: ^3.143.0
+    svelte: ^5.36.0
+  peerDependenciesMeta:
+    braintree:
+      optional: true
+  languageName: unknown
+  linkType: soft
 
 "sveltekit-medusa-sdk@workspace:*, sveltekit-medusa-sdk@workspace:packages/sveltekit-sdk":
   version: 0.0.0-use.local

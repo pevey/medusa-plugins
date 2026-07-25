@@ -12,3 +12,7 @@
 [submodule "packages/sveltekit-sdk"]
 	path = packages/sveltekit-sdk
 	url = git@github.com:pevey/sveltekit-medusa-sdk.git
+[submodule "packages/sveltekit-braintree"]
+	path = packages/sveltekit-braintree
+	url = git@github.com:pevey/sveltekit-braintree.git
+	branch = main
