@@ -1,3 +1,5 @@
+Copyright (c) 2026 Lacey Pevey
+
 ## Sustainable Use License
 
 Version 1.0
