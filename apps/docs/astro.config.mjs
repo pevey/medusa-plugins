@@ -48,6 +48,7 @@ export default defineConfig({
 					items: [
 						{ label: 'sveltekit-medusa-sdk', slug: 'sveltekit-medusa-sdk' },
 						{ label: 'sveltekit-medusa-ui', slug: 'sveltekit-medusa-ui' },
+						{ label: 'sveltekit-braintree', slug: 'sveltekit-braintree' },
 						{ label: 'sveltekit-stripe', slug: 'sveltekit-stripe' },
 						{ label: 'sveltekit-superfetch', slug: 'sveltekit-superfetch' },
 						{ label: 'sveltekit-turnstile', slug: 'sveltekit-turnstile' }

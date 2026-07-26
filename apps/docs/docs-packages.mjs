@@ -41,6 +41,7 @@ export const otherReadmePackages = [
 	{ slug: 'medusa-js-sdk', label: 'Medusa SDK', dir: 'js-sdk' },
 	{ slug: 'sveltekit-medusa-sdk', label: 'sveltekit-medusa-sdk', dir: 'sveltekit-sdk' },
 	{ slug: 'sveltekit-medusa-ui', label: 'sveltekit-medusa-ui', dir: 'sveltekit-ui' },
+	{ slug: 'sveltekit-braintree', label: 'sveltekit-braintree', dir: 'sveltekit-braintree' },
 	{ slug: 'sveltekit-stripe', label: 'sveltekit-stripe', dir: 'sveltekit-stripe' },
 	{ slug: 'sveltekit-turnstile', label: 'sveltekit-turnstile', dir: 'sveltekit-turnstile' }
 ]

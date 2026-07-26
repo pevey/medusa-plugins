@@ -6,9 +6,10 @@
 	"scripts": {
 		"generate:openapi": "node scripts/generate-openapi.mjs",
 		"sync:readmes": "node scripts/sync-readmes.mjs",
+		"sync:registry": "node scripts/sync-registry.mjs",
 		"deploy": "wrangler pages deploy dist --commit-dirty=true",
 		"dev": "node scripts/sync-readmes.mjs && astro dev",
-		"build": "node scripts/generate-openapi.mjs && node scripts/sync-readmes.mjs && astro build",
+		"build": "node scripts/generate-openapi.mjs && node scripts/sync-readmes.mjs && node scripts/sync-registry.mjs && astro build",
 		"preview": "astro preview",
 		"astro": "astro"
 	},
