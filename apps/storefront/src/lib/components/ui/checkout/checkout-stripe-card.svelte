@@ -2,7 +2,13 @@
 	// elements:false CARD payment: split card fields (CardNumber/CardExpiry/CardCvc) + confirmCardPayment
 	// (inline, no redirect). Renders only inside <StripeElements>. Registers the place-order payment step.
 	import { onMount } from 'svelte'
-	import { CardNumber, CardExpiry, CardCvc, getStripeContext, confirmCardPayment } from 'sveltekit-stripe'
+	import {
+		CardNumber,
+		CardExpiry,
+		CardCvc,
+		getStripeContext,
+		confirmCardPayment
+	} from 'sveltekit-stripe'
 	import { cn } from '$lib/utils.js'
 	import { getCheckoutContextOptional } from './ctx.svelte.js'
 	import { getStripeClientSecretContext } from './stripe-cs-context.js'
@@ -17,9 +23,14 @@
 		try {
 			if (!stripe.stripe || !stripe.elements || !cs.clientSecret)
 				return { ok: false, error: new Error('Payment not ready') }
-			const { error } = await confirmCardPayment(stripe.stripe, stripe.elements, cs.clientSecret, {
-				payment_method: { billing_details: cartBillingDetails(ctx?.cart) as any }
-			})
+			const { error } = await confirmCardPayment(
+				stripe.stripe,
+				stripe.elements,
+				cs.clientSecret,
+				{
+					payment_method: { billing_details: cartBillingDetails(ctx?.cart) as any }
+				}
+			)
 			if (error) return { ok: false, error }
 			return { ok: true }
 		} catch (e) {

@@ -4,7 +4,7 @@ export function componentsToAddress(
 	components: google.maps.places.AddressComponent[]
 ): NormalizedAddress {
 	const find = (type: string, key: 'longText' | 'shortText' = 'longText') =>
-		components.find((c) => c.types.includes(type))?.[key] ?? ''
+		components.find(c => c.types.includes(type))?.[key] ?? ''
 	return {
 		address_1: `${find('street_number')} ${find('route')}`.trim(),
 		address_2: find('subpremise'),

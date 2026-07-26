@@ -24,7 +24,7 @@
 		try {
 			options = await getShippingOptions()
 			const existing = ctx.cart?.shipping_methods?.[0]?.shipping_option_id as string | undefined
-			const stillValid = !!existing && options.some((o) => o.id === existing)
+			const stillValid = !!existing && options.some(o => o.id === existing)
 			selected = (stillValid ? existing : options[0]?.id) ?? ''
 			if (selected && selected !== existing) await ctx.selectShipping(selected)
 		} catch {
@@ -51,9 +51,17 @@
 				     keeps a white control background. Theme tokens flip in dark mode (text-primary → near-
 				     white → invisible on the white fill), so use FIXED neutrals: a consistent gray control
 				     both modes. `focus:ring-0` removes the plugin's focus ring (selection is the indicator). -->
-				<input type="radio" value={option.id} bind:group={selected} {onchange} class="border-gray-300 text-gray-700 focus:ring-0 focus:ring-offset-0 size-4" />
+				<input
+					type="radio"
+					value={option.id}
+					bind:group={selected}
+					{onchange}
+					class="border-gray-300 text-gray-700 focus:ring-0 focus:ring-offset-0 size-4"
+				/>
 				<span>{option.name}</span>
-				<span class="ml-auto">{formatPrice(option.amount, ctx.cart?.currency_code ?? 'usd')}</span>
+				<span class="ml-auto"
+					>{formatPrice(option.amount, ctx.cart?.currency_code ?? 'usd')}</span
+				>
 			</label>
 		{:else}
 			<p class="text-sm text-muted-foreground">No delivery options available</p>

@@ -11,7 +11,10 @@
 </script>
 
 {#if ctx.error}
-	<div data-checkout-error class={cn('bg-destructive/10 text-destructive rounded-md p-3 text-sm', className)}>
+	<div
+		data-checkout-error
+		class={cn('bg-destructive/10 text-destructive rounded-md p-3 text-sm', className)}
+	>
 		{message}
 	</div>
 {/if}

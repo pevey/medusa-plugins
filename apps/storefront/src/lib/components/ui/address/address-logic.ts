@@ -1,7 +1,15 @@
 import type { CartAddress, UpdateCartArgs, Country } from './types'
 
 export const ADDRESS_KEYS = [
-	'first_name', 'last_name', 'address_1', 'address_2', 'city', 'province', 'postal_code', 'country_code', 'phone'
+	'first_name',
+	'last_name',
+	'address_1',
+	'address_2',
+	'city',
+	'province',
+	'postal_code',
+	'country_code',
+	'phone'
 ] as const
 
 export type FieldGetter = (name: string) => string
@@ -41,6 +49,6 @@ export function buildUpdatePayload(get: FieldGetter, showBilling: boolean): Upda
 export function resolveCountryValue(countries: Country[], value: string): string {
 	if (!value) return value
 	const v = value.toLowerCase()
-	const match = countries.find((c) => c.code.toLowerCase() === v || c.name.toLowerCase() === v)
+	const match = countries.find(c => c.code.toLowerCase() === v || c.name.toLowerCase() === v)
 	return match ? match.code : value
 }

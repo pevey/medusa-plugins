@@ -15,7 +15,7 @@
 
 {#if href}
 	<DropdownMenuItem class={cn(className)}>
-		{#snippet child({ props }: { props: Record<string, unknown> })}
+		{#snippet child({ props })}
 			<a {href} {...props}>{@render children()}</a>
 		{/snippet}
 	</DropdownMenuItem>

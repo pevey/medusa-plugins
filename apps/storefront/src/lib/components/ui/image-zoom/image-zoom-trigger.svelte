@@ -3,32 +3,32 @@
   Copyright (c) 2025 kevwpl — MIT License. See README credits for the full notice.
 -->
 <script lang="ts">
-	import { getImageZoomContext } from './ctx';
-	import { cn } from '$lib/utils.js';
-	import type { HTMLImgAttributes } from 'svelte/elements';
-	import { onMount } from 'svelte';
+	import { getImageZoomContext } from './ctx'
+	import { cn } from '$lib/utils.js'
+	import type { HTMLImgAttributes } from 'svelte/elements'
+	import { onMount } from 'svelte'
 
 	type Props = HTMLImgAttributes & {
-		class?: string;
-	};
+		class?: string
+	}
 
-	let { src, alt, class: className, ...rest }: Props = $props();
+	let { src, alt, class: className, ...rest }: Props = $props()
 
-	const { registerImage, openImage } = getImageZoomContext();
+	const { registerImage, openImage } = getImageZoomContext()
 
-	let myIndex: number;
+	let myIndex: number
 
 	onMount(() => {
 		if (!src) {
-			console.warn("ImageZoom.Trigger requires a 'src' prop.");
-			return;
+			console.warn("ImageZoom.Trigger requires a 'src' prop.")
+			return
 		}
-		myIndex = registerImage({ src, alt: (alt as string) || '' });
-	});
+		myIndex = registerImage({ src, alt: (alt as string) || '' })
+	})
 
 	function handleOpenZoom() {
 		if (myIndex !== undefined) {
-			openImage(myIndex);
+			openImage(myIndex)
 		}
 	}
 </script>

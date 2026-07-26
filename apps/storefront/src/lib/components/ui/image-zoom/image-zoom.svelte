@@ -3,71 +3,71 @@
   Copyright (c) 2025 kevwpl — MIT License. See README credits for the full notice.
 -->
 <script lang="ts">
-	import { writable } from 'svelte/store';
-	import { setImageZoomContext, type ZoomImageData } from './ctx';
-	import { fade } from 'svelte/transition';
-	import { type Snippet } from 'svelte';
-	import { Button } from '$lib/components/ui/button';
-	import { X, ChevronLeft, ChevronRight } from '@lucide/svelte';
-	import { cn } from '$lib/utils.js';
+	import { writable } from 'svelte/store'
+	import { setImageZoomContext, type ZoomImageData } from './ctx'
+	import { fade } from 'svelte/transition'
+	import { type Snippet } from 'svelte'
+	import { Button } from '$lib/components/ui/button'
+	import { X, ChevronLeft, ChevronRight } from '@lucide/svelte'
+	import { cn } from '$lib/utils.js'
 
 	let {
 		class: className,
 		children
 	}: {
-		class?: string;
-		children?: Snippet;
-	} = $props();
+		class?: string
+		children?: Snippet
+	} = $props()
 
-	const registeredImagesStore = writable<ZoomImageData[]>([]);
-	const currentImageIndexStore = writable<number | null>(null);
-	const openStore = writable(false);
+	const registeredImagesStore = writable<ZoomImageData[]>([])
+	const currentImageIndexStore = writable<number | null>(null)
+	const openStore = writable(false)
 
-	let registeredImages = $state<ZoomImageData[]>([]);
-	let currentImageIndex = $state<number | null>(null);
-	let isOpen = $state(false);
+	let registeredImages = $state<ZoomImageData[]>([])
+	let currentImageIndex = $state<number | null>(null)
+	let isOpen = $state(false)
 
 	$effect(() => {
-		registeredImages = $registeredImagesStore;
-		currentImageIndex = $currentImageIndexStore;
-		isOpen = $openStore;
-	});
+		registeredImages = $registeredImagesStore
+		currentImageIndex = $currentImageIndexStore
+		isOpen = $openStore
+	})
 
 	const currentImageData = $derived(
 		currentImageIndex !== null ? registeredImages[currentImageIndex] : null
-	);
-	const hasMultipleImages = $derived(registeredImages.length > 1);
-	const hasPrevious = $derived(currentImageIndex !== null && currentImageIndex > 0);
+	)
+	const hasMultipleImages = $derived(registeredImages.length > 1)
+	const hasPrevious = $derived(currentImageIndex !== null && currentImageIndex > 0)
 	const hasNext = $derived(
 		currentImageIndex !== null && currentImageIndex < registeredImages.length - 1
-	);
+	)
 
 	function registerImage(imageData: Omit<ZoomImageData, 'index'>) {
-		const index = $registeredImagesStore.length;
-		$registeredImagesStore = [...$registeredImagesStore, { ...imageData, index }];
-		return index;
+		const index = $registeredImagesStore.length
+		$registeredImagesStore = [...$registeredImagesStore, { ...imageData, index }]
+		return index
 	}
 
 	function openImage(index: number) {
-		$currentImageIndexStore = index;
-		$openStore = true;
+		$currentImageIndexStore = index
+		$openStore = true
 	}
 
 	function nextImage() {
 		if (currentImageIndex !== null && hasNext) {
-			$currentImageIndexStore = currentImageIndex + 1;
+			$currentImageIndexStore = currentImageIndex + 1
 		}
 	}
 
 	function prevImage() {
 		if (currentImageIndex !== null && hasPrevious) {
-			$currentImageIndexStore = currentImageIndex - 1;
+			$currentImageIndexStore = currentImageIndex - 1
 		}
 	}
 
 	function closeZoom() {
-		$openStore = false;
-		$currentImageIndexStore = null;
+		$openStore = false
+		$currentImageIndexStore = null
 	}
 
 	setImageZoomContext({
@@ -78,13 +78,13 @@
 		openImage,
 		nextImage,
 		prevImage
-	});
+	})
 
 	function handleKeydown(event: KeyboardEvent) {
-		if (!isOpen) return;
-		if (event.key === 'Escape') closeZoom();
-		if (event.key === 'ArrowLeft') prevImage();
-		if (event.key === 'ArrowRight') nextImage();
+		if (!isOpen) return
+		if (event.key === 'Escape') closeZoom()
+		if (event.key === 'ArrowLeft') prevImage()
+		if (event.key === 'ArrowRight') nextImage()
 	}
 </script>
 
@@ -98,7 +98,12 @@
 		role="dialog"
 		tabindex="-1"
 	>
-		<button type="button" class="absolute inset-0 cursor-default" onclick={closeZoom} aria-label="Close"></button>
+		<button
+			type="button"
+			class="absolute inset-0 cursor-default"
+			onclick={closeZoom}
+			aria-label="Close"
+		></button>
 
 		<div
 			class="relative flex max-h-[90vh] max-w-[90vw] items-center justify-center pointer-events-none"

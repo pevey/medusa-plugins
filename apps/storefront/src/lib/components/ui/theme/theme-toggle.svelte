@@ -37,8 +37,6 @@
 >
 	{#if isLight}
 		{#if sun}{@render sun()}{:else}<SunIcon />{/if}
-	{:else}
-		{#if moon}{@render moon()}{:else}<MoonIcon />{/if}
-	{/if}
+	{:else if moon}{@render moon()}{:else}<MoonIcon />{/if}
 	{label}
 </Toggle>

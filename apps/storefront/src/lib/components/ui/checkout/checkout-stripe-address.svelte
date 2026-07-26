@@ -13,7 +13,7 @@
 	// The cart's CURRENT country (reactive): a committed shipping country, else the current region's
 	// first country. Used to detect a *user* country change (and to avoid a spurious switch on mount).
 	const regionCountry = (): string =>
-		(addr.regions ?? []).find((r) => r.id === addr.cart?.region_id)?.countries?.[0]?.iso_2 ?? ''
+		(addr.regions ?? []).find(r => r.id === addr.cart?.region_id)?.countries?.[0]?.iso_2 ?? ''
 	const currentCountry = $derived(
 		String(addr.cart?.shipping_address?.country_code ?? regionCountry()).toLowerCase()
 	)
@@ -30,7 +30,7 @@
 		const country = String(val('country_code') || regionCountry() || 'us').toUpperCase()
 		return {
 			mode: 'shipping' as const,
-			allowedCountries: (addr.countries ?? []).map((c) => c.code.toUpperCase()),
+			allowedCountries: (addr.countries ?? []).map(c => c.code.toUpperCase()),
 			fields: { phone: 'always' as const },
 			display: { name: 'split' as const },
 			defaultValues: {

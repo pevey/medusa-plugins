@@ -46,7 +46,7 @@
 				? { url: img, alt, key: `${i}` }
 				: { url: img.url, alt, key: img.id ?? `${i}` }
 		)
-		const filtered = filterString ? all.filter((it) => it.url.includes(filterString)) : all
+		const filtered = filterString ? all.filter(it => it.url.includes(filterString)) : all
 		gallery.items = filtered.length ? filtered : all
 	})
 

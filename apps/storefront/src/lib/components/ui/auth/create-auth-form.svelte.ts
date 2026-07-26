@@ -16,10 +16,10 @@ export interface CreateAuthFormOptions<Input extends RemoteFormInput | void> {
 }
 
 /**
- * Shared wiring for the `Auth.*Form` roots: provides the form context the field/submit parts read,
+ * Shared code for the `Auth.*Form` roots: provides the form context the field/submit parts read,
  * runs the native remote-form submission, maps failure codes to copy, and exposes the enhanced
  * `<form>` attributes. Call it once from a form component's top-level script (component-init scope,
- * so the context is set correctly). Pass a thunk so prop reads stay reactive.
+ * so the context is set correctly).
  */
 export function createAuthForm<Input extends RemoteFormInput | void>(
 	options: () => CreateAuthFormOptions<Input>
@@ -27,8 +27,7 @@ export function createAuthForm<Input extends RemoteFormInput | void>(
 	let error = $state('')
 
 	setAuthFormContext({
-		// SvelteKit types RemoteForm invariantly in its input shape; this single bridge cast lets any
-		// concrete form live in the shared, form-agnostic context the field parts read.
+		// SvelteKit types RemoteForm invariantly in its input shape; this single bridge cast lets any concrete form live in the shared, form-agnostic context the field parts read.
 		get form() {
 			return options().form as unknown as AuthForm
 		},
@@ -41,13 +40,21 @@ export function createAuthForm<Input extends RemoteFormInput | void>(
 		get messages() {
 			return options().messages
 		},
-		switchMode: (m) => options().onswitch?.(m)
+		switchMode: m => options().onswitch?.(m)
 	})
 
 	const enhanced = options().form.enhance(async ({ submit }) => {
 		error = ''
-		await submit()
 		const o = options()
+		try {
+			await submit()
+		} catch {
+			// A thrown submission produced no AuthResult — a transport-level failure (offline, server unreachable, dropped connection). Surface it as in-form copy instead of letting it bubble up unhandled (which renders outside the form).
+			const result: AuthResult = { ok: false, code: 'network' }
+			error = resolveMessage(o.messages, result.code)
+			o.onerror?.(result)
+			return
+		}
 		const r = o.form.result
 		if (r?.ok) {
 			await o.onOk?.()

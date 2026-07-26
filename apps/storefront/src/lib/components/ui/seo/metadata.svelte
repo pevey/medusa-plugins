@@ -10,15 +10,20 @@
 	const baseTitle = $derived(config.title ?? site.siteName ?? '')
 	const isHome = $derived(page.url.pathname === '/')
 	const title = $derived(
-		!isHome && site.titleTemplate && baseTitle ? site.titleTemplate.replace('%s', baseTitle) : baseTitle
+		!isHome && site.titleTemplate && baseTitle
+			? site.titleTemplate.replace('%s', baseTitle)
+			: baseTitle
 	)
 	const description = $derived(config.description ?? site.description)
 	const url = $derived(
-		config.url ?? (site.siteUrl ? site.siteUrl.replace(/\/$/, '') + page.url.pathname : page.url.href)
+		config.url ??
+			(site.siteUrl ? site.siteUrl.replace(/\/$/, '') + page.url.pathname : page.url.href)
 	)
 	const image = $derived(config.image ?? site.image)
 	const imageAlt = $derived(config.imageAlt ?? site.imageAlt ?? baseTitle)
-	const twitterCard = $derived(config.twitterCardType ?? site.twitterCardType ?? 'summary_large_image')
+	const twitterCard = $derived(
+		config.twitterCardType ?? site.twitterCardType ?? 'summary_large_image'
+	)
 	const language = $derived(config.language ?? site.language ?? 'en')
 	const ogType = $derived(config.ogType ?? 'website')
 </script>

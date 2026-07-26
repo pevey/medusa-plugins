@@ -837,6 +837,10 @@
 			"collapsed": true,
 			"items": [
 				{
+					"label": "Get Product",
+					"link": "/medusa-plugin-ratings/api/operations/getadminproductsbyid/"
+				},
+				{
 					"label": "List Reviews",
 					"link": "/medusa-plugin-ratings/api/operations/getadminreviews/"
 				},
@@ -870,6 +874,14 @@
 			"label": "Store",
 			"collapsed": true,
 			"items": [
+				{
+					"label": "List Products",
+					"link": "/medusa-plugin-ratings/api/operations/getstoreproducts/"
+				},
+				{
+					"label": "Get Product",
+					"link": "/medusa-plugin-ratings/api/operations/getstoreproductsbyid/"
+				},
 				{
 					"label": "Update Review",
 					"link": "/medusa-plugin-ratings/api/operations/poststorereviewsbyproductid/"

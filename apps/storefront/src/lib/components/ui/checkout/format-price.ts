@@ -4,5 +4,8 @@ export function formatPrice(
 	locale = 'en-US'
 ): string {
 	if (amount == null || !currencyCode) return ''
-	return new Intl.NumberFormat(locale, { style: 'currency', currency: currencyCode.toUpperCase() }).format(amount)
+	return new Intl.NumberFormat(locale, {
+		style: 'currency',
+		currency: currencyCode.toUpperCase()
+	}).format(amount)
 }

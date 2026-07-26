@@ -29,6 +29,6 @@
 {#if field}
 	<!-- Additive form participation: a visually-hidden native checkbox carries the remote-form
 	     binding (via the `field` proxy); its checked state mirrors the theme. -->
-	<input class="sr-only" tabindex={-1} aria-hidden="true" {...field.as('checkbox')} checked={checked} />
+	<input class="sr-only" tabindex={-1} aria-hidden="true" {...field.as('checkbox')} {checked} />
 {/if}
 <Switch {size} {checked} {onCheckedChange} class={className} aria-label={ariaLabel} />

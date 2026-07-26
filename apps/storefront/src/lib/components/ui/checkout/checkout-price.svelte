@@ -8,4 +8,6 @@
 	const formatted = $derived(formatPrice(item.unit_price, currencyCode, locale))
 </script>
 
-{#if formatted}<p data-checkout-price class={cn('text-sm font-medium', className)}>{formatted}</p>{/if}
+{#if formatted}<p data-checkout-price class={cn('text-sm font-medium', className)}>
+		{formatted}
+	</p>{/if}

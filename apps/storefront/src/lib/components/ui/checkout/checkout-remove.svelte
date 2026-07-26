@@ -7,4 +7,11 @@
 	const { item } = getCheckoutLineContext()
 </script>
 
-<button type="button" data-checkout-remove class={cn('text-sm text-muted-foreground hover:text-foreground disabled:opacity-50', className)} disabled={ctx.placing} onclick={() => ctx.removeItem(item.id)}>{#if children}{@render children()}{:else}Remove{/if}</button>
+<button
+	type="button"
+	data-checkout-remove
+	class={cn('text-sm text-muted-foreground hover:text-foreground disabled:opacity-50', className)}
+	disabled={ctx.placing}
+	onclick={() => ctx.removeItem(item.id)}
+	>{#if children}{@render children()}{:else}Remove{/if}</button
+>

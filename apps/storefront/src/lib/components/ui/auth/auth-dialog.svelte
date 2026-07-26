@@ -13,7 +13,10 @@
 	import Submit from './submit.svelte'
 
 	type Classes = Partial<
-		Record<'content' | 'header' | 'form' | 'field' | 'label' | 'input' | 'submit', string>
+		Record<
+			'content' | 'header' | 'title' | 'form' | 'field' | 'label' | 'input' | 'submit',
+			string
+		>
 	>
 	const MODES = ['login', 'register', 'forgot', 'reset'] as const
 	type Mode = (typeof MODES)[number]
@@ -26,9 +29,6 @@
 		titles?: Partial<Record<Mode, string>>
 	} = $props()
 
-	// `titles` is exposed as an override because it fits the mode-driven structure. All other copy
-	// below (descriptions, field labels, link text, success messages) is meant to be edited here in
-	// the installed component — this kit is styled via props/classes and reworded by editing.
 	const defaultTitles: Record<Mode, string> = {
 		login: 'Sign in to your account',
 		register: 'Create an account',
@@ -70,14 +70,16 @@
 <Dialog.Root
 	bind:open={
 		() => open,
-		(v) => {
+		v => {
 			if (!v) close()
 		}
 	}
 >
 	<Dialog.Content class={classes.content ?? 'sm:max-w-md'}>
 		<Dialog.Header class={classes.header}>
-			<Dialog.Title>{isMode(mode) ? (titles[mode] ?? defaultTitles[mode]) : ''}</Dialog.Title>
+			<Dialog.Title class={classes.header}
+				>{isMode(mode) ? (titles[mode] ?? defaultTitles[mode]) : ''}</Dialog.Title
+			>
 			<Dialog.Description>{isMode(mode) ? descriptions[mode] : ''}</Dialog.Description>
 		</Dialog.Header>
 
@@ -173,7 +175,12 @@
 					Sign in
 				</button>
 			{:else}
-				<ResetForm class={classes.form} {token} onsuccess={() => (resetDone = true)} onswitch={switchMode}>
+				<ResetForm
+					class={classes.form}
+					{token}
+					onsuccess={() => (resetDone = true)}
+					onswitch={switchMode}
+				>
 					<Field name="password" class={classes.field}>
 						<Label class={classes.label}>New password</Label>
 						<Input type="password" autocomplete="new-password" class={classes.input} />

@@ -19,7 +19,7 @@
 <Carousel.Root
 	{orientation}
 	opts={{ dragFree: true }}
-	setApi={(a) => (gallery.thumbApi = a)}
+	setApi={a => (gallery.thumbApi = a)}
 	class={cn('w-full', className)}
 >
 	<Carousel.Content>{@render children()}</Carousel.Content>

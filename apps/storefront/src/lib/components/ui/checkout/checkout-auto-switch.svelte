@@ -32,7 +32,9 @@
 	const ctx = getCheckoutContext()
 	const resolved = $derived(resolveCheckoutProvider(ctx.availableProviders))
 	// The region offers a provider, but none this checkout supports → render nothing (dev logs which).
-	const unsupported = $derived(!resolved && ctx.availableProviders.length > 0 ? ctx.availableProviders[0] : null)
+	const unsupported = $derived(
+		!resolved && ctx.availableProviders.length > 0 ? ctx.availableProviders[0] : null
+	)
 </script>
 
 {#if resolved?.kind === 'braintree'}

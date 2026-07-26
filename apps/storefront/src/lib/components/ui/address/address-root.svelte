@@ -84,7 +84,7 @@
 	const countries = () => {
 		const regions = regionsRes.current ?? []
 		if (!restrictToCurrentRegion) return countriesFromRegions(regions)
-		const current = regions.find((r) => r.id === cartQuery.current?.region_id)
+		const current = regions.find(r => r.id === cartQuery.current?.region_id)
 		return countriesFromRegions(current ? [current] : regions)
 	}
 
@@ -291,7 +291,12 @@
 		const a = value?.address ?? {}
 		const country = String(a.country ?? '').toLowerCase()
 		const first = value?.firstName ?? String(value?.name ?? '').split(' ')[0] ?? ''
-		const last = value?.lastName ?? String(value?.name ?? '').split(' ').slice(1).join(' ')
+		const last =
+			value?.lastName ??
+			String(value?.name ?? '')
+				.split(' ')
+				.slice(1)
+				.join(' ')
 		const set = (n: string, val: string) => form.fields[n]?.set(val ?? '')
 		set('first_name', first)
 		set('last_name', last)

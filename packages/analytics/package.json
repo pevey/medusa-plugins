@@ -56,14 +56,14 @@
 		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit"
 	},
 	"dependencies": {
-		"recharts": "^3.9.2"
+		"recharts": "^3.10.1"
 	},
 	"devDependencies": {
 		"@medusajs/admin-sdk": "2.18.0",
 		"@medusajs/cli": "2.18.0",
 		"@medusajs/framework": "2.18.0",
 		"@medusajs/icons": "2.18.0",
-		"@medusajs/ui": "4.1.19",
+		"@medusajs/ui": "4.2.0",
 		"@swc/core": "1.15.46",
 		"@swc/jest": "0.2.39",
 		"@types/jest": "30.0.0",

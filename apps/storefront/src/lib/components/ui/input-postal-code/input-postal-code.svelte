@@ -10,7 +10,14 @@
 		onchange?: (event: Event) => void
 		[key: string]: unknown
 	}
-	let { field, label = '', placeholder = '', class: className = '', onchange, ...rest }: Props = $props()
+	let {
+		field,
+		label = '',
+		placeholder = '',
+		class: className = '',
+		onchange,
+		...rest
+	}: Props = $props()
 
 	// Uppercase on INPUT only (internal). Programmatic value/field.set dispatch no DOM events, so
 	// this can't re-fire; the consumer's onchange fires only on the native `change` event below.

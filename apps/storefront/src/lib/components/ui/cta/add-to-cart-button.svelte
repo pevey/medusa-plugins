@@ -22,7 +22,16 @@
 		onerror?: (err: unknown) => void
 		navigate?: (href: string) => Promise<void> | void
 		children?: Snippet
-		message?: Snippet<[{ status: 'idle' | 'success' | 'error'; cart: StoreCart | null; error: unknown; id: string }]>
+		message?: Snippet<
+			[
+				{
+					status: 'idle' | 'success' | 'error'
+					cart: StoreCart | null
+					error: unknown
+					id: string
+				}
+			]
+		>
 	}
 	let {
 		variantId,
@@ -61,7 +70,10 @@
 		error = null
 		pending = true
 		try {
-			const cart = await addToCart({ variant_id: resolvedVariantId!, quantity: resolvedQuantity })
+			const cart = await addToCart({
+				variant_id: resolvedVariantId!,
+				quantity: resolvedQuantity
+			})
 			resultCart = cart
 			status = 'success'
 			onadd?.(cart)
@@ -89,7 +101,12 @@
 	const showStatus = $derived(showMessage && !redirectTo && status !== 'idle')
 </script>
 
-<div class={cn('flex', messagePlacement === 'right' ? 'flex-row items-center gap-3' : 'flex-col gap-2')}>
+<div
+	class={cn(
+		'flex',
+		messagePlacement === 'right' ? 'flex-row items-center gap-3' : 'flex-col gap-2'
+	)}
+>
 	<Button
 		type="button"
 		class={className}
@@ -105,9 +122,19 @@
 		{@render message({ status, cart: resultCart, error, id: statusId })}
 	{:else if showStatus}
 		{#if status === 'success'}
-			<span id={statusId} role="status" data-status="success" class={cn('text-sm text-muted-foreground', messageClass)}>Added to cart</span>
+			<span
+				id={statusId}
+				role="status"
+				data-status="success"
+				class={cn('text-sm text-muted-foreground', messageClass)}>Added to cart</span
+			>
 		{:else if status === 'error'}
-			<span id={statusId} role="alert" data-status="error" class={cn('text-sm text-destructive', messageClass)}>{errorText}</span>
+			<span
+				id={statusId}
+				role="alert"
+				data-status="error"
+				class={cn('text-sm text-destructive', messageClass)}>{errorText}</span
+			>
 		{/if}
 	{/if}
 </div>

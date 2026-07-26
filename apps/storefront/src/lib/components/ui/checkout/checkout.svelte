@@ -4,8 +4,14 @@
 	import type { RemoteForm } from '@sveltejs/kit'
 	import type { StoreCart, StoreOrder } from '@medusajs/types'
 	import {
-		getCart, updateCartItem, removeFromCart, getShippingOptions, selectShippingOption,
-		addPromotion, removePromotion, completeCart
+		getCart,
+		updateCartItem,
+		removeFromCart,
+		getShippingOptions,
+		selectShippingOption,
+		addPromotion,
+		removePromotion,
+		completeCart
 	} from 'sveltekit-medusa-sdk'
 	import { cn } from '$lib/utils.js'
 	import { setCheckoutContext } from './ctx.svelte.js'
@@ -39,7 +45,7 @@
 	// Payment providers for the cart's CURRENT region (rides the cart — reactive across region switches,
 	// unlike the cookie-scoped listPaymentProviders). Needs getCart to expand region.payment_providers.id.
 	const availableProviders = $derived(
-		((cartQuery.current?.region?.payment_providers ?? []) as { id: string }[]).map((p) => p.id)
+		((cartQuery.current?.region?.payment_providers ?? []) as { id: string }[]).map(p => p.id)
 	)
 	let placing = $state(false)
 	let error = $state<unknown>(null)
@@ -89,33 +95,71 @@
 	}
 
 	async function selectShipping(optionId: string) {
-		try { await selectShippingOption(optionId) } catch (e) { onerror?.(e) }
+		try {
+			await selectShippingOption(optionId)
+		} catch (e) {
+			onerror?.(e)
+		}
 	}
 	async function applyDiscount(code: string) {
-		try { await addPromotion(code) } catch (e) { onerror?.(e) }
+		try {
+			await addPromotion(code)
+		} catch (e) {
+			onerror?.(e)
+		}
 	}
 	async function removeDiscount(code: string) {
-		try { await removePromotion(code) } catch (e) { onerror?.(e) }
+		try {
+			await removePromotion(code)
+		} catch (e) {
+			onerror?.(e)
+		}
 	}
 	async function updateItem(itemId: string, quantity: number) {
-		try { await updateCartItem({ item_id: itemId, quantity }) } catch (e) { onerror?.(e) }
+		try {
+			await updateCartItem({ item_id: itemId, quantity })
+		} catch (e) {
+			onerror?.(e)
+		}
 	}
 	async function removeItem(itemId: string) {
-		try { await removeFromCart(itemId) } catch (e) { onerror?.(e) }
+		try {
+			await removeFromCart(itemId)
+		} catch (e) {
+			onerror?.(e)
+		}
 	}
 
 	setCheckoutContext({
-		get form() { return form },
-		get cart() { return cartQuery.current },
-		get placing() { return placing },
-		get error() { return error },
-		get order() { return order },
-		get shippingOptions() { return [] }, // Delivery fetches its own; kept for parts that want it
-		get availableProviders() { return availableProviders },
+		get form() {
+			return form
+		},
+		get cart() {
+			return cartQuery.current
+		},
+		get placing() {
+			return placing
+		},
+		get error() {
+			return error
+		},
+		get order() {
+			return order
+		},
+		get shippingOptions() {
+			return []
+		}, // Delivery fetches its own; kept for parts that want it
+		get availableProviders() {
+			return availableProviders
+		},
 		hasProvider: (id: string) => availableProviders.includes(id),
 		registerAddress,
-		registerPayment: (fn) => { paymentStep = fn },
-		registerShippingRefresh: (fn) => { shippingRefresh = fn },
+		registerPayment: fn => {
+			paymentStep = fn
+		},
+		registerShippingRefresh: fn => {
+			shippingRefresh = fn
+		},
 		placeOrder,
 		selectShipping,
 		applyDiscount,
@@ -127,7 +171,9 @@
 	// options whenever the address/region changes (options depend on the shipping address).
 	setAddressHost({
 		registerUpdateAddress: registerAddress,
-		onAddressChange: () => { shippingRefresh?.() },
+		onAddressChange: () => {
+			shippingRefresh?.()
+		},
 		onError: reportError
 	})
 </script>

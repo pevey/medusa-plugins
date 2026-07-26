@@ -36,7 +36,19 @@ export {
 	setCheckoutLineContext,
 	getCheckoutLineContext
 } from './ctx.svelte.js'
-export { runPlaceOrder, resolveRedirect, resolveProvider, classifyProvider, resolveCheckoutProvider, resolveStripeMethod, cartBillingDetails, medusaShippingToStripeRates, walletAddressToMedusa, getBraintreeClientToken, getStripeClientSecret } from './checkout-logic.js'
+export {
+	runPlaceOrder,
+	resolveRedirect,
+	resolveProvider,
+	classifyProvider,
+	resolveCheckoutProvider,
+	resolveStripeMethod,
+	cartBillingDetails,
+	medusaShippingToStripeRates,
+	walletAddressToMedusa,
+	getBraintreeClientToken,
+	getStripeClientSecret
+} from './checkout-logic.js'
 export { buildStripeAppearance } from './stripe-appearance.js'
 export { formatPrice } from './format-price.js'
 export type {

@@ -5,7 +5,10 @@
 	import { productSchema } from './product-schema.js'
 	import type { Product, WithContext } from 'schema-dts'
 
-	let { override, transform }: {
+	let {
+		override,
+		transform
+	}: {
 		override?: Partial<Product>
 		transform?: (schema: WithContext<Product>) => WithContext<Product>
 	} = $props()

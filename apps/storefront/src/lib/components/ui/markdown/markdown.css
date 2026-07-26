@@ -16,28 +16,50 @@
 	line-height: 1.25;
 	margin: 1.5em 0 0.5em;
 }
-.markdown-prose h1 { font-size: 2em; }
-.markdown-prose h2 { font-size: 1.5em; }
-.markdown-prose h3 { font-size: 1.25em; }
+.markdown-prose h1 {
+	font-size: 2em;
+}
+.markdown-prose h2 {
+	font-size: 1.5em;
+}
+.markdown-prose h3 {
+	font-size: 1.25em;
+}
 .markdown-prose p,
 .markdown-prose ul,
 .markdown-prose ol,
-.markdown-prose blockquote { margin: 1em 0; }
+.markdown-prose blockquote {
+	margin: 1em 0;
+}
 .markdown-prose a {
 	color: var(--primary);
 	text-decoration: underline;
 	text-underline-offset: 2px;
 }
-.markdown-prose :where(ul, ol) { padding-left: 1.5em; }
-.markdown-prose ul { list-style: disc; }
-.markdown-prose ol { list-style: decimal; }
+.markdown-prose :where(ul, ol) {
+	padding-left: 1.5em;
+}
+.markdown-prose ul {
+	list-style: disc;
+}
+.markdown-prose ol {
+	list-style: decimal;
+}
 .markdown-prose blockquote {
 	border-left: 3px solid var(--border);
 	padding-left: 1em;
 	color: var(--muted-foreground);
 }
-.markdown-prose hr { border: 0; border-top: 1px solid var(--border); margin: 2em 0; }
-.markdown-prose img { max-width: 100%; height: auto; border-radius: var(--radius, 0.5rem); }
+.markdown-prose hr {
+	border: 0;
+	border-top: 1px solid var(--border);
+	margin: 2em 0;
+}
+.markdown-prose img {
+	max-width: 100%;
+	height: auto;
+	border-radius: var(--radius, 0.5rem);
+}
 .markdown-prose :not(pre) > code {
 	background: var(--muted);
 	color: var(--foreground);
@@ -56,7 +78,10 @@
 	padding: 0.5em 0.75em;
 	text-align: left;
 }
-.markdown-prose th { background: var(--muted); font-weight: 600; }
+.markdown-prose th {
+	background: var(--muted);
+	font-weight: 600;
+}
 
 /* Shiki: container is shadcn-themed; token colors come from the dual theme. */
 .markdown-prose pre.shiki {
@@ -67,9 +92,15 @@
 	overflow-x: auto;
 	margin: 1em 0;
 }
-.markdown-prose pre.shiki code { font-size: 0.9em; }
+.markdown-prose pre.shiki code {
+	font-size: 0.9em;
+}
 /* Light theme by default; flip to dark tokens under the host's .dark class
    (shadcn dark mode toggles `.dark` on <html>). Plain CSS — this file is a
    side-effect import, not compiled by Svelte, so no `:global()`. */
-.markdown-prose pre.shiki span { color: var(--shiki-light); }
-.dark .markdown-prose pre.shiki span { color: var(--shiki-dark); }
+.markdown-prose pre.shiki span {
+	color: var(--shiki-light);
+}
+.dark .markdown-prose pre.shiki span {
+	color: var(--shiki-dark);
+}

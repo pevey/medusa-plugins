@@ -3,8 +3,17 @@
 	import { setCheckoutLineContext } from './ctx.svelte.js'
 	import type { CheckoutLine } from './types.js'
 	import type { Snippet } from 'svelte'
-	let { item, class: className = '', children, actions }: { item: CheckoutLine; class?: string; children: Snippet; actions?: Snippet } = $props()
-	setCheckoutLineContext({ get item() { return item } })
+	let {
+		item,
+		class: className = '',
+		children,
+		actions
+	}: { item: CheckoutLine; class?: string; children: Snippet; actions?: Snippet } = $props()
+	setCheckoutLineContext({
+		get item() {
+			return item
+		}
+	})
 </script>
 
 <li data-checkout-line class={cn('flex gap-4 py-4', className)}>

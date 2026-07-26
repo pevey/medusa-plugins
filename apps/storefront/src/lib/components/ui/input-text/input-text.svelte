@@ -39,10 +39,16 @@
 <Field.Field data-invalid={invalid}>
 	{#if label}<Field.FieldLabel for={name}>{label}</Field.FieldLabel>{/if}
 	{#if type === 'textarea'}
-		<textarea id={name} {...field.as('text')} class={cn(textareaClass, className)} {...rest}></textarea>
+		<textarea id={name} {...field.as('text')} class={cn(textareaClass, className)} {...rest}
+		></textarea>
 	{:else if type === 'password'}
 		<div class="relative">
-			<input id={name} {...field.as(reveal ? 'text' : 'password')} class={cn(inputClass, 'pr-10', className)} {...rest} />
+			<input
+				id={name}
+				{...field.as(reveal ? 'text' : 'password')}
+				class={cn(inputClass, 'pr-10', className)}
+				{...rest}
+			/>
 			<button
 				type="button"
 				tabindex={-1}

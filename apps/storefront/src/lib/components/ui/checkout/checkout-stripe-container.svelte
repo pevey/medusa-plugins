@@ -72,7 +72,9 @@
 			{:else}
 				{@const _warn =
 					import.meta.env.DEV &&
-					console.error(`[CheckoutAuto] elements:false: provider "${providerId}" is not wired`)}
+					console.error(
+						`[CheckoutAuto] elements:false: provider "${providerId}" is not wired`
+					)}
 			{/if}
 			<CheckoutError />
 			<PlaceOrder />

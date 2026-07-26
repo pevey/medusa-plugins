@@ -29,7 +29,22 @@
 </script>
 
 {#if resolved.mode === 'select'}
-	<InputSelect {field} options={resolved.options} label={label ?? resolved.label} {placeholder} class={className} {onchange} {...rest} />
+	<InputSelect
+		{field}
+		options={resolved.options}
+		label={label ?? resolved.label}
+		{placeholder}
+		class={className}
+		{onchange}
+		{...rest}
+	/>
 {:else}
-	<InputText {field} label={label ?? 'Province'} {placeholder} class={className} {onchange} {...rest} />
+	<InputText
+		{field}
+		label={label ?? 'Province'}
+		{placeholder}
+		class={className}
+		{onchange}
+		{...rest}
+	/>
 {/if}

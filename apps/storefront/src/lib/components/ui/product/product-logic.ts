@@ -19,13 +19,13 @@ export function selectedByOption(variant: StoreProductVariant | null): Map<strin
 }
 
 export function optionIdOfValue(product: StoreProduct | null, valueId: string): string | undefined {
-	return product?.options?.find((o) => o.values?.some((v) => v.id === valueId))?.id
+	return product?.options?.find(o => o.values?.some(v => v.id === valueId))?.id
 }
 
 function variantForValueIds(product: StoreProduct | null, valueIds: string[]): string | undefined {
-	return product?.variants?.find((v) => {
-		const ids = v.options?.map((o) => o.id) ?? []
-		return valueIds.every((id) => ids.includes(id))
+	return product?.variants?.find(v => {
+		const ids = v.options?.map(o => o.id) ?? []
+		return valueIds.every(id => ids.includes(id))
 	})?.id
 }
 
@@ -34,7 +34,7 @@ export function defaultVariantId(product: StoreProduct | null): string {
 	if (!product?.variants?.length) return ''
 	if (product.options?.length) {
 		const top = product.options
-			.map((o) => [...(o.values ?? [])].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))[0]?.id)
+			.map(o => [...(o.values ?? [])].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))[0]?.id)
 			.filter(Boolean) as string[]
 		const match = variantForValueIds(product, top)
 		if (match) return match
@@ -43,7 +43,7 @@ export function defaultVariantId(product: StoreProduct | null): string {
 }
 
 export function isSelected(selectedVariant: StoreProductVariant | null, valueId: string): boolean {
-	return selectedVariant?.options?.some((o) => o.id === valueId) ?? false
+	return selectedVariant?.options?.some(o => o.id === valueId) ?? false
 }
 
 // The variant you'd land on by picking `valueId` for its option while keeping the current
@@ -58,7 +58,7 @@ export function resolveVariant(
 	target.set(optionId, valueId)
 	return (
 		variantForValueIds(product, [...target.values()]) ??
-		product?.variants?.find((v) => v.options?.some((o) => o.id === valueId))?.id ??
+		product?.variants?.find(v => v.options?.some(o => o.id === valueId))?.id ??
 		''
 	)
 }
@@ -75,9 +75,9 @@ export function isAvailable(
 		.filter(([oid]) => oid !== optId)
 		.map(([, vid]) => vid)
 	return (
-		product?.variants?.some((v) => {
-			const ids = v.options?.map((o) => o.id) ?? []
-			return ids.includes(valueId) && others.every((sel) => ids.includes(sel)) && inStock(v)
+		product?.variants?.some(v => {
+			const ids = v.options?.map(o => o.id) ?? []
+			return ids.includes(valueId) && others.every(sel => ids.includes(sel)) && inStock(v)
 		}) ?? false
 	)
 }

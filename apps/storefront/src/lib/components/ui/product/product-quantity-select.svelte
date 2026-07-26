@@ -27,7 +27,9 @@
 	// Inside Product.Root the quantity is URL-derived (ctx.quantity); standalone it's the bindable value.
 	const current = $derived(ctx ? ctx.quantity : value)
 	const variant = $derived(ctx?.selectedVariant ?? null)
-	const options = $derived(logic.quantityRange(variant, { min: minQuantity, step: stepQuantity, max: maxQuantity }))
+	const options = $derived(
+		logic.quantityRange(variant, { min: minQuantity, step: stepQuantity, max: maxQuantity })
+	)
 	const hi = $derived(logic.effectiveMax(variant, maxQuantity))
 	const disabled = $derived(hi < minQuantity)
 	const shown = $derived(logic.clampQuantity(current, minQuantity, Math.max(hi, minQuantity)))
@@ -57,5 +59,7 @@
 			<option value={String(n)}>{n}</option>
 		{/each}
 	</select>
-	<ChevronDown class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 opacity-50" />
+	<ChevronDown
+		class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 opacity-50"
+	/>
 </div>

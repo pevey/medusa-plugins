@@ -40,7 +40,8 @@
 			}
 		} catch (e) {
 			clientSecret = null
-			if (import.meta.env.DEV) console.error(`[CheckoutStripe] initiate "${providerId}" session failed`, e)
+			if (import.meta.env.DEV)
+				console.error(`[CheckoutStripe] initiate "${providerId}" session failed`, e)
 		}
 	})
 </script>
@@ -48,7 +49,10 @@
 {#if clientSecret}
 	<Elements
 		publicKey={publishableKey}
-		elementsOptions={{ clientSecret, appearance: buildStripeAppearance({ inputSurface: resolveInputSurface() }) }}
+		elementsOptions={{
+			clientSecret,
+			appearance: buildStripeAppearance({ inputSurface: resolveInputSurface() })
+		}}
 	>
 		{@render children()}
 	</Elements>

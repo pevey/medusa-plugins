@@ -52,14 +52,17 @@
 </script>
 
 <div data-stripe-express-checkout class={className}>
-	<Elements publicKey={publishableKey} elementsOptions={{ mode: 'payment', amount, currency } as any}>
+	<Elements
+		publicKey={publishableKey}
+		elementsOptions={{ mode: 'payment', amount, currency } as any}
+	>
 		{#snippet children({ stripe, elements })}
 			<ExpressCheckout
 				expressCheckoutOptions={options as any}
 				{onReady}
 				{onClick}
 				{onCancel}
-				onConfirm={(event) =>
+				onConfirm={event =>
 					onConfirm({
 						event,
 						confirm: async (clientSecret, confirmParams) => {
@@ -70,7 +73,8 @@
 								elements: elements!,
 								clientSecret,
 								confirmParams: {
-									return_url: returnUrl ?? (typeof location !== 'undefined' ? location.href : ''),
+									return_url:
+										returnUrl ?? (typeof location !== 'undefined' ? location.href : ''),
 									...(confirmParams ?? {})
 								},
 								redirect: 'if_required'

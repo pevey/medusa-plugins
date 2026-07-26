@@ -57,9 +57,9 @@
 		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --forceExit"
 	},
 	"dependencies": {
-		"@anthropic-ai/sdk": "^0.112.3",
+		"@anthropic-ai/sdk": "^0.115.0",
 		"@modelcontextprotocol/sdk": "^1.29.0",
-		"openai": "^6.48.0",
+		"openai": "^6.49.0",
 		"react-markdown": "^10.1.0",
 		"remark-gfm": "^4.0.1"
 	},
@@ -69,7 +69,7 @@
 		"@medusajs/framework": "2.18.0",
 		"@medusajs/icons": "2.18.0",
 		"@medusajs/test-utils": "2.18.0",
-		"@medusajs/ui": "4.1.19",
+		"@medusajs/ui": "4.2.0",
 		"@swc/core": "1.15.46",
 		"@swc/jest": "0.2.39",
 		"@types/jest": "30.0.0",

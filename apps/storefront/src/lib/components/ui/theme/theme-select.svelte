@@ -24,7 +24,7 @@
 
 	// userPrefersMode is always one of light|dark|system → never empty (no placeholder).
 	const value = $derived(userPrefersMode.current)
-	const triggerLabel = $derived(OPTIONS.find((o) => o.value === value)?.label ?? 'Theme')
+	const triggerLabel = $derived(OPTIONS.find(o => o.value === value)?.label ?? 'Theme')
 
 	function onValueChange(v: string) {
 		setMode(v as 'light' | 'dark' | 'system') // theme changes immediately
@@ -33,7 +33,7 @@
 
 {#if field}
 	<!-- Additive form participation: hidden native input carries the light|dark|system string. -->
-	<input class="sr-only" tabindex={-1} aria-hidden="true" {...field.as('text')} value={value} />
+	<input class="sr-only" tabindex={-1} aria-hidden="true" {...field.as('text')} {value} />
 {/if}
 <Select.Root type="single" {value} {onValueChange}>
 	<Select.Trigger {size} class={className} aria-label={ariaLabel}>{triggerLabel}</Select.Trigger>

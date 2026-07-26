@@ -34,11 +34,11 @@
 	// default rather than silently deselecting everything.
 	const selectedVariantId = $derived.by(() => {
 		const v = page.url.searchParams.get(variantParam)
-		if (v && resolvedProduct?.variants?.some((variant) => variant.id === v)) return v
+		if (v && resolvedProduct?.variants?.some(variant => variant.id === v)) return v
 		return logic.defaultVariantId(resolvedProduct)
 	})
 	const selectedVariant = $derived(
-		resolvedProduct?.variants?.find((v) => v.id === selectedVariantId) ?? null
+		resolvedProduct?.variants?.find(v => v.id === selectedVariantId) ?? null
 	)
 
 	// Quantity lives in the URL exactly like variant selection (SSR-safe, shareable). Stock-clamped
@@ -76,8 +76,8 @@
 		get variantParam() {
 			return variantParam
 		},
-		isSelected: (valueId) => logic.isSelected(selectedVariant, valueId),
-		isAvailable: (valueId) => logic.isAvailable(resolvedProduct, selectedVariant, valueId),
+		isSelected: valueId => logic.isSelected(selectedVariant, valueId),
+		isAvailable: valueId => logic.isAvailable(resolvedProduct, selectedVariant, valueId),
 		resolveVariant: (optionId, valueId) =>
 			logic.resolveVariant(resolvedProduct, selectedVariant, optionId, valueId),
 		buildHref,

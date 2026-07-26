@@ -2,7 +2,7 @@
 	import DOMPurify from 'isomorphic-dompurify'
 	// Force rel="noopener noreferrer" on target=_blank links (reverse-tabnabbing). Registered
 	// once at module load; only this component sanitizes with DOMPurify.
-	DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+	DOMPurify.addHook('afterSanitizeAttributes', node => {
 		if (node.tagName === 'A' && node.getAttribute('target') === '_blank') {
 			node.setAttribute('rel', 'noopener noreferrer')
 		}

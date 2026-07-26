@@ -19,8 +19,6 @@
 <Button {variant} {size} onclick={toggleMode} class={className} aria-label="Toggle theme">
 	{#if isLight}
 		{#if sun}{@render sun()}{:else}<SunIcon />{/if}
-	{:else}
-		{#if moon}{@render moon()}{:else}<MoonIcon />{/if}
-	{/if}
+	{:else if moon}{@render moon()}{:else}<MoonIcon />{/if}
 	<span class="sr-only">Toggle theme</span>
 </Button>

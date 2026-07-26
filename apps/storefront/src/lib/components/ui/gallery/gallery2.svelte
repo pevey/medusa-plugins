@@ -87,6 +87,8 @@
 				</Gallery.Image>
 			</Gallery.Carousel>
 		</ImageZoom.Root>
-		<Gallery.Dots class={cn('mt-3', thumbnails === 'none' ? 'flex' : DOTS[thumbnailBreakpoint])} />
+		<Gallery.Dots
+			class={cn('mt-3', thumbnails === 'none' ? 'flex' : DOTS[thumbnailBreakpoint])}
+		/>
 	</div>
 </Gallery.Root>

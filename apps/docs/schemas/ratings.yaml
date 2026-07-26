@@ -1,12 +1,31 @@
 openapi: 3.1.0
 info:
   title: Ratings API
-  version: 0.2.3
+  version: 0.2.4
   description: Product review and rating plugin for Medusa v2 with moderation workflow
 servers:
   - url: http://localhost:9000
     description: Local development
 paths:
+  /admin/products/{id}:
+    get:
+      operationId: getAdminProductsByid
+      summary: Get Product
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
   /admin/reviews:
     get:
       operationId: getAdminReviews
@@ -332,6 +351,38 @@ paths:
                   minItems: 1
               required:
                 - ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /store/products:
+    get:
+      operationId: getStoreProducts
+      summary: List Products
+      tags:
+        - Store
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /store/products/{id}:
+    get:
+      operationId: getStoreProductsByid
+      summary: Get Product
+      tags:
+        - Store
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           description: OK

@@ -5,8 +5,12 @@
 	import { getAddressContext } from './ctx.svelte.js'
 	import type { NormalizedAddress } from '../google-places-autocomplete/types'
 
-	let { label = 'Address', prefix = '', placeholder = 'Enter address', class: className = '' }:
-		{ label?: string; prefix?: '' | 'billing_'; placeholder?: string; class?: string } = $props()
+	let {
+		label = 'Address',
+		prefix = '',
+		placeholder = 'Enter address',
+		class: className = ''
+	}: { label?: string; prefix?: '' | 'billing_'; placeholder?: string; class?: string } = $props()
 	const ctx = getAddressContext()
 	const field = $derived(ctx.form.fields[`${prefix}address_1`])
 
@@ -24,8 +28,22 @@
 {#if ctx.isAutocomplete}
 	<Field.Field>
 		{#if label}<Field.FieldLabel>{label}</Field.FieldLabel>{/if}
-		<GooglePlacesAutocomplete apiKey={ctx.googlePlacesApiKey!} {placeholder} initialValue={field.value()} {onselect} {oninput} class={className} />
+		<GooglePlacesAutocomplete
+			apiKey={ctx.googlePlacesApiKey!}
+			{placeholder}
+			initialValue={field.value()}
+			{onselect}
+			{oninput}
+			class={className}
+		/>
 	</Field.Field>
 {:else}
-	<InputText {field} {label} {placeholder} autocomplete="address-line1" onchange={ctx.onchange} class={className} />
+	<InputText
+		{field}
+		{label}
+		{placeholder}
+		autocomplete="address-line1"
+		onchange={ctx.onchange}
+		class={className}
+	/>
 {/if}

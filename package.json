@@ -29,13 +29,13 @@
 		"@medusajs/js-sdk": "2.18.0",
 		"@medusajs/medusa": "2.18.0",
 		"@medusajs/test-utils": "2.18.0",
-		"@medusajs/ui": "4.1.19",
+		"@medusajs/ui": "4.2.0",
 		"eslint": "^9.39.5",
 		"jiti": "^2.7.0",
 		"lerna": "^9.0.7",
 		"pg-god": "1.0.12",
 		"ts-node": "10.9.2",
-		"turbo": "2.10.5",
+		"turbo": "2.10.7",
 		"typescript": "6.0.3"
 	},
 	"resolutions": {
