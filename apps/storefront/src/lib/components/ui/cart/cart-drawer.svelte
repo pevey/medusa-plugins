@@ -10,13 +10,10 @@
 	import Remove from './cart-remove.svelte'
 	import Subtotal from './cart-subtotal.svelte'
 	import Checkout from './cart-checkout.svelte'
-	import type { GetCartFn, UpdateCartItemFn, RemoveFromCartFn, LineHrefFn } from './types.js'
+	import type { LineHrefFn } from './types.js'
 	import type { StoreCart } from '@medusajs/types'
 
 	interface Props {
-		getCart?: GetCartFn
-		updateCartItem?: UpdateCartItemFn
-		removeFromCart?: RemoveFromCartFn
 		onupdate?: (cart: StoreCart) => void
 		onremove?: (cart: StoreCart) => void
 		onerror?: (err: unknown) => void
@@ -26,12 +23,12 @@
 		contentClass?: string
 	}
 	let {
-		getCart, updateCartItem, removeFromCart, onupdate, onremove, onerror,
+		onupdate, onremove, onerror,
 		checkoutUrl = '/checkout', lineHref, triggerClass = '', contentClass = ''
 	}: Props = $props()
 </script>
 
-<Root {getCart} {updateCartItem} {removeFromCart} {onupdate} {onremove} {onerror} {checkoutUrl} {lineHref}>
+<Root {onupdate} {onremove} {onerror} {checkoutUrl} {lineHref}>
 	<Sheet.Root>
 		<Trigger class={triggerClass} />
 		<Sheet.Content side="right" class={`flex w-full flex-col gap-0 overflow-y-auto p-6 sm:max-w-lg ${contentClass}`}>

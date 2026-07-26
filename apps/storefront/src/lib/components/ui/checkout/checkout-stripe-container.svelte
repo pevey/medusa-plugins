@@ -25,7 +25,6 @@
 	import CheckoutError from './checkout-error.svelte'
 	import { AddressForm } from '../address/index.js'
 	import { resolveStripeMethod } from './checkout-logic.js'
-	import type { InitiatePaymentSessionFn } from './types.js'
 
 	let {
 		form,
@@ -34,8 +33,7 @@
 		returnUrl,
 		restrictToCurrentRegion,
 		googlePlacesApiKey,
-		allowExpressCheckout = true,
-		initiatePaymentSession
+		allowExpressCheckout = true
 	}: {
 		form: RemoteForm<any, any>
 		publishableKey: string
@@ -44,13 +42,12 @@
 		restrictToCurrentRegion?: boolean
 		googlePlacesApiKey?: string
 		allowExpressCheckout?: boolean
-		initiatePaymentSession?: InitiatePaymentSessionFn
 	} = $props()
 
 	const method = $derived(resolveStripeMethod(providerId ?? 'pp_stripe_stripe'))
 </script>
 
-<StripeElements {publishableKey} {providerId} {initiatePaymentSession}>
+<StripeElements {publishableKey} {providerId}>
 	{#if allowExpressCheckout && method === 'card'}
 		<!-- Apple/Google Pay express path (region-locked). Renders itself only when a wallet is available. -->
 		<div class="mx-auto max-w-5xl px-4 pt-4"><StripeExpress {returnUrl} /></div>

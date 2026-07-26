@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { onMount, untrack, type Snippet } from 'svelte'
+	import { onMount, type Snippet } from 'svelte'
 	import type { RemoteForm } from '@sveltejs/kit'
 	import type { StoreCart } from '@medusajs/types'
 	import {
-		getCart as sdkGetCart,
-		getRegions as sdkGetRegions,
-		updateCart as sdkUpdateCart,
+		getCart,
+		getRegions,
+		updateCart,
 		regionForCountry,
 		countriesFromRegions
 	} from 'sveltekit-medusa-sdk'
@@ -17,16 +17,13 @@
 		resolveProvinceValue,
 		type ProvinceConfig
 	} from '../input-province/provinces'
-	import type { GetCartFn, GetRegionsFn, UpdateCartFn, UpdateCartArgs } from './types.js'
+	import type { CartQuery, RegionsResource, UpdateCartArgs } from './types.js'
 	import type { NormalizedAddress } from '../google-places-autocomplete/types'
 
 	interface Props {
 		form: RemoteForm<any, any>
 		googlePlacesApiKey?: string
 		provinceConfig?: ProvinceConfig
-		getCart?: GetCartFn
-		getRegions?: GetRegionsFn
-		updateCart?: UpdateCartFn
 		debounceMs?: number
 		/** When true, offer only the current region's countries and never switch region from the address
 		 *  (pinned-region checkout). Default false = full shippable set + self-correcting region switch. */
@@ -41,9 +38,6 @@
 		form,
 		googlePlacesApiKey,
 		provinceConfig = defaultProvinceConfig,
-		getCart = sdkGetCart as unknown as GetCartFn,
-		getRegions = sdkGetRegions as unknown as GetRegionsFn,
-		updateCart = sdkUpdateCart as unknown as UpdateCartFn,
 		debounceMs = 200,
 		restrictToCurrentRegion = false,
 		onaddresschange,
@@ -54,9 +48,10 @@
 	}: Props = $props()
 
 	// Call the remotes once; read `.current` reactively (no $effect).
-	const cartQuery = untrack(() => getCart())
-	const regionsRes = untrack(() => getRegions())
-	const wait = untrack(() => debounceMs)
+	// The SDK's getCart/getRegions are SvelteKit remote queries exposing those at runtime, but their
+	// built types under-resolve to a bare Promise here, so bridge them to the query shapes.
+	const cartQuery = getCart() as unknown as CartQuery
+	const regionsRes = getRegions() as unknown as RegionsResource
 
 	// Read the optional host context ONCE during init (not in onMount — getContext must run while the
 	// component is initialising). A wrapping Checkout.Root fills this; standalone Address leaves it null.
@@ -112,7 +107,9 @@
 	function save(): Promise<void> {
 		if (!pending) pending = new Promise(r => (resolvePending = r))
 		if (timer) clearTimeout(timer)
-		timer = setTimeout(runSave, wait)
+		// Read debounceMs here (inside the deferred closure), not at the top level — a prop read inside
+		// a callback is reactive-safe; capturing it into a top-level const would warn (state_referenced_locally).
+		timer = setTimeout(runSave, debounceMs)
 		return pending
 	}
 	async function runSave() {

@@ -14,15 +14,12 @@
 	import Phone from './address-phone.svelte'
 	import BillingToggle from './address-billing-toggle.svelte'
 	import Billing from './address-billing.svelte'
-	import type { GetCartFn, GetRegionsFn, UpdateCartFn, ProvinceConfig } from './types.js'
+	import type { ProvinceConfig } from './types.js'
 
 	let props: {
 		form: RemoteForm<any, any>
 		googlePlacesApiKey?: string
 		provinceConfig?: ProvinceConfig
-		getCart?: GetCartFn
-		getRegions?: GetRegionsFn
-		updateCart?: UpdateCartFn
 		debounceMs?: number
 		restrictToCurrentRegion?: boolean
 		onaddresschange?: (cart: StoreCart) => void

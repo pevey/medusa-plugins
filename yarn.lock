@@ -6177,6 +6177,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@lucide/svelte@npm:^1.27.0":
+  version: 1.27.0
+  resolution: "@lucide/svelte@npm:1.27.0"
+  peerDependencies:
+    svelte: ^5
+  checksum: 10c0/19036be7afe6854141b5e514f0251fab098356c7e40a8744d34944511565b55563d91c423b41f27cb1f9ff9b033047f2396d45d2016c9de7905d599df99a9cdb
+  languageName: node
+  linkType: hard
+
 "@marijn/find-cluster-break@npm:^1.0.0":
   version: 1.0.2
   resolution: "@marijn/find-cluster-break@npm:1.0.2"
@@ -32045,7 +32054,7 @@ __metadata:
   dependencies:
     "@googlemaps/js-api-loader": "npm:2.1.1"
     "@internationalized/date": "npm:^3.12.0"
-    "@lucide/svelte": "npm:^1.25.0"
+    "@lucide/svelte": "npm:^1.27.0"
     "@medusajs/types": "npm:2.18.0"
     "@stripe/stripe-js": "npm:9.10.0"
     "@sveltejs/vite-plugin-svelte": "npm:7.2.0"

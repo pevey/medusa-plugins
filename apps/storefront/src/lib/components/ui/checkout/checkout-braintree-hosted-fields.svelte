@@ -4,20 +4,13 @@
 	// the field IFRAMES via the `styles` pass-through. The inner card component tokenizes via context.
 	import { onMount, type Snippet } from 'svelte'
 	import { HostedFields } from 'sveltekit-braintree'
-	import { initiateBraintreePaymentSession as sdkInitiate } from 'sveltekit-medusa-sdk'
+	import { initiateBraintreePaymentSession } from 'sveltekit-medusa-sdk'
 	import { getBraintreeClientToken } from './checkout-logic.js'
 	import { domCssVarResolver, resolveInputSurface } from './stripe-appearance.js'
-	import type { InitiateBraintreeFn } from './types.js'
 
 	const PROVIDER = 'pp_braintree_braintree'
 
-	let {
-		initiateBraintreePaymentSession = sdkInitiate as unknown as InitiateBraintreeFn,
-		children
-	}: {
-		initiateBraintreePaymentSession?: InitiateBraintreeFn
-		children: Snippet
-	} = $props()
+	let { children }: { children: Snippet } = $props()
 
 	let authorization = $state<string | null>(null)
 	let styles = $state<Record<string, Record<string, string>> | undefined>(undefined)

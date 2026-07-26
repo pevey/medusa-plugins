@@ -1,22 +1,31 @@
 <script lang="ts">
-	import { login, logout, getCustomer } from 'sveltekit-medusa-sdk'
+	import { getCustomer } from 'sveltekit-medusa-sdk/customer'
+	import * as Auth from '$lib/components/ui/auth'
+	import * as Customer from '$lib/components/ui/customer'
 </script>
 
 <h1>Account</h1>
 
-{#each [await getCustomer()] as customer}
-	{#if customer}
-		<p>Signed in as {customer.email}</p>
-	{:else}
-		<form {...login}>
-			<label>Email <input {...login.fields.email.as('email')} /></label>
-			{#each login.fields.email.issues() as issue}<span>{issue.message}</span>{/each}
-			<label>Password <input {...login.fields.password.as('password')} /></label>
-			{#each login.fields.password.issues() as issue}<span>{issue.message}</span>{/each}
-			{#if login.result && !login.result.ok}<span>Login failed ({login.result.code})</span>{/if}
-			<button>Log in</button>
-		</form>
-	{/if}
-{/each}
+<Customer.SignedIn>
+	{#each [await getCustomer()] as customer (customer?.id)}
+		<p>Signed in as {customer?.email}</p>
+	{/each}
+	<Customer.SignOut>Sign out</Customer.SignOut>
+</Customer.SignedIn>
 
-<button onclick={() => logout()}>Log out</button>
+<Customer.SignedOut>
+	<Auth.LoginForm class="mx-auto max-w-sm">
+		<Auth.Field name="email">
+			<Auth.Label>Email</Auth.Label>
+			<Auth.Input type="email" autocomplete="email" />
+			<Auth.Error />
+		</Auth.Field>
+		<Auth.Field name="password">
+			<Auth.Label>Password</Auth.Label>
+			<Auth.Input type="password" autocomplete="current-password" />
+			<Auth.Error />
+		</Auth.Field>
+		<Auth.Error />
+		<Auth.Submit>Sign in</Auth.Submit>
+	</Auth.LoginForm>
+</Customer.SignedOut>

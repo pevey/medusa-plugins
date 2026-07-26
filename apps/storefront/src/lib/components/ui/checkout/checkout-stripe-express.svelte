@@ -10,13 +10,9 @@
 	// Availability is reported by the element's `ready` event; we hide the wrapper if no wallet is offered.
 	import { onMount } from 'svelte'
 	import { goto } from '$app/navigation'
+	import type { StoreOrder } from '@medusajs/types'
 	import { ExpressCheckout, getStripeContext } from 'sveltekit-stripe'
-	import {
-		updateCart as sdkUpdateCart,
-		completeCart as sdkCompleteCart,
-		getRegions as sdkGetRegions,
-		getShippingOptions as sdkGetShippingOptions
-	} from 'sveltekit-medusa-sdk'
+	import { updateCart, completeCart, getRegions, getShippingOptions } from 'sveltekit-medusa-sdk'
 	import { getCheckoutContext } from './ctx.svelte.js'
 	import { getStripeClientSecretContext } from './stripe-cs-context.js'
 	import { medusaShippingToStripeRates, walletAddressToMedusa, resolveRedirect } from './checkout-logic.js'
@@ -24,19 +20,11 @@
 	let {
 		returnUrl,
 		redirectTo = '/',
-		updateCart = sdkUpdateCart as any,
-		completeCart = sdkCompleteCart as any,
-		getRegions = sdkGetRegions as any,
-		getShippingOptions = sdkGetShippingOptions as any,
 		navigate = goto,
 		class: className = ''
 	}: {
 		returnUrl: string
 		redirectTo?: string | ((order: any) => string)
-		updateCart?: (data: any) => Promise<any>
-		completeCart?: () => Promise<any>
-		getRegions?: () => Promise<any[]>
-		getShippingOptions?: () => Promise<any[]>
 		navigate?: (url: string) => void
 		class?: string
 	} = $props()
@@ -107,7 +95,7 @@
 			}
 			const order = await completeCart()
 			if (order?.id?.startsWith?.('order_')) {
-				const url = resolveRedirect(redirectTo, order)
+				const url = resolveRedirect(redirectTo, order as StoreOrder)
 				if (url) navigate(url)
 			}
 		} catch {

@@ -1,5 +1,5 @@
 import { getContext, setContext } from 'svelte'
-import { search as sdkSearch } from 'sveltekit-medusa-sdk'
+import { search } from 'sveltekit-medusa-sdk'
 
 export type SearchHit = {
 	type: 'product' | 'category' | 'collection' | 'content' | (string & {})
@@ -57,14 +57,13 @@ export class SearchState {
 
 	constructor(
 		opts: {
-			search?: SearchFn
 			minLength?: number
 			debounce?: number
 			limit?: number
 			baseId?: string
 		} = {}
 	) {
-		this.search = opts.search ?? (sdkSearch as unknown as SearchFn)
+		this.search = search as unknown as SearchFn
 		this.minLength = opts.minLength ?? DEFAULT_MIN_LENGTH
 		this.debounce = opts.debounce ?? DEFAULT_DEBOUNCE
 		this.limit = opts.limit

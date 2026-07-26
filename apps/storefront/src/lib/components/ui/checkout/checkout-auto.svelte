@@ -8,10 +8,6 @@
 	import { braintreeCheckoutForm } from 'sveltekit-medusa-sdk'
 	import Root from './checkout.svelte'
 	import AutoSwitch from './checkout-auto-switch.svelte'
-	import type {
-		GetCartFn, UpdateCartItemFn, RemoveFromCartFn, GetShippingOptionsFn, SelectShippingOptionFn,
-		AddPromotionFn, RemovePromotionFn, CompleteCartFn, InitiatePaymentSessionFn
-	} from './types.js'
 
 	type ProviderConfig = { elements?: boolean }
 
@@ -28,15 +24,6 @@
 		restrictToCurrentRegion?: boolean
 		/** Show the Apple/Google Pay Express Checkout button (elements:false card path only). Default true. */
 		allowExpressCheckout?: boolean
-		initiatePaymentSession?: InitiatePaymentSessionFn
-		getCart?: GetCartFn
-		updateCartItem?: UpdateCartItemFn
-		removeFromCart?: RemoveFromCartFn
-		getShippingOptions?: GetShippingOptionsFn
-		selectShippingOption?: SelectShippingOptionFn
-		addPromotion?: AddPromotionFn
-		removePromotion?: RemovePromotionFn
-		completeCart?: CompleteCartFn
 		navigate?: (url: string) => void | Promise<void>
 		redirectTo?: string | ((order: StoreOrder) => string)
 		oncomplete?: (order: StoreOrder) => void
@@ -51,7 +38,6 @@
 		returnUrl,
 		restrictToCurrentRegion,
 		allowExpressCheckout = true,
-		initiatePaymentSession,
 		...rest
 	}: Props = $props()
 </script>
@@ -66,7 +52,6 @@
 			{returnUrl}
 			{restrictToCurrentRegion}
 			{allowExpressCheckout}
-			{initiatePaymentSession}
 		/>
 	</Root>
 </form>

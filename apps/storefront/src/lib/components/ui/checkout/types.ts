@@ -6,18 +6,8 @@ export type CheckoutLine = NonNullable<StoreCart['items']>[number]
 export type UpdateAddress = () => Promise<StoreCart | null>
 export type AuthorizePayment = () => Promise<{ ok: boolean; error?: unknown }>
 
-// SDK remotes, typed structurally so tests inject fakes.
+// Shape the Root bridges the SDK's getCart query to, so it can read `.current` (like Cart.Root).
 export type CartQuery = { current: StoreCart | null | undefined }
-export type GetCartFn = () => CartQuery
-export type UpdateCartItemFn = (args: { item_id: string; quantity: number }) => Promise<StoreCart | null>
-export type RemoveFromCartFn = (lineId: string) => Promise<StoreCart | null>
-export type GetShippingOptionsFn = () => Promise<any[]> & { current?: any[] }
-export type SelectShippingOptionFn = (optionId: string) => Promise<StoreCart | null>
-export type AddPromotionFn = (code: string) => Promise<StoreCart | null>
-export type RemovePromotionFn = (code: string) => Promise<StoreCart | null>
-export type InitiateBraintreeFn = (args: { provider_id: string; data?: { payment_method_nonce?: string; deviceData?: string } }) => Promise<any>
-export type InitiatePaymentSessionFn = (args: { provider_id: string }) => Promise<any>
-export type CompleteCartFn = () => Promise<StoreOrder | StoreCart | null>
 
 export type CheckoutContext = {
 	readonly form: RemoteForm<any, any>

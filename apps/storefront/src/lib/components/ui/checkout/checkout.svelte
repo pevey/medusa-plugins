@@ -1,32 +1,20 @@
 <script lang="ts">
-	import { untrack, type Snippet } from 'svelte'
+	import type { Snippet } from 'svelte'
 	import { goto } from '$app/navigation'
 	import type { RemoteForm } from '@sveltejs/kit'
 	import type { StoreCart, StoreOrder } from '@medusajs/types'
 	import {
-		getCart as sdkGetCart, updateCartItem as sdkUpdateCartItem, removeFromCart as sdkRemoveFromCart,
-		getShippingOptions as sdkGetShippingOptions, selectShippingOption as sdkSelectShippingOption,
-		addPromotion as sdkAddPromotion, removePromotion as sdkRemovePromotion, completeCart as sdkCompleteCart
+		getCart, updateCartItem, removeFromCart, getShippingOptions, selectShippingOption,
+		addPromotion, removePromotion, completeCart
 	} from 'sveltekit-medusa-sdk'
 	import { cn } from '$lib/utils.js'
 	import { setCheckoutContext } from './ctx.svelte.js'
 	import { setAddressHost } from '../address/ctx.svelte.js'
 	import { runPlaceOrder, resolveRedirect } from './checkout-logic.js'
-	import type {
-		UpdateAddress, AuthorizePayment, GetCartFn, UpdateCartItemFn, RemoveFromCartFn,
-		GetShippingOptionsFn, SelectShippingOptionFn, AddPromotionFn, RemovePromotionFn, CompleteCartFn
-	} from './types.js'
+	import type { UpdateAddress, AuthorizePayment, CartQuery } from './types.js'
 
 	interface Props {
 		form: RemoteForm<any, any>
-		getCart?: GetCartFn
-		updateCartItem?: UpdateCartItemFn
-		removeFromCart?: RemoveFromCartFn
-		getShippingOptions?: GetShippingOptionsFn
-		selectShippingOption?: SelectShippingOptionFn
-		addPromotion?: AddPromotionFn
-		removePromotion?: RemovePromotionFn
-		completeCart?: CompleteCartFn
 		navigate?: (url: string) => void | Promise<void>
 		redirectTo?: string | ((order: StoreOrder) => string)
 		oncomplete?: (order: StoreOrder) => void
@@ -36,14 +24,6 @@
 	}
 	let {
 		form,
-		getCart = sdkGetCart as unknown as GetCartFn,
-		updateCartItem = sdkUpdateCartItem as unknown as UpdateCartItemFn,
-		removeFromCart = sdkRemoveFromCart as unknown as RemoveFromCartFn,
-		getShippingOptions = sdkGetShippingOptions as unknown as GetShippingOptionsFn,
-		selectShippingOption = sdkSelectShippingOption as unknown as SelectShippingOptionFn,
-		addPromotion = sdkAddPromotion as unknown as AddPromotionFn,
-		removePromotion = sdkRemovePromotion as unknown as RemovePromotionFn,
-		completeCart = sdkCompleteCart as unknown as CompleteCartFn,
 		navigate = goto,
 		redirectTo,
 		oncomplete,
@@ -52,7 +32,10 @@
 		children
 	}: Props = $props()
 
-	const cartQuery = untrack(() => getCart())
+	// Keep the live query object (not awaited) so downstream reads (`cartQuery.current`,
+	// `cartQuery.current?.region`, etc.) stay reactive. The cast restores those members, which this
+	// package's svelte-check drops from the SDK's remote-query type (runtime is fine).
+	const cartQuery = getCart() as unknown as CartQuery
 	// Payment providers for the cart's CURRENT region (rides the cart — reactive across region switches,
 	// unlike the cookie-scoped listPaymentProviders). Needs getCart to expand region.payment_providers.id.
 	const availableProviders = $derived(

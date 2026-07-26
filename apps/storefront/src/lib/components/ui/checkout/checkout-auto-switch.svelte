@@ -7,7 +7,6 @@
 	import BraintreeBody from './checkout-braintree-body.svelte'
 	import StripeBody from './checkout-stripe-body.svelte'
 	import StripeContainer from './checkout-stripe-container.svelte'
-	import type { InitiatePaymentSessionFn } from './types.js'
 
 	type ProviderConfig = { elements?: boolean }
 
@@ -18,8 +17,7 @@
 		publishableKey,
 		returnUrl,
 		restrictToCurrentRegion,
-		allowExpressCheckout = true,
-		initiatePaymentSession
+		allowExpressCheckout = true
 	}: {
 		form: RemoteForm<any, any>
 		/** Per-provider config, keyed by the full Medusa provider id (e.g. { pp_stripe_stripe: { elements: true } }). */
@@ -29,7 +27,6 @@
 		returnUrl?: string
 		restrictToCurrentRegion?: boolean
 		allowExpressCheckout?: boolean
-		initiatePaymentSession?: InitiatePaymentSessionFn
 	} = $props()
 
 	const ctx = getCheckoutContext()
@@ -49,7 +46,6 @@
 			publishableKey={publishableKey ?? ''}
 			returnUrl={returnUrl ?? ''}
 			{restrictToCurrentRegion}
-			{initiatePaymentSession}
 		/>
 	{:else}
 		<StripeContainer
@@ -60,7 +56,6 @@
 			{googlePlacesApiKey}
 			{restrictToCurrentRegion}
 			{allowExpressCheckout}
-			{initiatePaymentSession}
 		/>
 	{/if}
 {:else if unsupported}

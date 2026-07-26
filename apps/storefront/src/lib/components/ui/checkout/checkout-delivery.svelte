@@ -1,15 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte'
-	import { getShippingOptions as sdkGetShippingOptions } from 'sveltekit-medusa-sdk'
+	import { getShippingOptions } from 'sveltekit-medusa-sdk'
 	import { cn } from '$lib/utils.js'
 	import { getCheckoutContext } from './ctx.svelte.js'
 	import { formatPrice } from './format-price.js'
-	import type { GetShippingOptionsFn } from './types.js'
 
-	let {
-		class: className = '',
-		getShippingOptions = sdkGetShippingOptions as unknown as GetShippingOptionsFn
-	}: { class?: string; getShippingOptions?: GetShippingOptionsFn } = $props()
+	let { class: className = '' }: { class?: string } = $props()
 
 	const ctx = getCheckoutContext()
 

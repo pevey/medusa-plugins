@@ -21,26 +21,23 @@
 	import Confirmation from './checkout-confirmation.svelte'
 	import CheckoutError from './checkout-error.svelte'
 	import { Root as AddressRoot, Email } from '../address/index.js'
-	import type { InitiatePaymentSessionFn } from './types.js'
 
 	let {
 		form,
 		publishableKey,
 		providerId,
 		returnUrl,
-		restrictToCurrentRegion,
-		initiatePaymentSession
+		restrictToCurrentRegion
 	}: {
 		form: RemoteForm<any, any>
 		publishableKey: string
 		providerId?: string
 		returnUrl: string
 		restrictToCurrentRegion?: boolean
-		initiatePaymentSession?: InitiatePaymentSessionFn
 	} = $props()
 </script>
 
-<StripeElements {publishableKey} {providerId} {initiatePaymentSession}>
+<StripeElements {publishableKey} {providerId}>
 	<div class="mx-auto grid max-w-5xl gap-8 p-4 md:grid-cols-2">
 		<div class="space-y-4">
 			<AddressRoot {form} {restrictToCurrentRegion}>

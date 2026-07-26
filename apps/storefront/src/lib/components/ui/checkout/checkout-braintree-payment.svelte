@@ -4,30 +4,19 @@
 	// the sveltekit-braintree context; no direct braintree-web usage.
 	import { onMount } from 'svelte'
 	import { CardNumber, ExpirationDate, Cvv, getBraintreeContext, tokenizeCard } from 'sveltekit-braintree'
-	import {
-		initiateBraintreePaymentSession as sdkInitiate,
-		formatBraintreeAddress as sdkFormatBraintreeAddress
-	} from 'sveltekit-medusa-sdk'
+	import { initiateBraintreePaymentSession, formatBraintreeAddress } from 'sveltekit-medusa-sdk'
 	import { cn } from '$lib/utils.js'
 	import { getCheckoutContextOptional } from './ctx.svelte.js'
 	import { resolveInputSurface } from './stripe-appearance.js'
-	import type { InitiateBraintreeFn } from './types.js'
 
 	const PROVIDER = 'pp_braintree_braintree'
 
 	let {
-		initiateBraintreePaymentSession = sdkInitiate as unknown as InitiateBraintreeFn,
-		formatBraintreeAddress = sdkFormatBraintreeAddress as unknown as (
-			type: 'billing' | 'shipping',
-			cart: any
-		) => Record<string, string>,
 		cardNumberLabel = 'Card Number',
 		expirationDateLabel = 'Expiration Date',
 		cvvLabel = 'CVV',
 		class: className = ''
 	}: {
-		initiateBraintreePaymentSession?: InitiateBraintreeFn
-		formatBraintreeAddress?: (type: 'billing' | 'shipping', cart: any) => Record<string, string>
 		cardNumberLabel?: string
 		expirationDateLabel?: string
 		cvvLabel?: string

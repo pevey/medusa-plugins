@@ -4,23 +4,11 @@
 	import { braintreeCheckoutForm } from 'sveltekit-medusa-sdk'
 	import Root from './checkout.svelte'
 	import Body from './checkout-braintree-body.svelte'
-	import type {
-		GetCartFn, UpdateCartItemFn, RemoveFromCartFn, GetShippingOptionsFn, SelectShippingOptionFn,
-		AddPromotionFn, RemovePromotionFn, CompleteCartFn
-	} from './types.js'
 
 	interface Props {
 		form?: RemoteForm<any, any>
 		googlePlacesApiKey?: string
 		restrictToCurrentRegion?: boolean
-		getCart?: GetCartFn
-		updateCartItem?: UpdateCartItemFn
-		removeFromCart?: RemoveFromCartFn
-		getShippingOptions?: GetShippingOptionsFn
-		selectShippingOption?: SelectShippingOptionFn
-		addPromotion?: AddPromotionFn
-		removePromotion?: RemovePromotionFn
-		completeCart?: CompleteCartFn
 		navigate?: (url: string) => void | Promise<void>
 		redirectTo?: string | ((order: StoreOrder) => string)
 		oncomplete?: (order: StoreOrder) => void

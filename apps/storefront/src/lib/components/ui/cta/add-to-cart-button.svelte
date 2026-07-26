@@ -4,9 +4,8 @@
 	import { Button } from '$lib/components/ui/button/index.js'
 	import { getProductContextOptional } from '$lib/components/ui/product/ctx.svelte.js'
 	import { isPurchasable } from '$lib/components/ui/product/product-logic.js'
-	import { addToCart as sdkAddToCart } from 'sveltekit-medusa-sdk'
+	import { addToCart } from 'sveltekit-medusa-sdk'
 	import { resolveVariantId, resolveQuantity } from './add-to-cart-logic.js'
-	import type { AddToCartFn } from './types.js'
 	import type { StoreCart } from '@medusajs/types'
 	import type { Snippet } from 'svelte'
 
@@ -21,7 +20,6 @@
 		class?: string
 		onadd?: (cart: StoreCart) => void
 		onerror?: (err: unknown) => void
-		addToCart?: AddToCartFn
 		navigate?: (href: string) => Promise<void> | void
 		children?: Snippet
 		message?: Snippet<[{ status: 'idle' | 'success' | 'error'; cart: StoreCart | null; error: unknown; id: string }]>
@@ -37,7 +35,6 @@
 		class: className = '',
 		onadd,
 		onerror,
-		addToCart = sdkAddToCart as unknown as AddToCartFn,
 		navigate = goto,
 		children,
 		message

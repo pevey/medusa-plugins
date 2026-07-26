@@ -1,16 +1,13 @@
 <script lang="ts">
-	// Reads the cart asynchronously (`experimental.async`, `$derived(await getCart())`).
-	// This component wraps its own render in a `<svelte:boundary>` so it suspends on its own
-	// while the cart loads — consumers do not need to provide an external boundary.
+	// Reads the cart asynchronously (`experimental.async`, `$derived(await getCart())`) and wraps its
+	// own render in a `<svelte:boundary>`, so it suspends on its own while the cart loads — consumers
+	// don't need an external boundary. Awaiting a query stays reactive (re-runs on refresh), and
+	// resolves straight to `StoreCart | null`.
 	import { cn } from '$lib/utils.js'
 	import { getProductContextOptional } from '$lib/components/ui/product/ctx.svelte.js'
-	import {
-		addToCart as sdkAddToCart,
-		removeFromCart as sdkRemoveFromCart,
-		getCart as sdkGetCart
-	} from 'sveltekit-medusa-sdk'
+	import { addToCart, removeFromCart, getCart } from 'sveltekit-medusa-sdk'
 	import { resolveVariantId, findCartLine, cartSatisfiesCondition } from './add-to-cart-logic.js'
-	import type { AddToCartFn, RemoveFromCartFn, GetCartFn, CartCondition } from './types.js'
+	import type { CartCondition } from './types.js'
 	import type { StoreCart } from '@medusajs/types'
 	import type { Snippet } from 'svelte'
 
@@ -21,9 +18,6 @@
 		class?: string
 		onadd?: (cart: StoreCart) => void
 		onremove?: (cart: StoreCart) => void
-		addToCart?: AddToCartFn
-		removeFromCart?: RemoveFromCartFn
-		getCart?: GetCartFn
 		children?: Snippet<[{ on: boolean; pending: boolean; disabled: boolean; toggle: () => void }]>
 	}
 	let {
@@ -33,16 +27,12 @@
 		class: className = '',
 		onadd,
 		onremove,
-		addToCart = sdkAddToCart as unknown as AddToCartFn,
-		removeFromCart = sdkRemoveFromCart as unknown as RemoveFromCartFn,
-		getCart = sdkGetCart as unknown as GetCartFn,
 		children
 	}: Props = $props()
 
 	const ctx = getProductContextOptional()
 	let pending = $state(false)
 
-	// Reactive cart via the injected query (SvelteKit single-flights it across instances).
 	const cart = $derived(await getCart())
 	const resolvedVariantId = $derived(resolveVariantId(variantId, ctx))
 	const line = $derived(findCartLine(cart, resolvedVariantId))

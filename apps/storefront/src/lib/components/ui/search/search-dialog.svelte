@@ -2,11 +2,10 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js'
 	import * as Search from './index.js'
 	import { cn } from '$lib/utils.js'
-	import type { SearchFn, SearchHit } from './ctx.svelte.js'
+	import type { SearchHit } from './ctx.svelte.js'
 	import type { Snippet } from 'svelte'
 
 	interface Props {
-		search?: SearchFn
 		minLength?: number
 		debounce?: number
 		limit?: number
@@ -23,7 +22,6 @@
 		class?: string
 	}
 	let {
-		search,
 		minLength,
 		debounce,
 		limit,
@@ -63,7 +61,7 @@
 	>
 		<Dialog.Title class="sr-only">Search</Dialog.Title>
 		<Dialog.Description class="sr-only">Search the store. Results update as you type.</Dialog.Description>
-		<Search.Root {search} {minLength} {debounce} {limit}>
+		<Search.Root {minLength} {debounce} {limit}>
 			<Search.Input
 				{placeholder}
 				{icon}

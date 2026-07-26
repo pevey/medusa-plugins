@@ -1,26 +1,19 @@
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte'
 	import { Elements } from 'sveltekit-stripe'
-	import { initiatePaymentSession as sdkInitiate } from 'sveltekit-medusa-sdk'
+	import { initiatePaymentSession } from 'sveltekit-medusa-sdk'
 	import { getStripeClientSecret } from './checkout-logic.js'
 	import { buildStripeAppearance, resolveInputSurface } from './stripe-appearance.js'
 	import { setStripeClientSecretContext } from './stripe-cs-context.js'
-	import type { InitiatePaymentSessionFn } from './types.js'
 
 	interface Props {
 		/** Stripe publishable key (pk_...). */
 		publishableKey: string
 		/** Medusa Stripe provider id — any `pp_stripe-*` (card, iDEAL, Bancontact, …). */
 		providerId?: string
-		initiatePaymentSession?: InitiatePaymentSessionFn
 		children: Snippet
 	}
-	let {
-		publishableKey,
-		providerId = 'pp_stripe_stripe',
-		initiatePaymentSession = sdkInitiate as unknown as InitiatePaymentSessionFn,
-		children
-	}: Props = $props()
+	let { publishableKey, providerId = 'pp_stripe_stripe', children }: Props = $props()
 
 	// The Stripe <Elements> provider must be created WITH the PaymentIntent client_secret, so we
 	// initiate the Medusa payment session first, then mount <Elements> around the address + payment

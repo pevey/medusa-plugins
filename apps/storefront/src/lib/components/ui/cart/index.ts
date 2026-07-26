@@ -20,6 +20,6 @@ export {
 	getCartContext, getCartContextOptional, setCartContext, getCartLineContext, setCartLineContext
 } from './ctx.svelte.js'
 export type { CartContext, CartLineContext } from './ctx.svelte.js'
-export type { CartLine, CartQuery, GetCartFn, UpdateCartItemFn, RemoveFromCartFn, LineHrefFn } from './types.js'
+export type { CartLine, CartQuery, LineHrefFn } from './types.js'
 export { formatPrice } from './format-price.js'
 export * as logic from './cart-logic.js'

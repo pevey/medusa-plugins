@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as Search from './index.js'
 	import { cn } from '$lib/utils.js'
-	import type { SearchFn, SearchHit } from './ctx.svelte.js'
+	import type { SearchHit } from './ctx.svelte.js'
 	import type { Snippet } from 'svelte'
 
 	interface Props {
@@ -11,7 +11,6 @@
 		minLength?: number
 		debounce?: number
 		limit?: number
-		search?: SearchFn
 		href?: (hit: SearchHit) => string
 		icon?: Snippet
 		class?: string
@@ -25,7 +24,6 @@
 		minLength,
 		debounce,
 		limit,
-		search,
 		href,
 		icon,
 		class: className = ''
@@ -47,7 +45,7 @@
 
 <!-- Expanded: full box with live-results dropdown. -->
 <div data-search-expanded class={cn(EXPANDED[breakpoint], 'w-full max-w-xl', className)}>
-	<Search.Root {search} {minLength} {debounce} {limit}>
+	<Search.Root {minLength} {debounce} {limit}>
 		<Search.Input {placeholder} {icon} />
 		<Search.Results {href} />
 	</Search.Root>

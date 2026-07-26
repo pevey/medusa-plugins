@@ -26,10 +26,11 @@ export type UpdateCartArgs = {
 	metadata?: Record<string, unknown>
 }
 
-// SDK remotes, typed structurally so tests inject plain fakes.
-export type GetCartFn = () => { current: StoreCart | null | undefined; set?: (c: StoreCart) => void }
-export type GetRegionsFn = () => Promise<StoreRegion[]> & { current: StoreRegion[] | undefined }
-export type UpdateCartFn = (args: UpdateCartArgs) => Promise<StoreCart | null>
+// getCart/getRegions are SvelteKit remote queries — awaitable AND exposing `.current` (getRegions'
+// query is also awaited directly for its resolved value). Root bridges the SDK's under-resolved
+// return types to these shapes.
+export type CartQuery = { current: StoreCart | null | undefined }
+export type RegionsResource = Promise<StoreRegion[]> & { current: StoreRegion[] | undefined }
 
 export type Country = { code: string; name: string }
 

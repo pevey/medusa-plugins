@@ -8,15 +8,13 @@
 	import type { StoreOrder } from '@medusajs/types'
 	import { loadStripe } from '@stripe/stripe-js'
 	import { getRedirectResult } from 'sveltekit-stripe'
-	import { completeCart as sdkCompleteCart } from 'sveltekit-medusa-sdk'
+	import { completeCart } from 'sveltekit-medusa-sdk'
 	import { cn } from '$lib/utils.js'
 	import { resolveRedirect } from './checkout-logic.js'
-	import type { CompleteCartFn } from './types.js'
 
 	interface Props {
 		/** Stripe publishable key (pk_...). */
 		publishableKey: string
-		completeCart?: CompleteCartFn
 		navigate?: (url: string) => void | Promise<void>
 		/** Where to send the shopper once the order is created (string or `(order) => url`). */
 		redirectTo?: string | ((order: StoreOrder) => string)
@@ -26,7 +24,6 @@
 	}
 	let {
 		publishableKey,
-		completeCart = sdkCompleteCart as unknown as CompleteCartFn,
 		navigate = goto,
 		redirectTo,
 		oncomplete,

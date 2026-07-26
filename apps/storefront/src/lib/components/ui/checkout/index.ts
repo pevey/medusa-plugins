@@ -44,16 +44,6 @@ export type {
 	UpdateAddress,
 	AuthorizePayment,
 	CartQuery,
-	GetCartFn,
-	UpdateCartItemFn,
-	RemoveFromCartFn,
-	GetShippingOptionsFn,
-	SelectShippingOptionFn,
-	AddPromotionFn,
-	RemovePromotionFn,
-	InitiateBraintreeFn,
-	InitiatePaymentSessionFn,
-	CompleteCartFn,
 	CheckoutContext,
 	CheckoutLineContext
 } from './types.js'
