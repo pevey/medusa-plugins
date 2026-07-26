@@ -14,10 +14,30 @@ import Subtotal from './cart-subtotal.svelte'
 import Checkout from './cart-checkout.svelte'
 import Empty from './cart-empty.svelte'
 
-export { Root, Trigger, Badge, Sheet, Items, Item, Image, Title, Price, ItemSubtotal, Quantity, Remove, Subtotal, Checkout, Empty }
+export {
+	Root,
+	Trigger,
+	Badge,
+	Sheet,
+	Items,
+	Item,
+	Image,
+	Title,
+	Price,
+	ItemSubtotal,
+	Quantity,
+	Remove,
+	Subtotal,
+	Checkout,
+	Empty
+}
 export { default as CartDrawer } from './cart-drawer.svelte'
 export {
-	getCartContext, getCartContextOptional, setCartContext, getCartLineContext, setCartLineContext
+	getCartContext,
+	getCartContextOptional,
+	setCartContext,
+	getCartLineContext,
+	setCartLineContext
 } from './ctx.svelte.js'
 export type { CartContext, CartLineContext } from './ctx.svelte.js'
 export type { CartLine, CartQuery, LineHrefFn } from './types.js'

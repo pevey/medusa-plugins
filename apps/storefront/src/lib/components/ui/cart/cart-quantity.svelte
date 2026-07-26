@@ -5,7 +5,11 @@
 	import PlusIcon from '@lucide/svelte/icons/plus'
 	import { getCartContext, getCartLineContext } from './ctx.svelte.js'
 
-	let { min = 1, max = 9999, class: className = '' }: { min?: number; max?: number; class?: string } = $props()
+	let {
+		min = 1,
+		max = 9999,
+		class: className = ''
+	}: { min?: number; max?: number; class?: string } = $props()
 	const ctx = getCartContext()
 	const { item } = getCartLineContext()
 
@@ -55,9 +59,9 @@
 		aria-label="Quantity"
 		value={draft}
 		{disabled}
-		oninput={(e) => (draft = e.currentTarget.value.replace(/\D/g, '').slice(0, 4))}
+		oninput={e => (draft = e.currentTarget.value.replace(/\D/g, '').slice(0, 4))}
 		onblur={commitDraft}
-		onkeydown={(e) => {
+		onkeydown={e => {
 			if (e.key === 'Enter') e.currentTarget.blur()
 		}}
 		class="w-12 border-none bg-transparent text-center text-sm font-medium tabular-nums focus:outline-none focus:ring-0 disabled:opacity-50"

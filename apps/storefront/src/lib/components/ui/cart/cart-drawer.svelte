@@ -10,8 +10,9 @@
 	import Remove from './cart-remove.svelte'
 	import Subtotal from './cart-subtotal.svelte'
 	import Checkout from './cart-checkout.svelte'
-	import type { LineHrefFn } from './types.js'
 	import type { StoreCart } from '@medusajs/types'
+	import { cn } from '$lib/utils.js'
+	import type { LineHrefFn } from './types.js'
 
 	interface Props {
 		onupdate?: (cart: StoreCart) => void
@@ -23,15 +24,26 @@
 		contentClass?: string
 	}
 	let {
-		onupdate, onremove, onerror,
-		checkoutUrl = '/checkout', lineHref, triggerClass = '', contentClass = ''
+		onupdate,
+		onremove,
+		onerror,
+		checkoutUrl = '/checkout',
+		lineHref,
+		triggerClass = '',
+		contentClass = ''
 	}: Props = $props()
 </script>
 
 <Root {onupdate} {onremove} {onerror} {checkoutUrl} {lineHref}>
 	<Sheet.Root>
 		<Trigger class={triggerClass} />
-		<Sheet.Content side="right" class={`flex w-full flex-col gap-0 overflow-y-auto p-6 sm:max-w-lg ${contentClass}`}>
+		<Sheet.Content
+			side="right"
+			class={cn(
+				'w-full! sm:w-4/5! md:w-2/3! lg:w-2/3! xl:w-1/2! sm:max-w-none! gap-0 overflow-y-auto p-6',
+				contentClass
+			)}
+		>
 			<Sheet.Header>
 				<Sheet.Title class="text-center text-2xl font-semibold">Cart</Sheet.Title>
 				<Sheet.Description class="sr-only">Your shopping cart</Sheet.Description>
@@ -55,7 +67,9 @@
 
 			<div class="sticky bottom-0 mt-auto border-t bg-popover py-4">
 				<Subtotal class="px-2" />
-				<p class="mt-1 px-2 text-sm text-muted-foreground">Shipping and taxes calculated at checkout.</p>
+				<p class="mt-1 px-2 text-sm text-muted-foreground">
+					Shipping and taxes calculated at checkout.
+				</p>
 				<div class="mt-4 px-2">
 					<Checkout />
 				</div>

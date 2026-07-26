@@ -6,7 +6,11 @@
 	import type { Snippet } from 'svelte'
 
 	// `children` is the per-row template; it reads the current line via getCartLineContext().
-	let { class: className = '', children, empty }: { class?: string; children?: Snippet; empty?: Snippet } = $props()
+	let {
+		class: className = '',
+		children,
+		empty
+	}: { class?: string; children?: Snippet; empty?: Snippet } = $props()
 	const ctx = getCartContext()
 	const items = $derived(ctx.cart?.items ?? [])
 </script>
@@ -16,7 +20,10 @@
 		{#each items as item (item.id)}
 			<Item {item}>
 				{#if children}{@render children()}{:else}
-					<span>{item.product_title}{#if item.variant_title} — {item.variant_title}{/if} × {item.quantity}</span>
+					<span
+						>{item.product_title}{#if item.variant_title}
+							— {item.variant_title}{/if} × {item.quantity}</span
+					>
 				{/if}
 			</Item>
 		{/each}

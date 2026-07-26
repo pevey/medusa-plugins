@@ -23,17 +23,21 @@ const LINE = Symbol('cart-line')
 export function setCartContext(ctx: CartContext) {
 	setContext(CART, ctx)
 }
+
 export function getCartContext(): CartContext {
 	const ctx = getContext<CartContext>(CART)
 	if (!ctx) throw new Error('Cart.* must be used within <Cart.Root>')
 	return ctx
 }
+
 export function getCartContextOptional(): CartContext | null {
 	return getContext<CartContext>(CART) ?? null
 }
+
 export function setCartLineContext(ctx: CartLineContext) {
 	setContext(LINE, ctx)
 }
+
 export function getCartLineContext(): CartLineContext {
 	const ctx = getContext<CartLineContext>(LINE)
 	if (!ctx) throw new Error('Cart line parts must be used within <Cart.Item>')

@@ -11,7 +11,9 @@
 	const currency = $derived(
 		(ctx.cart as { currency_code?: string } | null | undefined)?.currency_code ?? 'usd'
 	)
-	const formatted = $derived(ctx.subtotal == null ? '' : formatPrice(ctx.subtotal, currency, locale))
+	const formatted = $derived(
+		ctx.subtotal == null ? '' : formatPrice(ctx.subtotal, currency, locale)
+	)
 </script>
 
 {#if formatted}

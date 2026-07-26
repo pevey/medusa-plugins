@@ -9,7 +9,9 @@
 </script>
 
 <Sheet.Trigger class={cn('relative inline-flex items-center', className)}>
-	{#if children}{@render children()}{:else}
+	{#if children}
+		{@render children()}
+	{:else}
 		<ShoppingBag class="size-7" />
 		<Badge />
 		<span class="sr-only">Cart</span>
