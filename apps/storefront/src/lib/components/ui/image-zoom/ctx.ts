@@ -35,3 +35,8 @@ export function getImageZoomContext() {
 	}
 	return ctx
 }
+
+/** Non-throwing lookup — returns null when there is no ImageZoom.Root ancestor. */
+export function getImageZoomContextOptional(): ImageZoomContext | null {
+	return getContext<ImageZoomContext>(IMAGE_ZOOM_KEY) ?? null
+}

@@ -4,3 +4,5 @@ import Root from './image-zoom.svelte'
 import Trigger from './image-zoom-trigger.svelte'
 
 export { Root, Trigger }
+export { getImageZoomContext, getImageZoomContextOptional } from './ctx'
+export type { ZoomImageData } from './ctx'

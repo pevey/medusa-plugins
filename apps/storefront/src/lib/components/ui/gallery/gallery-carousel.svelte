@@ -11,7 +11,7 @@
 <Carousel.Root
 	opts={gallery.opts}
 	plugins={gallery.plugins}
-	setApi={a => (gallery.mainApi = a)}
+	setApi={gallery.registerMain}
 	class={cn('min-w-0 flex-1', className)}
 >
 	<Carousel.Content>{@render children()}</Carousel.Content>
