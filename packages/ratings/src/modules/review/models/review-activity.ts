@@ -5,6 +5,8 @@ export enum ReviewActivityType {
 	SUBMIT = 'submit',
 	APPROVE = 'approve',
 	REJECT = 'reject',
+	FEATURE = 'feature',
+	UNFEATURE = 'unfeature',
 	NOTE = 'note'
 }
 

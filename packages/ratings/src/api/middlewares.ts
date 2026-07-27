@@ -7,6 +7,7 @@ import {
 import {
 	AdminApproveReviewAction,
 	AdminRejectReviewAction,
+	AdminFeatureReviewAction,
 	AdminDeleteReviews,
 	AdminGetReview,
 	AdminGetReviews,
@@ -43,6 +44,7 @@ export default defineMiddlewares([
 					'product_id',
 					'order_id',
 					'customer_id',
+					'featured',
 					'created_at',
 					'updated_at',
 					'product.*'
@@ -73,6 +75,7 @@ export default defineMiddlewares([
 					'product_id',
 					'order_id',
 					'customer_id',
+					'featured',
 					'metadata',
 					'created_at',
 					'updated_at',
@@ -102,6 +105,11 @@ export default defineMiddlewares([
 		matcher: '/admin/reviews/reject',
 		method: ['POST'],
 		middlewares: [validateAndTransformBody(AdminRejectReviewAction)]
+	},
+	{
+		matcher: '/admin/reviews/feature',
+		method: ['POST'],
+		middlewares: [validateAndTransformBody(AdminFeatureReviewAction)]
 	},
 	// ── Store ────────────────────────────────────────────────────────────────
 	{
@@ -146,6 +154,7 @@ export default defineMiddlewares([
 					'author_name',
 					'product_id',
 					'customer_id',
+					'featured',
 					'created_at'
 				],
 				isList: true,

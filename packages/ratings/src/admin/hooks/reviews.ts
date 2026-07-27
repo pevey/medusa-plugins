@@ -75,3 +75,15 @@ export const useRejectReviews = () => {
 		}
 	})
 }
+
+export const useFeatureReviews = () => {
+	const queryClient = useQueryClient()
+	return useMutation({
+		mutationFn: (vars: { ids: string[]; featured?: boolean }) =>
+			sdk.client.fetch('/admin/reviews/feature', { method: 'POST', body: vars }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['reviews'] })
+			queryClient.invalidateQueries({ queryKey: ['review'] })
+		}
+	})
+}

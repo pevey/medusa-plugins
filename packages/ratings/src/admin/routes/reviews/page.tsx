@@ -23,7 +23,8 @@ import {
 	useReviewsList,
 	useApproveReviews,
 	useRejectReviews,
-	useDeleteReviews
+	useDeleteReviews,
+	useFeatureReviews
 } from '../../hooks/reviews'
 
 export const config = defineRouteConfig({ label: 'Reviews', icon: Star, rank: 10 })
@@ -65,6 +66,7 @@ const ReviewsPage = () => {
 	const { mutateAsync: approveReviews } = useApproveReviews()
 	const { mutateAsync: rejectReviews } = useRejectReviews()
 	const { mutateAsync: deleteReviews } = useDeleteReviews()
+	const { mutateAsync: featureReviews } = useFeatureReviews()
 
 	const columnHelper = createDataTableColumnHelper<AdminReview>()
 	const columns = [
@@ -83,6 +85,15 @@ const ReviewsPage = () => {
 		columnHelper.accessor('rating', {
 			header: 'Rating',
 			cell: ({ getValue }) => `${getValue()} / 5`
+		}),
+		columnHelper.accessor('featured', {
+			header: 'Featured',
+			cell: ({ getValue }) =>
+				getValue() ? (
+					<Star className="text-ui-fg-interactive" />
+				) : (
+					<Text size="small" className="text-ui-fg-muted">—</Text>
+				)
 		}),
 		columnHelper.accessor('author_name', {
 			header: 'Author',
@@ -134,6 +145,23 @@ const ReviewsPage = () => {
 	const commandHelper = createDataTableCommandHelper()
 	const prompt = usePrompt()
 	const useCommands = () => [
+		commandHelper.command({
+			label: 'Feature',
+			shortcut: 'F',
+			action: async selection => {
+				const ids = Object.keys(selection)
+				const confirmed = await prompt({
+					title: `Feature ${ids.length} review${ids.length > 1 ? 's' : ''}?`,
+					description: 'Featured reviews can be highlighted on the storefront.',
+					confirmText: 'Feature',
+					cancelText: 'Cancel',
+					variant: 'confirmation'
+				})
+				if (!confirmed) return
+				await featureReviews({ ids, featured: true })
+				setRowSelection({})
+			}
+		}),
 		commandHelper.command({
 			label: 'Approve',
 			shortcut: 'A',

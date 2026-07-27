@@ -3,30 +3,28 @@ import { Modules } from '@medusajs/framework/utils'
 import type { ICachingModuleService } from '@medusajs/types'
 import { REVIEW_MODULE } from '../../../../modules/review'
 import { ReviewService } from '../../../../modules/review/service'
-import { AdminRejectReviewActionType } from '../../../validators'
+import { AdminFeatureReviewActionType } from '../../../validators'
 import { clearReviewCaches } from '../../../store/reviews/cache'
 
 export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminRejectReviewActionType>,
+	req: AuthenticatedMedusaRequest<AdminFeatureReviewActionType>,
 	res: MedusaResponse
 ) => {
 	const reviewService: ReviewService = req.scope.resolve(REVIEW_MODULE)
 	let caching: ICachingModuleService | null = null
 	try { caching = req.scope.resolve(Modules.CACHING) ?? null } catch { /* noop */ }
-	const { ids } = req.validatedBody
+	const { ids, featured } = req.validatedBody
 
-	// Collect product_ids before rejecting so we know which caches to clear,
-	// tolerating unknown ids so a partial match doesn't fail the whole request
+	// Tolerate unknown ids so a partial match doesn't fail the whole request
 	const found = (await Promise.all(
 		ids.map(id => reviewService.retrieveReview(id).catch(() => null))
 	)).filter((r): r is NonNullable<typeof r> => r !== null)
 	const foundIds = found.map(r => r.id)
 	const productIds = [...new Set(found.map(r => r.product_id).filter(Boolean))]
 
-	await Promise.all(foundIds.map(id => reviewService.rejectReview(id, req.auth_context.actor_id)))
+	await Promise.all(foundIds.map(id => reviewService.setFeatured(id, req.auth_context.actor_id, featured)))
 
-	// Invalidate store cache for affected products
 	await Promise.all(productIds.map(pid => clearReviewCaches(caching, pid as string)))
 
-	res.json({ rejected: foundIds })
+	res.json({ featured: foundIds })
 }

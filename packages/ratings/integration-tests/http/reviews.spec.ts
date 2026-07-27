@@ -80,7 +80,8 @@ medusaIntegrationTestRunner({
 				['POST', `/admin/reviews/${FAKE_ID}`, { status: 'approved' }],
 				['DELETE', `/admin/reviews/${FAKE_ID}`, null],
 				['POST', '/admin/reviews/approve', { ids: [FAKE_ID] }],
-				['POST', '/admin/reviews/reject', { ids: [FAKE_ID] }]
+				['POST', '/admin/reviews/reject', { ids: [FAKE_ID] }],
+				['POST', '/admin/reviews/feature', { ids: [FAKE_ID] }]
 			] as const
 
 			it.each(endpoints)('%s %s returns 401 without auth token', async (method, path, body) => {
@@ -123,6 +124,13 @@ medusaIntegrationTestRunner({
 			it('POST /admin/reviews/reject rejects missing ids', async () => {
 				const res = await api
 					.post('/admin/reviews/reject', {}, auth())
+					.catch((e: any) => e.response)
+				expect(res.status).toBe(400)
+			})
+
+			it('POST /admin/reviews/feature rejects missing ids', async () => {
+				const res = await api
+					.post('/admin/reviews/feature', {}, auth())
 					.catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
@@ -349,7 +357,7 @@ medusaIntegrationTestRunner({
 
 				const res = await api.delete(`/admin/reviews/${review.id}`, auth())
 				expect(res.status).toBe(200)
-				expect(res.data.deleted).toContain(review.id)
+				expect(res.data).toMatchObject({ id: review.id, object: 'review', deleted: true })
 			})
 
 			it('removes the review from subsequent list', async () => {
@@ -393,6 +401,30 @@ medusaIntegrationTestRunner({
 				const res = await api.delete('/admin/reviews', { data: { ids: [r1.id, r2.id] }, headers: auth().headers })
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toEqual(expect.arrayContaining([r1.id, r2.id]))
+			})
+
+			it('tolerates unknown ids mixed with real ones', async () => {
+				const r = await reviewService.createReviews({
+					rating: 3,
+					body: 'Bulk delete partial',
+					author_name: 'Bulk Deleter',
+					product_id: 'prod_delete_test_partial',
+					status: 'pending'
+				})
+
+				const res = await api.delete('/admin/reviews', {
+					data: { ids: [r.id, 'rev_does_not_exist_xyz'] },
+					headers: auth().headers
+				})
+				expect(res.status).toBe(200)
+				expect(res.data.deleted).toContain(r.id)
+				expect(res.data.deleted).not.toContain('rev_does_not_exist_xyz')
+
+				const listRes = await api.get(
+					'/admin/reviews?product_id=prod_delete_test_partial',
+					auth()
+				)
+				expect(listRes.data.reviews.some((rev: any) => rev.id === r.id)).toBe(false)
 			})
 		})
 
@@ -451,6 +483,26 @@ medusaIntegrationTestRunner({
 					})
 				}
 			})
+
+			it('tolerates unknown ids mixed with real ones', async () => {
+				const r = await reviewService.createReviews({
+					rating: 3,
+					body: 'Approve me partial',
+					author_name: 'Approve Tester',
+					status: 'pending'
+				})
+
+				const res = await api.post(
+					'/admin/reviews/approve',
+					{ ids: [r.id, 'rev_does_not_exist_xyz'] },
+					auth()
+				)
+				expect(res.status).toBe(200)
+				expect(res.data.approved).toEqual([r.id])
+
+				const detailRes = await api.get(`/admin/reviews/${r.id}`, auth())
+				expect(detailRes.data.review.status).toBe('approved')
+			})
 		})
 
 		// ── Bulk reject ───────────────────────────────────────────────────────────
@@ -507,6 +559,127 @@ medusaIntegrationTestRunner({
 						user_id: expect.stringMatching(/^user_/)
 					})
 				}
+			})
+		})
+
+		// ── Bulk feature ──────────────────────────────────────────────────────────
+
+		describe('POST /admin/reviews/feature', () => {
+			let reviewIds: string[] = []
+			beforeAll(async () => {
+				const [r1, r2] = await Promise.all([
+					reviewService.createReviews({ rating: 5, body: 'Feature me 1', author_name: 'Feature Tester', status: 'approved' }),
+					reviewService.createReviews({ rating: 4, body: 'Feature me 2', author_name: 'Feature Tester', status: 'approved' })
+				])
+				reviewIds = [r1.id, r2.id]
+				await seedSnapshot()
+			})
+			afterAll(async () => { await reviewService.deleteReviews(reviewIds).catch(() => {}) })
+
+			it('returns 401 without auth', async () => {
+				const res = await api.post('/admin/reviews/feature', { ids: reviewIds }).catch((e: any) => e.response)
+				expect(res.status).toBe(401)
+			})
+
+			it('rejects missing ids', async () => {
+				const res = await api.post('/admin/reviews/feature', {}, auth()).catch((e: any) => e.response)
+				expect(res.status).toBe(400)
+			})
+
+			it('features multiple reviews and returns the ids', async () => {
+				const res = await api.post('/admin/reviews/feature', { ids: reviewIds }, auth())
+				expect(res.status).toBe(200)
+				expect(res.data.featured).toEqual(expect.arrayContaining(reviewIds))
+				for (const id of reviewIds) {
+					const detail = await api.get(`/admin/reviews/${id}`, auth())
+					expect(detail.data.review.featured).toBe(true)
+					expect(detail.data.review.activity.some((a: any) => a.type === 'feature')).toBe(true)
+				}
+			})
+
+			it('unfeatures when featured=false and logs an unfeature activity', async () => {
+				await api.post('/admin/reviews/feature', { ids: reviewIds, featured: true }, auth())
+				const res = await api.post('/admin/reviews/feature', { ids: reviewIds, featured: false }, auth())
+				expect(res.status).toBe(200)
+				for (const id of reviewIds) {
+					const detail = await api.get(`/admin/reviews/${id}`, auth())
+					expect(detail.data.review.featured).toBe(false)
+					expect(detail.data.review.activity.some((a: any) => a.type === 'unfeature')).toBe(true)
+				}
+			})
+
+			it('tolerates unknown ids mixed with real ones', async () => {
+				const r = await reviewService.createReviews({
+					rating: 5,
+					body: 'Feature me partial',
+					author_name: 'Feature Tester',
+					status: 'approved'
+				})
+
+				const res = await api.post(
+					'/admin/reviews/feature',
+					{ ids: [r.id, 'rev_does_not_exist_xyz'], featured: true },
+					auth()
+				)
+				expect(res.status).toBe(200)
+				expect(res.data.featured).toEqual([r.id])
+
+				const detail = await api.get(`/admin/reviews/${r.id}`, auth())
+				expect(detail.data.review.featured).toBe(true)
+			})
+		})
+
+		// ── Featured field ────────────────────────────────────────────────────────
+
+		describe('featured field', () => {
+			let reviewId: string
+			beforeAll(async () => {
+				const r = await reviewService.createReviews({
+					rating: 5, body: 'Feature field default', author_name: 'Field Tester', status: 'approved'
+				})
+				reviewId = r.id
+				await seedSnapshot()
+			})
+			afterAll(async () => { await reviewService.deleteReviews([reviewId]).catch(() => {}) })
+
+			it('defaults featured to false and exposes it on the admin detail', async () => {
+				const res = await api.get(`/admin/reviews/${reviewId}`, auth())
+				expect(res.status).toBe(200)
+				expect(res.data.review.featured).toBe(false)
+			})
+
+			it('exposes featured on the admin list', async () => {
+				const res = await api.get('/admin/reviews?status=approved', auth())
+				const found = res.data.reviews.find((r: any) => r.id === reviewId)
+				expect(found).toHaveProperty('featured')
+			})
+		})
+
+		// ── Set Featured ──────────────────────────────────────────────────────────
+
+		describe('reviewService.setFeatured', () => {
+			let reviewId: string
+			beforeAll(async () => {
+				const r = await reviewService.createReviews({
+					rating: 4, body: 'Feature me service', author_name: 'Service Tester', status: 'approved'
+				})
+				reviewId = r.id
+				await seedSnapshot()
+			})
+			afterAll(async () => { await reviewService.deleteReviews([reviewId]).catch(() => {}) })
+
+			it('sets featured=true and logs a feature activity', async () => {
+				await reviewService.setFeatured(reviewId, 'user_test_service', true)
+				const res = await api.get(`/admin/reviews/${reviewId}`, auth())
+				expect(res.data.review.featured).toBe(true)
+				expect(res.data.review.activity.some((a: any) => a.type === 'feature')).toBe(true)
+			})
+
+			it('sets featured=false and logs an unfeature activity', async () => {
+				await reviewService.setFeatured(reviewId, 'user_test_service', false)
+				const res = await api.get(`/admin/reviews/${reviewId}`, auth())
+				expect(res.data.review.featured).toBe(false)
+				expect(res.data.review.activity.some((a: any) => a.type === 'unfeature')).toBe(true)
 			})
 		})
 
@@ -583,6 +756,21 @@ medusaIntegrationTestRunner({
 						product_id: PRODUCT_ID,
 						customer_id: 'cus_someone_else',
 						status: 'pending'
+					}),
+					reviewService.createReviews({
+						rating: 5,
+						body: 'Featured approved',
+						author_name: 'Featured Person',
+						product_id: PRODUCT_ID,
+						status: 'approved',
+						featured: true
+					}),
+					reviewService.createReviews({
+						rating: 1,
+						body: 'One star approved',
+						author_name: 'One Star Person',
+						product_id: PRODUCT_ID,
+						status: 'approved'
 					})
 				])
 				await seedSnapshot()
@@ -713,6 +901,43 @@ medusaIntegrationTestRunner({
 				expect(otherPending).toHaveLength(0)
 			})
 
+			// ── Filter/sort/paginate tests ───────────────────────────────────────
+
+			it('filters by rating', async () => {
+				const res = await api.get(`/store/reviews/${PRODUCT_ID}?rating=5`, storeHeaders())
+				expect(res.status).toBe(200)
+				expect(res.data.reviews.length).toBeGreaterThanOrEqual(1)
+				expect(res.data.reviews.every((r: any) => r.rating === 5)).toBe(true)
+			})
+
+			it('filters by featured=true', async () => {
+				const res = await api.get(`/store/reviews/${PRODUCT_ID}?featured=true`, storeHeaders())
+				expect(res.status).toBe(200)
+				expect(res.data.reviews.length).toBeGreaterThanOrEqual(1)
+				expect(res.data.reviews.every((r: any) => r.featured === true)).toBe(true)
+			})
+
+			it('featured=false returns all approved reviews (no filter)', async () => {
+				const res = await api.get(`/store/reviews/${PRODUCT_ID}?featured=false`, storeHeaders())
+				expect(res.status).toBe(200)
+				// includes at least one non-featured approved review
+				expect(res.data.reviews.some((r: any) => r.featured !== true)).toBe(true)
+			})
+
+			it('paginates with limit/offset and reports the full filtered count', async () => {
+				const res = await api.get(`/store/reviews/${PRODUCT_ID}?limit=1&offset=0`, storeHeaders())
+				expect(res.status).toBe(200)
+				expect(res.data.reviews).toHaveLength(1)
+				expect(res.data.count).toBeGreaterThanOrEqual(3)
+			})
+
+			it('sorts by order=-rating (highest first)', async () => {
+				const res = await api.get(`/store/reviews/${PRODUCT_ID}?order=-rating`, storeHeaders())
+				expect(res.status).toBe(200)
+				const ratings = res.data.reviews.map((r: any) => r.rating)
+				expect(ratings).toEqual([...ratings].sort((a: number, b: number) => b - a))
+			})
+
 			// ── Caching tests ─────────────────────────────────────────────────────
 
 			it('GET /store/reviews/:productId returns cached response on second call', async () => {
@@ -750,6 +975,78 @@ medusaIntegrationTestRunner({
 				const after = await api.get(`/store/reviews/${PRODUCT_ID}`, storeHeaders())
 				const afterIds = after.data.reviews.map((r: any) => r.id)
 				expect(afterIds).toContain(pendingReview.id)
+			})
+
+			// ── Summary ───────────────────────────────────────────────────────────
+
+			describe('summary', () => {
+				const SUM_PRODUCT = 'prod_summary_001'
+				const SUM_EMPTY = 'prod_summary_empty'
+				const SUM_MANY = 'prod_summary_many'
+				beforeAll(async () => {
+					await Promise.all([
+						reviewService.createReviews({ rating: 5, body: 'a', author_name: 'S1', product_id: SUM_PRODUCT, status: 'approved' }),
+						reviewService.createReviews({ rating: 5, body: 'b', author_name: 'S2', product_id: SUM_PRODUCT, status: 'approved' }),
+						reviewService.createReviews({ rating: 4, body: 'c', author_name: 'S3', product_id: SUM_PRODUCT, status: 'approved' }),
+						reviewService.createReviews({ rating: 2, body: 'd', author_name: 'S4', product_id: SUM_PRODUCT, status: 'approved' }),
+						reviewService.createReviews({ rating: 1, body: 'pending ignored', author_name: 'S5', product_id: SUM_PRODUCT, status: 'pending' })
+					])
+					// 21 approved to prove the aggregate is not capped at the list default (20)
+					await Promise.all(Array.from({ length: 21 }, (_, i) =>
+						reviewService.createReviews({ rating: 5, body: `many ${i}`, author_name: 'Many', product_id: SUM_MANY, status: 'approved' })
+					))
+					await seedSnapshot()
+				})
+
+				it('returns average, count and distribution over approved reviews only', async () => {
+					const res = await api.get(`/store/reviews/${SUM_PRODUCT}/summary`, storeHeaders())
+					expect(res.status).toBe(200)
+					expect(res.data.count).toBe(4)
+					expect(res.data.average).toBe(4)          // (5+5+4+2)/4 = 4.0
+					expect(res.data.distribution).toMatchObject({ '1': 0, '2': 1, '3': 0, '4': 1, '5': 2 })
+				})
+
+				it('returns zeros for a product with no approved reviews', async () => {
+					const res = await api.get(`/store/reviews/${SUM_EMPTY}/summary`, storeHeaders())
+					expect(res.status).toBe(200)
+					expect(res.data).toMatchObject({ average: 0, count: 0, distribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 } })
+				})
+
+				it('is not capped at the list page size', async () => {
+					const res = await api.get(`/store/reviews/${SUM_MANY}/summary`, storeHeaders())
+					expect(res.status).toBe(200)
+					expect(res.data.count).toBe(21)
+					expect(res.data.average).toBe(5)
+				})
+
+				it('is invalidated when a new review is approved', async () => {
+					const before = await api.get(`/store/reviews/${SUM_PRODUCT}/summary`, storeHeaders())
+					const pending = await reviewService.createReviews({
+						rating: 5, body: 'to approve', author_name: 'Approver', product_id: SUM_PRODUCT, status: 'pending'
+					})
+					await api.post(`/admin/reviews/${pending.id}`, { status: 'approved' }, auth())
+					const after = await api.get(`/store/reviews/${SUM_PRODUCT}/summary`, storeHeaders())
+					expect(after.data.count).toBe(before.data.count + 1)
+				})
+
+				it('excludes out-of-range ratings from count, average and distribution', async () => {
+					const SUM_OUT_OF_RANGE = 'prod_summary_out_of_range'
+					await Promise.all([
+						reviewService.createReviews({ rating: 6, body: 'invalid rating', author_name: 'Bad', product_id: SUM_OUT_OF_RANGE, status: 'approved' }),
+						reviewService.createReviews({ rating: 5, body: 'valid 1', author_name: 'Good1', product_id: SUM_OUT_OF_RANGE, status: 'approved' }),
+						reviewService.createReviews({ rating: 3, body: 'valid 2', author_name: 'Good2', product_id: SUM_OUT_OF_RANGE, status: 'approved' })
+					])
+					await seedSnapshot()
+
+					const res = await api.get(`/store/reviews/${SUM_OUT_OF_RANGE}/summary`, storeHeaders())
+					expect(res.status).toBe(200)
+					expect(res.data.count).toBe(2)
+					expect(res.data.average).toBe(4) // (5+3)/2 = 4.0
+					const distributionSum = Object.values(res.data.distribution as Record<string, number>)
+						.reduce((sum: number, n: number) => sum + n, 0)
+					expect(distributionSum).toBe(res.data.count)
+					expect(res.data.distribution['6']).toBeUndefined()
+				})
 			})
 		})
 	}

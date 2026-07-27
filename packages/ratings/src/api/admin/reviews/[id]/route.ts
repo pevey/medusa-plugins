@@ -4,6 +4,7 @@ import type { ICachingModuleService } from '@medusajs/types'
 import { REVIEW_MODULE } from '../../../../modules/review'
 import { ReviewService } from '../../../../modules/review/service'
 import { AdminUpdateReviewType } from '../../../validators'
+import { clearReviewCaches } from '../../../store/reviews/cache'
 
 export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -43,15 +44,23 @@ export const POST = async (
 	const review = await reviewService.retrieveReview(id)
 
 	// Invalidate store cache if this review has a product_id
-	if (review.product_id && caching) {
-		await caching.clear({ key: `store:reviews:${review.product_id}` })
-	}
+	await clearReviewCaches(caching, review.product_id)
 
 	res.json({ review })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const reviewService: ReviewService = req.scope.resolve(REVIEW_MODULE)
-	await reviewService.deleteReviews([req.params.id])
-	res.json({ deleted: [req.params.id] })
+	let caching: ICachingModuleService | null = null
+	try { caching = req.scope.resolve(Modules.CACHING) ?? null } catch { /* noop */ }
+
+	// Collect the product_id before deletion so we know which cache to clear
+	// (unknown id → retrieveReview throws → 404, intentionally not caught here)
+	const review = await reviewService.retrieveReview(req.params.id)
+
+	await reviewService.deleteReviews([review.id])
+
+	await clearReviewCaches(caching, review.product_id)
+
+	res.json({ id: review.id, object: 'review', deleted: true })
 }

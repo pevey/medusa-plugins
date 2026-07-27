@@ -19,6 +19,7 @@ export const Review = model
 		product_id: model.text().nullable(),
 		order_id: model.text().nullable(),
 		customer_id: model.text().nullable(),
+		featured: model.boolean().default(false),
 		metadata: model.json().nullable(),
 		activity: model.hasMany(() => ReviewActivity, { mappedBy: 'review' })
 	})

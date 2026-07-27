@@ -5,9 +5,9 @@ import { REVIEW_MODULE } from '../../../../modules/review'
 import { ReviewService } from '../../../../modules/review/service'
 import { ReviewStatus } from '../../../../modules/review/models/review'
 import { StoreCreateReviewType, StoreGetReviewsType } from '../../../validators'
+import { buildListCacheKey, clearReviewCaches } from '../cache'
 
 const TTL = 300 // 5 minutes
-const buildCacheKey = (productId: string) => `store:reviews:${productId}`
 
 function resolveCaching(req: MedusaRequest): ICachingModuleService | null {
 	try {
@@ -17,62 +17,59 @@ function resolveCaching(req: MedusaRequest): ICachingModuleService | null {
 	}
 }
 
-export const GET = async (
-	req: MedusaRequest<StoreGetReviewsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: MedusaRequest<StoreGetReviewsType>, res: MedusaResponse) => {
 	const { productId } = req.params
 	const caching = resolveCaching(req)
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const customerId = (req as AuthenticatedMedusaRequest).auth_context?.actor_id
+	const { featured, rating, limit = 20, offset = 0, order } = req.validatedQuery as StoreGetReviewsType & {
+		limit?: number; offset?: number; order?: string
+	}
 
-	const cacheKey = buildCacheKey(productId)
+	const cacheKey = buildListCacheKey(productId)
 	let approvedReviews: any[]
-	let approvedCount: number
 
-	const cached = caching ? await caching.get({ key: cacheKey }) as { reviews: any[]; count: number } | null : null
+	const cached = caching ? (await caching.get({ key: cacheKey })) as { reviews: any[] } | null : null
 	if (cached) {
 		approvedReviews = cached.reviews
-		approvedCount = cached.count
 	} else {
-		const { data, metadata } = await query.graph({
+		const { data } = await query.graph({
 			entity: 'review',
 			fields: req.queryConfig.fields,
 			filters: { product_id: productId, status: ReviewStatus.APPROVED }
 		})
 		approvedReviews = data
-		approvedCount = metadata?.count ?? data.length
 		if (caching) {
-			await caching.set({
-				key: cacheKey,
-				data: { reviews: approvedReviews, count: approvedCount } as unknown as object,
-				ttl: TTL
-			})
+			await caching.set({ key: cacheKey, data: { reviews: approvedReviews } as unknown as object, ttl: TTL })
 		}
 	}
 
-	// If authenticated, also fetch the user's own pending reviews (always fresh)
+	// Prepend the signed-in customer's own still-pending reviews (always fresh).
+	let combined = approvedReviews
 	if (customerId) {
 		const { data: pendingReviews } = await query.graph({
 			entity: 'review',
 			fields: req.queryConfig.fields,
-			filters: {
-				product_id: productId,
-				customer_id: customerId,
-				status: ReviewStatus.PENDING
-			}
+			filters: { product_id: productId, customer_id: customerId, status: ReviewStatus.PENDING }
 		})
-
-		if (pendingReviews.length > 0) {
-			res.json({
-				reviews: [...pendingReviews, ...approvedReviews],
-				count: approvedCount + pendingReviews.length
-			})
-			return
-		}
+		if (pendingReviews.length > 0) combined = [...pendingReviews, ...approvedReviews]
 	}
 
-	res.json({ reviews: approvedReviews, count: approvedCount })
+	// Filter → sort → paginate, in memory.
+	let rows = combined
+	if (rating !== undefined) rows = rows.filter(r => r.rating === rating)
+	if (featured) rows = rows.filter(r => r.featured === true)
+
+	const [field, dir] = order?.startsWith('-') ? [order.slice(1), -1] : [order ?? 'created_at', 1]
+	rows = [...rows].sort((a, b) => {
+		const av = a[field], bv = b[field]
+		if (av === bv) return 0
+		return (av > bv ? 1 : -1) * (dir as number)
+	})
+
+	const count = rows.length
+	const page = rows.slice(offset, offset + limit)
+	res.json({ reviews: page, count })
 }
 
 export const POST = async (
@@ -91,9 +88,7 @@ export const POST = async (
 		status: reviewService.getOptions().defaultStatus
 	})
 
-	if (caching) {
-		await caching.clear({ key: buildCacheKey(productId) })
-	}
+	await clearReviewCaches(caching, productId)
 
 	res.status(201).json({ review })
 }

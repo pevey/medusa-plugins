@@ -2,7 +2,7 @@ import { PaginatedResponse } from '@medusajs/framework/types'
 
 export type ReviewStatus = 'pending' | 'approved' | 'rejected'
 
-export type ReviewActivityType = 'submit' | 'approve' | 'reject' | 'note'
+export type ReviewActivityType = 'submit' | 'approve' | 'reject' | 'note' | 'feature' | 'unfeature'
 
 export type AdminReviewActivity = {
 	id: string
@@ -26,6 +26,7 @@ export type AdminReview = {
 	product_id?: string | null
 	order_id?: string | null
 	customer_id?: string | null
+	featured: boolean
 	metadata?: Record<string, unknown> | null
 	activity?: AdminReviewActivity[]
 	created_at: string

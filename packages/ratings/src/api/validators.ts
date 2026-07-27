@@ -36,6 +36,12 @@ export const AdminRejectReviewAction = z.object({
 	ids: z.array(z.string()).min(1)
 })
 
+export type AdminFeatureReviewActionType = z.infer<typeof AdminFeatureReviewAction>
+export const AdminFeatureReviewAction = z.object({
+	ids: z.array(z.string()).min(1),
+	featured: z.boolean().optional().default(true)
+})
+
 // ── Store ────────────────────────────────────────────────────────────────────
 
 export type StoreCreateReviewType = z.infer<typeof StoreCreateReview>
@@ -49,4 +55,7 @@ export const StoreCreateReview = z.object({
 })
 
 export type StoreGetReviewsType = z.infer<typeof StoreGetReviews>
-export const StoreGetReviews = createFindParams({ limit: 20, offset: 0 })
+export const StoreGetReviews = createFindParams({ limit: 20, offset: 0 }).extend({
+	featured: z.enum(['true', 'false']).transform((v) => v === 'true').optional(),
+	rating: z.coerce.number().int().min(1).max(5).optional()
+})

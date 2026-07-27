@@ -4,7 +4,7 @@ import { Badge, Button, Container, Heading, Text, toast, usePrompt } from '@medu
 import { PencilSquare, Trash } from '@medusajs/icons'
 import { sdk } from '../../../lib/sdk'
 import { ActionMenu } from '../../../components/action-menu'
-import { useReview, useUpdateReview, useDeleteReview } from '../../../hooks/reviews'
+import { useReview, useUpdateReview, useDeleteReview, useFeatureReviews } from '../../../hooks/reviews'
 import { ReviewStatus } from '../../../types'
 
 type ReviewLoaderData = { review: { id: string; author_name: string } }
@@ -41,6 +41,7 @@ const ReviewDetailPage = () => {
 	const { data, isLoading } = useReview(id)
 	const { mutate: updateReview, isPending: isUpdating } = useUpdateReview(id!)
 	const { mutate: deleteReview } = useDeleteReview()
+	const { mutateAsync: featureReviews, isPending: isFeaturing } = useFeatureReviews()
 
 	const review = data?.review
 
@@ -62,6 +63,15 @@ const ReviewDetailPage = () => {
 				onError: () => toast.error('Failed to reject review')
 			}
 		)
+	}
+
+	const handleToggleFeatured = async () => {
+		try {
+			await featureReviews({ ids: [review!.id], featured: !review!.featured })
+			toast.success(review!.featured ? 'Review unfeatured' : 'Review featured')
+		} catch {
+			toast.error('Failed to update featured state')
+		}
 	}
 
 	const handleDelete = async () => {
@@ -88,6 +98,7 @@ const ReviewDetailPage = () => {
 
 	const fields: [string, React.ReactNode][] = [
 		['Status', <Badge size="xsmall" color={STATUS_COLORS[review.status]}>{STATUS_LABELS[review.status]}</Badge>],
+		['Featured', <Badge size="xsmall" color={review.featured ? 'green' : 'grey'}>{review.featured ? 'Yes' : 'No'}</Badge>],
 		['Rating', `${review.rating} / 5`],
 		['Author', review.author_name],
 		...(review.author_email ? [['Email', review.author_email] as [string, React.ReactNode]] : []),
@@ -125,6 +136,9 @@ const ReviewDetailPage = () => {
 								</Button>
 							</>
 						)}
+						<Button size="small" variant="secondary" onClick={handleToggleFeatured} disabled={isUpdating || isFeaturing}>
+							{review.featured ? 'Unfeature' : 'Feature'}
+						</Button>
 						<ActionMenu
 							groups={[
 								{

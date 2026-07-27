@@ -1,3 +1,8 @@
+## 0.3.0
+
+- Add aggregate rating endpoints
+- Add featured boolean on review model
+
 ## 0.2.4
 
 - Fix product route field validator entries that were not method-scoped

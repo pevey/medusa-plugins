@@ -41,6 +41,16 @@ export class ReviewService extends MedusaService({ Review, ReviewActivity }) {
 		return review
 	}
 
+	async setFeatured(id: string, userId: string, featured: boolean) {
+		const review = await this.updateReviews({ id, featured })
+		await this.createReviewActivities({
+			review_id: id,
+			user_id: userId,
+			type: featured ? ReviewActivityType.FEATURE : ReviewActivityType.UNFEATURE
+		})
+		return review
+	}
+
 	async addNote(reviewId: string, userId: string, note: string) {
 		return this.createReviewActivities({
 			review_id: reviewId,
