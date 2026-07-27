@@ -12,6 +12,7 @@ export interface Review {
 	product_id: string
 	order_id?: string
 	customer_id?: string
+	featured?: boolean
 	metadata?: Record<string, unknown>
 	created_at: string
 	updated_at: string
@@ -77,6 +78,26 @@ export interface AdminReviewDeleteResponse {
 	deleted: boolean
 }
 
-export interface AdminReviewBatchResponse {
-	ids: string[]
+export interface AdminApproveReviewResponse {
+	approved: string[]
 }
+
+export interface AdminRejectReviewResponse {
+	rejected: string[]
+}
+
+export interface AdminBulkDeleteReviewResponse {
+	deleted: string[]
+}
+
+export interface AdminFeatureReviewResponse {
+	featured: string[]
+}
+
+export interface StoreReviewSummary {
+	average: number
+	count: number
+	distribution: { 1: number; 2: number; 3: number; 4: number; 5: number }
+}
+
+export type StoreReviewSummaryResponse = StoreReviewSummary

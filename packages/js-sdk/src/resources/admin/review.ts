@@ -7,7 +7,10 @@ import type {
 	AdminReviewListResponse,
 	AdminReviewResponse,
 	AdminReviewDeleteResponse,
-	AdminReviewBatchResponse,
+	AdminApproveReviewResponse,
+	AdminRejectReviewResponse,
+	AdminBulkDeleteReviewResponse,
+	AdminFeatureReviewResponse,
 	AdminUpdateReviewInput,
 } from '../../types/review'
 
@@ -59,7 +62,7 @@ export function createAdminReviewResource(client: Client) {
 			ids: string[],
 			headers?: ClientHeaders,
 		) => {
-			return client.fetch<AdminReviewBatchResponse>(
+			return client.fetch<AdminBulkDeleteReviewResponse>(
 				`/admin/reviews`,
 				{ method: 'DELETE', body: { ids }, headers },
 			)
@@ -69,7 +72,7 @@ export function createAdminReviewResource(client: Client) {
 			ids: string[],
 			headers?: ClientHeaders,
 		) => {
-			return client.fetch<AdminReviewBatchResponse>(
+			return client.fetch<AdminApproveReviewResponse>(
 				`/admin/reviews/approve`,
 				{ method: 'POST', body: { ids }, headers },
 			)
@@ -79,9 +82,20 @@ export function createAdminReviewResource(client: Client) {
 			ids: string[],
 			headers?: ClientHeaders,
 		) => {
-			return client.fetch<AdminReviewBatchResponse>(
+			return client.fetch<AdminRejectReviewResponse>(
 				`/admin/reviews/reject`,
 				{ method: 'POST', body: { ids }, headers },
+			)
+		},
+
+		feature: async (
+			ids: string[],
+			featured = true,
+			headers?: ClientHeaders,
+		) => {
+			return client.fetch<AdminFeatureReviewResponse>(
+				`/admin/reviews/feature`,
+				{ method: 'POST', body: { ids, featured }, headers },
 			)
 		},
 	}

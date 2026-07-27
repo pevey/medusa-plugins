@@ -6,6 +6,7 @@ import type {
 	StoreCreateReviewInput,
 	StoreReviewListResponse,
 	StoreReviewResponse,
+	StoreReviewSummaryResponse,
 } from '../../types/review'
 
 export function createStoreReviewResource(client: Client) {
@@ -29,6 +30,13 @@ export function createStoreReviewResource(client: Client) {
 			return client.fetch<StoreReviewResponse>(
 				`/store/reviews/${productId}`,
 				{ method: 'POST', body, headers },
+			)
+		},
+
+		summary: async (productId: string, headers?: ClientHeaders) => {
+			return client.fetch<StoreReviewSummaryResponse>(
+				`/store/reviews/${productId}/summary`,
+				{ headers },
 			)
 		},
 	}

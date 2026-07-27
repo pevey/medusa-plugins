@@ -1,3 +1,7 @@
+## 2.18.0
+
+- Add support for additional medusa-plugin-ratings store routes
+
 ## 2.17.2-f
 
 - Rename createAnalyticsCollector to createCollector
