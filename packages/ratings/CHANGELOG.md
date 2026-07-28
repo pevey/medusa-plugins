@@ -1,6 +1,7 @@
 ## 0.3.0
 
-- Add aggregate rating endpoints
+- Add aggregate rating store API endpoint
+- Add authenticated edit and delete review store API endpoints
 - Add featured boolean on review model
 
 ## 0.2.4
