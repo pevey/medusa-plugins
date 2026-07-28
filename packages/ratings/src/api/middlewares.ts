@@ -13,7 +13,8 @@ import {
 	AdminGetReviews,
 	AdminUpdateReview,
 	StoreCreateReview,
-	StoreGetReviews
+	StoreGetReviews,
+	StoreUpdateReview
 } from './validators'
 
 export default defineMiddlewares([
@@ -161,5 +162,15 @@ export default defineMiddlewares([
 				defaultLimit: 20
 			})
 		]
+	},
+	{
+		matcher: '/store/reviews/:productId/:reviewId',
+		method: ['DELETE'],
+		middlewares: [authenticate('customer', 'bearer')]
+	},
+	{
+		matcher: '/store/reviews/:productId/:reviewId',
+		method: ['POST'],
+		middlewares: [authenticate('customer', 'bearer'), validateAndTransformBody(StoreUpdateReview)]
 	}
 ])

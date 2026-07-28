@@ -15,7 +15,7 @@ export const Review = model
 		title: model.text().nullable(),
 		body: model.text(),
 		author_name: model.text(),
-		author_email: model.text().nullable(),
+		author_email: model.text().nullable(), // intentionally duplicative of customer relation email to allow importing external reviews
 		product_id: model.text().nullable(),
 		order_id: model.text().nullable(),
 		customer_id: model.text().nullable(),

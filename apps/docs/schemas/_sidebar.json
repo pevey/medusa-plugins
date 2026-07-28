@@ -867,6 +867,10 @@
 				{
 					"label": "Reject Review",
 					"link": "/medusa-plugin-ratings/api/operations/postadminreviewsreject/"
+				},
+				{
+					"label": "Feature Review",
+					"link": "/medusa-plugin-ratings/api/operations/postadminreviewsfeature/"
 				}
 			]
 		},
@@ -889,6 +893,14 @@
 				{
 					"label": "Get Review",
 					"link": "/medusa-plugin-ratings/api/operations/getstorereviewsbyproductid/"
+				},
+				{
+					"label": "Delete Review",
+					"link": "/medusa-plugin-ratings/api/operations/deletestorereviewsbyproductidbyreviewid/"
+				},
+				{
+					"label": "Update Review",
+					"link": "/medusa-plugin-ratings/api/operations/poststorereviewsbyproductidbyreviewid/"
 				}
 			]
 		}

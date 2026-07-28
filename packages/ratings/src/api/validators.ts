@@ -56,6 +56,18 @@ export const StoreCreateReview = z.object({
 
 export type StoreGetReviewsType = z.infer<typeof StoreGetReviews>
 export const StoreGetReviews = createFindParams({ limit: 20, offset: 0 }).extend({
-	featured: z.enum(['true', 'false']).transform((v) => v === 'true').optional(),
+	featured: z
+		.enum(['true', 'false'])
+		.transform(v => v === 'true')
+		.optional(),
 	rating: z.coerce.number().int().min(1).max(5).optional()
+})
+
+export type StoreUpdateReviewType = z.infer<typeof StoreUpdateReview>
+export const StoreUpdateReview = z.object({
+	rating: z.number().min(1).max(5),
+	title: z.string().optional(),
+	body: z.string().min(1, 'Review body is required'),
+	author_name: z.string().min(1, 'Author name is required'),
+	order_id: z.string().optional()
 })

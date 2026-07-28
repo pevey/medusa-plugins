@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Ratings API
-  version: 0.2.4
+  version: 0.3.0
   description: Product review and rating plugin for Medusa v2 with moderation workflow
 servers:
   - url: http://localhost:9000
@@ -111,6 +111,8 @@ paths:
                         order_id:
                           type: string
                         customer_id:
+                          type: string
+                        featured:
                           type: string
                         created_at:
                           type: string
@@ -223,6 +225,8 @@ paths:
                       order_id:
                         type: string
                       customer_id:
+                        type: string
+                      featured:
                         type: string
                       metadata:
                         type: object
@@ -358,6 +362,36 @@ paths:
             application/json:
               schema:
                 type: object
+  /admin/reviews/feature:
+    post:
+      operationId: postAdminReviewsFeature
+      summary: Feature Review
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                featured:
+                  type: boolean
+                  default: true
+              required:
+                - ids
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
   /store/products:
     get:
       operationId: getStoreProducts
@@ -468,6 +502,16 @@ paths:
           required: false
           schema:
             type: string
+        - name: featured
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: rating
+          in: query
+          required: false
+          schema:
+            type: string
         - name: productId
           in: path
           required: true
@@ -502,6 +546,8 @@ paths:
                           type: string
                         customer_id:
                           type: string
+                        featured:
+                          type: string
                         created_at:
                           type: string
                           format: date-time
@@ -511,6 +557,93 @@ paths:
                     type: integer
                   offset:
                     type: integer
+  /store/reviews/{productId}/{reviewId}:
+    delete:
+      operationId: deleteStoreReviewsByproductIdByreviewId
+      summary: Delete Review
+      tags:
+        - Store
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  deleted:
+                    type: boolean
+        "401":
+          description: Unauthorized
+    post:
+      operationId: postStoreReviewsByproductIdByreviewId
+      summary: Update Review
+      tags:
+        - Store
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: number
+                  minimum: 1
+                  maximum: 5
+                title:
+                  type: string
+                body:
+                  type: string
+                  minLength: 1
+                author_name:
+                  type: string
+                  minLength: 1
+                order_id:
+                  type: string
+              required:
+                - rating
+                - body
+                - author_name
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        "401":
+          description: Unauthorized
 components:
   securitySchemes:
     bearerAuth:

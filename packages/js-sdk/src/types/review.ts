@@ -29,6 +29,18 @@ export interface StoreCreateReviewInput {
 	order_id?: string
 }
 
+export interface StoreUpdateReviewInput {
+	rating: number
+	title?: string
+	body: string
+	author_name: string
+	order_id?: string
+}
+
+export interface StoreReviewDeleteResponse {
+	deleted: string
+}
+
 export interface StoreReviewListResponse {
 	reviews: Review[]
 	count: number
