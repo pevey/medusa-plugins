@@ -1,0 +1,17 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema/registry-item.json",
+  "name": "input-select-country",
+  "title": "Input Select Country",
+  "type": "registry:ui",
+  "description": "Country select bound to a remote-form field, options fed from the store's regions (validated ISO-2 code values). Extends input-select.",
+  "registryDependencies": [
+    "https://pevey.com/r/input-select.json"
+  ],
+  "files": [
+    {
+      "content": "<script module lang=\"ts\">\n\texport type Country = { code: string; name: string }\n</script>\n\n<script lang=\"ts\">\n\timport type { RemoteFormField } from '@sveltejs/kit'\n\timport InputSelect from '../input-select/input-select.svelte'\n\n\tinterface Props {\n\t\tfield: RemoteFormField<any>\n\t\tcountries: Country[]\n\t\tlabel?: string\n\t\tplaceholder?: string\n\t\tclass?: string\n\t\tonchange?: (event: Event) => void\n\t\t[key: string]: unknown\n\t}\n\tlet {\n\t\tfield,\n\t\tcountries,\n\t\tlabel = '',\n\t\tplaceholder = '',\n\t\tclass: className = '',\n\t\tonchange,\n\t\t...rest\n\t}: Props = $props()\n\n\tconst options = $derived(countries.map(c => ({ value: c.code, label: c.name })))\n</script>\n\n<InputSelect {field} {options} {label} {placeholder} class={className} {onchange} {...rest} />\n",
+      "type": "registry:ui",
+      "target": "input-select-country/input-select-country.svelte"
+    }
+  ]
+}

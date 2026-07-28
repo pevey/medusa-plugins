@@ -1,0 +1,343 @@
+[
+  {
+    "name": "markdown",
+    "title": "Markdown",
+    "type": "registry:ui",
+    "description": "Renders sanitized content HTML (e.g. body_html from the Medusa content plugin) in a shadcn-themed prose container with Shiki code styling.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "relativeUrl": "markdown.json"
+  },
+  {
+    "name": "image-zoom",
+    "title": "Image Zoom",
+    "type": "registry:ui",
+    "description": "Click-to-zoom full-screen image overlay with gallery navigation. Vendored from more-shadcn-svelte (MIT, © 2025 kevwpl).",
+    "dependencies": [
+      "@lucide/svelte"
+    ],
+    "registryDependencies": [
+      "button"
+    ],
+    "relativeUrl": "image-zoom.json"
+  },
+  {
+    "name": "gallery",
+    "title": "Gallery",
+    "type": "registry:ui",
+    "description": "Compound product image gallery/lightbox on embla: Root (optional thumbnails/thumbnailBreakpoint/zoom props), Main, Carousel, Image, Thumbnails, ThumbnailImage, Dots — sharing a context. Root publishes layout intent to the parts; set `zoom` to enable the click-to-zoom overlay. Accepts image URLs or Medusa image objects.",
+    "dependencies": [],
+    "registryDependencies": [
+      "carousel",
+      "https://pevey.com/r/image-zoom.json"
+    ],
+    "relativeUrl": "gallery.json"
+  },
+  {
+    "name": "search",
+    "title": "Search",
+    "type": "registry:ui",
+    "description": "Compound storefront search primitives (Root, Icon, Input, Results, Hit) sharing a context. Root defaults its search fn to the sveltekit-medusa-sdk `search` remote; Results renders products first (headerless) then non-product types under headings, as a dropdown or an in-flow full-page list.",
+    "dependencies": [
+      "@lucide/svelte",
+      "sveltekit-medusa-sdk"
+    ],
+    "registryDependencies": [],
+    "relativeUrl": "search.json"
+  },
+  {
+    "name": "search-box",
+    "title": "Search Box",
+    "type": "registry:ui",
+    "description": "Drop-in navbar search box: full input + live-results dropdown above a configurable breakpoint, collapsing to an icon that links to a search page below it. Assembles the search primitives.",
+    "dependencies": [],
+    "registryDependencies": [
+      "https://pevey.com/r/search.json"
+    ],
+    "relativeUrl": "search-box.json"
+  },
+  {
+    "name": "search-dialog",
+    "title": "Search Dialog",
+    "type": "registry:ui",
+    "description": "Command-palette search: Ctrl/Cmd+K opens a centered modal (page behind blurred) with the input autofocused and arrow-key-navigable results. Composes the search primitives inside a shadcn Dialog; drop into your layout.",
+    "dependencies": [],
+    "registryDependencies": [
+      "https://pevey.com/r/search.json",
+      "dialog"
+    ],
+    "relativeUrl": "search-dialog.json"
+  },
+  {
+    "name": "faq",
+    "title": "FAQ",
+    "type": "registry:ui",
+    "description": "Compound FAQ primitives (Root, Item, Question, Answer) over the shadcn Accordion. Defaults to the stock look; each part is stylable via class. Question exposes a swappable icon snippet + configurable rotate-on-open; Answer renders children (supports {@html}). Loop your own Q&A data over the items.",
+    "dependencies": [
+      "@lucide/svelte",
+      "bits-ui"
+    ],
+    "registryDependencies": [
+      "accordion"
+    ],
+    "relativeUrl": "faq.json"
+  },
+  {
+    "name": "seo",
+    "title": "SEO",
+    "type": "registry:ui",
+    "description": "Head/metadata primitives for SEO. MetaProvider seeds site-wide defaults (siteName, siteUrl, titleTemplate, twitterHandle) via context; Metadata emits per-page <title>/description/canonical/OpenGraph/Twitter tags off a MetaConfig, merging provider defaults; JsonLd renders a typed schema-dts object as a <script type=\"application/ld+json\"> tag. No env, no state mutation; provider is optional. SSR-safe.",
+    "dependencies": [
+      "schema-dts"
+    ],
+    "registryDependencies": [],
+    "relativeUrl": "seo.json"
+  },
+  {
+    "name": "product",
+    "title": "Product",
+    "type": "registry:ui",
+    "description": "Compound Product primitives (Root, Title, Subtitle, Description, Price, Options, OptionButton) over a Medusa StoreProduct. URL-driven variant selection (?v= links), inventory-aware option availability (manage_inventory/inventory_quantity), currency-aware price with sale strikethrough, sanitized {@html} description. Pure resolution logic in product-logic.ts; no $effect (SSR-safe). Fetch the product reactively in your route and pass it in.",
+    "dependencies": [
+      "isomorphic-dompurify",
+      "@lucide/svelte",
+      "schema-dts",
+      "sveltekit-medusa-sdk"
+    ],
+    "registryDependencies": [
+      "https://pevey.com/r/seo.json",
+      "https://pevey.com/r/input-text.json",
+      "field",
+      "button"
+    ],
+    "relativeUrl": "product.json"
+  },
+  {
+    "name": "cta",
+    "title": "CTA",
+    "type": "registry:ui",
+    "description": "Add-to-cart primitives wired to the sveltekit-medusa-sdk cart remotes. AddToCartButton resolves variant/quantity from Product context (or props), shows pending/aria-busy state and an accessible inline success/error message, with optional post-add redirect. AddToCartToggle reflects cart membership for a variant/condition via a checkbox (or a custom children snippet). Also available as flat exports (AddToCartButton, AddToCartToggle).",
+    "dependencies": [
+      "sveltekit-medusa-sdk"
+    ],
+    "registryDependencies": [
+      "https://pevey.com/r/product.json",
+      "button"
+    ],
+    "relativeUrl": "cta.json"
+  },
+  {
+    "name": "cart",
+    "title": "Cart",
+    "type": "registry:ui",
+    "description": "Compound Cart primitives (Root, Trigger, Badge, Sheet, Items, LineItem, Image, Title, Price, Quantity, Remove, ItemSubtotal, Empty, Checkout) plus a CartDrawer preset, wired to the sveltekit-medusa-sdk cart remotes. Reactive re-render on cart changes with onupdate/onremove/onerror callbacks and pending-state disabling; per-part class override; self-contained currency-aware format-price. No $effect (SSR-safe). Badge shows total quantity and hides at 0.",
+    "dependencies": [
+      "sveltekit-medusa-sdk",
+      "@lucide/svelte"
+    ],
+    "registryDependencies": [
+      "button",
+      "sheet"
+    ],
+    "relativeUrl": "cart.json"
+  },
+  {
+    "name": "address",
+    "title": "Address Form",
+    "type": "registry:ui",
+    "description": "Compound Address primitives (Root, Email, FirstName, LastName, Phone, AddressLine2, City, Company, Country, PostalCode, Autocomplete, Province, BillingToggle, Billing) plus an AddressForm preset. Owns cart writes via the sveltekit-medusa-sdk cart remotes (DI-with-SDK-default + onaddresschange/onregionchange/onerror callbacks): debounced updateCart, region-by-country switching, billing same-as-shipping toggle, and Google Places autocomplete (optional; degrades to text). Receives the consumer's remote form (renders no <form>). No $effect (SSR-safe; hydrates via onMount).",
+    "dependencies": [
+      "sveltekit-medusa-sdk"
+    ],
+    "registryDependencies": [
+      "field",
+      "https://pevey.com/r/input-text.json",
+      "https://pevey.com/r/input-select.json",
+      "https://pevey.com/r/input-select-country.json",
+      "https://pevey.com/r/input-postal-code.json",
+      "https://pevey.com/r/input-province.json",
+      "https://pevey.com/r/google-places-autocomplete.json"
+    ],
+    "relativeUrl": "address.json"
+  },
+  {
+    "name": "checkout",
+    "title": "Checkout Braintree",
+    "type": "registry:ui",
+    "description": "Compound Checkout primitives (Root, Items, Item, Image, Title, Price, Quantity, ItemSubtotal, Remove, Delivery, Discount, Summary + 7 summary rows, BraintreePayment, PlaceOrder, Confirmation, CheckoutError) plus a batteries-included CheckoutBraintree preset that owns the <form>, composes the Address preset alongside a single-page cart summary + Braintree hosted-fields payment, and calls placeOrder (updateAddress → shipping guard → authorizePayment → completeCart) with a StoreOrder confirmation or redirectTo. Wired to the sveltekit-medusa-sdk cart/checkout/braintree remotes (DI-with-SDK-default); no $effect (SSR-safe).",
+    "dependencies": [
+      "sveltekit-medusa-sdk",
+      "sveltekit-braintree",
+      "@lucide/svelte"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "https://pevey.com/r/address.json",
+      "button",
+      "https://pevey.com/r/input-text.json"
+    ],
+    "relativeUrl": "checkout.json"
+  },
+  {
+    "name": "auth",
+    "title": "Auth",
+    "type": "registry:ui",
+    "description": "Compound login/register/forgot/reset forms (a createAuthForm factory + Field/Label/Input/Error/Submit parts) plus an Auth.Dialog preset (URL-driven ?auth= modal with a per-part classes map); wired to the sveltekit-medusa-sdk auth remotes; SSR-safe, no $effect.",
+    "dependencies": [
+      "sveltekit-medusa-sdk",
+      "@lucide/svelte"
+    ],
+    "registryDependencies": [
+      "dialog",
+      "button",
+      "field",
+      "label"
+    ],
+    "relativeUrl": "auth.json"
+  },
+  {
+    "name": "customer",
+    "title": "Customer",
+    "type": "registry:ui",
+    "description": "Storefront shopper identity: SignedIn/SignedOut auth-state gates, a Menu compound over shadcn DropdownMenu, SignInButton (deep-links ?auth=login), and SignOut; reads the sveltekit-medusa-sdk customer remote directly.",
+    "dependencies": [
+      "sveltekit-medusa-sdk",
+      "@lucide/svelte"
+    ],
+    "registryDependencies": [
+      "dropdown-menu",
+      "button"
+    ],
+    "relativeUrl": "customer.json"
+  },
+  {
+    "name": "theme-button",
+    "title": "Theme Button",
+    "type": "registry:ui",
+    "description": "Icon button that toggles light/dark via mode-watcher. Resizable, with overridable sun/moon icons.",
+    "dependencies": [
+      "mode-watcher",
+      "@lucide/svelte"
+    ],
+    "registryDependencies": [
+      "button"
+    ],
+    "relativeUrl": "theme-button.json"
+  },
+  {
+    "name": "theme-toggle",
+    "title": "Theme Toggle",
+    "type": "registry:ui",
+    "description": "Toggle that reflects and flips the light/dark theme via mode-watcher. Overridable icons + label.",
+    "dependencies": [
+      "mode-watcher",
+      "@lucide/svelte"
+    ],
+    "registryDependencies": [
+      "toggle"
+    ],
+    "relativeUrl": "theme-toggle.json"
+  },
+  {
+    "name": "theme-switch",
+    "title": "Theme Switch",
+    "type": "registry:ui",
+    "description": "Bare switch that toggles light/dark via mode-watcher. Optional additive form binding for settings forms.",
+    "dependencies": [
+      "mode-watcher"
+    ],
+    "registryDependencies": [
+      "switch"
+    ],
+    "relativeUrl": "theme-switch.json"
+  },
+  {
+    "name": "theme-select",
+    "title": "Theme Select",
+    "type": "registry:ui",
+    "description": "Bare light/dark/system dropdown driving mode-watcher's userPrefersMode. Optional additive form binding.",
+    "dependencies": [
+      "mode-watcher"
+    ],
+    "registryDependencies": [
+      "select"
+    ],
+    "relativeUrl": "theme-select.json"
+  },
+  {
+    "name": "google-places-autocomplete",
+    "title": "Google Places Autocomplete",
+    "type": "registry:ui",
+    "description": "Address autocomplete field wrapping Google's PlaceAutocompleteElement, themed with shadcn tokens (chrome stripped, dropdown restyled). Emits a normalized address on select; no store writes.",
+    "dependencies": [
+      "@googlemaps/js-api-loader",
+      "mode-watcher",
+      "tailwind-merge"
+    ],
+    "devDependencies": [
+      "@types/google.maps"
+    ],
+    "registryDependencies": [],
+    "relativeUrl": "google-places-autocomplete.json"
+  },
+  {
+    "name": "input-text",
+    "title": "Input Text",
+    "type": "registry:ui",
+    "description": "Text/email/tel/number/password/textarea field bound to a SvelteKit remote-form field proxy, wrapped in shadcn Field with label + validation errors.",
+    "dependencies": [
+      "@lucide/svelte"
+    ],
+    "registryDependencies": [
+      "field"
+    ],
+    "relativeUrl": "input-text.json"
+  },
+  {
+    "name": "input-select",
+    "title": "Input Select",
+    "type": "registry:ui",
+    "description": "Native select bound to a SvelteKit remote-form field proxy with data-driven options, wrapped in shadcn Field with label + validation errors.",
+    "dependencies": [
+      "@lucide/svelte"
+    ],
+    "registryDependencies": [
+      "field"
+    ],
+    "relativeUrl": "input-select.json"
+  },
+  {
+    "name": "input-select-country",
+    "title": "Input Select Country",
+    "type": "registry:ui",
+    "description": "Country select bound to a remote-form field, options fed from the store's regions (validated ISO-2 code values). Extends input-select.",
+    "dependencies": [],
+    "registryDependencies": [
+      "https://pevey.com/r/input-select.json"
+    ],
+    "relativeUrl": "input-select-country.json"
+  },
+  {
+    "name": "input-postal-code",
+    "title": "Input Postal Code",
+    "type": "registry:ui",
+    "description": "Postal-code text field that uppercases as you type (alphanumeric postcodes) and bubbles the change. Extends input-text.",
+    "dependencies": [],
+    "registryDependencies": [
+      "https://pevey.com/r/input-text.json"
+    ],
+    "relativeUrl": "input-postal-code.json"
+  },
+  {
+    "name": "input-province",
+    "title": "Input Province",
+    "type": "registry:ui",
+    "description": "Config-driven province/state field bound to a remote-form field: renders a select when the current country is configured (default US + CA, ISO 3166-2 values), otherwise a freeform text input. Ships US_STATES, US_MILITARY (APO/FPO), CA_PROVINCES, and defaultProvinceConfig; stores extend per country in one place. Extends input-select + input-text.",
+    "dependencies": [],
+    "registryDependencies": [
+      "https://pevey.com/r/input-select.json",
+      "https://pevey.com/r/input-text.json"
+    ],
+    "relativeUrl": "input-province.json"
+  }
+]

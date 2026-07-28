@@ -1,0 +1,46 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema/registry-item.json",
+  "name": "faq",
+  "title": "FAQ",
+  "type": "registry:ui",
+  "description": "Compound FAQ primitives (Root, Item, Question, Answer) over the shadcn Accordion. Defaults to the stock look; each part is stylable via class. Question exposes a swappable icon snippet + configurable rotate-on-open; Answer renders children (supports {@html}). Loop your own Q&A data over the items.",
+  "dependencies": [
+    "@lucide/svelte",
+    "bits-ui"
+  ],
+  "devDependencies": [
+    "bits-ui@2.18.1",
+    "@internationalized/date@^3.12.2",
+    "@lucide/svelte@^1.27.0"
+  ],
+  "registryDependencies": [
+    "accordion"
+  ],
+  "files": [
+    {
+      "content": "<script lang=\"ts\">\n\timport * as Accordion from '$lib/components/ui/accordion/index.js'\n\timport type { Snippet } from 'svelte'\n\n\tinterface Props {\n\t\ttype?: 'single' | 'multiple'\n\t\tvalue?: string | string[]\n\t\tclass?: string\n\t\tchildren: Snippet\n\t\t[key: string]: unknown\n\t}\n\tlet {\n\t\ttype = 'single',\n\t\tvalue = $bindable(),\n\t\tclass: className = '',\n\t\tchildren,\n\t\t...rest\n\t}: Props = $props()\n</script>\n\n<Accordion.Root {type} bind:value={value as never} data-slot=\"faq\" class={className} {...rest}>\n\t{@render children()}\n</Accordion.Root>\n",
+      "type": "registry:ui",
+      "target": "faq/faq.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport * as Accordion from '$lib/components/ui/accordion/index.js'\n\timport type { Snippet } from 'svelte'\n\n\tinterface Props {\n\t\tvalue: string\n\t\tclass?: string\n\t\tchildren: Snippet\n\t\t[key: string]: unknown\n\t}\n\tlet { value, class: className = '', children, ...rest }: Props = $props()\n</script>\n\n<Accordion.Item {value} data-slot=\"faq-item\" class={className} {...rest}>\n\t{@render children()}\n</Accordion.Item>\n",
+      "type": "registry:ui",
+      "target": "faq/faq-item.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { Accordion as AccordionPrimitive } from 'bits-ui'\n\timport ChevronDownIcon from '@lucide/svelte/icons/chevron-down'\n\timport { cn, type WithoutChild } from '$UTILS$.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet {\n\t\tref = $bindable(null),\n\t\tclass: className,\n\t\tlevel = 3,\n\t\ticon,\n\t\ticonRotate = 180,\n\t\tchildren,\n\t\t...restProps\n\t}: WithoutChild<AccordionPrimitive.TriggerProps> & {\n\t\tlevel?: AccordionPrimitive.HeaderProps['level']\n\t\ticon?: Snippet\n\t\ticonRotate?: number\n\t\tchildren: Snippet\n\t} = $props()\n</script>\n\n<AccordionPrimitive.Header {level} class=\"flex\">\n\t<AccordionPrimitive.Trigger\n\t\tbind:ref\n\t\tdata-slot=\"faq-question\"\n\t\tclass={cn(\n\t\t\t'group/faq-question focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center justify-between gap-4 rounded-md py-4 text-left text-sm font-medium transition-colors outline-none hover:underline focus-visible:ring-3 disabled:pointer-events-none disabled:opacity-50',\n\t\t\tclassName\n\t\t)}\n\t\t{...restProps}\n\t>\n\t\t{@render children()}\n\t\t<span\n\t\t\tclass=\"text-muted-foreground pointer-events-none shrink-0 transition-transform duration-200 group-aria-expanded/faq-question:[transform:rotate(var(--faq-icon-rotate))]\"\n\t\t\tstyle=\"--faq-icon-rotate: {iconRotate}deg\"\n\t\t>\n\t\t\t{#if icon}\n\t\t\t\t{@render icon()}\n\t\t\t{:else}\n\t\t\t\t<ChevronDownIcon class=\"size-4\" />\n\t\t\t{/if}\n\t\t</span>\n\t</AccordionPrimitive.Trigger>\n</AccordionPrimitive.Header>\n",
+      "type": "registry:ui",
+      "target": "faq/faq-question.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport * as Accordion from '$lib/components/ui/accordion/index.js'\n\timport type { Snippet } from 'svelte'\n\n\tinterface Props {\n\t\tclass?: string\n\t\tchildren: Snippet\n\t\t[key: string]: unknown\n\t}\n\tlet { class: className = '', children, ...rest }: Props = $props()\n</script>\n\n<!-- Content renders `children`, so `<Faq.Answer>{@html item.description}</Faq.Answer>` works. -->\n<Accordion.Content data-slot=\"faq-answer\" class={className} {...rest}>\n\t{@render children()}\n</Accordion.Content>\n",
+      "type": "registry:ui",
+      "target": "faq/faq-answer.svelte"
+    },
+    {
+      "content": "import Root from './faq.svelte'\nimport Item from './faq-item.svelte'\nimport Question from './faq-question.svelte'\nimport Answer from './faq-answer.svelte'\n\nexport { Root, Item, Question, Answer }\n",
+      "type": "registry:file",
+      "target": "faq/index.ts"
+    }
+  ]
+}

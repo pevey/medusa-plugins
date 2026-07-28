@@ -1,0 +1,25 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema/registry-item.json",
+  "name": "theme-button",
+  "title": "Theme Button",
+  "type": "registry:ui",
+  "description": "Icon button that toggles light/dark via mode-watcher. Resizable, with overridable sun/moon icons.",
+  "dependencies": [
+    "mode-watcher",
+    "@lucide/svelte"
+  ],
+  "devDependencies": [
+    "mode-watcher@1.1.0",
+    "@lucide/svelte@^1.27.0"
+  ],
+  "registryDependencies": [
+    "button"
+  ],
+  "files": [
+    {
+      "content": "<script lang=\"ts\">\n\timport { Button } from '$lib/components/ui/button/index.js'\n\timport { mode, toggleMode } from 'mode-watcher'\n\timport SunIcon from '@lucide/svelte/icons/sun'\n\timport MoonIcon from '@lucide/svelte/icons/moon'\n\timport type { ComponentProps, Snippet } from 'svelte'\n\n\tinterface Props {\n\t\tsize?: ComponentProps<typeof Button>['size']\n\t\tvariant?: ComponentProps<typeof Button>['variant']\n\t\tclass?: string\n\t\tsun?: Snippet\n\t\tmoon?: Snippet\n\t}\n\tlet { size = 'icon', variant = 'ghost', class: className = '', sun, moon }: Props = $props()\n\tconst isLight = $derived(mode.current !== 'dark')\n</script>\n\n<Button {variant} {size} onclick={toggleMode} class={className} aria-label=\"Toggle theme\">\n\t{#if isLight}\n\t\t{#if sun}{@render sun()}{:else}<SunIcon />{/if}\n\t{:else if moon}{@render moon()}{:else}<MoonIcon />{/if}\n\t<span class=\"sr-only\">Toggle theme</span>\n</Button>\n",
+      "type": "registry:ui",
+      "target": "theme/theme-button.svelte"
+    }
+  ]
+}

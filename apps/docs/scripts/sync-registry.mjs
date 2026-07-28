@@ -19,14 +19,17 @@ import { dirname, join, resolve } from 'node:path'
 const scriptsDir = dirname(fileURLToPath(import.meta.url))
 const docsRoot = resolve(scriptsDir, '..')
 const uiPkg = resolve(docsRoot, '../../packages/sveltekit-ui')
-const builtDir = join(uiPkg, 'static', 'r')
+const builtDir = join(uiPkg, '.registry')
 const outDir = join(docsRoot, 'public', 'r')
 
 function resolveBaseUrl() {
 	if (process.env.REGISTRY_BASE_URL) return process.env.REGISTRY_BASE_URL.replace(/\/+$/, '')
 	const cfg = readFileSync(join(docsRoot, 'astro.config.mjs'), 'utf-8')
 	const site = cfg.match(/site:\s*['"]([^'"]+)['"]/)?.[1]
-	if (!site) throw new Error('[sync-registry] Could not resolve a base URL (no REGISTRY_BASE_URL and no `site` in astro.config.mjs).')
+	if (!site)
+		throw new Error(
+			'[sync-registry] Could not resolve a base URL (no REGISTRY_BASE_URL and no `site` in astro.config.mjs).'
+		)
 	return `${site.replace(/\/+$/, '')}/r`
 }
 
@@ -38,11 +41,11 @@ execSync('yarn registry:build', { cwd: uiPkg, stdio: 'inherit' })
 // 2. Our own item names — any dependency matching one of these becomes a full URL. Also the set
 //    of files we stage, so stale build outputs (retired components) never leak into the deploy.
 const registry = JSON.parse(readFileSync(join(uiPkg, 'registry.json'), 'utf-8'))
-const ownNames = new Set(registry.items.map((item) => item.name))
-const allowedFiles = new Set([...ownNames].map((name) => `${name}.json`).concat('index.json'))
+const ownNames = new Set(registry.items.map(item => item.name))
+const allowedFiles = new Set([...ownNames].map(name => `${name}.json`).concat('index.json'))
 
-const toFullUrl = (dep) => (ownNames.has(dep) ? `${base}/${dep}.json` : dep)
-const rewriteDeps = (node) => {
+const toFullUrl = dep => (ownNames.has(dep) ? `${base}/${dep}.json` : dep)
+const rewriteDeps = node => {
 	if (Array.isArray(node?.registryDependencies)) {
 		node.registryDependencies = node.registryDependencies.map(toFullUrl)
 	}

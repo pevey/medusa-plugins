@@ -1,0 +1,18 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema/registry-item.json",
+  "name": "search-dialog",
+  "title": "Search Dialog",
+  "type": "registry:ui",
+  "description": "Command-palette search: Ctrl/Cmd+K opens a centered modal (page behind blurred) with the input autofocused and arrow-key-navigable results. Composes the search primitives inside a shadcn Dialog; drop into your layout.",
+  "registryDependencies": [
+    "https://pevey.com/r/search.json",
+    "dialog"
+  ],
+  "files": [
+    {
+      "content": "<script lang=\"ts\">\n\timport * as Dialog from '$lib/components/ui/dialog/index.js'\n\timport * as Search from './index.js'\n\timport { cn } from '$UTILS$.js'\n\timport type { SearchHit } from './ctx.svelte.js'\n\timport type { Snippet } from 'svelte'\n\n\tinterface Props {\n\t\tminLength?: number\n\t\tdebounce?: number\n\t\tlimit?: number\n\t\thref?: (hit: SearchHit) => string\n\t\tplaceholder?: string\n\t\t// Key that, with Ctrl (or Cmd on macOS), toggles the dialog. Default: 'k'.\n\t\tshortcut?: string\n\t\t// Whether the global keyboard shortcut is active.\n\t\tenabled?: boolean\n\t\topen?: boolean\n\t\t// Optional trigger; receives an opener fn, e.g. a header \"Search ⌘K\" button.\n\t\ttrigger?: Snippet<[() => void]>\n\t\ticon?: Snippet\n\t\tclass?: string\n\t}\n\tlet {\n\t\tminLength,\n\t\tdebounce,\n\t\tlimit,\n\t\thref,\n\t\tplaceholder = 'Search…',\n\t\tshortcut = 'k',\n\t\tenabled = true,\n\t\topen = $bindable(false),\n\t\ttrigger,\n\t\ticon,\n\t\tclass: className = ''\n\t}: Props = $props()\n\n\tfunction onWindowKeydown(e: KeyboardEvent) {\n\t\tif (!enabled) return\n\t\tif ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === shortcut.toLowerCase()) {\n\t\t\te.preventDefault()\n\t\t\topen = !open\n\t\t}\n\t}\n\n\t// Close the dialog once a result link is activated (covers mouse click and the\n\t// keyboard Enter path, which triggers the highlighted option's own click).\n\tfunction onResultsClick(e: MouseEvent) {\n\t\tif ((e.target as HTMLElement).closest('a')) open = false\n\t}\n</script>\n\n<svelte:window onkeydown={onWindowKeydown} />\n\n{@render trigger?.(() => (open = true))}\n\n<Dialog.Root bind:open>\n\t<Dialog.Content\n\t\tclass={cn('gap-0 overflow-hidden p-0 sm:max-w-lg', className)}\n\t\tshowCloseButton={false}\n\t>\n\t\t<Dialog.Title class=\"sr-only\">Search</Dialog.Title>\n\t\t<Dialog.Description class=\"sr-only\">Search the store. Results update as you type.</Dialog.Description>\n\t\t<Search.Root {minLength} {debounce} {limit}>\n\t\t\t<Search.Input\n\t\t\t\t{placeholder}\n\t\t\t\t{icon}\n\t\t\t\tclass=\"h-12 rounded-none border-0 border-b shadow-none focus-visible:ring-0\"\n\t\t\t/>\n\t\t\t<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->\n\t\t\t<div onclick={onResultsClick} class=\"max-h-[60vh] overflow-y-auto\">\n\t\t\t\t<Search.Results static combobox {href} />\n\t\t\t</div>\n\t\t</Search.Root>\n\t</Dialog.Content>\n</Dialog.Root>\n",
+      "type": "registry:ui",
+      "target": "search/search-dialog.svelte"
+    }
+  ]
+}

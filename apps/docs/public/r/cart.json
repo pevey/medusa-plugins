@@ -1,0 +1,126 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema/registry-item.json",
+  "name": "cart",
+  "title": "Cart",
+  "type": "registry:ui",
+  "description": "Compound Cart primitives (Root, Trigger, Badge, Sheet, Items, LineItem, Image, Title, Price, Quantity, Remove, ItemSubtotal, Empty, Checkout) plus a CartDrawer preset, wired to the sveltekit-medusa-sdk cart remotes. Reactive re-render on cart changes with onupdate/onremove/onerror callbacks and pending-state disabling; per-part class override; self-contained currency-aware format-price. No $effect (SSR-safe). Badge shows total quantity and hides at 0.",
+  "dependencies": [
+    "sveltekit-medusa-sdk",
+    "@lucide/svelte"
+  ],
+  "devDependencies": [
+    "@medusajs/types@2.18.0",
+    "@lucide/svelte@^1.27.0"
+  ],
+  "registryDependencies": [
+    "button",
+    "sheet"
+  ],
+  "files": [
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getCart, updateCartItem, removeFromCart } from 'sveltekit-medusa-sdk'\n\timport { setCartContext } from './ctx.svelte.js'\n\timport * as logic from './cart-logic.js'\n\timport { defaultLineHref } from './cart-logic.js'\n\timport type { CartQuery, LineHrefFn } from './types.js'\n\timport type { StoreCart } from '@medusajs/types'\n\timport type { Snippet } from 'svelte'\n\n\tinterface Props {\n\t\tonupdate?: (cart: StoreCart) => void\n\t\tonremove?: (cart: StoreCart) => void\n\t\tonerror?: (err: unknown) => void\n\t\tcheckoutUrl?: string\n\t\tlineHref?: LineHrefFn\n\t\tclass?: string\n\t\tchildren: Snippet\n\t}\n\tlet {\n\t\tonupdate,\n\t\tonremove,\n\t\tonerror,\n\t\tcheckoutUrl = '/checkout',\n\t\tlineHref = defaultLineHref,\n\t\tclass: className = '',\n\t\tchildren\n\t}: Props = $props()\n\n\t// Keep the live query object (not awaited) so the parts can render inline loading / empty / error\n\t// states from `.current`/`.loading`/`.error`. The cast restores those members, which this package's\n\t// svelte-check drops from the SDK's remote-query type (runtime is fine).\n\tconst q = getCart() as unknown as CartQuery\n\tlet pending = $state(false)\n\n\tasync function updateItem(itemId: string, quantity: number) {\n\t\tif (pending) return\n\t\tpending = true\n\t\ttry {\n\t\t\tconst cart = await updateCartItem({ item_id: itemId, quantity })\n\t\t\tif (cart) onupdate?.(cart)\n\t\t} catch (e) {\n\t\t\tonerror?.(e)\n\t\t} finally {\n\t\t\tpending = false\n\t\t}\n\t}\n\tasync function removeItem(itemId: string) {\n\t\tif (pending) return\n\t\tpending = true\n\t\ttry {\n\t\t\tconst cart = await removeFromCart(itemId)\n\t\t\tif (cart) onremove?.(cart)\n\t\t} catch (e) {\n\t\t\tonerror?.(e)\n\t\t} finally {\n\t\t\tpending = false\n\t\t}\n\t}\n\n\tsetCartContext({\n\t\tget cart() {\n\t\t\treturn q.current\n\t\t},\n\t\tget loading() {\n\t\t\treturn q.loading ?? false\n\t\t},\n\t\tget error() {\n\t\t\treturn q.error\n\t\t},\n\t\tget count() {\n\t\t\treturn logic.totalQuantity(q.current)\n\t\t},\n\t\tget lineCount() {\n\t\t\treturn logic.lineCount(q.current)\n\t\t},\n\t\tget subtotal() {\n\t\t\treturn logic.subtotal(q.current)\n\t\t},\n\t\tget pending() {\n\t\t\treturn pending\n\t\t},\n\t\tget checkoutUrl() {\n\t\t\treturn checkoutUrl\n\t\t},\n\t\tget lineHref() {\n\t\t\treturn lineHref\n\t\t},\n\t\tupdateItem,\n\t\tremoveItem\n\t})\n</script>\n\n<div class={cn('', className)}>\n\t{@render children()}\n</div>\n",
+      "type": "registry:ui",
+      "target": "cart/cart.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport * as Sheet from '$lib/components/ui/sheet/index.js'\n\timport ShoppingBag from '@lucide/svelte/icons/shopping-bag'\n\timport Badge from './cart-badge.svelte'\n\timport type { Snippet } from 'svelte'\n\n\tlet { class: className = '', children }: { class?: string; children?: Snippet } = $props()\n</script>\n\n<Sheet.Trigger class={cn('relative inline-flex items-center', className)}>\n\t{#if children}\n\t\t{@render children()}\n\t{:else}\n\t\t<ShoppingBag class=\"size-7\" />\n\t\t<Badge />\n\t\t<span class=\"sr-only\">Cart</span>\n\t{/if}\n</Sheet.Trigger>\n",
+      "type": "registry:ui",
+      "target": "cart/cart-trigger.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getCartContext } from './ctx.svelte.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet {\n\t\tmode = 'total',\n\t\tclass: className = '',\n\t\tchildren\n\t}: { mode?: 'total' | 'lines'; class?: string; children?: Snippet<[number]> } = $props()\n\tconst ctx = getCartContext()\n\tconst value = $derived(mode === 'lines' ? ctx.lineCount : ctx.count)\n</script>\n\n{#if value > 0}\n\t{#if children}{@render children(value)}{:else}\n\t\t<span\n\t\t\tdata-cart-badge\n\t\t\tclass={cn(\n\t\t\t\t'absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-xs font-bold leading-none text-primary-foreground',\n\t\t\t\tclassName\n\t\t\t)}>{value}</span\n\t\t>\n\t{/if}\n{/if}\n",
+      "type": "registry:ui",
+      "target": "cart/cart-badge.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport * as Sheet from '$lib/components/ui/sheet/index.js'\n\timport type { Snippet } from 'svelte'\n\timport type { ComponentProps } from 'svelte'\n\n\tlet {\n\t\tside = 'right',\n\t\tclass: className = '',\n\t\ttrigger,\n\t\tchildren\n\t}: {\n\t\tside?: ComponentProps<typeof Sheet.Content>['side']\n\t\tclass?: string\n\t\ttrigger?: Snippet\n\t\tchildren: Snippet\n\t} = $props()\n</script>\n\n<Sheet.Root>\n\t{#if trigger}\n\t\t{@render trigger()}\n\t{/if}\n\t<Sheet.Content\n\t\t{side}\n\t\tclass={cn(\n\t\t\t'w-full! sm:w-4/5! md:w-2/3! lg:w-2/3! xl:w-1/2! sm:max-w-none! gap-0 overflow-y-auto',\n\t\t\tclassName\n\t\t)}\n\t>\n\t\t{@render children()}\n\t</Sheet.Content>\n</Sheet.Root>\n",
+      "type": "registry:ui",
+      "target": "cart/cart-sheet.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getCartContext } from './ctx.svelte.js'\n\timport Item from './cart-item.svelte'\n\timport Empty from './cart-empty.svelte'\n\timport type { Snippet } from 'svelte'\n\n\t// `children` is the per-row template; it reads the current line via getCartLineContext().\n\tlet {\n\t\tclass: className = '',\n\t\tchildren,\n\t\tempty\n\t}: { class?: string; children?: Snippet; empty?: Snippet } = $props()\n\tconst ctx = getCartContext()\n\tconst items = $derived(ctx.cart?.items ?? [])\n</script>\n\n{#if items.length}\n\t<ul data-cart-items role=\"list\" class={cn('divide-y', className)}>\n\t\t{#each items as item (item.id)}\n\t\t\t<Item {item}>\n\t\t\t\t{#if children}{@render children()}{:else}\n\t\t\t\t\t<span\n\t\t\t\t\t\t>{item.product_title}{#if item.variant_title}\n\t\t\t\t\t\t\t— {item.variant_title}{/if} × {item.quantity}</span\n\t\t\t\t\t>\n\t\t\t\t{/if}\n\t\t\t</Item>\n\t\t{/each}\n\t</ul>\n{:else if empty}\n\t{@render empty()}\n{:else}\n\t<Empty />\n{/if}\n",
+      "type": "registry:ui",
+      "target": "cart/cart-items.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { setCartLineContext } from './ctx.svelte.js'\n\timport type { CartLine } from './types.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet {\n\t\titem,\n\t\tclass: className = '',\n\t\tchildren,\n\t\tactions\n\t}: { item: CartLine; class?: string; children: Snippet; actions?: Snippet } = $props()\n\tsetCartLineContext({\n\t\tget item() {\n\t\t\treturn item\n\t\t}\n\t})\n</script>\n\n<li data-cart-item class={cn('flex gap-4 py-4', className)}>\n\t{@render children()}\n\t{#if actions}<div data-cart-item-actions>{@render actions()}</div>{/if}\n</li>\n",
+      "type": "registry:ui",
+      "target": "cart/cart-item.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getCartContext, getCartLineContext } from './ctx.svelte.js'\n\tlet { class: className = '', fallback }: { class?: string; fallback?: string } = $props()\n\tconst ctx = getCartContext()\n\tconst { item } = getCartLineContext()\n\tconst src = $derived(item.thumbnail || fallback || '')\n</script>\n\n<a href={ctx.lineHref(item)} data-cart-image class=\"flex-shrink-0\">\n\t{#if src}\n\t\t<img\n\t\t\t{src}\n\t\t\talt={item.variant_title\n\t\t\t\t? `${item.product_title} — ${item.variant_title}`\n\t\t\t\t: item.product_title}\n\t\t\tclass={cn('h-24 w-auto rounded-md object-cover', className)}\n\t\t/>\n\t{/if}\n</a>\n",
+      "type": "registry:ui",
+      "target": "cart/cart-image.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getCartContext, getCartLineContext } from './ctx.svelte.js'\n\tlet { class: className = '' }: { class?: string } = $props()\n\tconst ctx = getCartContext()\n\tconst { item } = getCartLineContext()\n</script>\n\n<a href={ctx.lineHref(item)} data-cart-title class={cn('min-w-0 text-sm', className)}>\n\t<div class=\"font-medium\">{item.product_title}</div>\n\t{#if item.variant_title}<p class=\"mt-1 text-muted-foreground\">{item.variant_title}</p>{/if}\n</a>\n",
+      "type": "registry:ui",
+      "target": "cart/cart-title.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getCartLineContext } from './ctx.svelte.js'\n\timport { formatPrice } from './format-price.js'\n\tlet { class: className = '', locale = 'en-US' }: { class?: string; locale?: string } = $props()\n\tconst { item } = getCartLineContext()\n\tconst currencyCode = $derived((item as { currency_code?: string }).currency_code ?? 'usd')\n\tconst formatted = $derived(formatPrice(item.unit_price, currencyCode, locale))\n</script>\n\n{#if formatted}<p data-cart-price class={cn('text-sm font-medium', className)}>{formatted}</p>{/if}\n",
+      "type": "registry:ui",
+      "target": "cart/cart-price.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getCartLineContext } from './ctx.svelte.js'\n\timport { formatPrice } from './format-price.js'\n\tlet { class: className = '', locale = 'en-US' }: { class?: string; locale?: string } = $props()\n\tconst { item } = getCartLineContext()\n\tconst currencyCode = $derived((item as { currency_code?: string }).currency_code ?? 'usd')\n\t// Medusa's computed line subtotal (accounts for item-level adjustments); falls back to unit_price × quantity when the cart wasn't fetched with computed totals.\n\tconst amount = $derived(\n\t\titem.subtotal ?? (item.unit_price != null ? item.unit_price * item.quantity : undefined)\n\t)\n\tconst formatted = $derived(formatPrice(amount, currencyCode, locale))\n</script>\n\n{#if formatted}<p data-cart-item-subtotal class={cn('text-sm font-medium', className)}>\n\t\t{formatted}\n\t</p>{/if}\n",
+      "type": "registry:ui",
+      "target": "cart/cart-item-subtotal.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { Button } from '$lib/components/ui/button/index.js'\n\timport MinusIcon from '@lucide/svelte/icons/minus'\n\timport PlusIcon from '@lucide/svelte/icons/plus'\n\timport { getCartContext, getCartLineContext } from './ctx.svelte.js'\n\n\tlet {\n\t\tmin = 1,\n\t\tmax = 9999,\n\t\tclass: className = ''\n\t}: { min?: number; max?: number; class?: string } = $props()\n\tconst ctx = getCartContext()\n\tconst { item } = getCartLineContext()\n\n\t// Seeds from item.quantity and auto-resyncs when the server-confirmed quantity changes,\n\t// while still allowing local typing. Writable $derived — no $effect.\n\tlet draft = $derived(String(item.quantity))\n\tconst disabled = $derived(ctx.pending)\n\n\tfunction commit(raw: number) {\n\t\tif (!Number.isFinite(raw)) {\n\t\t\tdraft = String(item.quantity)\n\t\t\treturn\n\t\t}\n\t\tconst next = Math.min(max, Math.max(min, Math.trunc(raw)))\n\t\tif (next === item.quantity) {\n\t\t\tdraft = String(item.quantity)\n\t\t\treturn\n\t\t}\n\t\tctx.updateItem(item.id, next)\n\t}\n\tfunction commitDraft() {\n\t\tconst parsed = parseInt(draft, 10)\n\t\tcommit(Number.isNaN(parsed) ? Number.NaN : parsed)\n\t}\n</script>\n\n<div\n\tclass={cn('inline-flex h-9 items-center rounded-full border border-input', className)}\n\trole=\"group\"\n\taria-label=\"Quantity stepper\"\n\tdata-cart-quantity\n>\n\t<Button\n\t\tvariant=\"ghost\"\n\t\tsize=\"icon\"\n\t\tclass=\"size-8 rounded-full\"\n\t\tdisabled={disabled || item.quantity <= min}\n\t\tonclick={() => commit(item.quantity - 1)}\n\t>\n\t\t<MinusIcon /><span class=\"sr-only\">Decrease quantity</span>\n\t</Button>\n\t<input\n\t\ttype=\"text\"\n\t\tinputmode=\"numeric\"\n\t\tpattern=\"[0-9]*\"\n\t\tmaxlength=\"4\"\n\t\taria-label=\"Quantity\"\n\t\tvalue={draft}\n\t\t{disabled}\n\t\toninput={e => (draft = e.currentTarget.value.replace(/\\D/g, '').slice(0, 4))}\n\t\tonblur={commitDraft}\n\t\tonkeydown={e => {\n\t\t\tif (e.key === 'Enter') e.currentTarget.blur()\n\t\t}}\n\t\tclass=\"w-12 border-none bg-transparent text-center text-sm font-medium tabular-nums focus:outline-none focus:ring-0 disabled:opacity-50\"\n\t/>\n\t<Button\n\t\tvariant=\"ghost\"\n\t\tsize=\"icon\"\n\t\tclass=\"size-8 rounded-full\"\n\t\tdisabled={disabled || item.quantity >= max}\n\t\tonclick={() => commit(item.quantity + 1)}\n\t>\n\t\t<PlusIcon /><span class=\"sr-only\">Increase quantity</span>\n\t</Button>\n</div>\n",
+      "type": "registry:ui",
+      "target": "cart/cart-quantity.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getCartContext, getCartLineContext } from './ctx.svelte.js'\n\timport type { Snippet } from 'svelte'\n\tlet { class: className = '', children }: { class?: string; children?: Snippet } = $props()\n\tconst ctx = getCartContext()\n\tconst { item } = getCartLineContext()\n</script>\n\n<button\n\ttype=\"button\"\n\tdata-cart-remove\n\tclass={cn('text-sm text-muted-foreground hover:text-foreground disabled:opacity-50', className)}\n\tdisabled={ctx.pending}\n\tonclick={() => ctx.removeItem(item.id)}\n>\n\t{#if children}\n\t\t{@render children()}\n\t{:else}\n\t\tRemove\n\t{/if}</button\n>\n",
+      "type": "registry:ui",
+      "target": "cart/cart-remove.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getCartLineContext } from './ctx.svelte.js'\n\timport { formatPrice } from './format-price.js'\n\tlet { class: className = '', locale = 'en-US' }: { class?: string; locale?: string } = $props()\n\tconst { item } = getCartLineContext()\n\tconst currencyCode = $derived((item as { currency_code?: string }).currency_code ?? 'usd')\n\t// Medusa's computed line subtotal (accounts for item-level adjustments); falls back to unit_price × quantity when the cart wasn't fetched with computed totals.\n\tconst amount = $derived(\n\t\titem.subtotal ?? (item.unit_price != null ? item.unit_price * item.quantity : undefined)\n\t)\n\tconst formatted = $derived(formatPrice(amount, currencyCode, locale))\n</script>\n\n{#if formatted}<p data-cart-item-subtotal class={cn('text-sm font-medium', className)}>\n\t\t{formatted}\n\t</p>{/if}\n",
+      "type": "registry:ui",
+      "target": "cart/cart-item-subtotal.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport type { Snippet } from 'svelte'\n\tlet { class: className = '', children }: { class?: string; children?: Snippet } = $props()\n</script>\n\n<p data-cart-empty class={cn('py-6 text-sm text-muted-foreground', className)}>\n\t{#if children}{@render children()}{:else}Your cart is empty{/if}\n</p>\n",
+      "type": "registry:ui",
+      "target": "cart/cart-empty.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { buttonVariants } from '$lib/components/ui/button/index.js'\n\timport { getCartContext } from './ctx.svelte.js'\n\timport type { Snippet } from 'svelte'\n\tlet { class: className = '', children }: { class?: string; children?: Snippet } = $props()\n\tconst ctx = getCartContext()\n</script>\n\n<a\n\tdata-cart-checkout\n\thref={ctx.checkoutUrl}\n\tclass={cn(buttonVariants({ variant: 'default' }), 'w-full', className)}\n>\n\t{#if children}{@render children()}{:else}Go to Checkout{/if}\n</a>\n",
+      "type": "registry:ui",
+      "target": "cart/cart-checkout.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport * as Sheet from '$lib/components/ui/sheet/index.js'\n\timport Root from './cart.svelte'\n\timport Trigger from './cart-trigger.svelte'\n\timport Items from './cart-items.svelte'\n\timport Image from './cart-image.svelte'\n\timport Title from './cart-title.svelte'\n\timport Price from './cart-price.svelte'\n\timport Quantity from './cart-quantity.svelte'\n\timport Remove from './cart-remove.svelte'\n\timport Subtotal from './cart-subtotal.svelte'\n\timport Checkout from './cart-checkout.svelte'\n\timport type { StoreCart } from '@medusajs/types'\n\timport { cn } from '$UTILS$.js'\n\timport type { LineHrefFn } from './types.js'\n\n\tinterface Props {\n\t\tonupdate?: (cart: StoreCart) => void\n\t\tonremove?: (cart: StoreCart) => void\n\t\tonerror?: (err: unknown) => void\n\t\tcheckoutUrl?: string\n\t\tlineHref?: LineHrefFn\n\t\ttriggerClass?: string\n\t\tcontentClass?: string\n\t}\n\tlet {\n\t\tonupdate,\n\t\tonremove,\n\t\tonerror,\n\t\tcheckoutUrl = '/checkout',\n\t\tlineHref,\n\t\ttriggerClass = '',\n\t\tcontentClass = ''\n\t}: Props = $props()\n</script>\n\n<Root {onupdate} {onremove} {onerror} {checkoutUrl} {lineHref}>\n\t<Sheet.Root>\n\t\t<Trigger class={triggerClass} />\n\t\t<Sheet.Content\n\t\t\tside=\"right\"\n\t\t\tclass={cn(\n\t\t\t\t'w-full! sm:w-4/5! md:w-2/3! lg:w-2/3! xl:w-1/2! sm:max-w-none! gap-0 overflow-y-auto p-6',\n\t\t\t\tcontentClass\n\t\t\t)}\n\t\t>\n\t\t\t<Sheet.Header>\n\t\t\t\t<Sheet.Title class=\"text-center text-2xl font-semibold\">Cart</Sheet.Title>\n\t\t\t\t<Sheet.Description class=\"sr-only\">Your shopping cart</Sheet.Description>\n\t\t\t</Sheet.Header>\n\n\t\t\t<Items class=\"border-t\">\n\t\t\t\t<div class=\"flex flex-1 gap-4\">\n\t\t\t\t\t<Image />\n\t\t\t\t\t<div class=\"flex min-w-0 flex-1 flex-col\">\n\t\t\t\t\t\t<div class=\"flex justify-between gap-2\">\n\t\t\t\t\t\t\t<Title />\n\t\t\t\t\t\t\t<Price />\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"mt-4 flex items-end justify-between\">\n\t\t\t\t\t\t\t<Quantity />\n\t\t\t\t\t\t\t<Remove />\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</Items>\n\n\t\t\t<div class=\"sticky bottom-0 mt-auto border-t bg-popover py-4\">\n\t\t\t\t<Subtotal class=\"px-2\" />\n\t\t\t\t<p class=\"mt-1 px-2 text-sm text-muted-foreground\">\n\t\t\t\t\tShipping and taxes calculated at checkout.\n\t\t\t\t</p>\n\t\t\t\t<div class=\"mt-4 px-2\">\n\t\t\t\t\t<Checkout />\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</Sheet.Content>\n\t</Sheet.Root>\n</Root>\n",
+      "type": "registry:ui",
+      "target": "cart/cart-drawer.svelte"
+    },
+    {
+      "content": "import { getContext, setContext } from 'svelte'\nimport type { StoreCart } from '@medusajs/types'\nimport type { CartLine } from './types.js'\n\nexport type CartContext = {\n\treadonly cart: StoreCart | null | undefined\n\treadonly loading: boolean\n\treadonly error: unknown\n\treadonly count: number\n\treadonly lineCount: number\n\treadonly subtotal: number | undefined\n\treadonly pending: boolean\n\treadonly checkoutUrl: string\n\tlineHref: (item: CartLine) => string\n\tupdateItem: (itemId: string, quantity: number) => Promise<void>\n\tremoveItem: (itemId: string) => Promise<void>\n}\nexport type CartLineContext = { readonly item: CartLine }\n\nconst CART = Symbol('cart')\nconst LINE = Symbol('cart-line')\n\nexport function setCartContext(ctx: CartContext) {\n\tsetContext(CART, ctx)\n}\n\nexport function getCartContext(): CartContext {\n\tconst ctx = getContext<CartContext>(CART)\n\tif (!ctx) throw new Error('Cart.* must be used within <Cart.Root>')\n\treturn ctx\n}\n\nexport function getCartContextOptional(): CartContext | null {\n\treturn getContext<CartContext>(CART) ?? null\n}\n\nexport function setCartLineContext(ctx: CartLineContext) {\n\tsetContext(LINE, ctx)\n}\n\nexport function getCartLineContext(): CartLineContext {\n\tconst ctx = getContext<CartLineContext>(LINE)\n\tif (!ctx) throw new Error('Cart line parts must be used within <Cart.Item>')\n\treturn ctx\n}\n",
+      "type": "registry:file",
+      "target": "cart/ctx.svelte.ts"
+    },
+    {
+      "content": "import type { StoreCart } from '@medusajs/types'\nimport type { CartLine, LineHrefFn } from './types.js'\n\nexport function totalQuantity(cart: StoreCart | null | undefined): number {\n\treturn (cart?.items ?? []).reduce((n, li) => n + (li.quantity ?? 0), 0)\n}\n\nexport function lineCount(cart: StoreCart | null | undefined): number {\n\treturn cart?.items?.length ?? 0\n}\n\nexport function subtotal(cart: StoreCart | null | undefined): number | undefined {\n\treturn (cart as { item_subtotal?: number } | null | undefined)?.item_subtotal ?? undefined\n}\n\nexport const defaultLineHref: LineHrefFn = (item: CartLine) =>\n\t`/product/${item.product_handle}${item.variant_id ? `?variant=${item.variant_id}` : ''}`\n",
+      "type": "registry:file",
+      "target": "cart/cart-logic.ts"
+    },
+    {
+      "content": "// Medusa returns amounts in major units. `locale` is pinned (default 'en-US') so server + client\n// render identically (avoids a hydration mismatch from host-locale differences).\nexport function formatPrice(\n\tamount: number | null | undefined,\n\tcurrencyCode: string | null | undefined,\n\tlocale = 'en-US'\n): string {\n\tif (amount == null || !currencyCode) return ''\n\treturn new Intl.NumberFormat(locale, {\n\t\tstyle: 'currency',\n\t\tcurrency: currencyCode.toUpperCase()\n\t}).format(amount)\n}\n",
+      "type": "registry:file",
+      "target": "cart/format-price.ts"
+    },
+    {
+      "content": "import type { StoreCart } from '@medusajs/types'\n\nexport type CartLine = NonNullable<StoreCart['items']>[number]\n\nexport type CartQuery = {\n\tcurrent: StoreCart | null | undefined\n\tloading?: boolean\n\terror?: unknown\n}\nexport type LineHrefFn = (item: CartLine) => string\n",
+      "type": "registry:file",
+      "target": "cart/types.ts"
+    },
+    {
+      "content": "import Root from './cart.svelte'\nimport Trigger from './cart-trigger.svelte'\nimport Badge from './cart-badge.svelte'\nimport Sheet from './cart-sheet.svelte'\nimport Items from './cart-items.svelte'\nimport Item from './cart-item.svelte'\nimport Image from './cart-image.svelte'\nimport Title from './cart-title.svelte'\nimport Price from './cart-price.svelte'\nimport ItemSubtotal from './cart-item-subtotal.svelte'\nimport Quantity from './cart-quantity.svelte'\nimport Remove from './cart-remove.svelte'\nimport Subtotal from './cart-subtotal.svelte'\nimport Checkout from './cart-checkout.svelte'\nimport Empty from './cart-empty.svelte'\n\nexport {\n\tRoot,\n\tTrigger,\n\tBadge,\n\tSheet,\n\tItems,\n\tItem,\n\tImage,\n\tTitle,\n\tPrice,\n\tItemSubtotal,\n\tQuantity,\n\tRemove,\n\tSubtotal,\n\tCheckout,\n\tEmpty\n}\nexport { default as CartDrawer } from './cart-drawer.svelte'\nexport {\n\tgetCartContext,\n\tgetCartContextOptional,\n\tsetCartContext,\n\tgetCartLineContext,\n\tsetCartLineContext\n} from './ctx.svelte.js'\nexport type { CartContext, CartLineContext } from './ctx.svelte.js'\nexport type { CartLine, CartQuery, LineHrefFn } from './types.js'\nexport { formatPrice } from './format-price.js'\nexport * as logic from './cart-logic.js'\n",
+      "type": "registry:file",
+      "target": "cart/index.ts"
+    }
+  ]
+}

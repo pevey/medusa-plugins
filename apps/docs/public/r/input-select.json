@@ -1,0 +1,23 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema/registry-item.json",
+  "name": "input-select",
+  "title": "Input Select",
+  "type": "registry:ui",
+  "description": "Native select bound to a SvelteKit remote-form field proxy with data-driven options, wrapped in shadcn Field with label + validation errors.",
+  "dependencies": [
+    "@lucide/svelte"
+  ],
+  "devDependencies": [
+    "@lucide/svelte@^1.27.0"
+  ],
+  "registryDependencies": [
+    "field"
+  ],
+  "files": [
+    {
+      "content": "<script module lang=\"ts\">\n\texport type SelectOption = { value: string; label: string }\n</script>\n\n<script lang=\"ts\">\n\timport type { RemoteFormField } from '@sveltejs/kit'\n\timport * as Field from '$lib/components/ui/field/index.js'\n\timport { cn } from '$UTILS$.js'\n\timport ChevronDown from '@lucide/svelte/icons/chevron-down'\n\n\tinterface Props {\n\t\tfield: RemoteFormField<any>\n\t\toptions: SelectOption[]\n\t\tlabel?: string\n\t\tplaceholder?: string\n\t\tdescription?: string\n\t\tclass?: string\n\t\tonchange?: (event: Event) => void\n\t\t[key: string]: unknown\n\t}\n\tlet {\n\t\tfield,\n\t\toptions,\n\t\tlabel = '',\n\t\tplaceholder = '',\n\t\tdescription = '',\n\t\tclass: className = '',\n\t\tonchange,\n\t\t...rest\n\t}: Props = $props()\n\n\t// shadcn-trigger-like native <select> style (appearance-none + pr-8 make room for the chevron).\n\t// The OS-rendered options popup won't reliably follow `color-scheme` (esp. GTK/Linux), so we color\n\t// the <option> elements explicitly with the popover tokens — which browsers DO respect — so the\n\t// dropdown is readable in dark mode regardless of native popup theming.\n\tconst selectClass =\n\t\t'border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 aria-invalid:border-destructive [&>option]:bg-popover [&>option]:text-popover-foreground h-9 w-full appearance-none rounded-md border bg-transparent dark:bg-input/30 px-3 py-1 pr-8 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm'\n\n\tconst issues = $derived(field.issues())\n\tconst invalid = $derived(issues && issues.length > 0 ? 'true' : undefined)\n\tconst name = $derived(field.as('select').name)\n</script>\n\n<Field.Field data-invalid={invalid}>\n\t{#if label}<Field.FieldLabel for={name}>{label}</Field.FieldLabel>{/if}\n\t<div class=\"relative\">\n\t\t<!-- `.as('select')` binds via a value getter/setter (no event handler), so `onchange` is\n\t\t     additive and does not clobber the form binding. -->\n\t\t<select\n\t\t\tid={name}\n\t\t\t{...field.as('select')}\n\t\t\t{onchange}\n\t\t\tclass={cn(selectClass, className)}\n\t\t\t{...rest}\n\t\t>\n\t\t\t{#if placeholder}<option value=\"\" disabled>{placeholder}</option>{/if}\n\t\t\t{#each options as opt (opt.value)}<option value={opt.value}>{opt.label}</option>{/each}\n\t\t</select>\n\t\t<ChevronDown\n\t\t\tclass=\"pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 opacity-50\"\n\t\t/>\n\t</div>\n\t{#if description}<Field.FieldDescription>{description}</Field.FieldDescription>{/if}\n\t<Field.FieldError errors={issues} />\n</Field.Field>\n",
+      "type": "registry:ui",
+      "target": "input-select/input-select.svelte"
+    }
+  ]
+}

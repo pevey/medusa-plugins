@@ -1,0 +1,45 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema/registry-item.json",
+  "name": "seo",
+  "title": "SEO",
+  "type": "registry:ui",
+  "description": "Head/metadata primitives for SEO. MetaProvider seeds site-wide defaults (siteName, siteUrl, titleTemplate, twitterHandle) via context; Metadata emits per-page <title>/description/canonical/OpenGraph/Twitter tags off a MetaConfig, merging provider defaults; JsonLd renders a typed schema-dts object as a <script type=\"application/ld+json\"> tag. No env, no state mutation; provider is optional. SSR-safe.",
+  "dependencies": [
+    "schema-dts"
+  ],
+  "devDependencies": [
+    "schema-dts@2.0.0"
+  ],
+  "files": [
+    {
+      "content": "<script lang=\"ts\">\n\timport { setSiteMetaContext } from './ctx.svelte.js'\n\timport type { SiteMeta } from './types.js'\n\timport type { Snippet } from 'svelte'\n\tlet { site = {}, children }: { site?: SiteMeta; children: Snippet } = $props()\n\tsetSiteMetaContext({\n\t\tget site() {\n\t\t\treturn site\n\t\t}\n\t})\n</script>\n\n{@render children()}\n",
+      "type": "registry:ui",
+      "target": "seo/meta-provider.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { page } from '$app/state'\n\timport { getSiteMetaContextOptional } from './ctx.svelte.js'\n\timport type { MetaConfig } from './types.js'\n\n\tlet { config = {} }: { config?: MetaConfig } = $props()\n\tconst siteCtx = getSiteMetaContextOptional()\n\tconst site = $derived(siteCtx?.site ?? {})\n\n\tconst baseTitle = $derived(config.title ?? site.siteName ?? '')\n\tconst isHome = $derived(page.url.pathname === '/')\n\tconst title = $derived(\n\t\t!isHome && site.titleTemplate && baseTitle\n\t\t\t? site.titleTemplate.replace('%s', baseTitle)\n\t\t\t: baseTitle\n\t)\n\tconst description = $derived(config.description ?? site.description)\n\tconst url = $derived(\n\t\tconfig.url ??\n\t\t\t(site.siteUrl ? site.siteUrl.replace(/\\/$/, '') + page.url.pathname : page.url.href)\n\t)\n\tconst image = $derived(config.image ?? site.image)\n\tconst imageAlt = $derived(config.imageAlt ?? site.imageAlt ?? baseTitle)\n\tconst twitterCard = $derived(\n\t\tconfig.twitterCardType ?? site.twitterCardType ?? 'summary_large_image'\n\t)\n\tconst language = $derived(config.language ?? site.language ?? 'en')\n\tconst ogType = $derived(config.ogType ?? 'website')\n</script>\n\n<svelte:head>\n\t<title>{title}</title>\n\t<link rel=\"canonical\" href={url} />\n\t<meta name=\"title\" content={title} />\n\t{#if description}<meta name=\"description\" content={description} />{/if}\n\t{#if config.noindex}<meta name=\"robots\" content=\"noindex\" />{/if}\n\t{#if config.author}<meta name=\"author\" content={config.author} />{/if}\n\n\t<meta property=\"og:type\" content={ogType} />\n\t<meta property=\"og:url\" content={url} />\n\t<meta property=\"og:title\" content={title} />\n\t{#if description}<meta property=\"og:description\" content={description} />{/if}\n\t{#if image}\n\t\t<meta property=\"og:image\" content={image} />\n\t\t<meta property=\"og:image:alt\" content={imageAlt} />\n\t{/if}\n\t{#if site.siteName}<meta property=\"og:site_name\" content={site.siteName} />{/if}\n\t<meta property=\"og:locale\" content={language} />\n\n\t<meta name=\"twitter:card\" content={twitterCard} />\n\t<meta name=\"twitter:title\" content={title} />\n\t{#if description}<meta name=\"twitter:description\" content={description} />{/if}\n\t{#if image}<meta name=\"twitter:image\" content={image} />{/if}\n\t{#if site.twitterHandle}<meta name=\"twitter:creator\" content={site.twitterHandle} />{/if}\n\t{#if site.siteUrl}<meta property=\"twitter:url\" content={url} />{/if}\n\n\t<meta itemprop=\"name\" content={title} />\n\t{#if description}<meta itemprop=\"description\" content={description} />{/if}\n\t{#if image}<meta itemprop=\"image\" content={image} />{/if}\n\t{#if config.paymentPointer}<meta name=\"monetization\" content={config.paymentPointer} />{/if}\n</svelte:head>\n",
+      "type": "registry:ui",
+      "target": "seo/metadata.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport type { Thing, WithContext } from 'schema-dts'\n\ttype SchemaOrgType = Thing | WithContext<Thing>\n\tlet { schema }: { schema: SchemaOrgType | SchemaOrgType[] } = $props()\n\n\t// Add '@context' if missing (array → single '@graph' node; object → merge).\n\tfunction withContext(s: unknown): unknown {\n\t\tconst ctx = { '@context': 'https://schema.org' }\n\t\treturn Array.isArray(s) ? { ...ctx, '@graph': s } : { ...ctx, ...(s as object) }\n\t}\n\tconst processed = $derived(withContext(schema))\n\t// Escape '<' so schema values can't break out of the script tag; split the CLOSING tag so\n\t// the Svelte compiler doesn't end the module script block early.\n\tconst jsonLd = $derived(\n\t\t'<script type=\"application/ld+json\">' +\n\t\t\tJSON.stringify(processed).replace(/</g, '\\\\u003c') +\n\t\t\t'</scr' +\n\t\t\t'ipt>'\n\t)\n</script>\n\n<svelte:head>{@html jsonLd}</svelte:head>\n",
+      "type": "registry:ui",
+      "target": "seo/json-ld.svelte"
+    },
+    {
+      "content": "import { getContext, setContext } from 'svelte'\nimport type { SiteMeta } from './types.js'\n\nexport type SiteMetaContext = { readonly site: SiteMeta }\nconst KEY = Symbol('site-meta')\n\nexport function setSiteMetaContext(ctx: SiteMetaContext) {\n\tsetContext(KEY, ctx)\n}\nexport function getSiteMetaContext(): SiteMetaContext {\n\tconst ctx = getContext<SiteMetaContext>(KEY)\n\tif (!ctx) throw new Error('Must be used within <MetaProvider>')\n\treturn ctx\n}\nexport function getSiteMetaContextOptional(): SiteMetaContext | null {\n\treturn getContext<SiteMetaContext>(KEY) ?? null\n}\n",
+      "type": "registry:file",
+      "target": "seo/ctx.svelte.ts"
+    },
+    {
+      "content": "export interface SiteMeta {\n\tsiteName?: string\n\tsiteShortName?: string\n\tsiteUrl?: string\n\tdescription?: string\n\timage?: string\n\timageAlt?: string\n\ttwitterHandle?: string\n\ttwitterCardType?: 'summary' | 'summary_large_image' | 'app' | 'player'\n\tlanguage?: string\n\ttitleTemplate?: string // '%s' is replaced by the page title; applied off the home route\n}\n\nexport interface MetaConfig {\n\ttitle?: string\n\tdescription?: string\n\turl?: string\n\tnoindex?: boolean\n\timage?: string\n\timageAlt?: string\n\tauthor?: string\n\togType?: string\n\tpaymentPointer?: string\n\tlanguage?: string\n\ttwitterCardType?: SiteMeta['twitterCardType']\n}\n",
+      "type": "registry:file",
+      "target": "seo/types.ts"
+    },
+    {
+      "content": "export { default as MetaProvider } from './meta-provider.svelte'\nexport { default as Metadata } from './metadata.svelte'\nexport { default as JsonLd } from './json-ld.svelte'\nexport { getSiteMetaContext, getSiteMetaContextOptional, setSiteMetaContext } from './ctx.svelte.js'\nexport type { SiteMetaContext } from './ctx.svelte.js'\nexport type { SiteMeta, MetaConfig } from './types.js'\n",
+      "type": "registry:file",
+      "target": "seo/index.ts"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema/registry-item.json",
+  "name": "customer",
+  "title": "Customer",
+  "type": "registry:ui",
+  "description": "Storefront shopper identity: SignedIn/SignedOut auth-state gates, a Menu compound over shadcn DropdownMenu, SignInButton (deep-links ?auth=login), and SignOut; reads the sveltekit-medusa-sdk customer remote directly.",
+  "dependencies": [
+    "sveltekit-medusa-sdk",
+    "@lucide/svelte"
+  ],
+  "registryDependencies": [
+    "dropdown-menu",
+    "button"
+  ],
+  "files": [
+    {
+      "content": "<script lang=\"ts\">\n\timport { DropdownMenu } from '$lib/components/ui/dropdown-menu/index.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet { children }: { children: Snippet } = $props()\n</script>\n\n<DropdownMenu>\n\t{@render children()}\n</DropdownMenu>\n",
+      "type": "registry:ui",
+      "target": "customer/menu.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { DropdownMenuContent } from '$lib/components/ui/dropdown-menu/index.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet { class: className = 'w-48', children }: { class?: string; children: Snippet } = $props()\n</script>\n\n<DropdownMenuContent class={cn(className)}>\n\t{@render children()}\n</DropdownMenuContent>\n",
+      "type": "registry:ui",
+      "target": "customer/menu-content.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\t// bits-ui's underlying menu Item supports the `child` snippet (asChild pattern) via\n\t// `WithChild<...>`, so an `href` renders the item as a real anchor carrying the item's a11y/\n\t// interaction props, instead of a button that navigates imperatively.\n\timport { cn } from '$UTILS$.js'\n\timport { DropdownMenuItem } from '$lib/components/ui/dropdown-menu/index.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet {\n\t\thref,\n\t\tclass: className = '',\n\t\tchildren\n\t}: { href?: string; class?: string; children: Snippet } = $props()\n</script>\n\n{#if href}\n\t<DropdownMenuItem class={cn(className)}>\n\t\t{#snippet child({ props })}\n\t\t\t<a {href} {...props}>{@render children()}</a>\n\t\t{/snippet}\n\t</DropdownMenuItem>\n{:else}\n\t<DropdownMenuItem class={cn(className)}>\n\t\t{@render children()}\n\t</DropdownMenuItem>\n{/if}\n",
+      "type": "registry:ui",
+      "target": "customer/menu-item.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { DropdownMenuTrigger } from '$lib/components/ui/dropdown-menu/index.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet { class: className = '', children }: { class?: string; children: Snippet } = $props()\n</script>\n\n<DropdownMenuTrigger class={cn(className)}>\n\t{@render children()}\n</DropdownMenuTrigger>\n",
+      "type": "registry:ui",
+      "target": "customer/menu-trigger.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\t// Reads the customer asynchronously (`experimental.async`, `$derived(await getCustomer())`) and\n\t// wraps its own render in a `<svelte:boundary>`, so it suspends on its own while the customer\n\t// loads — consumers don't need an external boundary.\n\timport { getCustomer } from 'sveltekit-medusa-sdk/customer'\n\timport type { Snippet } from 'svelte'\n\n\tlet { children }: { children: Snippet } = $props()\n\n\tconst customer = $derived(await getCustomer())\n</script>\n\n<svelte:boundary>\n\t{#if customer}\n\t\t{@render children()}\n\t{/if}\n\t{#snippet pending()}{/snippet}\n</svelte:boundary>\n",
+      "type": "registry:ui",
+      "target": "customer/signed-in.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\t// Same as SignedIn but inverted: renders children only when there is no signed-in customer.\n\timport { getCustomer } from 'sveltekit-medusa-sdk/customer'\n\timport type { Snippet } from 'svelte'\n\n\tlet { children }: { children: Snippet } = $props()\n\n\tconst customer = $derived(await getCustomer())\n</script>\n\n<svelte:boundary>\n\t{#if !customer}\n\t\t{@render children()}\n\t{/if}\n\t{#snippet pending()}{/snippet}\n</svelte:boundary>\n",
+      "type": "registry:ui",
+      "target": "customer/signed-out.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\t// Plain anchor deep-linking into the auth dialog via `?auth=login`, so it works without JS.\n\timport { cn } from '$UTILS$.js'\n\timport { buttonVariants } from '$lib/components/ui/button/index.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet {\n\t\thref = '?auth=login',\n\t\tclass: className = '',\n\t\tchildren\n\t}: { href?: string; class?: string; children?: Snippet } = $props()\n</script>\n\n<a {href} class={cn(buttonVariants({ variant: 'default' }), className)}>\n\t{#if children}{@render children()}{:else}Sign in{/if}\n</a>\n",
+      "type": "registry:ui",
+      "target": "customer/sign-in-button.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { Button } from '$lib/components/ui/button/index.js'\n\timport { logout } from 'sveltekit-medusa-sdk/auth'\n\timport { getCustomer } from 'sveltekit-medusa-sdk/customer'\n\timport type { Snippet } from 'svelte'\n\n\tlet {\n\t\tonsignout,\n\t\tclass: className = '',\n\t\tchildren\n\t}: { onsignout?: () => void; class?: string; children?: Snippet } = $props()\n\n\tlet pending = $state(false)\n\n\tasync function handleClick() {\n\t\tif (pending) return\n\t\tpending = true\n\t\ttry {\n\t\t\tawait logout()\n\t\t\tawait getCustomer().refresh()\n\t\t\tonsignout?.()\n\t\t} finally {\n\t\t\tpending = false\n\t\t}\n\t}\n</script>\n\n<Button class={className} disabled={pending} onclick={handleClick}>\n\t{#if children}{@render children()}{:else}Sign out{/if}\n</Button>\n",
+      "type": "registry:ui",
+      "target": "customer/sign-out.svelte"
+    },
+    {
+      "content": "export { default as SignedIn } from './signed-in.svelte'\nexport { default as SignedOut } from './signed-out.svelte'\nexport { default as SignInButton } from './sign-in-button.svelte'\nexport { default as SignOut } from './sign-out.svelte'\nexport { default as Menu } from './menu.svelte'\nexport { default as MenuTrigger } from './menu-trigger.svelte'\nexport { default as MenuContent } from './menu-content.svelte'\nexport { default as MenuItem } from './menu-item.svelte'\n",
+      "type": "registry:file",
+      "target": "customer/index.ts"
+    }
+  ]
+}
