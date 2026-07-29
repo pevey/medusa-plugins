@@ -48,6 +48,22 @@ export interface StoreReviewListResponse {
 	offset: number
 }
 
+export interface StoreMyReviewListQuery {
+	status?: 'pending' | 'approved' | 'rejected'
+	product_id?: string
+	limit?: number
+	offset?: number
+	order?: string
+	fields?: string
+}
+
+export interface StoreMyReviewListResponse {
+	reviews: Review[]
+	count: number
+	limit: number
+	offset: number
+}
+
 export interface StoreReviewResponse {
 	review: Review
 }

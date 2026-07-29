@@ -7,8 +7,22 @@ import Options from './product-options.svelte'
 import OptionButton from './product-option-button.svelte'
 import QuantitySelect from './product-quantity-select.svelte'
 import JsonLd from './product-jsonld.svelte'
+import Rating from './product-rating.svelte'
+import { Star } from '../review/index.js'
 
-export { Root, Title, Subtitle, Description, Price, Options, OptionButton, QuantitySelect, JsonLd }
+export {
+	Root,
+	Title,
+	Subtitle,
+	Description,
+	Price,
+	Options,
+	OptionButton,
+	QuantitySelect,
+	JsonLd,
+	Rating,
+	Star
+}
 export { getProductContext, getProductContextOptional, setProductContext } from './ctx.svelte.js'
 export type { ProductContext } from './ctx.svelte.js'
 export { formatPrice } from './format-price.js'
