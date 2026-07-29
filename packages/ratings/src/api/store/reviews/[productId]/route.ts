@@ -69,7 +69,7 @@ export const GET = async (req: MedusaRequest<StoreGetReviewsType>, res: MedusaRe
 
 	const count = rows.length
 	const page = rows.slice(offset, offset + limit)
-	res.json({ reviews: page, count })
+	res.json({ reviews: page, count, limit, offset })
 }
 
 export const POST = async (

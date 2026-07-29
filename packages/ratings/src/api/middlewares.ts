@@ -13,6 +13,7 @@ import {
 	AdminGetReviews,
 	AdminUpdateReview,
 	StoreCreateReview,
+	StoreGetMyReviews,
 	StoreGetReviews,
 	StoreUpdateReview
 } from './validators'
@@ -172,5 +173,32 @@ export default defineMiddlewares([
 		matcher: '/store/reviews/:productId/:reviewId',
 		method: ['POST'],
 		middlewares: [authenticate('customer', 'bearer'), validateAndTransformBody(StoreUpdateReview)]
+	},
+	{
+		matcher: '/store/customers/me/reviews',
+		method: ['GET'],
+		middlewares: [
+			authenticate('customer', 'bearer'),
+			validateAndTransformQuery(StoreGetMyReviews, {
+				defaults: [
+					'id',
+					'status',
+					'rating',
+					'title',
+					'body',
+					'author_name',
+					'product_id',
+					'order_id',
+					'featured',
+					'created_at',
+					'updated_at',
+					'product.title',
+					'product.handle',
+					'product.thumbnail'
+				],
+				isList: true,
+				defaultLimit: 20
+			})
+		]
 	}
 ])

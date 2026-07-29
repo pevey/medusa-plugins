@@ -71,3 +71,9 @@ export const StoreUpdateReview = z.object({
 	author_name: z.string().min(1, 'Author name is required'),
 	order_id: z.string().optional()
 })
+
+export type StoreGetMyReviewsType = z.infer<typeof StoreGetMyReviews>
+export const StoreGetMyReviews = createFindParams({ limit: 20, offset: 0 }).extend({
+	status: z.enum(['pending', 'approved', 'rejected']).optional(),
+	product_id: z.string().optional()
+})

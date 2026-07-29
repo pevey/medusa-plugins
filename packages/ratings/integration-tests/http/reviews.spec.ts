@@ -1049,5 +1049,138 @@ medusaIntegrationTestRunner({
 				})
 			})
 		})
+
+		// ── Store — /store/customers/me/reviews ──────────────────────────────────
+
+		describe('GET /store/customers/me/reviews', () => {
+			const PRODUCT_ID = 'prod_my_reviews_001'
+			const PRODUCT_ID_2 = 'prod_my_reviews_002'
+			let myCustomerToken: string
+			let myCustomerId: string
+			let myPublishableApiKey: string
+			let myReviewIds: string[] = []
+
+			beforeAll(async () => {
+				const container = getContainer()
+
+				// Create a publishable API key (required for /store/ routes)
+				const scRes = await api.post('/admin/sales-channels', { name: 'My Reviews Test Channel' }, auth())
+				const salesChannelId = scRes.data.sales_channel.id
+
+				const keyRes = await api.post('/admin/api-keys', {
+					title: 'My Reviews Test Key',
+					type: 'publishable'
+				}, auth())
+				myPublishableApiKey = keyRes.data.api_key.token
+
+				await api.post(`/admin/api-keys/${keyRes.data.api_key.id}/sales-channels`, {
+					add: [salesChannelId]
+				}, auth())
+
+				// Create a customer with auth
+				const authService = container.resolve(Modules.AUTH)
+				const { authIdentity } = await authService.register('emailpass', {
+					body: { email: 'my-reviews@example.com', password: 'Sup3rSecret!' }
+				})
+
+				const { result } = await createCustomerAccountWorkflow(container).run({
+					input: {
+						authIdentityId: authIdentity!.id,
+						customerData: {
+							email: 'my-reviews@example.com',
+							first_name: 'My',
+							last_name: 'Reviews'
+						}
+					}
+				})
+				myCustomerId = result.id
+
+				const loginRes = await api.post('/auth/customer/emailpass', {
+					email: 'my-reviews@example.com',
+					password: 'Sup3rSecret!'
+				})
+				myCustomerToken = loginRes.data.token
+
+				const [r1, r2] = await Promise.all([
+					reviewService.createReviews({
+						rating: 4,
+						body: 'My pending review',
+						author_name: 'My Reviews',
+						product_id: PRODUCT_ID,
+						customer_id: myCustomerId,
+						status: 'pending'
+					}),
+					reviewService.createReviews({
+						rating: 5,
+						body: 'My approved review',
+						author_name: 'My Reviews',
+						product_id: PRODUCT_ID_2,
+						customer_id: myCustomerId,
+						status: 'approved'
+					})
+				])
+				myReviewIds = [r1.id, r2.id]
+				await seedSnapshot()
+			})
+
+			afterAll(async () => {
+				await reviewService.deleteReviews(myReviewIds).catch(() => {})
+			})
+
+			const myReviewsAuth = () => ({
+				headers: {
+					Authorization: `Bearer ${myCustomerToken}`,
+					'x-publishable-api-key': myPublishableApiKey
+				}
+			})
+
+			it('returns 401 without auth', async () => {
+				const res = await api
+					.get('/store/customers/me/reviews', { headers: { 'x-publishable-api-key': myPublishableApiKey } })
+					.catch((e: any) => e.response)
+				expect(res.status).toBe(401)
+			})
+
+			it('returns all of the authenticated customer\'s reviews across products, regardless of status', async () => {
+				const res = await api.get('/store/customers/me/reviews', myReviewsAuth())
+				expect(res.status).toBe(200)
+				expect(res.data.count).toBe(2)
+				expect(res.data.reviews).toHaveLength(2)
+
+				const statuses = res.data.reviews.map((r: any) => r.status).sort()
+				expect(statuses).toEqual(['approved', 'pending'])
+
+				const productIds = res.data.reviews.map((r: any) => r.product_id).sort()
+				expect(productIds).toEqual([PRODUCT_ID, PRODUCT_ID_2].sort())
+			})
+
+			it('filters by status', async () => {
+				const res = await api.get('/store/customers/me/reviews?status=approved', myReviewsAuth())
+				expect(res.status).toBe(200)
+				expect(res.data.reviews).toHaveLength(1)
+				expect(res.data.reviews[0].status).toBe('approved')
+			})
+
+			it('filters by product_id', async () => {
+				const res = await api.get(`/store/customers/me/reviews?product_id=${PRODUCT_ID}`, myReviewsAuth())
+				expect(res.status).toBe(200)
+				expect(res.data.reviews).toHaveLength(1)
+				expect(res.data.reviews[0].product_id).toBe(PRODUCT_ID)
+			})
+
+			it('does not include other customers reviews', async () => {
+				const other = await reviewService.createReviews({
+					rating: 1,
+					body: 'Not mine',
+					author_name: 'Someone Else',
+					product_id: PRODUCT_ID,
+					customer_id: 'cus_someone_else_my_reviews',
+					status: 'approved'
+				})
+				const res = await api.get('/store/customers/me/reviews', myReviewsAuth())
+				expect(res.data.reviews.some((r: any) => r.id === other.id)).toBe(false)
+				await reviewService.deleteReviews([other.id]).catch(() => {})
+			})
+		})
 	}
 })
