@@ -3,7 +3,7 @@
   "name": "address",
   "title": "Address Form",
   "type": "registry:ui",
-  "description": "Compound Address primitives (Root, Email, FirstName, LastName, Phone, AddressLine2, City, Company, Country, PostalCode, Autocomplete, Province, BillingToggle, Billing) plus an AddressForm preset. Owns cart writes via the sveltekit-medusa-sdk cart remotes (DI-with-SDK-default + onaddresschange/onregionchange/onerror callbacks): debounced updateCart, region-by-country switching, billing same-as-shipping toggle, and Google Places autocomplete (optional; degrades to text). Receives the consumer's remote form (renders no <form>). No $effect (SSR-safe; hydrates via onMount).",
+  "description": "Compound Address primitives (Root, Email, FirstName, LastName, Phone, AddressLine1, AddressLine2, City, Company, Country, PostalCode, Autocomplete, Province, BillingToggle, Billing) plus AddressForm and AddressFormCollapsed presets. Owns cart writes via the sveltekit-medusa-sdk cart remotes (DI-with-SDK-default + onaddresschange/onregionchange/onerror callbacks): debounced updateCart, region-by-country switching, billing same-as-shipping toggle, and Google Places autocomplete (optional; degrades to text). Receives the consumer's remote form (renders no <form>). No $effect (SSR-safe; hydrates via onMount).",
   "dependencies": [
     "sveltekit-medusa-sdk"
   ],
@@ -13,7 +13,6 @@
   "registryDependencies": [
     "field",
     "https://pevey.com/r/input-text.json",
-    "https://pevey.com/r/input-select.json",
     "https://pevey.com/r/input-select-country.json",
     "https://pevey.com/r/input-postal-code.json",
     "https://pevey.com/r/input-province.json",

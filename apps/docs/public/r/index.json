@@ -12,7 +12,7 @@
     "name": "image-zoom",
     "title": "Image Zoom",
     "type": "registry:ui",
-    "description": "Click-to-zoom full-screen image overlay with gallery navigation. Vendored from more-shadcn-svelte (MIT, © 2025 kevwpl).",
+    "description": "Click-to-zoom full-screen image overlay with gallery navigation: Root, Trigger, and a getImageZoomContextOptional hook that lets nested images (e.g. Gallery.Image) auto-detect an ancestor overlay. Vendored from more-shadcn-svelte (MIT, © 2025 kevwpl).",
     "dependencies": [
       "@lucide/svelte"
     ],
@@ -94,10 +94,36 @@
     "relativeUrl": "seo.json"
   },
   {
+    "name": "review",
+    "title": "Review",
+    "type": "registry:ui",
+    "description": "Dependency-free presentational atom for a single review: Review (default-exported compound) + Review.Title/Rating/Author/Date/Body, Item (the per-item context provider the collection surfaces loop over), Star, and the per-item context/logic/types the rest of the reviews surfaces build on. Renders from a `review` prop or ambient per-item context; no SDK, no fetching.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "relativeUrl": "review.json"
+  },
+  {
+    "name": "reviews",
+    "title": "Reviews",
+    "type": "registry:ui",
+    "description": "Compound review-collection primitives composed over the `review` atom (Star, Review.*): Root, Summary (.Title/.Average/.Stars/.Count/.Histogram(.Bar/.Label)), Sort, List, Pagination (.Prev/.Next/.Info), Carousel, and a submission Form (.Author/.Rating/.Title/.Body/.Submit/.Cancel/.Error). Root is context-aware — headless when given a `reviews` array (client-side filter/sort/paginate), otherwise it fetches summary + paginated reviews for a product (explicit `productId` or the ambient Product context) via the sveltekit-medusa-sdk reviews remotes, with optimistic display of just-submitted reviews. Render-prop children expose { reviews, summary, count, page, pageCount }; parts read a surface-neutral ReviewsListContext, so other surfaces (e.g. Customer.Reviews) reuse them. No $effect (SSR-safe).",
+    "dependencies": [
+      "sveltekit-medusa-sdk"
+    ],
+    "registryDependencies": [
+      "https://pevey.com/r/review.json",
+      "https://pevey.com/r/product.json",
+      "carousel",
+      "button",
+      "https://pevey.com/r/input-text.json"
+    ],
+    "relativeUrl": "reviews.json"
+  },
+  {
     "name": "product",
     "title": "Product",
     "type": "registry:ui",
-    "description": "Compound Product primitives (Root, Title, Subtitle, Description, Price, Options, OptionButton) over a Medusa StoreProduct. URL-driven variant selection (?v= links), inventory-aware option availability (manage_inventory/inventory_quantity), currency-aware price with sale strikethrough, sanitized {@html} description. Pure resolution logic in product-logic.ts; no $effect (SSR-safe). Fetch the product reactively in your route and pass it in.",
+    "description": "Compound Product primitives (Root, Title, Subtitle, Description, Price, Options, OptionButton, QuantitySelect, Rating, JsonLd) over a Medusa StoreProduct. Rating renders the product's aggregate star summary from the sveltekit-medusa-sdk reviews remote (re-exporting Star from the `review` atom) and JsonLd emits schema.org Product/AggregateOffer markup. URL-driven variant selection (?v= links), inventory-aware option availability (manage_inventory/inventory_quantity), currency-aware price with sale strikethrough, sanitized {@html} description. Pure resolution logic in product-logic.ts; no $effect (SSR-safe). Fetch the product reactively in your route and pass it in.",
     "dependencies": [
       "isomorphic-dompurify",
       "@lucide/svelte",
@@ -106,9 +132,7 @@
     ],
     "registryDependencies": [
       "https://pevey.com/r/seo.json",
-      "https://pevey.com/r/input-text.json",
-      "field",
-      "button"
+      "https://pevey.com/r/review.json"
     ],
     "relativeUrl": "product.json"
   },
@@ -116,9 +140,10 @@
     "name": "cta",
     "title": "CTA",
     "type": "registry:ui",
-    "description": "Add-to-cart primitives wired to the sveltekit-medusa-sdk cart remotes. AddToCartButton resolves variant/quantity from Product context (or props), shows pending/aria-busy state and an accessible inline success/error message, with optional post-add redirect. AddToCartToggle reflects cart membership for a variant/condition via a checkbox (or a custom children snippet). Also available as flat exports (AddToCartButton, AddToCartToggle).",
+    "description": "Add-to-cart primitives wired to the sveltekit-medusa-sdk cart remotes. AddToCartButton resolves variant/quantity from Product context (or props), shows pending/aria-busy state and an accessible inline success/error message, with optional post-add redirect. AddToCartToggle reflects cart membership for a variant/condition via a checkbox (or a custom children snippet). StripeExpressCheckout renders Stripe's Express Checkout wallet button (Apple Pay / Google Pay / Link) in deferred mode for product cards and landing pages — Medusa-agnostic: you create the PaymentIntent in onConfirm and call the supplied confirm(clientSecret). All flat exports; no compound namespace.",
     "dependencies": [
-      "sveltekit-medusa-sdk"
+      "sveltekit-medusa-sdk",
+      "sveltekit-stripe"
     ],
     "registryDependencies": [
       "https://pevey.com/r/product.json",
@@ -130,7 +155,7 @@
     "name": "cart",
     "title": "Cart",
     "type": "registry:ui",
-    "description": "Compound Cart primitives (Root, Trigger, Badge, Sheet, Items, LineItem, Image, Title, Price, Quantity, Remove, ItemSubtotal, Empty, Checkout) plus a CartDrawer preset, wired to the sveltekit-medusa-sdk cart remotes. Reactive re-render on cart changes with onupdate/onremove/onerror callbacks and pending-state disabling; per-part class override; self-contained currency-aware format-price. No $effect (SSR-safe). Badge shows total quantity and hides at 0.",
+    "description": "Compound Cart primitives (Root, Trigger, Badge, Sheet, Items, Item, Image, Title, Price, Quantity, Remove, ItemSubtotal, Subtotal, Empty, Checkout) plus a CartDrawer preset, wired to the sveltekit-medusa-sdk cart remotes. Reactive re-render on cart changes with onupdate/onremove/onerror callbacks and pending-state disabling; per-part class override; self-contained currency-aware format-price. No $effect (SSR-safe). Badge shows total quantity and hides at 0.",
     "dependencies": [
       "sveltekit-medusa-sdk",
       "@lucide/svelte"
@@ -145,14 +170,13 @@
     "name": "address",
     "title": "Address Form",
     "type": "registry:ui",
-    "description": "Compound Address primitives (Root, Email, FirstName, LastName, Phone, AddressLine2, City, Company, Country, PostalCode, Autocomplete, Province, BillingToggle, Billing) plus an AddressForm preset. Owns cart writes via the sveltekit-medusa-sdk cart remotes (DI-with-SDK-default + onaddresschange/onregionchange/onerror callbacks): debounced updateCart, region-by-country switching, billing same-as-shipping toggle, and Google Places autocomplete (optional; degrades to text). Receives the consumer's remote form (renders no <form>). No $effect (SSR-safe; hydrates via onMount).",
+    "description": "Compound Address primitives (Root, Email, FirstName, LastName, Phone, AddressLine1, AddressLine2, City, Company, Country, PostalCode, Autocomplete, Province, BillingToggle, Billing) plus AddressForm and AddressFormCollapsed presets. Owns cart writes via the sveltekit-medusa-sdk cart remotes (DI-with-SDK-default + onaddresschange/onregionchange/onerror callbacks): debounced updateCart, region-by-country switching, billing same-as-shipping toggle, and Google Places autocomplete (optional; degrades to text). Receives the consumer's remote form (renders no <form>). No $effect (SSR-safe; hydrates via onMount).",
     "dependencies": [
       "sveltekit-medusa-sdk"
     ],
     "registryDependencies": [
       "field",
       "https://pevey.com/r/input-text.json",
-      "https://pevey.com/r/input-select.json",
       "https://pevey.com/r/input-select-country.json",
       "https://pevey.com/r/input-postal-code.json",
       "https://pevey.com/r/input-province.json",
@@ -162,19 +186,19 @@
   },
   {
     "name": "checkout",
-    "title": "Checkout Braintree",
+    "title": "Checkout",
     "type": "registry:ui",
-    "description": "Compound Checkout primitives (Root, Items, Item, Image, Title, Price, Quantity, ItemSubtotal, Remove, Delivery, Discount, Summary + 7 summary rows, BraintreePayment, PlaceOrder, Confirmation, CheckoutError) plus a batteries-included CheckoutBraintree preset that owns the <form>, composes the Address preset alongside a single-page cart summary + Braintree hosted-fields payment, and calls placeOrder (updateAddress → shipping guard → authorizePayment → completeCart) with a StoreOrder confirmation or redirectTo. Wired to the sveltekit-medusa-sdk cart/checkout/braintree remotes (DI-with-SDK-default); no $effect (SSR-safe).",
+    "description": "Compound Checkout primitives (Root, Items, Item, Image, Title, Price, Quantity, ItemSubtotal, Remove, Delivery, Discount, Summary + 7 summary rows, PlaceOrder, Confirmation, CheckoutError) with payment parts for both providers — BraintreePayment/BraintreeHostedFields and StripeElements/StripePayment/StripeAddress — plus three batteries-included presets: CheckoutBraintree (hosted fields), CheckoutStripe (Payment Element / card fields), and CheckoutAuto (renders whichever provider the cart's region is configured for, from region.payment_providers). Each preset owns the <form>, composes the Address preset alongside a single-page cart summary, and calls placeOrder (updateAddress → shipping guard → authorizePayment → completeCart) with a StoreOrder confirmation or redirectTo. Return is a standalone handler for redirect-based Stripe methods (iDEAL, Bancontact, giropay, Przelewy24) — drop it on the route your returnUrl points at. Wired to the sveltekit-medusa-sdk cart/checkout/braintree/stripe remotes (DI-with-SDK-default); no $effect (SSR-safe).",
     "dependencies": [
       "sveltekit-medusa-sdk",
       "sveltekit-braintree",
+      "sveltekit-stripe",
+      "@stripe/stripe-js",
       "@lucide/svelte"
     ],
-    "devDependencies": [],
     "registryDependencies": [
       "https://pevey.com/r/address.json",
-      "button",
-      "https://pevey.com/r/input-text.json"
+      "button"
     ],
     "relativeUrl": "checkout.json"
   },
@@ -190,8 +214,7 @@
     "registryDependencies": [
       "dialog",
       "button",
-      "field",
-      "label"
+      "field"
     ],
     "relativeUrl": "auth.json"
   },
@@ -199,14 +222,17 @@
     "name": "customer",
     "title": "Customer",
     "type": "registry:ui",
-    "description": "Storefront shopper identity: SignedIn/SignedOut auth-state gates, a Menu compound over shadcn DropdownMenu, SignInButton (deep-links ?auth=login), and SignOut; reads the sveltekit-medusa-sdk customer remote directly.",
+    "description": "Storefront shopper identity: SignedIn/SignedOut auth-state gates, Menu/MenuTrigger/MenuContent/MenuItem over the shadcn DropdownMenu, SignInButton (deep-links ?auth=login), and SignOut; plus Customer.Reviews — the shopper's own reviews across all products, composed from the `reviews` collection parts (List/Sort/Pagination) with Review.Product, Review.Edit, and Review.Delete. Reads the sveltekit-medusa-sdk customer & reviews remotes directly.",
     "dependencies": [
-      "sveltekit-medusa-sdk",
-      "@lucide/svelte"
+      "sveltekit-medusa-sdk"
     ],
     "registryDependencies": [
       "dropdown-menu",
-      "button"
+      "button",
+      "https://pevey.com/r/reviews.json",
+      "https://pevey.com/r/review.json",
+      "textarea",
+      "label"
     ],
     "relativeUrl": "customer.json"
   },
@@ -271,7 +297,6 @@
     "description": "Address autocomplete field wrapping Google's PlaceAutocompleteElement, themed with shadcn tokens (chrome stripped, dropdown restyled). Emits a normalized address on select; no store writes.",
     "dependencies": [
       "@googlemaps/js-api-loader",
-      "mode-watcher",
       "tailwind-merge"
     ],
     "devDependencies": [
@@ -310,7 +335,7 @@
     "name": "input-select-country",
     "title": "Input Select Country",
     "type": "registry:ui",
-    "description": "Country select bound to a remote-form field, options fed from the store's regions (validated ISO-2 code values). Extends input-select.",
+    "description": "Country select bound to a remote-form field: takes a `countries` list (the Address family feeds it the store's regions) and renders ISO-2 code values with country names as labels. Exports the `Country` type. Extends input-select.",
     "dependencies": [],
     "registryDependencies": [
       "https://pevey.com/r/input-select.json"
@@ -332,7 +357,7 @@
     "name": "input-province",
     "title": "Input Province",
     "type": "registry:ui",
-    "description": "Config-driven province/state field bound to a remote-form field: renders a select when the current country is configured (default US + CA, ISO 3166-2 values), otherwise a freeform text input. Ships US_STATES, US_MILITARY (APO/FPO), CA_PROVINCES, and defaultProvinceConfig; stores extend per country in one place. Extends input-select + input-text.",
+    "description": "Config-driven province/state field bound to a remote-form field: renders a select when the current country is configured (default US + CA, ISO 3166-2 values), otherwise a freeform text input. Ships US_STATES, US_MILITARY (APO/FPO), CA_PROVINCES, defaultProvinceConfig, and the resolveProvince helper; stores extend per country in one place. Extends input-select + input-text.",
     "dependencies": [],
     "registryDependencies": [
       "https://pevey.com/r/input-select.json",

@@ -3,7 +3,7 @@
   "name": "input-province",
   "title": "Input Province",
   "type": "registry:ui",
-  "description": "Config-driven province/state field bound to a remote-form field: renders a select when the current country is configured (default US + CA, ISO 3166-2 values), otherwise a freeform text input. Ships US_STATES, US_MILITARY (APO/FPO), CA_PROVINCES, and defaultProvinceConfig; stores extend per country in one place. Extends input-select + input-text.",
+  "description": "Config-driven province/state field bound to a remote-form field: renders a select when the current country is configured (default US + CA, ISO 3166-2 values), otherwise a freeform text input. Ships US_STATES, US_MILITARY (APO/FPO), CA_PROVINCES, defaultProvinceConfig, and the resolveProvince helper; stores extend per country in one place. Extends input-select + input-text.",
   "registryDependencies": [
     "https://pevey.com/r/input-select.json",
     "https://pevey.com/r/input-text.json"

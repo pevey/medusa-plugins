@@ -3,7 +3,7 @@
   "name": "input-select-country",
   "title": "Input Select Country",
   "type": "registry:ui",
-  "description": "Country select bound to a remote-form field, options fed from the store's regions (validated ISO-2 code values). Extends input-select.",
+  "description": "Country select bound to a remote-form field: takes a `countries` list (the Address family feeds it the store's regions) and renders ISO-2 code values with country names as labels. Exports the `Country` type. Extends input-select.",
   "registryDependencies": [
     "https://pevey.com/r/input-select.json"
   ],

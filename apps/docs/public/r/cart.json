@@ -3,7 +3,7 @@
   "name": "cart",
   "title": "Cart",
   "type": "registry:ui",
-  "description": "Compound Cart primitives (Root, Trigger, Badge, Sheet, Items, LineItem, Image, Title, Price, Quantity, Remove, ItemSubtotal, Empty, Checkout) plus a CartDrawer preset, wired to the sveltekit-medusa-sdk cart remotes. Reactive re-render on cart changes with onupdate/onremove/onerror callbacks and pending-state disabling; per-part class override; self-contained currency-aware format-price. No $effect (SSR-safe). Badge shows total quantity and hides at 0.",
+  "description": "Compound Cart primitives (Root, Trigger, Badge, Sheet, Items, Item, Image, Title, Price, Quantity, Remove, ItemSubtotal, Subtotal, Empty, Checkout) plus a CartDrawer preset, wired to the sveltekit-medusa-sdk cart remotes. Reactive re-render on cart changes with onupdate/onremove/onerror callbacks and pending-state disabling; per-part class override; self-contained currency-aware format-price. No $effect (SSR-safe). Badge shows total quantity and hides at 0.",
   "dependencies": [
     "sveltekit-medusa-sdk",
     "@lucide/svelte"
@@ -78,9 +78,9 @@
       "target": "cart/cart-remove.svelte"
     },
     {
-      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getCartLineContext } from './ctx.svelte.js'\n\timport { formatPrice } from './format-price.js'\n\tlet { class: className = '', locale = 'en-US' }: { class?: string; locale?: string } = $props()\n\tconst { item } = getCartLineContext()\n\tconst currencyCode = $derived((item as { currency_code?: string }).currency_code ?? 'usd')\n\t// Medusa's computed line subtotal (accounts for item-level adjustments); falls back to unit_price × quantity when the cart wasn't fetched with computed totals.\n\tconst amount = $derived(\n\t\titem.subtotal ?? (item.unit_price != null ? item.unit_price * item.quantity : undefined)\n\t)\n\tconst formatted = $derived(formatPrice(amount, currencyCode, locale))\n</script>\n\n{#if formatted}<p data-cart-item-subtotal class={cn('text-sm font-medium', className)}>\n\t\t{formatted}\n\t</p>{/if}\n",
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getCartContext } from './ctx.svelte.js'\n\timport { formatPrice } from './format-price.js'\n\tlet {\n\t\tclass: className = '',\n\t\tlocale = 'en-US',\n\t\tlabel = 'Subtotal'\n\t}: { class?: string; locale?: string; label?: string } = $props()\n\tconst ctx = getCartContext()\n\tconst currency = $derived(\n\t\t(ctx.cart as { currency_code?: string } | null | undefined)?.currency_code ?? 'usd'\n\t)\n\tconst formatted = $derived(\n\t\tctx.subtotal == null ? '' : formatPrice(ctx.subtotal, currency, locale)\n\t)\n</script>\n\n{#if formatted}\n\t<div\n\t\tdata-cart-subtotal\n\t\tclass={cn('flex items-center justify-between text-base font-medium', className)}\n\t>\n\t\t<span>{label}</span><span>{formatted}</span>\n\t</div>\n{/if}\n",
       "type": "registry:ui",
-      "target": "cart/cart-item-subtotal.svelte"
+      "target": "cart/cart-subtotal.svelte"
     },
     {
       "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport type { Snippet } from 'svelte'\n\tlet { class: className = '', children }: { class?: string; children?: Snippet } = $props()\n</script>\n\n<p data-cart-empty class={cn('py-6 text-sm text-muted-foreground', className)}>\n\t{#if children}{@render children()}{:else}Your cart is empty{/if}\n</p>\n",

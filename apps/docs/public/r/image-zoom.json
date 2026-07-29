@@ -3,7 +3,7 @@
   "name": "image-zoom",
   "title": "Image Zoom",
   "type": "registry:ui",
-  "description": "Click-to-zoom full-screen image overlay with gallery navigation. Vendored from more-shadcn-svelte (MIT, © 2025 kevwpl).",
+  "description": "Click-to-zoom full-screen image overlay with gallery navigation: Root, Trigger, and a getImageZoomContextOptional hook that lets nested images (e.g. Gallery.Image) auto-detect an ancestor overlay. Vendored from more-shadcn-svelte (MIT, © 2025 kevwpl).",
   "dependencies": [
     "@lucide/svelte"
   ],

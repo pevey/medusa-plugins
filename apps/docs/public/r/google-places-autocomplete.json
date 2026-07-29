@@ -6,7 +6,6 @@
   "description": "Address autocomplete field wrapping Google's PlaceAutocompleteElement, themed with shadcn tokens (chrome stripped, dropdown restyled). Emits a normalized address on select; no store writes.",
   "dependencies": [
     "@googlemaps/js-api-loader",
-    "mode-watcher",
     "tailwind-merge"
   ],
   "devDependencies": [

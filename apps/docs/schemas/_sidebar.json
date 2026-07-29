@@ -901,6 +901,10 @@
 				{
 					"label": "Update Review",
 					"link": "/medusa-plugin-ratings/api/operations/poststorereviewsbyproductidbyreviewid/"
+				},
+				{
+					"label": "List Reviews",
+					"link": "/medusa-plugin-ratings/api/operations/getstorecustomersmereviews/"
 				}
 			]
 		}

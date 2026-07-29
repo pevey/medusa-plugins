@@ -10,6 +10,14 @@
 //
 // Base URL: REGISTRY_BASE_URL env override, else the docs `site` (astro.config.mjs) + "/r",
 // so the domain has a single source of truth and is never duplicated in committed source.
+//
+// Why the dependency normalization step: `shadcn-svelte registry build` AUTO-DETECTS each item's
+// imports and stamps the version it finds in packages/sveltekit-ui/package.json. That keeps npm
+// deps single-sourced (never hand-written in registry.json — which would drift on the next Medusa
+// bump), but it also stamps our workspace-linked packages verbatim as `pkg@workspace:*`, which no
+// consumer can install. So we rewrite protocol specifiers to a real range and then FAIL the build
+// on anything left that a consumer could not `npm install`, plus on any @medusajs/* version that
+// has drifted from the Medusa release this repo builds against.
 
 import { execSync } from 'node:child_process'
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
@@ -45,9 +53,68 @@ const ownNames = new Set(registry.items.map(item => item.name))
 const allowedFiles = new Set([...ownNames].map(name => `${name}.json`).concat('index.json'))
 
 const toFullUrl = dep => (ownNames.has(dep) ? `${base}/${dep}.json` : dep)
+
+// 2b. Version sources for the npm dependency normalization/guards below.
+const readJson = path => JSON.parse(readFileSync(path, 'utf-8'))
+const repoRoot = resolve(docsRoot, '../..')
+// The Medusa release this repo builds against — every @medusajs/* pin lives at the root.
+const medusaVersion = readJson(join(repoRoot, 'package.json')).devDependencies?.['@medusajs/medusa']
+if (!medusaVersion)
+	throw new Error('[sync-registry] Could not read @medusajs/medusa from the root package.json.')
+// Our own workspace packages: `workspace:*` in the ui package.json must become something a
+// consumer can install. Prefer the compat range the ui package already declares as a peer;
+// fall back to a caret on the version we would publish.
+const uiPkgJson = readJson(join(uiPkg, 'package.json'))
+const workspaceRanges = new Map()
+for (const dir of readdirSync(join(repoRoot, 'packages'))) {
+	let pkg
+	try {
+		pkg = readJson(join(repoRoot, 'packages', dir, 'package.json'))
+	} catch {
+		continue
+	}
+	if (pkg.name && pkg.version) {
+		workspaceRanges.set(pkg.name, uiPkgJson.peerDependencies?.[pkg.name] ?? `^${pkg.version}`)
+	}
+}
+
+const PROTOCOL = /^(workspace|link|file|portal|patch):/
+// "name", "name@spec", "@scope/name@spec" — the version delimiter is the LAST @ past position 0.
+const splitDep = dep => {
+	const at = dep.lastIndexOf('@')
+	return at > 0 ? [dep.slice(0, at), dep.slice(at + 1)] : [dep, '']
+}
+
+const normalizeDep = (dep, item) => {
+	const [name, spec] = splitDep(dep)
+	if (PROTOCOL.test(spec)) {
+		const range = workspaceRanges.get(name)
+		if (!range)
+			throw new Error(
+				`[sync-registry] ${item}: dependency "${dep}" uses a non-installable specifier and ` +
+					`"${name}" is not a workspace package, so no published range can be derived.`
+			)
+		return `${name}@${range}`
+	}
+	// The Medusa-version invariant: sveltekit-medusa-ui is versioned against a Medusa release, so a
+	// stamped @medusajs/* pin that no longer matches the root pin means the ui package.json went
+	// stale during an upgrade. Fail loudly instead of publishing a mismatched registry.
+	if (name.startsWith('@medusajs/') && spec && spec !== medusaVersion)
+		throw new Error(
+			`[sync-registry] ${item}: "${dep}" does not match the Medusa version this repo builds ` +
+				`against (${medusaVersion}). Update "${name}" in packages/sveltekit-ui/package.json.`
+		)
+	return dep
+}
+
 const rewriteDeps = node => {
 	if (Array.isArray(node?.registryDependencies)) {
 		node.registryDependencies = node.registryDependencies.map(toFullUrl)
+	}
+	for (const key of ['dependencies', 'devDependencies']) {
+		if (Array.isArray(node?.[key])) {
+			node[key] = node[key].map(dep => normalizeDep(dep, `${node.name ?? 'index'}.${key}`))
+		}
 	}
 }
 
