@@ -4,7 +4,8 @@
 	"description": "A workspace for developing Medusa plugins.",
 	"workspaces": [
 		"packages/*",
-		"apps/*"
+		"apps/*",
+		"tools/*"
 	],
 	"scripts": {
 		"backend": "turbo dev --filter=test-backend",
@@ -17,8 +18,11 @@
 		"prebuild": "node ./scripts/check-node-version.cjs && node ./scripts/dedupe-medusa.cjs",
 		"release": "lerna publish from-package --yes",
 		"release:preview": "lerna publish from-package",
+		"test": "turbo test --concurrency=1 --filter=!sveltekit-medusa-ui --filter=!storefront",
+		"test:admin": "turbo test:admin --concurrency=1",
 		"test:integration": "turbo test:integration:http",
-		"test:unit": "turbo test:unit"
+		"test:unit": "turbo test:unit --filter=!sveltekit-medusa-ui",
+		"typecheck": "turbo typecheck"
 	},
 	"devDependencies": {
 		"@medusajs/admin-sdk": "2.18.0",

@@ -18,6 +18,7 @@ import {
 	useDataTable,
 	usePrompt
 } from '@medusajs/ui'
+import type { AdminGetReviewsType } from '../../../api/validators'
 import { AdminReview, ReviewStatus } from '../../types'
 import {
 	useReviewsList,
@@ -49,8 +50,10 @@ const ReviewsPage = () => {
 		pageIndex: 0
 	})
 	const offset = useMemo(() => pagination.pageIndex * limit, [pagination])
-	// Default to 'new' so the list opens filtered to new reviews
-	const [filtering, setFiltering] = useState<DataTableFilteringState>({ status: 'pending' })
+	// `type: 'select'` filters in @medusajs/ui are multi-value: the menu spreads into this
+	// state with `[...(filter ?? []), value]`. Seeding a bare string makes it spread into
+	// characters, which then fails the route's `status` enum. Always seed an array.
+	const [filtering, setFiltering] = useState<DataTableFilteringState>({ status: ['pending'] })
 	const [sorting, setSorting] = useState<DataTableSortingState | null>(null)
 	const [search, setSearch] = useState('')
 	const [rowSelection, setRowSelection] = useState<DataTableRowSelectionState>({})
@@ -59,7 +62,15 @@ const ReviewsPage = () => {
 		limit,
 		offset,
 		q: search || undefined,
-		...(filtering.status !== undefined ? { status: filtering.status } : {}),
+		// @medusajs/ui's DataTableFilteringState is generic over Record<string, unknown>; used
+		// bare (as useDataTable's `filtering` option requires), so `status` types as an opaque
+		// `{} | null | undefined` rather than the string/array shape it holds at runtime. The
+		// filter menu below only ever pushes this route's own status enum values into the array
+		// (see the seeding comment on `filtering`'s useState above), so this narrows to what
+		// AdminGetReviews actually accepts.
+		...(filtering.status !== undefined
+			? { status: filtering.status as AdminGetReviewsType['status'] }
+			: {}),
 		order: sorting ? `${sorting.desc ? '-' : ''}${sorting.id}` : '-created_at'
 	})
 

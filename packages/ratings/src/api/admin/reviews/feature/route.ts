@@ -3,11 +3,11 @@ import { Modules } from '@medusajs/framework/utils'
 import type { ICachingModuleService } from '@medusajs/types'
 import { REVIEW_MODULE } from '../../../../modules/review'
 import { ReviewService } from '../../../../modules/review/service'
-import { AdminFeatureReviewActionType } from '../../../validators'
+import { AdminFeatureReviewsType } from '../../../validators'
 import { clearReviewCaches } from '../../../store/reviews/cache'
 
 export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminFeatureReviewActionType>,
+	req: AuthenticatedMedusaRequest<AdminFeatureReviewsType>,
 	res: MedusaResponse
 ) => {
 	const reviewService: ReviewService = req.scope.resolve(REVIEW_MODULE)

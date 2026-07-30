@@ -16217,6 +16217,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"admin-test-utils@workspace:*, admin-test-utils@workspace:tools/admin-test-utils":
+  version: 0.0.0-use.local
+  resolution: "admin-test-utils@workspace:tools/admin-test-utils"
+  dependencies:
+    "@medusajs/medusa": "npm:2.18.0"
+    "@medusajs/ui": "npm:4.2.0"
+    "@tanstack/react-query": "npm:5.64.2"
+    "@types/node": "npm:22.20.1"
+    "@types/react": "npm:18.3.31"
+    "@types/react-dom": "npm:18.3.7"
+    "@vitejs/plugin-react": "npm:6.0.4"
+    "@vitest/browser-playwright": "npm:4.1.10"
+    playwright: "npm:1.62.0"
+    react: "npm:18.3.1"
+    react-dom: "npm:18.3.1"
+    react-router-dom: "npm:6.30.4"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
+    vitest-browser-react: "npm:2.2.0"
+    zod: "npm:4.3.6"
+  peerDependencies:
+    "@medusajs/ui": ">=4"
+    "@tanstack/react-query": ">=5"
+    react: ">=18"
+    react-dom: ">=18"
+    react-router-dom: ">=6"
+  languageName: unknown
+  linkType: soft
+
 "agent-base@npm:6":
   version: 6.0.2
   resolution: "agent-base@npm:6.0.2"
@@ -25249,6 +25279,7 @@ __metadata:
     "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
+    admin-test-utils: "workspace:*"
     jest: "npm:29.7.0"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
@@ -25256,6 +25287,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
@@ -25383,6 +25415,7 @@ __metadata:
     "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
+    admin-test-utils: "workspace:*"
     jest: "npm:29.7.0"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
@@ -25390,6 +25423,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
@@ -33838,6 +33872,24 @@ __metadata:
     vite:
       optional: true
   checksum: 10c0/6cfcd52a17339f63f71ef08787a68850a17a9d9dd7a688e29e41067f963eb2cd5192bb65d38df87fa3a733a21e0229aaa6382201655c1599699e5d6669e3e094
+  languageName: node
+  linkType: hard
+
+"vitest-browser-react@npm:2.2.0":
+  version: 2.2.0
+  resolution: "vitest-browser-react@npm:2.2.0"
+  peerDependencies:
+    "@types/react": ^18.0.0 || ^19.0.0
+    "@types/react-dom": ^18.0.0 || ^19.0.0
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+    vitest: ^4.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 10c0/d2e582e564cf7f65f19a5a9c36b0b136e84fc6dabd42566703d79e0b220094a5a88a9197a42b2c4779f38977d79c8f3306387cd7edd2ef8e57790b921a759975
   languageName: node
   linkType: hard
 

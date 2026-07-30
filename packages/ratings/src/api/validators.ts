@@ -4,7 +4,13 @@ import { createFindParams } from '@medusajs/medusa/api/utils/validators'
 export type AdminGetReviewsType = z.infer<typeof AdminGetReviews>
 export const AdminGetReviews = createFindParams({ limit: 20, offset: 0 }).extend({
 	q: z.string().optional(),
-	status: z.enum(['pending', 'approved', 'rejected']).optional(),
+	// Accept a single value or the array the admin DataTable's multi-select filter sends.
+	status: z
+		.union([
+			z.enum(['pending', 'approved', 'rejected']),
+			z.array(z.enum(['pending', 'approved', 'rejected'])).min(1)
+		])
+		.optional(),
 	product_id: z.string().optional(),
 	customer_id: z.string().optional()
 })
@@ -26,18 +32,18 @@ export const AdminDeleteReviews = z.object({
 	ids: z.array(z.string()).min(1)
 })
 
-export type AdminApproveReviewActionType = z.infer<typeof AdminApproveReviewAction>
-export const AdminApproveReviewAction = z.object({
+export type AdminApproveReviewsType = z.infer<typeof AdminApproveReviews>
+export const AdminApproveReviews = z.object({
 	ids: z.array(z.string()).min(1)
 })
 
-export type AdminRejectReviewActionType = z.infer<typeof AdminRejectReviewAction>
-export const AdminRejectReviewAction = z.object({
+export type AdminRejectReviewsType = z.infer<typeof AdminRejectReviews>
+export const AdminRejectReviews = z.object({
 	ids: z.array(z.string()).min(1)
 })
 
-export type AdminFeatureReviewActionType = z.infer<typeof AdminFeatureReviewAction>
-export const AdminFeatureReviewAction = z.object({
+export type AdminFeatureReviewsType = z.infer<typeof AdminFeatureReviews>
+export const AdminFeatureReviews = z.object({
 	ids: z.array(z.string()).min(1),
 	featured: z.boolean().optional().default(true)
 })

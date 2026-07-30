@@ -206,6 +206,19 @@ medusaIntegrationTestRunner({
 				expect(res.data.reviews.every((r: any) => r.status === 'rejected')).toBe(true)
 			})
 
+			it('filters by multiple statuses', async () => {
+				// The admin DataTable's status filter is multi-value, so the UI sends an array.
+				const res = await api.get('/admin/reviews?status[]=approved&status[]=rejected', auth())
+				expect(res.status).toBe(200)
+				const statuses = res.data.reviews.map((r: any) => r.status)
+				// Both requested statuses must come back, not just the first: that is what
+				// distinguishes a real IN filter from one that quietly uses a single value.
+				// The fixture seeds exactly one review per status.
+				expect(statuses).toContain('approved')
+				expect(statuses).toContain('rejected')
+				expect(statuses).not.toContain('pending')
+			})
+
 			it('filters by product_id', async () => {
 				const res = await api.get(`/admin/reviews?product_id=${PRODUCT_ID}`, auth())
 				expect(res.status).toBe(200)

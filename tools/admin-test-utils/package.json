@@ -1,0 +1,43 @@
+{
+	"name": "admin-test-utils",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Contract-checked test harness for Medusa plugin admin dashboard extensions.",
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./config": "./src/config.ts",
+		"./shims/framework-http": "./src/shims/framework-http.ts",
+		"./shims/medusa-validators": "./src/shims/medusa-validators.ts"
+	},
+	"scripts": {
+		"test:admin": "vitest run && vitest run --config vitest.node.config.ts",
+		"typecheck": "tsc --noEmit -p tsconfig.json"
+	},
+	"peerDependencies": {
+		"@medusajs/ui": ">=4",
+		"@tanstack/react-query": ">=5",
+		"react": ">=18",
+		"react-dom": ">=18",
+		"react-router-dom": ">=6"
+	},
+	"devDependencies": {
+		"@medusajs/medusa": "2.18.0",
+		"@medusajs/ui": "4.2.0",
+		"@tanstack/react-query": "5.64.2",
+		"@types/node": "22.20.1",
+		"@types/react": "18.3.31",
+		"@types/react-dom": "18.3.7",
+		"@vitejs/plugin-react": "6.0.4",
+		"@vitest/browser-playwright": "4.1.10",
+		"playwright": "1.62.0",
+		"react": "18.3.1",
+		"react-dom": "18.3.1",
+		"react-router-dom": "6.30.4",
+		"typescript": "6.0.3",
+		"vite": "8.1.5",
+		"vitest": "4.1.10",
+		"vitest-browser-react": "2.2.0",
+		"zod": "4.3.6"
+	}
+}

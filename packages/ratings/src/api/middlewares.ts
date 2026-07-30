@@ -5,9 +5,9 @@ import {
 	validateAndTransformQuery
 } from '@medusajs/framework/http'
 import {
-	AdminApproveReviewAction,
-	AdminRejectReviewAction,
-	AdminFeatureReviewAction,
+	AdminApproveReviews,
+	AdminRejectReviews,
+	AdminFeatureReviews,
 	AdminDeleteReviews,
 	AdminGetReview,
 	AdminGetReviews,
@@ -101,17 +101,17 @@ export default defineMiddlewares([
 	{
 		matcher: '/admin/reviews/approve',
 		method: ['POST'],
-		middlewares: [validateAndTransformBody(AdminApproveReviewAction)]
+		middlewares: [validateAndTransformBody(AdminApproveReviews)]
 	},
 	{
 		matcher: '/admin/reviews/reject',
 		method: ['POST'],
-		middlewares: [validateAndTransformBody(AdminRejectReviewAction)]
+		middlewares: [validateAndTransformBody(AdminRejectReviews)]
 	},
 	{
 		matcher: '/admin/reviews/feature',
 		method: ['POST'],
-		middlewares: [validateAndTransformBody(AdminFeatureReviewAction)]
+		middlewares: [validateAndTransformBody(AdminFeatureReviews)]
 	},
 	// ── Store ────────────────────────────────────────────────────────────────
 	{

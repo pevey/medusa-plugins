@@ -1,8 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sdk } from '../lib/sdk'
+import type {
+	AdminGetReviewsType,
+	AdminUpdateReviewType,
+	AdminDeleteReviewsType,
+	AdminApproveReviewsType,
+	AdminRejectReviewsType,
+	AdminFeatureReviewsType
+} from '../../api/validators'
 import { AdminReviewsResponse, AdminReviewResponse } from '../types'
 
-export const useReviewsList = (params: Record<string, unknown>) => {
+export const useReviewsList = (params: AdminGetReviewsType) => {
 	return useQuery<AdminReviewsResponse>({
 		queryFn: () => sdk.client.fetch('/admin/reviews', { query: params }),
 		queryKey: ['reviews', params]
@@ -20,7 +28,7 @@ export const useReview = (id: string | undefined) => {
 export const useUpdateReview = (id: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
+		mutationFn: (data: AdminUpdateReviewType) =>
 			sdk.client.fetch<AdminReviewResponse>(`/admin/reviews/${id}`, {
 				method: 'POST',
 				body: data
@@ -46,7 +54,7 @@ export const useDeleteReview = () => {
 export const useDeleteReviews = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
+		mutationFn: (ids: AdminDeleteReviewsType['ids']) =>
 			sdk.client.fetch('/admin/reviews', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['reviews'] })
@@ -57,7 +65,7 @@ export const useDeleteReviews = () => {
 export const useApproveReviews = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
+		mutationFn: (ids: AdminApproveReviewsType['ids']) =>
 			sdk.client.fetch('/admin/reviews/approve', { method: 'POST', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['reviews'] })
@@ -68,7 +76,7 @@ export const useApproveReviews = () => {
 export const useRejectReviews = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
+		mutationFn: (ids: AdminRejectReviewsType['ids']) =>
 			sdk.client.fetch('/admin/reviews/reject', { method: 'POST', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['reviews'] })
@@ -79,7 +87,7 @@ export const useRejectReviews = () => {
 export const useFeatureReviews = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (vars: { ids: string[]; featured?: boolean }) =>
+		mutationFn: (vars: AdminFeatureReviewsType) =>
 			sdk.client.fetch('/admin/reviews/feature', { method: 'POST', body: vars }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['reviews'] })

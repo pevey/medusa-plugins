@@ -67,6 +67,11 @@ export default defineMiddlewares([
 		middlewares: [validateAndTransformBody(AdminUpdateForm)]
 	},
 	{
+		matcher: '/admin/forms/:id',
+		method: ['DELETE'],
+		middlewares: []
+	},
+	{
 		matcher: '/admin/forms/:id/fields',
 		method: ['GET'],
 		middlewares: [

@@ -15,6 +15,18 @@
 		"test:unit": {
 			"outputs": []
 		},
+		"test:admin": {
+			"outputs": [],
+			"cache": false
+		},
+		"typecheck": {
+			"outputs": []
+		},
+		"test": {
+			"dependsOn": ["test:unit", "test:admin"],
+			"outputs": [],
+			"cache": false
+		},
 		"test:integration:http": {
 			"outputs": [],
 			"cache": false

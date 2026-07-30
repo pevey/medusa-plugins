@@ -116,7 +116,15 @@ export const EditFormDrawer = ({ form, open, setOpen }: Props) => {
 			<Drawer.Content>
 				<form onSubmit={onSubmit} className="flex flex-1 flex-col overflow-hidden">
 					<Drawer.Header>
-						<Heading level="h1">Edit Form</Heading>
+						{/* `asChild` makes the visible heading double as the dialog's accessible name:
+						    Radix requires a Title on every DialogContent (it errors without one) and
+						    this keeps the markup and layout exactly as they were. */}
+						<Drawer.Title asChild>
+							<Heading level="h1">Edit Form</Heading>
+						</Drawer.Title>
+						<Drawer.Description className="sr-only">
+							Edit this form's name, handle, settings, and fields.
+						</Drawer.Description>
 					</Drawer.Header>
 					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 						<div className="flex flex-col gap-y-4">

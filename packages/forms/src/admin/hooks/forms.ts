@@ -1,5 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sdk } from '../lib/sdk'
+import type {
+	AdminGetFormsType,
+	AdminCreateFormType,
+	AdminUpdateFormType,
+	AdminDeleteFormsType,
+	AdminCreateFormFieldType,
+	AdminUpdateFormFieldType,
+	AdminDeleteFormFieldsType,
+	AdminCreateFormFieldOptionType,
+	AdminUpdateFormFieldOptionType,
+	AdminDeleteFormFieldOptionsType
+} from '../../api/validators'
 import {
 	AdminFormsResponse,
 	AdminFormResponse
@@ -7,7 +19,7 @@ import {
 
 // ─── Forms ────────────────────────────────────────────────────────────────────
 
-export const useFormsList = (params: Record<string, unknown>) => {
+export const useFormsList = (params: AdminGetFormsType) => {
 	return useQuery<AdminFormsResponse>({
 		queryFn: () => sdk.client.fetch('/admin/forms', { query: params }),
 		queryKey: ['forms', params]
@@ -25,7 +37,7 @@ export const useForm = (id: string | undefined) => {
 export const useCreateForm = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
+		mutationFn: (data: AdminCreateFormType) =>
 			sdk.client.fetch<AdminFormResponse>('/admin/forms', { method: 'POST', body: data }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['forms'] })
@@ -36,7 +48,7 @@ export const useCreateForm = () => {
 export const useUpdateForm = (id: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
+		mutationFn: (data: AdminUpdateFormType) =>
 			sdk.client.fetch<AdminFormResponse>(`/admin/forms/${id}`, {
 				method: 'POST',
 				body: data
@@ -62,7 +74,7 @@ export const useDeleteForm = () => {
 export const useDeleteForms = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
+		mutationFn: (ids: AdminDeleteFormsType['ids']) =>
 			sdk.client.fetch('/admin/forms', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['forms'] })
@@ -75,7 +87,7 @@ export const useDeleteForms = () => {
 export const useCreateFormField = (formId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
+		mutationFn: (data: AdminCreateFormFieldType) =>
 			sdk.client.fetch(`/admin/forms/${formId}/fields`, {
 				method: 'POST',
 				body: data
@@ -89,7 +101,7 @@ export const useCreateFormField = (formId: string) => {
 export const useUpdateFormField = (formId: string, fieldId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
+		mutationFn: (data: AdminUpdateFormFieldType) =>
 			sdk.client.fetch(`/admin/forms/${formId}/fields/${fieldId}`, {
 				method: 'POST',
 				body: data
@@ -103,7 +115,7 @@ export const useUpdateFormField = (formId: string, fieldId: string) => {
 export const useDeleteFormFields = (formId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
+		mutationFn: (ids: AdminDeleteFormFieldsType['ids']) =>
 			sdk.client.fetch(`/admin/forms/${formId}/fields`, {
 				method: 'DELETE',
 				body: { ids }
@@ -119,7 +131,7 @@ export const useDeleteFormFields = (formId: string) => {
 export const useCreateFormFieldOption = (formId: string, fieldId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
+		mutationFn: (data: AdminCreateFormFieldOptionType) =>
 			sdk.client.fetch(`/admin/forms/${formId}/fields/${fieldId}/options`, {
 				method: 'POST',
 				body: data
@@ -133,7 +145,7 @@ export const useCreateFormFieldOption = (formId: string, fieldId: string) => {
 export const useUpdateFormFieldOption = (formId: string, fieldId: string, optionId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
+		mutationFn: (data: AdminUpdateFormFieldOptionType) =>
 			sdk.client.fetch(`/admin/forms/${formId}/fields/${fieldId}/options/${optionId}`, {
 				method: 'POST',
 				body: data
@@ -147,7 +159,7 @@ export const useUpdateFormFieldOption = (formId: string, fieldId: string, option
 export const useDeleteFormFieldOptions = (formId: string, fieldId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
+		mutationFn: (ids: AdminDeleteFormFieldOptionsType['ids']) =>
 			sdk.client.fetch(`/admin/forms/${formId}/fields/${fieldId}/options`, {
 				method: 'DELETE',
 				body: { ids }

@@ -123,7 +123,15 @@ export const CreateFormModal = ({ open, setOpen }: Props) => {
 					<FocusModal.Header />
 					<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 						<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
-							<Heading level="h1">Create Form</Heading>
+							{/* `asChild` makes the visible heading double as the dialog's accessible name:
+							    Radix requires a Title on every DialogContent (it errors without one) and
+							    this keeps the markup and layout exactly as they were. */}
+							<FocusModal.Title asChild>
+								<Heading level="h1">Create Form</Heading>
+							</FocusModal.Title>
+							<FocusModal.Description className="sr-only">
+								Create a new form: name it, choose its handle, and add its fields.
+							</FocusModal.Description>
 
 							<div className="flex flex-col gap-y-4">
 								<div className="flex flex-col gap-y-1">
