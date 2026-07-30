@@ -1,7 +1,10 @@
-## 0.2.5
+## 1.0.0
 
+- Fix a11y issues with create modal and edit drawer
 - Add option to prerender markdown format content items as html by appending the query param ?render-html
 - Fix major admin UI bug introduced in 0.2.2 that caused posting from the create-content-item-modal to fail because it was sending a redundant field that caused validation to reject
+- Updated medusa packages to 2.18.0
+- Bump other dependency versions
 
 ## 0.2.4
 

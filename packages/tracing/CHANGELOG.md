@@ -1,3 +1,9 @@
+## 1.0.0
+
+- Fix a11y issues with create modal and edit drawer
+- Updated medusa packages to 2.18.0
+- Bump other dependency versions
+
 ## 0.2.3
 
 - Fix input variable name in create lot POST in stock lots widget for inventory item page (location_id --> stock_location_id).

@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-access",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Access management for Medusa v2.",
 	"author": "Lacey Pevey",
 	"license": "UNLICENSED",

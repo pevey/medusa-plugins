@@ -1,3 +1,9 @@
+## 0.4.1
+
+- Fix a11y issues with create modal and edit drawer
+- Updated medusa packages to 2.18.0
+- Bump other dependency versions
+
 ## 0.4.0
 
 - Added tool registration for optional medusa-plugin-mcp integration
