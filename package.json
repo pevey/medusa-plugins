@@ -18,10 +18,10 @@
 		"prebuild": "node ./scripts/check-node-version.cjs && node ./scripts/dedupe-medusa.cjs",
 		"release": "lerna publish from-package --yes",
 		"release:preview": "lerna publish from-package",
-		"test": "turbo test --concurrency=1 --filter=!sveltekit-medusa-ui --filter=!storefront",
+		"test": "turbo test --concurrency=1 --filter=!storefront",
 		"test:admin": "turbo test:admin --concurrency=1",
 		"test:integration": "turbo test:integration:http",
-		"test:unit": "turbo test:unit --filter=!sveltekit-medusa-ui",
+		"test:unit": "turbo test:unit",
 		"typecheck": "turbo typecheck"
 	},
 	"devDependencies": {
