@@ -44,10 +44,16 @@ function drawHeading(cursor: Cursor, data: ComplaintForExport, fonts: PdfFonts, 
 	cursor = ensureSpace(cursor, pdfDoc, HEADING_SIZE + LINE_HEIGHT)
 	cursor.y -= HEADING_SIZE
 	cursor.page.drawText(`Complaint #${c.number}`, {
-		x: LABEL_X, y: cursor.y, size: HEADING_SIZE, font: fonts.bold
+		x: LABEL_X,
+		y: cursor.y,
+		size: HEADING_SIZE,
+		font: fonts.bold
 	})
 	cursor.page.drawText(c.status.toUpperCase(), {
-		x: PAGE_WIDTH - MARGIN - 80, y: cursor.y, size: HEADING_SIZE, font: fonts.bold
+		x: PAGE_WIDTH - MARGIN - 80,
+		y: cursor.y,
+		size: HEADING_SIZE,
+		font: fonts.bold
 	})
 	cursor.y -= SECTION_GAP
 	cursor = drawHr(cursor)
@@ -57,7 +63,7 @@ function drawHeading(cursor: Cursor, data: ComplaintForExport, fonts: PdfFonts, 
 function drawHr(cursor: Cursor): Cursor {
 	cursor.page.drawLine({
 		start: { x: MARGIN, y: cursor.y },
-		end:   { x: PAGE_WIDTH - MARGIN, y: cursor.y },
+		end: { x: PAGE_WIDTH - MARGIN, y: cursor.y },
 		thickness: 0.5,
 		color: rgb(0.8, 0.8, 0.8)
 	})
@@ -69,7 +75,10 @@ function drawSectionHeading(cursor: Cursor, label: string, fonts: PdfFonts, pdfD
 	cursor = ensureSpace(cursor, pdfDoc, SECTION_HEADING_SIZE + SECTION_GAP)
 	cursor.y -= SECTION_HEADING_SIZE
 	cursor.page.drawText(label, {
-		x: LABEL_X, y: cursor.y, size: SECTION_HEADING_SIZE, font: fonts.bold
+		x: LABEL_X,
+		y: cursor.y,
+		size: SECTION_HEADING_SIZE,
+		font: fonts.bold
 	})
 	cursor.y -= 4
 	return cursor
@@ -80,7 +89,10 @@ function drawRow(cursor: Cursor, label: string, value: string, fonts: PdfFonts, 
 	const needed = Math.max(LINE_HEIGHT, valueLines.length * LINE_HEIGHT)
 	cursor = ensureSpace(cursor, pdfDoc, needed)
 	cursor.page.drawText(label, {
-		x: LABEL_X, y: cursor.y - LINE_HEIGHT, size: BODY_SIZE, font: fonts.bold
+		x: LABEL_X,
+		y: cursor.y - LINE_HEIGHT,
+		size: BODY_SIZE,
+		font: fonts.bold
 	})
 	const result = drawWrappedText(cursor.page, valueLines, {
 		x: VALUE_X,
@@ -102,9 +114,7 @@ function drawGeneralSection(cursor: Cursor, data: ComplaintForExport, fonts: Pdf
 	cursor = drawRow(
 		cursor,
 		'Order',
-		data.order
-			? `${data.order.display_id} (created ${data.order.created_at.toISOString().slice(0, 10)})`
-			: c.order_id ?? '-',
+		data.order ? `${data.order.display_id} (created ${data.order.created_at.toISOString().slice(0, 10)})` : (c.order_id ?? '-'),
 		fonts,
 		pdfDoc
 	)
@@ -130,14 +140,21 @@ function drawFilesSection(
 		cursor = ensureSpace(cursor, pdfDoc, LINE_HEIGHT)
 		cursor.y -= LINE_HEIGHT
 		cursor.page.drawText('No documents attached.', {
-			x: LABEL_X, y: cursor.y, size: BODY_SIZE, font: fonts.regular, color: rgb(0.5, 0.5, 0.5)
+			x: LABEL_X,
+			y: cursor.y,
+			size: BODY_SIZE,
+			font: fonts.regular,
+			color: rgb(0.5, 0.5, 0.5)
 		})
 	} else {
 		for (const d of data.complaint.documents) {
 			cursor = ensureSpace(cursor, pdfDoc, LINE_HEIGHT)
 			cursor.y -= LINE_HEIGHT
 			cursor.page.drawText(d.filename, {
-				x: LABEL_X, y: cursor.y, size: BODY_SIZE, font: fonts.regular
+				x: LABEL_X,
+				y: cursor.y,
+				size: BODY_SIZE,
+				font: fonts.regular
 			})
 			const result = embedClassifications[d.id]
 			if (result && result.embedded === false) {
@@ -163,18 +180,25 @@ function drawActivitySection(cursor: Cursor, data: ComplaintForExport, fonts: Pd
 		cursor = ensureSpace(cursor, pdfDoc, LINE_HEIGHT)
 		cursor.y -= LINE_HEIGHT
 		cursor.page.drawText('No activity.', {
-			x: LABEL_X, y: cursor.y, size: BODY_SIZE, font: fonts.regular, color: rgb(0.5, 0.5, 0.5)
+			x: LABEL_X,
+			y: cursor.y,
+			size: BODY_SIZE,
+			font: fonts.regular,
+			color: rgb(0.5, 0.5, 0.5)
 		})
 		return cursor
 	}
 	for (const entry of data.complaint.activity) {
 		const when = entry.created_at.toISOString().replace('T', ' ').slice(0, 16)
-		const who  = entry.user?.email ?? entry.user?.id ?? '—'
+		const who = entry.user?.email ?? entry.user?.id ?? '—'
 		const head = `${when}  by ${who}  ${entry.type.toUpperCase()}`
 		cursor = ensureSpace(cursor, pdfDoc, LINE_HEIGHT)
 		cursor.y -= LINE_HEIGHT
 		cursor.page.drawText(head, {
-			x: LABEL_X, y: cursor.y, size: BODY_SIZE, font: fonts.bold
+			x: LABEL_X,
+			y: cursor.y,
+			size: BODY_SIZE,
+			font: fonts.bold
 		})
 		if (entry.note) {
 			const noteLines = wrapText(entry.note, fonts.regular, BODY_SIZE, PAGE_WIDTH - VALUE_X - MARGIN)

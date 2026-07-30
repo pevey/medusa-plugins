@@ -7,18 +7,17 @@ import { renderMarkdown, RENDERER_VERSION } from '../../../../../lib/markdown'
 
 const TTL = 300 // 5 minutes
 
-export const GET = async (
-	req: MedusaRequest<StoreGetContentItemType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: MedusaRequest<StoreGetContentItemType>, res: MedusaResponse) => {
 	let caching: ICachingModuleService | null = null
-	try { caching = req.scope.resolve(Modules.CACHING) ?? null } catch { /* noop */ }
+	try {
+		caching = req.scope.resolve(Modules.CACHING) ?? null
+	} catch {
+		/* noop */
+	}
 	const { itemSlug } = req.params
 	const wantsHtml = (req.validatedQuery as StoreGetContentItemType)?.render === 'html'
 
-	const cacheKey = wantsHtml
-		? `store:content-item:${itemSlug}:render=html:${RENDERER_VERSION}`
-		: `store:content-item:${itemSlug}`
+	const cacheKey = wantsHtml ? `store:content-item:${itemSlug}:render=html:${RENDERER_VERSION}` : `store:content-item:${itemSlug}`
 	const cached = caching ? await caching.get({ key: cacheKey }) : null
 	if (cached) {
 		res.json(cached)
@@ -26,7 +25,9 @@ export const GET = async (
 	}
 
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-	const { data: [content_item] } = await query.graph({
+	const {
+		data: [content_item]
+	} = await query.graph({
 		entity: 'content_item',
 		...req.queryConfig,
 		filters: { slug: itemSlug, status: ContentStatus.PUBLISHED }

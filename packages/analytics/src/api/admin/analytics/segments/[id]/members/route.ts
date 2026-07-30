@@ -2,10 +2,7 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import type { AdminGetSegmentMembersType } from '../../../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetSegmentMembersType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetSegmentMembersType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
 	const { data: members, metadata } = await query.graph({

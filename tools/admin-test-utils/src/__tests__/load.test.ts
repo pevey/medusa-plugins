@@ -51,9 +51,7 @@ describe('loadRouteContracts', () => {
 	})
 
 	it('reads the object form of defineMiddlewares', () => {
-		expect(loadRouteContracts(objectForm).get('POST', '/admin/widgets')?.bodySchema).toBe(
-			CreateWidget
-		)
+		expect(loadRouteContracts(objectForm).get('POST', '/admin/widgets')?.bodySchema).toBe(CreateWidget)
 	})
 
 	it('accepts a bare array of already-normalized route entries', () => {

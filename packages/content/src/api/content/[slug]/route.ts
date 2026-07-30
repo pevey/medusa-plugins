@@ -5,12 +5,13 @@ import { StoreGetContentCollectionType } from '../../validators'
 
 const TTL = 300 // 5 minutes
 
-export const GET = async (
-	req: MedusaRequest<StoreGetContentCollectionType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: MedusaRequest<StoreGetContentCollectionType>, res: MedusaResponse) => {
 	let caching: ICachingModuleService | null = null
-	try { caching = req.scope.resolve(Modules.CACHING) ?? null } catch { /* noop */ }
+	try {
+		caching = req.scope.resolve(Modules.CACHING) ?? null
+	} catch {
+		/* noop */
+	}
 	const { slug } = req.params
 
 	const cacheKey = `store:content-collection:${slug}`
@@ -21,7 +22,9 @@ export const GET = async (
 	}
 
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-	const { data: [content_collection] } = await query.graph({
+	const {
+		data: [content_collection]
+	} = await query.graph({
 		entity: 'content_collection',
 		...req.queryConfig,
 		filters: { slug }

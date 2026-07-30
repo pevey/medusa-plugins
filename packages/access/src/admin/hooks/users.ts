@@ -16,8 +16,7 @@ export const useUsersList = (params: { limit: number; offset: number; q?: string
 // A single user's assigned access roles — used by the user.details widget.
 export const useUserAccessRoles = (userId: string | undefined) => {
 	return useQuery<AdminAccessRolesResponse>({
-		queryFn: () =>
-			sdk.client.fetch(`/admin/users/${userId}/access/roles`, { query: { limit: 200 } }),
+		queryFn: () => sdk.client.fetch(`/admin/users/${userId}/access/roles`, { query: { limit: 200 } }),
 		queryKey: ['user-access-roles', userId],
 		enabled: !!userId
 	})
@@ -40,8 +39,7 @@ export const useAssignUserRoles = (userId: string | undefined) => {
 export const useRemoveUserRole = (userId: string | undefined) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (roleId: string) =>
-			sdk.client.fetch(`/admin/users/${userId}/access/roles/${roleId}`, { method: 'DELETE' }),
+		mutationFn: (roleId: string) => sdk.client.fetch(`/admin/users/${userId}/access/roles/${roleId}`, { method: 'DELETE' }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['user-access-roles', userId] })
 		}

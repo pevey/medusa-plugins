@@ -22,12 +22,7 @@
 	<form {...contact} class="space-y-4">
 		<InputText field={contact.fields.name} label="Name" />
 		<InputText field={contact.fields.email} type="email" label="Email" />
-		<InputSelect
-			field={contact.fields.country}
-			label="Country"
-			placeholder="Select a country…"
-			options={countries}
-		/>
+		<InputSelect field={contact.fields.country} label="Country" placeholder="Select a country…" options={countries} />
 		<InputText field={contact.fields.message} type="textarea" label="Message" />
 		<div class="flex items-center justify-between">
 			<span class="text-sm font-medium">Dark mode (submitted with the form)</span>

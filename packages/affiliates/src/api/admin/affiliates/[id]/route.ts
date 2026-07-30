@@ -24,10 +24,7 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 	res.json({ affiliate })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateAffiliateType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAffiliateType>, res: MedusaResponse) => {
 	const { status, ...rest } = req.validatedBody
 	if (Object.keys(rest).length > 0) {
 		await updateAffiliateWorkflow(req.scope).run({

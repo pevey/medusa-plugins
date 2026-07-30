@@ -42,14 +42,10 @@
 	aria-selected={option ? active : undefined}
 	tabindex={option ? -1 : undefined}
 	onclick={() => state.close()}
-	class={cn(
-		'text-popover-foreground hover:bg-accent block overflow-hidden p-4 text-left no-underline',
-		option && active && 'bg-accent',
-		className
-	)}
+	class={cn('block overflow-hidden p-4 text-left text-popover-foreground no-underline hover:bg-accent', option && active && 'bg-accent', className)}
 >
 	<h3 class="font-semibold">{hit.title}</h3>
 	{#if hit.snippet}
-		<p class="text-muted-foreground line-clamp-4 text-sm">{hit.snippet}</p>
+		<p class="line-clamp-4 text-sm text-muted-foreground">{hit.snippet}</p>
 	{/if}
 </a>

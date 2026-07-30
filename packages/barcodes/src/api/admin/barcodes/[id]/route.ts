@@ -4,10 +4,7 @@ import { AdminGetBarcodeType, AdminUpdateBarcodeType } from '../../../validators
 import { BARCODE_MODULE } from '../../../../modules/barcode'
 import { BarcodeService } from '../../../../modules/barcode/service'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetBarcodeType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetBarcodeType>, res: MedusaResponse) => {
 	const { id } = req.params
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const {
@@ -20,10 +17,7 @@ export const GET = async (
 	res.json({ barcode })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateBarcodeType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateBarcodeType>, res: MedusaResponse) => {
 	const { id } = req.params
 	const barcodeService: BarcodeService = req.scope.resolve(BARCODE_MODULE)
 	const barcode = await barcodeService.updateBarcodes({

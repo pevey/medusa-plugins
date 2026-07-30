@@ -3,11 +3,7 @@
 	import { getCheckoutContext } from './ctx.svelte.js'
 	import { formatPrice } from './format-price.js'
 
-	let {
-		class: className = '',
-		label = 'Gift card',
-		locale = 'en-US'
-	}: { class?: string; label?: string; locale?: string } = $props()
+	let { class: className = '', label = 'Gift card', locale = 'en-US' }: { class?: string; label?: string; locale?: string } = $props()
 
 	const ctx = getCheckoutContext()
 	const amount = $derived(ctx.cart?.gift_card_total)

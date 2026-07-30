@@ -12,10 +12,7 @@ import type {
 	AdminUpdateFormFieldOptionType,
 	AdminDeleteFormFieldOptionsType
 } from '../../api/validators'
-import {
-	AdminFormsResponse,
-	AdminFormResponse
-} from '../types'
+import { AdminFormsResponse, AdminFormResponse } from '../types'
 
 // ─── Forms ────────────────────────────────────────────────────────────────────
 
@@ -37,8 +34,7 @@ export const useForm = (id: string | undefined) => {
 export const useCreateForm = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: AdminCreateFormType) =>
-			sdk.client.fetch<AdminFormResponse>('/admin/forms', { method: 'POST', body: data }),
+		mutationFn: (data: AdminCreateFormType) => sdk.client.fetch<AdminFormResponse>('/admin/forms', { method: 'POST', body: data }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['forms'] })
 		}
@@ -63,8 +59,7 @@ export const useUpdateForm = (id: string) => {
 export const useDeleteForm = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (id: string) =>
-			sdk.client.fetch(`/admin/forms/${id}`, { method: 'DELETE' }),
+		mutationFn: (id: string) => sdk.client.fetch(`/admin/forms/${id}`, { method: 'DELETE' }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['forms'] })
 		}
@@ -74,8 +69,7 @@ export const useDeleteForm = () => {
 export const useDeleteForms = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: AdminDeleteFormsType['ids']) =>
-			sdk.client.fetch('/admin/forms', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: AdminDeleteFormsType['ids']) => sdk.client.fetch('/admin/forms', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['forms'] })
 		}
@@ -169,5 +163,3 @@ export const useDeleteFormFieldOptions = (formId: string, fieldId: string) => {
 		}
 	})
 }
-
-

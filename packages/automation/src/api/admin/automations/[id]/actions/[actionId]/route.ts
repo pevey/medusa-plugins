@@ -11,28 +11,19 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 
 	const [action] = await automationService.listAutomationActions({ id: actionId }, { take: 1 })
 	if (!action) {
-		throw new MedusaError(
-			MedusaError.Types.NOT_FOUND,
-			`AutomationAction with id ${actionId} not found`
-		)
+		throw new MedusaError(MedusaError.Types.NOT_FOUND, `AutomationAction with id ${actionId} not found`)
 	}
 
 	res.json({ action })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateAutomationActionType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAutomationActionType>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { actionId } = req.params
 
 	const [existing] = await automationService.listAutomationActions({ id: actionId }, { take: 1 })
 	if (!existing) {
-		throw new MedusaError(
-			MedusaError.Types.NOT_FOUND,
-			`AutomationAction with id ${actionId} not found`
-		)
+		throw new MedusaError(MedusaError.Types.NOT_FOUND, `AutomationAction with id ${actionId} not found`)
 	}
 
 	// SSRF save-time check — re-validate target_url if the update touches it.

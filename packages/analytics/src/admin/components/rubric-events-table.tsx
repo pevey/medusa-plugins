@@ -1,12 +1,4 @@
-import {
-	Badge,
-	Container,
-	createDataTableColumnHelper,
-	DataTable,
-	DataTablePaginationState,
-	Heading,
-	useDataTable
-} from '@medusajs/ui'
+import { Badge, Container, createDataTableColumnHelper, DataTable, DataTablePaginationState, Heading, useDataTable } from '@medusajs/ui'
 import { useState, useMemo } from 'react'
 import type { AdminEvent } from '../types/analytics'
 import { useEvents } from '../hooks/analytics'

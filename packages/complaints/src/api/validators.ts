@@ -50,7 +50,7 @@ export const AdminCreateComplaint = z
 		tags: z.array(z.string()).optional(),
 		metadata: z.record(z.string(), z.unknown()).nullable().optional()
 	})
-	.check((ctx) => {
+	.check(ctx => {
 		const val = ctx.value
 		if (val.product_id && !val.order_id) {
 			ctx.issues.push({
@@ -104,7 +104,7 @@ export const AdminUpdateComplaint = z
 		tags: z.array(z.string()).optional(),
 		metadata: z.record(z.string(), z.unknown()).nullable().optional()
 	})
-	.check((ctx) => {
+	.check(ctx => {
 		const val = ctx.value
 		if (val.product_id && val.order_id === null) {
 			ctx.issues.push({
@@ -161,7 +161,7 @@ export const AdminAddComplaintTag = z
 		tag_id: z.string().optional(),
 		tag: z.string().optional()
 	})
-	.check((ctx) => {
+	.check(ctx => {
 		const val = ctx.value
 		if (val.tag && val.tag_id) {
 			ctx.issues.push({
@@ -278,9 +278,7 @@ export const AdminGetComplaintStockLocationStats = createFindParams({
 }).extend({
 	stock_location_id: z.string().optional()
 })
-export type AdminGetComplaintStockLocationStatsType = z.infer<
-	typeof AdminGetComplaintStockLocationStats
->
+export type AdminGetComplaintStockLocationStatsType = z.infer<typeof AdminGetComplaintStockLocationStats>
 
 export const AdminGetComplaintCustomerTagStats = createFindParams({
 	limit: 15,
@@ -288,9 +286,7 @@ export const AdminGetComplaintCustomerTagStats = createFindParams({
 }).extend({
 	customer_tag_id: z.string().optional()
 })
-export type AdminGetComplaintCustomerTagStatsType = z.infer<
-	typeof AdminGetComplaintCustomerTagStats
->
+export type AdminGetComplaintCustomerTagStatsType = z.infer<typeof AdminGetComplaintCustomerTagStats>
 
 // ── Complaint Documents ───────────────────────────────────────────────────────
 

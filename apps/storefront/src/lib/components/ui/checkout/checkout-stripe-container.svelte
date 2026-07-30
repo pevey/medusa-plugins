@@ -70,11 +70,7 @@
 			{:else if method === 'ideal'}
 				<StripeIdealPayment {returnUrl} />
 			{:else}
-				{@const _warn =
-					import.meta.env.DEV &&
-					console.error(
-						`[CheckoutAuto] elements:false: provider "${providerId}" is not wired`
-					)}
+				{@const _warn = import.meta.env.DEV && console.error(`[CheckoutAuto] elements:false: provider "${providerId}" is not wired`)}
 			{/if}
 			<CheckoutError />
 			<PlaceOrder />

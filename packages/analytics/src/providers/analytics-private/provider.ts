@@ -1,9 +1,6 @@
 import { AbstractAnalyticsProviderService } from '@medusajs/framework/utils'
 import type { Logger } from '@medusajs/framework/types'
-import type {
-	ProviderTrackAnalyticsEventDTO,
-	ProviderIdentifyAnalyticsEventDTO
-} from '@medusajs/types'
+import type { ProviderTrackAnalyticsEventDTO, ProviderIdentifyAnalyticsEventDTO } from '@medusajs/types'
 import { trackEventsWorkflow } from '../../workflows/analytics/track-event'
 import { identifyActorWorkflow } from '../../workflows/analytics/identify-actor'
 
@@ -67,8 +64,7 @@ export class PrivateAnalyticsProvider extends AbstractAnalyticsProviderService {
 	}
 
 	async identify(data: ProviderIdentifyAnalyticsEventDTO): Promise<void> {
-		const actorId =
-			data.actor_id ?? ('group' in data ? `${data.group.type}:${data.group.id}` : null)
+		const actorId = data.actor_id ?? ('group' in data ? `${data.group.type}:${data.group.id}` : null)
 		if (!actorId) {
 			this.logger.warn('Analytics: identify() called without actor_id or group, skipping')
 			return

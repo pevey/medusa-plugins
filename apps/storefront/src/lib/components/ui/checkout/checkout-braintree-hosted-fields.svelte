@@ -41,10 +41,7 @@
 		const session = await initiateBraintreePaymentSession({ provider_id: PROVIDER })
 		authorization = getBraintreeClientToken(session, PROVIDER) ?? null
 		if (import.meta.env.DEV && !authorization) {
-			console.warn(
-				`[CheckoutBraintree] no client_token from "${PROVIDER}" — is there an active cart whose region has Braintree enabled?`,
-				session
-			)
+			console.warn(`[CheckoutBraintree] no client_token from "${PROVIDER}" — is there an active cart whose region has Braintree enabled?`, session)
 		}
 	})
 </script>

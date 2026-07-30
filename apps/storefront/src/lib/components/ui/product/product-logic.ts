@@ -4,9 +4,7 @@ import type { StoreProduct, StoreProductVariant } from '@medusajs/types'
 // trivially unit-testable. `Product.Root` wires these into reactive `$derived` context.
 
 // In stock when inventory isn't managed, or the managed quantity is positive.
-export function inStock(
-	v: Pick<StoreProductVariant, 'manage_inventory' | 'inventory_quantity'>
-): boolean {
+export function inStock(v: Pick<StoreProductVariant, 'manage_inventory' | 'inventory_quantity'>): boolean {
 	return v.manage_inventory === false || (v.inventory_quantity ?? 0) > 0
 }
 
@@ -33,9 +31,7 @@ function variantForValueIds(product: StoreProduct | null, valueIds: string[]): s
 export function defaultVariantId(product: StoreProduct | null): string {
 	if (!product?.variants?.length) return ''
 	if (product.options?.length) {
-		const top = product.options
-			.map(o => [...(o.values ?? [])].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))[0]?.id)
-			.filter(Boolean) as string[]
+		const top = product.options.map(o => [...(o.values ?? [])].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0))[0]?.id).filter(Boolean) as string[]
 		const match = variantForValueIds(product, top)
 		if (match) return match
 	}
@@ -48,32 +44,17 @@ export function isSelected(selectedVariant: StoreProductVariant | null, valueId:
 
 // The variant you'd land on by picking `valueId` for its option while keeping the current
 // selections for the OTHER options; falls back to any variant containing the value.
-export function resolveVariant(
-	product: StoreProduct | null,
-	selectedVariant: StoreProductVariant | null,
-	optionId: string,
-	valueId: string
-): string {
+export function resolveVariant(product: StoreProduct | null, selectedVariant: StoreProductVariant | null, optionId: string, valueId: string): string {
 	const target = new Map(selectedByOption(selectedVariant))
 	target.set(optionId, valueId)
-	return (
-		variantForValueIds(product, [...target.values()]) ??
-		product?.variants?.find(v => v.options?.some(o => o.id === valueId))?.id ??
-		''
-	)
+	return variantForValueIds(product, [...target.values()]) ?? product?.variants?.find(v => v.options?.some(o => o.id === valueId))?.id ?? ''
 }
 
 // Some IN-STOCK variant contains `valueId` AND matches the current selections for the
 // OTHER options (relative availability).
-export function isAvailable(
-	product: StoreProduct | null,
-	selectedVariant: StoreProductVariant | null,
-	valueId: string
-): boolean {
+export function isAvailable(product: StoreProduct | null, selectedVariant: StoreProductVariant | null, valueId: string): boolean {
 	const optId = optionIdOfValue(product, valueId)
-	const others = [...selectedByOption(selectedVariant).entries()]
-		.filter(([oid]) => oid !== optId)
-		.map(([, vid]) => vid)
+	const others = [...selectedByOption(selectedVariant).entries()].filter(([oid]) => oid !== optId).map(([, vid]) => vid)
 	return (
 		product?.variants?.some(v => {
 			const ids = v.options?.map(o => o.id) ?? []
@@ -102,10 +83,7 @@ export function effectiveMax(variant: StoreProductVariant | null, max: number): 
 }
 
 // The list of selectable quantities: min, min+step, … ≤ effectiveMax. Empty when out of stock.
-export function quantityRange(
-	variant: StoreProductVariant | null,
-	opts: { min: number; step: number; max: number }
-): number[] {
+export function quantityRange(variant: StoreProductVariant | null, opts: { min: number; step: number; max: number }): number[] {
 	const hi = effectiveMax(variant, opts.max)
 	const out: number[] = []
 	for (let n = opts.min; n <= hi; n += opts.step) out.push(n)

@@ -4,12 +4,7 @@
 	import type { CartLine } from './types.js'
 	import type { Snippet } from 'svelte'
 
-	let {
-		item,
-		class: className = '',
-		children,
-		actions
-	}: { item: CartLine; class?: string; children: Snippet; actions?: Snippet } = $props()
+	let { item, class: className = '', children, actions }: { item: CartLine; class?: string; children: Snippet; actions?: Snippet } = $props()
 	setCartLineContext({
 		get item() {
 			return item

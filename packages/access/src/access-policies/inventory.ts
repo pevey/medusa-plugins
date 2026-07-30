@@ -1,13 +1,6 @@
-import { definePolicies } from "../utils"
-import { generateResourcePolicies } from "../utils"
+import { definePolicies } from '../utils'
+import { generateResourcePolicies } from '../utils'
 
-const inventoryResources = [
-  "inventory_item",
-  "inventory_level",
-  "reservation_item",
-  "stock_location",
-]
+const inventoryResources = ['inventory_item', 'inventory_level', 'reservation_item', 'stock_location']
 
-export const inventoryPolicies = definePolicies(
-  generateResourcePolicies(inventoryResources)
-)
+export const inventoryPolicies = definePolicies(generateResourcePolicies(inventoryResources))

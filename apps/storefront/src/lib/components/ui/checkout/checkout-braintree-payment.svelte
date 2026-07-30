@@ -3,13 +3,7 @@
 	// (checkout-braintree-hosted-fields). Tokenizes the entered card on the place-order payment step via
 	// the sveltekit-braintree context; no direct braintree-web usage.
 	import { onMount } from 'svelte'
-	import {
-		CardNumber,
-		ExpirationDate,
-		Cvv,
-		getBraintreeContext,
-		tokenizeCard
-	} from 'sveltekit-braintree'
+	import { CardNumber, ExpirationDate, Cvv, getBraintreeContext, tokenizeCard } from 'sveltekit-braintree'
 	import { initiateBraintreePaymentSession, formatBraintreeAddress } from 'sveltekit-medusa-sdk'
 	import { cn } from '$lib/utils.js'
 	import { getCheckoutContextOptional } from './ctx.svelte.js'

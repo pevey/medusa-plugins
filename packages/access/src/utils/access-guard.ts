@@ -1,33 +1,26 @@
-import {
-  AuthenticatedMedusaRequest,
-  MedusaNextFunction,
-  MedusaResponse,
-} from "@medusajs/framework/http"
-import {
-  ContainerRegistrationKeys,
-  MedusaError,
-} from "@medusajs/framework/utils"
-import { AccessFieldFilter } from "./access-field-filter"
-import { PermissionAction, hasPermission } from "./has-permission"
-import { matchRoutePolicies } from "./route-guards"
+import { AuthenticatedMedusaRequest, MedusaNextFunction, MedusaResponse } from '@medusajs/framework/http'
+import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils'
+import { AccessFieldFilter } from './access-field-filter'
+import { PermissionAction, hasPermission } from './has-permission'
+import { matchRoutePolicies } from './route-guards'
 
 /** Recursively delete a dotted field path from an object/array tree. */
 function deletePath(node: any, segments: string[]): void {
-  if (node == null || typeof node !== "object") {
-    return
-  }
-  if (Array.isArray(node)) {
-    for (const item of node) {
-      deletePath(item, segments)
-    }
-    return
-  }
-  const [head, ...rest] = segments
-  if (rest.length === 0) {
-    delete node[head]
-    return
-  }
-  deletePath(node[head], rest)
+	if (node == null || typeof node !== 'object') {
+		return
+	}
+	if (Array.isArray(node)) {
+		for (const item of node) {
+			deletePath(item, segments)
+		}
+		return
+	}
+	const [head, ...rest] = segments
+	if (rest.length === 0) {
+		delete node[head]
+		return
+	}
+	deletePath(node[head], rest)
 }
 
 /**
@@ -37,35 +30,35 @@ function deletePath(node: any, segments: string[]): void {
  * joiner alias map resolves both singular and plural forms.
  */
 function inferEntityKey(body: any): string | undefined {
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return undefined
-  }
-  const metaKeys = new Set(["count", "offset", "limit"])
-  for (const key of Object.keys(body)) {
-    if (metaKeys.has(key)) {
-      continue
-    }
-    const value = body[key]
-    if (value && typeof value === "object") {
-      return key
-    }
-  }
-  return undefined
+	if (!body || typeof body !== 'object' || Array.isArray(body)) {
+		return undefined
+	}
+	const metaKeys = new Set(['count', 'offset', 'limit'])
+	for (const key of Object.keys(body)) {
+		if (metaKeys.has(key)) {
+			continue
+		}
+		const value = body[key]
+		if (value && typeof value === 'object') {
+			return key
+		}
+	}
+	return undefined
 }
 
 /** Strip each not-allowed field path from every entity value in the response. */
 function stripNotAllowedFields(body: any, notAllowed: string[]): void {
-  if (!body || typeof body !== "object") {
-    return
-  }
-  for (const key of Object.keys(body)) {
-    const value = body[key]
-    if (value && typeof value === "object") {
-      for (const path of notAllowed) {
-        deletePath(value, path.split("."))
-      }
-    }
-  }
+	if (!body || typeof body !== 'object') {
+		return
+	}
+	for (const key of Object.keys(body)) {
+		const value = body[key]
+		if (value && typeof value === 'object') {
+			for (const path of notAllowed) {
+				deletePath(value, path.split('.'))
+			}
+		}
+	}
 }
 
 /**
@@ -79,49 +72,43 @@ function stripNotAllowedFields(body: any, notAllowed: string[]): void {
  * only restricts entities registered as policy resources; undefined resources
  * are left untouched.
  */
-function installFieldFilter(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse,
-  roleIds: string[],
-  policies: PermissionAction[]
-): void {
-  const originalJson = res.json.bind(res)
-  ;(res as any).json = (body: any) => {
-    const queryConfig = (req as any).queryConfig
-    const fields: string[] | undefined = queryConfig?.fields
-    const entity: string | undefined =
-      queryConfig?.entity ?? inferEntityKey(body)
+function installFieldFilter(req: AuthenticatedMedusaRequest, res: MedusaResponse, roleIds: string[], policies: PermissionAction[]): void {
+	const originalJson = res.json.bind(res)
+	;(res as any).json = (body: any) => {
+		const queryConfig = (req as any).queryConfig
+		const fields: string[] | undefined = queryConfig?.fields
+		const entity: string | undefined = queryConfig?.entity ?? inferEntityKey(body)
 
-    if (!entity || !fields?.length || res.headersSent) {
-      return originalJson(body)
-    }
+		if (!entity || !fields?.length || res.headersSent) {
+			return originalJson(body)
+		}
 
-    const filter = new AccessFieldFilter({
-      // only used as a "should filter" flag (non-empty); actual checks use roles
-      policies: policies as any,
-      userRoles: roleIds,
-      container: req.scope,
-    })
+		const filter = new AccessFieldFilter({
+			// only used as a "should filter" flag (non-empty); actual checks use roles
+			policies: policies as any,
+			userRoles: roleIds,
+			container: req.scope
+		})
 
-    filter
-      .getNotAllowedFields({
-        entity,
-        parsedFields: { fields: new Set(fields), starFields: new Set() },
-      })
-      .then((notAllowed) => {
-        if (notAllowed.length) {
-          stripNotAllowedFields(body, notAllowed)
-        }
-        originalJson(body)
-      })
-      .catch(() => {
-        // fail-open: route-level enforcement still applied; a filter fault must
-        // not brick the request.
-        originalJson(body)
-      })
+		filter
+			.getNotAllowedFields({
+				entity,
+				parsedFields: { fields: new Set(fields), starFields: new Set() }
+			})
+			.then(notAllowed => {
+				if (notAllowed.length) {
+					stripNotAllowedFields(body, notAllowed)
+				}
+				originalJson(body)
+			})
+			.catch(() => {
+				// fail-open: route-level enforcement still applied; a filter fault must
+				// not brick the request.
+				originalJson(body)
+			})
 
-    return res
-  }
+		return res
+	}
 }
 
 /**
@@ -130,56 +117,48 @@ function installFieldFilter(
  * field-filter. Active whenever the plugin is loaded (module presence is the
  * gate — no feature flag). Routes with no registered policies pass through.
  */
-export async function accessGuard(
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse,
-  next: MedusaNextFunction
-): Promise<void> {
-  try {
-    // The guard is mounted at `/admin/*`, so req.path is relative to the mount;
-    // use the original URL (minus query string) for the full path.
-    const fullPath = ((req as any).originalUrl ?? req.path).split("?")[0]
-    const required = matchRoutePolicies(fullPath, req.method)
-    if (!required.length) {
-      return next()
-    }
+export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaResponse, next: MedusaNextFunction): Promise<void> {
+	try {
+		// The guard is mounted at `/admin/*`, so req.path is relative to the mount;
+		// use the original URL (minus query string) for the full path.
+		const fullPath = ((req as any).originalUrl ?? req.path).split('?')[0]
+		const required = matchRoutePolicies(fullPath, req.method)
+		if (!required.length) {
+			return next()
+		}
 
-    const actorId = req.auth_context?.actor_id
-    const actorType = req.auth_context?.actor_type
+		const actorId = req.auth_context?.actor_id
+		const actorType = req.auth_context?.actor_type
 
-    if (!actorId) {
-      throw new MedusaError(MedusaError.Types.FORBIDDEN, "Forbidden")
-    }
+		if (!actorId) {
+			throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Forbidden')
+		}
 
-    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-    const { data: actors } = await query.graph({
-      entity: actorType ?? "user",
-      fields: ["access_roles.id"],
-      filters: { id: actorId },
-    })
+		const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+		const { data: actors } = await query.graph({
+			entity: actorType ?? 'user',
+			fields: ['access_roles.id'],
+			filters: { id: actorId }
+		})
 
-    const roleIds: string[] =
-      actors?.[0]?.access_roles?.map((r: any) => r.id).filter(Boolean) ?? []
+		const roleIds: string[] = actors?.[0]?.access_roles?.map((r: any) => r.id).filter(Boolean) ?? []
 
-    const allowed =
-      roleIds.length > 0 &&
-      (await hasPermission({
-        roles: roleIds,
-        actions: required,
-        container: req.scope,
-      }))
+		const allowed =
+			roleIds.length > 0 &&
+			(await hasPermission({
+				roles: roleIds,
+				actions: required,
+				container: req.scope
+			}))
 
-    if (!allowed) {
-      throw new MedusaError(
-        MedusaError.Types.FORBIDDEN,
-        "Insufficient permissions"
-      )
-    }
+		if (!allowed) {
+			throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
+		}
 
-    installFieldFilter(req, res, roleIds, required)
+		installFieldFilter(req, res, roleIds, required)
 
-    return next()
-  } catch (error) {
-    return next(error)
-  }
+		return next()
+	} catch (error) {
+		return next(error)
+	}
 }

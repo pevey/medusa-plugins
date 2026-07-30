@@ -14,10 +14,7 @@ function resolveCaching(req: MedusaRequest): ICachingModuleService | null {
 	}
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<StoreUpdateReviewType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<StoreUpdateReviewType>, res: MedusaResponse) => {
 	const { reviewId } = req.params
 	const customerId = req.auth_context.actor_id
 	const caching = resolveCaching(req)

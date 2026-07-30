@@ -19,25 +19,11 @@
 </script>
 
 {#snippet defaultImg({ src, alt }: { src: string; alt: string; index: number })}
-	<img
-		{src}
-		{alt}
-		class={cn(
-			'mx-auto h-auto max-h-[70vh] w-auto rounded-[var(--radius)] object-contain',
-			className
-		)}
-	/>
+	<img {src} {alt} class={cn('mx-auto h-auto max-h-[70vh] w-auto rounded-[var(--radius)] object-contain', className)} />
 {/snippet}
 
 {#snippet zoomImg({ src, alt }: { src: string; alt: string; index: number })}
-	<ImageZoom.Trigger
-		{src}
-		{alt}
-		class={cn(
-			'mx-auto h-auto max-h-[70vh] w-auto cursor-zoom-in rounded-[var(--radius)] object-contain',
-			className
-		)}
-	/>
+	<ImageZoom.Trigger {src} {alt} class={cn('mx-auto h-auto max-h-[70vh] w-auto cursor-zoom-in rounded-[var(--radius)] object-contain', className)} />
 {/snippet}
 
 {#each gallery.items as item, i (item.key)}

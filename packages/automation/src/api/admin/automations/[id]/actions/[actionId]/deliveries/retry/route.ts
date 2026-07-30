@@ -4,10 +4,7 @@ import { AutomationService } from '../../../../../../../../modules/automation/se
 import { AdminRetryAutomationDeliveriesType } from '../../../../../../../validators'
 import { dispatchAndRecord } from '../../../../../../../../lib/dispatch'
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminRetryAutomationDeliveriesType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminRetryAutomationDeliveriesType>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { actionId } = req.params
 	const { delivery_ids, status, since, until } = req.body
@@ -21,10 +18,7 @@ export const POST = async (
 	// Find deliveries to retry — either by IDs or by filters
 	let deliveries: any[]
 	if (delivery_ids) {
-		;[deliveries] = await automationService.listAndCountAutomationDeliveries(
-			{ id: delivery_ids, action_id: actionId },
-			{ take: delivery_ids.length }
-		)
+		;[deliveries] = await automationService.listAndCountAutomationDeliveries({ id: delivery_ids, action_id: actionId }, { take: delivery_ids.length })
 	} else {
 		const filters: Record<string, unknown> = { action_id: actionId }
 		if (status) filters.status = status
@@ -34,10 +28,10 @@ export const POST = async (
 				...(until ? { $lte: new Date(until) } : {})
 			}
 		}
-		;[deliveries] = await automationService.listAndCountAutomationDeliveries(
-			filters,
-			{ take: 1000, order: { created_at: 'ASC' } }
-		)
+		;[deliveries] = await automationService.listAndCountAutomationDeliveries(filters, {
+			take: 1000,
+			order: { created_at: 'ASC' }
+		})
 	}
 
 	if (deliveries.length === 0) {
@@ -54,13 +48,7 @@ export const POST = async (
 
 	for (const delivery of deliveries) {
 		const payload = (delivery.request_payload as Record<string, unknown>) ?? {}
-		const result = await dispatchAndRecord(
-			req.scope,
-			action,
-			payload,
-			`retry:${delivery.event_name ?? 'unknown'}`,
-			opts
-		)
+		const result = await dispatchAndRecord(req.scope, action, payload, `retry:${delivery.event_name ?? 'unknown'}`, opts)
 		if (result.status === 'success') {
 			succeeded++
 		} else {

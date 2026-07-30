@@ -41,10 +41,7 @@ export const config: SubscriberConfig = {
 	event: 'product.created'
 }
 
-export default async function productCreateHandler({
-	event: { data },
-	container
-}: SubscriberArgs<{ id: string }>) {
+export default async function productCreateHandler({ event: { data }, container }: SubscriberArgs<{ id: string }>) {
 	const productId = data.id
 
 	const productModuleService = container.resolve('product')

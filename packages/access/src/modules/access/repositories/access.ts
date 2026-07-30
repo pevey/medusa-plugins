@@ -1,39 +1,30 @@
-import { SqlEntityManager } from "@medusajs/framework/mikro-orm/postgresql"
-import { Context } from "@medusajs/framework/types"
-import { MikroOrmBase } from "@medusajs/framework/utils"
+import { SqlEntityManager } from '@medusajs/framework/mikro-orm/postgresql'
+import { Context } from '@medusajs/framework/types'
+import { MikroOrmBase } from '@medusajs/framework/utils'
 
 export class AccessRepository extends MikroOrmBase {
-  constructor() {
-    // @ts-ignore
-    // eslint-disable-next-line prefer-rest-params
-    super(...arguments)
-  }
+	constructor() {
+		// @ts-ignore
+		// eslint-disable-next-line prefer-rest-params
+		super(...arguments)
+	}
 
-  async listPoliciesForRole(
-    roleId: string,
-    sharedContext: Context = {}
-  ): Promise<any[]> {
-    const policiesByRole = await this.listPoliciesForRoles(
-      [roleId],
-      sharedContext
-    )
-    return policiesByRole.get(roleId) || []
-  }
+	async listPoliciesForRole(roleId: string, sharedContext: Context = {}): Promise<any[]> {
+		const policiesByRole = await this.listPoliciesForRoles([roleId], sharedContext)
+		return policiesByRole.get(roleId) || []
+	}
 
-  async listPoliciesForRoles(
-    roleIds: string[],
-    sharedContext: Context = {}
-  ): Promise<Map<string, any[]>> {
-    const manager = this.getActiveManager<SqlEntityManager>(sharedContext)
-    const knex = manager.getKnex()
+	async listPoliciesForRoles(roleIds: string[], sharedContext: Context = {}): Promise<Map<string, any[]>> {
+		const manager = this.getActiveManager<SqlEntityManager>(sharedContext)
+		const knex = manager.getKnex()
 
-    if (!roleIds?.length) {
-      return new Map()
-    }
+		if (!roleIds?.length) {
+			return new Map()
+		}
 
-    const placeholders = roleIds.map(() => "?").join(",")
+		const placeholders = roleIds.map(() => '?').join(',')
 
-    const query = `
+		const query = `
       WITH RECURSIVE role_hierarchy AS (
         SELECT id, name, id as original_role_id, ARRAY[id] as path
         FROM access_role
@@ -68,38 +59,34 @@ export class AccessRepository extends MikroOrmBase {
       ORDER BY rh.original_role_id, p.resource, p.operation, p.key
     `
 
-    const result = await knex.raw(query, roleIds)
-    const rows = result.rows || []
+		const result = await knex.raw(query, roleIds)
+		const rows = result.rows || []
 
-    // Group policies by role_id
-    const policiesByRole = new Map<string, any[]>()
+		// Group policies by role_id
+		const policiesByRole = new Map<string, any[]>()
 
-    for (const row of rows) {
-      const roleId = row.original_role_id
-      delete row.original_role_id
+		for (const row of rows) {
+			const roleId = row.original_role_id
+			delete row.original_role_id
 
-      if (!policiesByRole.has(roleId)) {
-        policiesByRole.set(roleId, [])
-      }
+			if (!policiesByRole.has(roleId)) {
+				policiesByRole.set(roleId, [])
+			}
 
-      policiesByRole.get(roleId)!.push(row)
-    }
+			policiesByRole.get(roleId)!.push(row)
+		}
 
-    return policiesByRole
-  }
+		return policiesByRole
+	}
 
-  async checkForCycle(
-    roleId: string,
-    parentId: string,
-    sharedContext: Context = {}
-  ): Promise<boolean> {
-    const manager = this.getActiveManager<SqlEntityManager>(sharedContext)
-    const knex = manager.getKnex()
+	async checkForCycle(roleId: string, parentId: string, sharedContext: Context = {}): Promise<boolean> {
+		const manager = this.getActiveManager<SqlEntityManager>(sharedContext)
+		const knex = manager.getKnex()
 
-    // Check if adding this parent would create a circular dependency
-    // A cycle exists if role_id is already an ancestor of parent_id
-    // (i.e., if we traverse up from parent_id, we reach role_id)
-    const query = `
+		// Check if adding this parent would create a circular dependency
+		// A cycle exists if role_id is already an ancestor of parent_id
+		// (i.e., if we traverse up from parent_id, we reach role_id)
+		const query = `
       WITH RECURSIVE role_hierarchy AS (
         SELECT id, ARRAY[id] as path
         FROM access_role
@@ -120,7 +107,7 @@ export class AccessRepository extends MikroOrmBase {
       ) as has_cycle
     `
 
-    const result = await knex.raw(query, [parentId, roleId])
-    return result.rows[0]?.has_cycle || false
-  }
+		const result = await knex.raw(query, [parentId, roleId])
+		return result.rows[0]?.has_cycle || false
+	}
 }

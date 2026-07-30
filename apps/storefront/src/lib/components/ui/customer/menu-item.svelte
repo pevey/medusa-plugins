@@ -6,11 +6,7 @@
 	import { DropdownMenuItem } from '$lib/components/ui/dropdown-menu/index.js'
 	import type { Snippet } from 'svelte'
 
-	let {
-		href,
-		class: className = '',
-		children
-	}: { href?: string; class?: string; children: Snippet } = $props()
+	let { href, class: className = '', children }: { href?: string; class?: string; children: Snippet } = $props()
 </script>
 
 {#if href}

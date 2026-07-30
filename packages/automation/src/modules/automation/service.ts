@@ -10,7 +10,14 @@ import { Encryptor } from './encryption'
 import { SsrfGuard } from '../../lib/ssrf'
 import { SignatureCache } from '../../lib/signature-cache'
 
-export class AutomationService extends MedusaService({ AutomationTrigger, AutomationAction, AutomationDelivery, AutomationReceipt, AutomationQuery, AutomationSecret }) {
+export class AutomationService extends MedusaService({
+	AutomationTrigger,
+	AutomationAction,
+	AutomationDelivery,
+	AutomationReceipt,
+	AutomationQuery,
+	AutomationSecret
+}) {
 	protected readonly options_: AutomationOptions
 	protected readonly encryptor_: Encryptor
 	protected readonly ssrfGuard_: SsrfGuard
@@ -19,10 +26,7 @@ export class AutomationService extends MedusaService({ AutomationTrigger, Automa
 	constructor(_container: object, options: AutomationOptions) {
 		super(...arguments)
 		if (!options || typeof options !== 'object') {
-			throw new Error(
-				'Automation plugin requires options including `secret`. ' +
-				'See AutomationOptions for details.'
-			)
+			throw new Error('Automation plugin requires options including `secret`. ' + 'See AutomationOptions for details.')
 		}
 		this.options_ = options
 		this.encryptor_ = new Encryptor(options.secret)

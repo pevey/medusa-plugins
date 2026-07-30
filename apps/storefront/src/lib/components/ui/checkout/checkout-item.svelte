@@ -3,12 +3,7 @@
 	import { setCheckoutLineContext } from './ctx.svelte.js'
 	import type { CheckoutLine } from './types.js'
 	import type { Snippet } from 'svelte'
-	let {
-		item,
-		class: className = '',
-		children,
-		actions
-	}: { item: CheckoutLine; class?: string; children: Snippet; actions?: Snippet } = $props()
+	let { item, class: className = '', children, actions }: { item: CheckoutLine; class?: string; children: Snippet; actions?: Snippet } = $props()
 	setCheckoutLineContext({
 		get item() {
 			return item

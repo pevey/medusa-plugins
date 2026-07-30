@@ -80,8 +80,8 @@ All options live under `options.automation` and are passed to the plugin's `Auto
 
 The plugin reads exactly one environment variable directly, because the value is needed at HTTP-middleware load time before the plugin's options object exists:
 
-| Env var                    | Default | Description                                                                                                                                                                                                      |
-| -------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Env var                    | Default | Description                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `MAX_WEBHOOK_PAYLOAD_SIZE` | `512kb` | Hard ceiling enforced by the Express body parser on `POST /webhooks/:id`. Requests above this size are rejected with `413` before reaching the handler. Accepts size strings like `'500kb'`, `'1mb'`, `'2.5mb'`. The default is sized for typical integration-target payloads (Shopify orders with many line items, CRM/helpdesk events, newsletter exports). |
 
 Every other env var name is your choice — use whatever convention your deployment prefers and feed it into the options object in `medusa-config.ts`.

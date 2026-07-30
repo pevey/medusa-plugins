@@ -43,11 +43,7 @@ const UserAccessRolesWidget = ({ data: user }: DetailWidgetProps<AdminUser>) => 
 				{assignedRoles.length ? (
 					<div className="flex flex-wrap gap-2">
 						{assignedRoles.map(r => (
-							<Badge
-								key={r.id}
-								size="small"
-								className="flex items-center gap-x-1"
-							>
+							<Badge key={r.id} size="small" className="flex items-center gap-x-1">
 								{r.name}
 								<button
 									type="button"
@@ -67,11 +63,7 @@ const UserAccessRolesWidget = ({ data: user }: DetailWidgetProps<AdminUser>) => 
 				)}
 
 				<div className="max-w-sm">
-					<Select
-						value=""
-						onValueChange={handleAssign}
-						disabled={!available.length || assign.isPending}
-					>
+					<Select value="" onValueChange={handleAssign} disabled={!available.length || assign.isPending}>
 						<Select.Trigger>
 							<Select.Value placeholder="Add a role..." />
 						</Select.Trigger>

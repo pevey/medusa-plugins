@@ -26,24 +26,20 @@ const FunnelChart = ({ funnelName, steps, layout, onLayoutChange, period, onPeri
 	return (
 		<div className="flex flex-col">
 			<div className="flex items-center justify-between px-6 py-4">
-				<div className="flex flex-wrap md:flex-nowrap whitespace-nowrap gap-2">
-					<Heading level="h2" className="mr-2">{funnelName}</Heading>
+				<div className="flex flex-wrap gap-2 whitespace-nowrap md:flex-nowrap">
+					<Heading level="h2" className="mr-2">
+						{funnelName}
+					</Heading>
 					<ActionMenu
 						groups={[
 							{
-								actions: [
-									{ label: 'Edit', icon: <PencilSquare />, onClick: onEdit }
-								]
+								actions: [{ label: 'Edit', icon: <PencilSquare />, onClick: onEdit }]
 							}
 						]}
 					/>
 				</div>
-				<div className="flex flex-wrap md:flex-nowrap items-center gap-2">
-					<Select
-						size="small"
-						value={layout}
-						onValueChange={(v) => onLayoutChange(v as 'vertical' | 'horizontal')}
-					>
+				<div className="flex flex-wrap items-center gap-2 md:flex-nowrap">
+					<Select size="small" value={layout} onValueChange={v => onLayoutChange(v as 'vertical' | 'horizontal')}>
 						<Select.Trigger className="whitespace-nowrap">
 							<Select.Value />
 						</Select.Trigger>
@@ -78,10 +74,7 @@ const FunnelChart = ({ funnelName, steps, layout, onLayoutChange, period, onPeri
 								<CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-base, #e5e7eb)" />
 								<XAxis type="number" tick={{ fontSize: 11 }} />
 								<YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={140} />
-								<Tooltip
-									formatter={(value: number) => [value.toLocaleString(), 'Count']}
-									labelStyle={{ fontWeight: 600 }}
-								/>
+								<Tooltip formatter={(value: number) => [value.toLocaleString(), 'Count']} labelStyle={{ fontWeight: 600 }} />
 								<Bar dataKey="count" radius={[0, 6, 6, 0]} fill={BAR_COLOR}>
 									{chartData.map((_entry, i) => (
 										<Cell key={i} fill={BAR_COLOR} fillOpacity={1 - i * 0.12} />
@@ -91,18 +84,9 @@ const FunnelChart = ({ funnelName, steps, layout, onLayoutChange, period, onPeri
 						) : (
 							<BarChart data={chartData} margin={{ left: 10, right: 10, top: 10, bottom: 20 }} barCategoryGap="8%">
 								<CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-base, #e5e7eb)" />
-								<XAxis
-									dataKey="name"
-									tick={{ fontSize: 11 }}
-									interval={0}
-									angle={0}
-									textAnchor="middle"
-								/>
+								<XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={0} textAnchor="middle" />
 								<YAxis tick={{ fontSize: 11 }} />
-								<Tooltip
-									formatter={(value: number) => [value.toLocaleString(), 'Count']}
-									labelStyle={{ fontWeight: 600 }}
-								/>
+								<Tooltip formatter={(value: number) => [value.toLocaleString(), 'Count']} labelStyle={{ fontWeight: 600 }} />
 								<Bar dataKey="count" radius={[6, 6, 0, 0]}>
 									{chartData.map((_entry, i) => (
 										<Cell key={i} fill={BAR_COLOR} fillOpacity={1 - i * 0.12} />

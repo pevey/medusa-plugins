@@ -2,16 +2,9 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { FORM_MODULE } from '../../../modules/form'
 import { FormService } from '../../../modules/form/service'
-import {
-	AdminCreateFormType,
-	AdminDeleteFormsType,
-	AdminGetFormsType
-} from '../../validators'
+import { AdminCreateFormType, AdminDeleteFormsType, AdminGetFormsType } from '../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetFormsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetFormsType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { q, active, ...rest } = req.validatedQuery
 
@@ -27,10 +20,7 @@ export const GET = async (
 	res.json({ forms, count: metadata?.count, limit: metadata?.take, offset: metadata?.skip })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateFormType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateFormType>, res: MedusaResponse) => {
 	const formService: FormService = req.scope.resolve(FORM_MODULE)
 	const { form_fields: fieldInputs, ...formData } = req.validatedBody
 
@@ -49,10 +39,7 @@ export const POST = async (
 	res.json({ form })
 }
 
-export const DELETE = async (
-	req: AuthenticatedMedusaRequest<AdminDeleteFormsType>,
-	res: MedusaResponse
-) => {
+export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteFormsType>, res: MedusaResponse) => {
 	const { ids } = req.validatedBody
 	const formService: FormService = req.scope.resolve(FORM_MODULE)
 	await formService.deleteForms(ids)

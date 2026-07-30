@@ -5,6 +5,10 @@ yarn.lock
 bun.lock
 bun.lockb
 
+# Generated — rewritten by apps/docs scripts, so formatting them is undone on the next run
+apps/docs/public/r/
+apps/docs/schemas/
+
 # Miscellaneous
 /static/
 node_modules

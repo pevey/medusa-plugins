@@ -4,10 +4,7 @@ import { COMPLAINT_MODULE } from '../../../../modules/complaint'
 import { ComplaintService } from '../../../../modules/complaint/service'
 import { AdminGetComplaintTagType, AdminUpdateComplaintTagType } from '../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetComplaintTagType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetComplaintTagType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { id } = req.params
 
@@ -25,10 +22,7 @@ export const GET = async (
 	res.json({ complaint_tag: complaintTag })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateComplaintTagType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateComplaintTagType>, res: MedusaResponse) => {
 	const complaintService: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)
 	const { id } = req.params
 	const complaintTag = await complaintService.updateComplaintTags({

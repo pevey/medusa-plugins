@@ -10,16 +10,7 @@ describe('ratings admin ↔ api contract', () => {
 				contracts,
 				validators,
 				declaredFields: {
-					'GET /admin/reviews': [
-						'id',
-						'status',
-						'rating',
-						'featured',
-						'author_name',
-						'title',
-						'body',
-						'created_at'
-					],
+					'GET /admin/reviews': ['id', 'status', 'rating', 'featured', 'author_name', 'title', 'body', 'created_at'],
 					'GET /admin/reviews/:id': [
 						'id',
 						'status',

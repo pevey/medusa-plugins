@@ -19,10 +19,7 @@ const ProductImageLibraryWidget = ({ data: product }: DetailWidgetProps<AdminPro
 	const mutation = useMutation({
 		mutationFn: (item: AdminContentItem) =>
 			sdk.admin.product.update(product.id, {
-				images: [
-					...(product.images ?? []).map(img => ({ id: img.id, url: img.url })),
-					{ url: item.body! }
-				]
+				images: [...(product.images ?? []).map(img => ({ id: img.id, url: img.url })), { url: item.body! }]
 			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['products'] })
@@ -37,23 +34,14 @@ const ProductImageLibraryWidget = ({ data: product }: DetailWidgetProps<AdminPro
 			<Container className="divide-y p-0">
 				<div className="flex items-center justify-between px-6 py-4">
 					<Heading level="h2">Image Library</Heading>
-					<Button
-						size="small"
-						variant="secondary"
-						onClick={() => setPickerOpen(true)}
-						isLoading={mutation.isPending}
-					>
+					<Button size="small" variant="secondary" onClick={() => setPickerOpen(true)} isLoading={mutation.isPending}>
 						<ImageSparkle className="mr-1" />
 						Add from Library
 					</Button>
 				</div>
 			</Container>
 
-			<LibraryImagePickerModal
-				open={pickerOpen}
-				onOpenChange={setPickerOpen}
-				onSelect={item => mutation.mutate(item)}
-			/>
+			<LibraryImagePickerModal open={pickerOpen} onOpenChange={setPickerOpen} onSelect={item => mutation.mutate(item)} />
 		</>
 	)
 }

@@ -34,24 +34,17 @@ export type StateTimestamps = {
 	voided_at: Date | null
 }
 
-const toDate = (v: string | Date | null | undefined): Date | null =>
-	v ? (v instanceof Date ? v : new Date(v)) : null
+const toDate = (v: string | Date | null | undefined): Date | null => (v ? (v instanceof Date ? v : new Date(v)) : null)
 
-export function computeSubtotals(
-	order: OrderShape,
-	affiliatePromotionId: string
-): ComputedSubtotals {
+export function computeSubtotals(order: OrderShape, affiliatePromotionId: string): ComputedSubtotals {
 	const items = order.items ?? []
 	let gross = 0
 	for (const item of items) {
-		const subtotal =
-			item.subtotal != null ? item.subtotal : (item.unit_price ?? 0) * (item.quantity ?? 0)
+		const subtotal = item.subtotal != null ? item.subtotal : (item.unit_price ?? 0) * (item.quantity ?? 0)
 		gross += subtotal
 	}
 
-	const affiliatePromotion = (order.applied_promotions ?? []).find(
-		p => p?.id === affiliatePromotionId
-	)
+	const affiliatePromotion = (order.applied_promotions ?? []).find(p => p?.id === affiliatePromotionId)
 	const discount = affiliatePromotion?.discount_amount ?? 0
 	const net = Math.max(0, gross - discount)
 
@@ -72,10 +65,7 @@ export function extractStateTimestamps(order: OrderShape): StateTimestamps {
 	}
 }
 
-export function findAffiliatePromotionId(
-	order: OrderShape,
-	affiliatePromotionIds: Set<string>
-): string | null {
+export function findAffiliatePromotionId(order: OrderShape, affiliatePromotionIds: Set<string>): string | null {
 	for (const p of order.applied_promotions ?? []) {
 		if (p?.id && affiliatePromotionIds.has(p.id)) return p.id
 	}

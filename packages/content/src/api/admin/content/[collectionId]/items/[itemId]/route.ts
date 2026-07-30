@@ -4,10 +4,7 @@ import { CONTENT_MODULE } from '../../../../../../modules/content'
 import { ContentService } from '../../../../../../modules/content/service'
 import { ContentStatus } from '../../../../../../modules/content/models/content-item'
 import { ContentItemActivityType } from '../../../../../../modules/content/models/content-item-activity'
-import {
-	AdminGetContentItemType,
-	AdminUpdateContentItemType
-} from '../../../../../validators'
+import { AdminGetContentItemType, AdminUpdateContentItemType } from '../../../../../validators'
 
 const statusToActivityType: Partial<Record<ContentStatus, ContentItemActivityType>> = {
 	[ContentStatus.PUBLISHED]: ContentItemActivityType.PUBLISH,
@@ -15,14 +12,13 @@ const statusToActivityType: Partial<Record<ContentStatus, ContentItemActivityTyp
 	[ContentStatus.DRAFT]: ContentItemActivityType.DRAFT
 }
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetContentItemType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentItemType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { itemId } = req.params
 
-	const { data: [content_item] } = await query.graph(
+	const {
+		data: [content_item]
+	} = await query.graph(
 		{
 			entity: 'content_item',
 			fields: req.queryConfig.fields,
@@ -34,10 +30,7 @@ export const GET = async (
 	res.json({ content_item })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateContentItemType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateContentItemType>, res: MedusaResponse) => {
 	const { itemId } = req.params
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
 
@@ -60,10 +53,7 @@ export const POST = async (
 	res.json({ content_item })
 }
 
-export const DELETE = async (
-	req: AuthenticatedMedusaRequest,
-	res: MedusaResponse
-) => {
+export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const { itemId } = req.params
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
 	await contentService.deleteContentItems([itemId])

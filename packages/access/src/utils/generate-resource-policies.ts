@@ -1,25 +1,25 @@
-import { toPascalCase } from "@medusajs/framework/utils"
-import { PolicyDefinition } from "./define-policies"
-import { defaultPolicyOperations } from "./default-policy-operations"
+import { toPascalCase } from '@medusajs/framework/utils'
+import { PolicyDefinition } from './define-policies'
+import { defaultPolicyOperations } from './default-policy-operations'
 
 export const generateResourcePolicies = (resources: string[]): PolicyDefinition[] => {
-  const policies: PolicyDefinition[] = []
+	const policies: PolicyDefinition[] = []
 
-  for (const resource of resources) {
-    const normalizedResource = toPascalCase(resource)
+	for (const resource of resources) {
+		const normalizedResource = toPascalCase(resource)
 
-    for (const operation of defaultPolicyOperations) {
-      const normalizedOperation = toPascalCase(operation)
-      const policyName = normalizedOperation + normalizedResource
+		for (const operation of defaultPolicyOperations) {
+			const normalizedOperation = toPascalCase(operation)
+			const policyName = normalizedOperation + normalizedResource
 
-      policies.push({
-        name: policyName,
-        resource: resource,
-        operation: operation,
-        description: `${normalizedOperation} ${normalizedResource.replace(/_/g, " ")}`,
-      })
-    }
-  }
+			policies.push({
+				name: policyName,
+				resource: resource,
+				operation: operation,
+				description: `${normalizedOperation} ${normalizedResource.replace(/_/g, ' ')}`
+			})
+		}
+	}
 
-  return policies
+	return policies
 }

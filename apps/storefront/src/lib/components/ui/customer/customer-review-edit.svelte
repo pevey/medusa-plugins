@@ -73,9 +73,7 @@
 {#if review}
 	<div class={cn('flex flex-col gap-2', className)} data-review-edit>
 		{#if !open}
-			<Button type="button" variant="secondary" size="sm" onclick={startEdit} data-review-edit-open>
-				Edit
-			</Button>
+			<Button type="button" variant="secondary" size="sm" onclick={startEdit} data-review-edit-open>Edit</Button>
 		{:else}
 			<fieldset class="flex flex-col gap-2" data-review-edit-form>
 				<div class="flex items-center gap-1" role="radiogroup" aria-label="Rating">
@@ -97,7 +95,7 @@
 				<input
 					id="customer-review-edit-title"
 					type="text"
-					class="border-input dark:bg-input/30 focus-visible:border-ring focus-visible:ring-ring/50 h-9 rounded-md border bg-transparent px-2.5 text-base shadow-xs outline-none focus-visible:ring-3 md:text-sm"
+					class="h-9 rounded-md border border-input bg-transparent px-2.5 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
 					bind:value={title}
 				/>
 				<Label for="customer-review-edit-body">Review</Label>
@@ -106,9 +104,7 @@
 					<Button type="button" size="sm" disabled={pending} onclick={handleSave} data-review-edit-save>
 						{pending ? 'Saving…' : 'Save'}
 					</Button>
-					<Button type="button" variant="secondary" size="sm" disabled={pending} onclick={() => (open = false)}>
-						Cancel
-					</Button>
+					<Button type="button" variant="secondary" size="sm" disabled={pending} onclick={() => (open = false)}>Cancel</Button>
 				</div>
 			</fieldset>
 		{/if}

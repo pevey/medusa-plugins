@@ -1,10 +1,5 @@
 import { MedusaError } from '@medusajs/framework/utils'
-import {
-	createStep,
-	createWorkflow,
-	StepResponse,
-	WorkflowResponse
-} from '@medusajs/framework/workflows-sdk'
+import { createStep, createWorkflow, StepResponse, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
 import { AFFILIATE_MODULE } from '../modules/affiliate'
 import { AffiliateService } from '../modules/affiliate/service'
 
@@ -21,20 +16,14 @@ export const deleteAffiliateAddressStep = createStep(
 
 		const target = addresses.find(a => a.id === input.address_id)
 		if (!target) {
-			throw new MedusaError(
-				MedusaError.Types.NOT_FOUND,
-				`Address ${input.address_id} not found for affiliate ${input.affiliate_id}`
-			)
+			throw new MedusaError(MedusaError.Types.NOT_FOUND, `Address ${input.address_id} not found for affiliate ${input.affiliate_id}`)
 		}
 
 		const isPrimary = affiliate.primary_address_id === input.address_id
 		const others = addresses.filter(a => a.id !== input.address_id)
 
 		if (isPrimary && others.length === 0) {
-			throw new MedusaError(
-				MedusaError.Types.INVALID_DATA,
-				'Cannot delete the only address; add another address first.'
-			)
+			throw new MedusaError(MedusaError.Types.INVALID_DATA, 'Cannot delete the only address; add another address first.')
 		}
 
 		const snapshot: Rollback = {
@@ -67,10 +56,7 @@ export const deleteAffiliateAddressStep = createStep(
 
 export const deleteAffiliateAddressWorkflowId = 'delete-affiliate-address'
 
-export const deleteAffiliateAddressWorkflow = createWorkflow(
-	deleteAffiliateAddressWorkflowId,
-	(input: DeleteAffiliateAddressInput) => {
-		const result = deleteAffiliateAddressStep(input)
-		return new WorkflowResponse(result)
-	}
-)
+export const deleteAffiliateAddressWorkflow = createWorkflow(deleteAffiliateAddressWorkflowId, (input: DeleteAffiliateAddressInput) => {
+	const result = deleteAffiliateAddressStep(input)
+	return new WorkflowResponse(result)
+})

@@ -14,22 +14,57 @@
 
 export const plugins = [
 	{ slug: 'medusa-plugin-access', label: 'Access Control', schemaFile: 'access', dir: 'access' },
-	{ slug: 'medusa-plugin-affiliates', label: 'Affiliates', schemaFile: 'affiliates', dir: 'affiliates' },
-	{ slug: 'medusa-plugin-analytics', label: 'Analytics', schemaFile: 'analytics', dir: 'analytics' },
-	{ slug: 'medusa-plugin-automation', label: 'Automation', schemaFile: 'automation', dir: 'automation' },
+	{
+		slug: 'medusa-plugin-affiliates',
+		label: 'Affiliates',
+		schemaFile: 'affiliates',
+		dir: 'affiliates'
+	},
+	{
+		slug: 'medusa-plugin-analytics',
+		label: 'Analytics',
+		schemaFile: 'analytics',
+		dir: 'analytics'
+	},
+	{
+		slug: 'medusa-plugin-automation',
+		label: 'Automation',
+		schemaFile: 'automation',
+		dir: 'automation'
+	},
 	{ slug: 'medusa-plugin-barcodes', label: 'Barcodes', schemaFile: 'barcodes', dir: 'barcodes' },
 	{ slug: 'medusa-plugin-braintree', label: 'Braintree Payments', dir: 'payment-braintree' }, // empty README → description-only page + warning until written
-	{ slug: 'medusa-plugin-complaints', label: 'Complaints', schemaFile: 'complaints', dir: 'complaints' },
+	{
+		slug: 'medusa-plugin-complaints',
+		label: 'Complaints',
+		schemaFile: 'complaints',
+		dir: 'complaints'
+	},
 	{ slug: 'medusa-plugin-content', label: 'Content', schemaFile: 'content', dir: 'content' },
-	{ slug: 'medusa-plugin-customer-tags', label: 'Customer Tags', schemaFile: 'customer-tags', dir: 'customer-tags' },
+	{
+		slug: 'medusa-plugin-customer-tags',
+		label: 'Customer Tags',
+		schemaFile: 'customer-tags',
+		dir: 'customer-tags'
+	},
 	{ slug: 'medusa-plugin-forms', label: 'Forms', schemaFile: 'forms', dir: 'forms' },
 	{ slug: 'medusa-plugin-mcp', label: 'MCP', schemaFile: 'mcp', dir: 'mcp' },
-	{ slug: 'medusa-plugin-order-notes', label: 'Order Notes', schemaFile: 'order-notes', dir: 'order-notes' },
+	{
+		slug: 'medusa-plugin-order-notes',
+		label: 'Order Notes',
+		schemaFile: 'order-notes',
+		dir: 'order-notes'
+	},
 	{ slug: 'medusa-plugin-r2', label: 'R2 File Storage', dir: 'file-r2' },
 	{ slug: 'medusa-plugin-ratings', label: 'Reviews', schemaFile: 'ratings', dir: 'ratings' },
 	{ slug: 'medusa-plugin-search', label: 'Search', schemaFile: 'search', dir: 'search' },
 	{ slug: 'medusa-plugin-ses', label: 'SES Notifications', dir: 'notification-ses' },
-	{ slug: 'medusa-plugin-statistics', label: 'Statistics', schemaFile: 'statistics', dir: 'statistics' },
+	{
+		slug: 'medusa-plugin-statistics',
+		label: 'Statistics',
+		schemaFile: 'statistics',
+		dir: 'statistics'
+	},
 	{ slug: 'medusa-plugin-tax-lookup', label: 'Tax Lookup', dir: 'tax-lookup' },
 	{ slug: 'medusa-plugin-tracing', label: 'Tracing', schemaFile: 'tracing', dir: 'tracing' },
 	{ slug: 'medusa-plugin-veeqo', label: 'Veeqo', schemaFile: 'veeqo', dir: 'veeqo' }

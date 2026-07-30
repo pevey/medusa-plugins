@@ -61,10 +61,7 @@ function project(value: unknown, defaults: string[] | undefined): unknown {
 	for (const key of Object.keys(source)) {
 		if (!topLevel.has(key)) continue
 		const nestedDefaults = nested.get(key)
-		result[key] =
-			nestedDefaults && nestedDefaults.length > 0
-				? project(source[key], nestedDefaults)
-				: source[key]
+		result[key] = nestedDefaults && nestedDefaults.length > 0 ? project(source[key], nestedDefaults) : source[key]
 	}
 	return result
 }
@@ -79,11 +76,7 @@ function project(value: unknown, defaults: string[] | undefined): unknown {
  * `fields` request more generously than the real API is exactly the silent divergence this
  * harness exists to catch.
  */
-function resolveFields(
-	validatedQuery: Record<string, unknown>,
-	contract: RouteContract,
-	method: string
-): string[] | undefined {
+function resolveFields(validatedQuery: Record<string, unknown>, contract: RouteContract, method: string): string[] | undefined {
 	const defaults = contract.queryConfig?.defaults
 	const raw = validatedQuery.fields
 	if (raw === undefined) return defaults
@@ -100,18 +93,11 @@ function resolveFields(
 
 	const base = entries.filter(entry => !entry.startsWith('+') && !entry.startsWith('-'))
 	const added = entries.filter(entry => entry.startsWith('+')).map(entry => entry.slice(1))
-	const removed = new Set(
-		entries.filter(entry => entry.startsWith('-')).map(entry => entry.slice(1))
-	)
+	const removed = new Set(entries.filter(entry => entry.startsWith('-')).map(entry => entry.slice(1)))
 
-	const resolved = [...(base.length > 0 ? base : (defaults ?? [])), ...added].filter(
-		field => !removed.has(field)
-	)
+	const resolved = [...(base.length > 0 ? base : (defaults ?? [])), ...added].filter(field => !removed.has(field))
 	if (resolved.length === 0) {
-		throw new Error(
-			`${where}: \`fields\` ${JSON.stringify(raw)} resolves to no fields at all against ` +
-				`defaults [${(defaults ?? []).join(', ')}].`
-		)
+		throw new Error(`${where}: \`fields\` ${JSON.stringify(raw)} resolves to no fields at all against ` + `defaults [${(defaults ?? []).join(', ')}].`)
 	}
 	return resolved
 }
@@ -125,10 +111,7 @@ function projectPayload(payload: unknown, fields: string[] | undefined): unknown
 	const result: Record<string, unknown> = {}
 	for (const [key, value] of Object.entries(source)) {
 		// Envelope scalars (count/limit/offset) and non-entity values pass through untouched.
-		result[key] =
-			Array.isArray(value) || (value !== null && typeof value === 'object')
-				? project(value, defaults)
-				: value
+		result[key] = Array.isArray(value) || (value !== null && typeof value === 'object') ? project(value, defaults) : value
 	}
 	return result
 }
@@ -139,10 +122,7 @@ function describeIssues(error: unknown): string {
 	return issues.map(issue => `${issue.path.join('.') || '(root)'}: ${issue.message}`).join('; ')
 }
 
-export function createContractFake(options: {
-	contracts: ContractMap
-	responders: Record<string, Responder>
-}): ContractFake {
+export function createContractFake(options: { contracts: ContractMap; responders: Record<string, Responder> }): ContractFake {
 	const calls: ContractFake['calls'] = []
 
 	const fetch = async (path: string, fetchOptions: FetchOptions = {}) => {
@@ -162,10 +142,7 @@ export function createContractFake(options: {
 		if (contract.querySchema) {
 			const parsed = contract.querySchema.safeParse(query ?? {})
 			if (!parsed.success) {
-				throw new Error(
-					`[admin-test-utils] ${method} ${contract.matcher}: query rejected by the route's ` +
-						`validator — ${describeIssues(parsed.error)}`
-				)
+				throw new Error(`[admin-test-utils] ${method} ${contract.matcher}: query rejected by the route's ` + `validator — ${describeIssues(parsed.error)}`)
 			}
 			validatedQuery = parsed.data as Record<string, unknown>
 		}
@@ -174,10 +151,7 @@ export function createContractFake(options: {
 		if (contract.bodySchema) {
 			const parsed = contract.bodySchema.safeParse(body ?? {})
 			if (!parsed.success) {
-				throw new Error(
-					`[admin-test-utils] ${method} ${contract.matcher}: body rejected by the route's ` +
-						`validator — ${describeIssues(parsed.error)}`
-				)
+				throw new Error(`[admin-test-utils] ${method} ${contract.matcher}: body rejected by the route's ` + `validator — ${describeIssues(parsed.error)}`)
 			}
 			validatedBody = parsed.data
 		}
@@ -185,9 +159,7 @@ export function createContractFake(options: {
 		const key = `${method} ${contract.matcher}`
 		const responder = options.responders[key]
 		if (!responder) {
-			throw new Error(
-				`[admin-test-utils] ${key}: no responder supplied. Add one to the \`responders\` map.`
-			)
+			throw new Error(`[admin-test-utils] ${key}: no responder supplied. Add one to the \`responders\` map.`)
 		}
 
 		// Awaited: a responder is free to be async, and an unawaited Promise would project to

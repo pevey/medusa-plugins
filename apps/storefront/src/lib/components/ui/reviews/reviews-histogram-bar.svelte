@@ -15,21 +15,17 @@
 	aria-pressed={lvl.active}
 	aria-label={`Show ${lvl.level}-star reviews`}
 	onclick={() => lvl.select()}
-	class={cn(
-		vertical ? 'flex flex-col items-center gap-2 text-center' : 'flex items-center gap-2 text-left',
-		lvl.active && 'font-semibold',
-		className
-	)}
+	class={cn(vertical ? 'flex flex-col items-center gap-2 text-center' : 'flex items-center gap-2 text-left', lvl.active && 'font-semibold', className)}
 >
 	{#if children}{@render children()}{/if}
 	{#if vertical}
-		<span class="bg-muted relative h-24 w-4 flex-1 overflow-hidden rounded">
-			<span class="bg-yellow-400 absolute inset-x-0 bottom-0" style={`height:${pct}`}></span>
+		<span class="relative h-24 w-4 flex-1 overflow-hidden rounded bg-muted">
+			<span class="absolute inset-x-0 bottom-0 bg-yellow-400" style={`height:${pct}`}></span>
 		</span>
 	{:else}
-		<span class="bg-muted relative h-2 flex-1 overflow-hidden rounded">
-			<span class="bg-yellow-400 absolute inset-y-0 left-0" style={`width:${pct}`}></span>
+		<span class="relative h-2 flex-1 overflow-hidden rounded bg-muted">
+			<span class="absolute inset-y-0 left-0 bg-yellow-400" style={`width:${pct}`}></span>
 		</span>
 	{/if}
-	<span class="text-muted-foreground w-8 text-right text-xs">{lvl.count}</span>
+	<span class="w-8 text-right text-xs text-muted-foreground">{lvl.count}</span>
 </button>

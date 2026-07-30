@@ -98,9 +98,7 @@ The storefront drives the flow and passes the rich data. The shape below matches
 const session = await sdk.store.payment.initiatePaymentSession(cart, {
 	provider_id: 'pp_braintree_braintree'
 })
-const clientToken = session.payment_collection.payment_sessions.find(
-	s => s.provider_id === 'pp_braintree_braintree'
-)?.data.client_token
+const clientToken = session.payment_collection.payment_sessions.find(s => s.provider_id === 'pp_braintree_braintree')?.data.client_token
 ```
 
 **2. Render Braintree Hosted Fields (or Drop-in) with that token, then on submit tokenize the card and collect device data:**

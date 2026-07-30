@@ -13,11 +13,7 @@
 </script>
 
 {#if ctx.count > 0}
-	<div
-		class={cn(orientation === 'vertical' ? 'flex items-end gap-2' : 'flex flex-col gap-1', className)}
-		data-histogram
-		data-orientation={orientation}
-	>
+	<div class={cn(orientation === 'vertical' ? 'flex items-end gap-2' : 'flex flex-col gap-1', className)} data-histogram data-orientation={orientation}>
 		{#each levels as level (level)}
 			<Level {level} {orientation}>{@render children()}</Level>
 		{/each}

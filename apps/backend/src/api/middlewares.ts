@@ -1,9 +1,5 @@
-import { defineMiddlewares } from "@medusajs/framework/http"
-import {
-  definePolicies,
-  generateResourcePolicies,
-  requirePolicies,
-} from "medusa-plugin-access"
+import { defineMiddlewares } from '@medusajs/framework/http'
+import { definePolicies, generateResourcePolicies, requirePolicies } from 'medusa-plugin-access'
 
 /**
  * REFERENCE — Usage Pattern A: backend-project-level gating.
@@ -26,36 +22,36 @@ import {
  * 1) Define the `content` resource's policies so content:read/create/update/
  *    delete become assignable in the roles UI + appear in me/permissions.
  */
-definePolicies(generateResourcePolicies(["content"]))
+definePolicies(generateResourcePolicies(['content']))
 
 // 2) Gate the content admin routes behind the corresponding content permission.
 //    The access plugin's global /admin/* guard enforces these.
 requirePolicies({
-  method: ["GET"],
-  matcher: "/admin/content",
-  policies: [{ resource: "content", operation: "read" }],
+	method: ['GET'],
+	matcher: '/admin/content',
+	policies: [{ resource: 'content', operation: 'read' }]
 })
 requirePolicies({
-  method: ["GET"],
-  matcher: "/admin/content/:collectionId",
-  policies: [{ resource: "content", operation: "read" }],
+	method: ['GET'],
+	matcher: '/admin/content/:collectionId',
+	policies: [{ resource: 'content', operation: 'read' }]
 })
 requirePolicies({
-  method: ["POST"],
-  matcher: "/admin/content",
-  policies: [{ resource: "content", operation: "create" }],
+	method: ['POST'],
+	matcher: '/admin/content',
+	policies: [{ resource: 'content', operation: 'create' }]
 })
 requirePolicies({
-  method: ["POST"],
-  matcher: "/admin/content/:collectionId",
-  policies: [{ resource: "content", operation: "update" }],
+	method: ['POST'],
+	matcher: '/admin/content/:collectionId',
+	policies: [{ resource: 'content', operation: 'update' }]
 })
 requirePolicies({
-  method: ["DELETE"],
-  matcher: "/admin/content/:collectionId",
-  policies: [{ resource: "content", operation: "delete" }],
+	method: ['DELETE'],
+	matcher: '/admin/content/:collectionId',
+	policies: [{ resource: 'content', operation: 'delete' }]
 })
 
 export default defineMiddlewares({
-  routes: [],
+	routes: []
 })

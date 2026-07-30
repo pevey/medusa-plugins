@@ -53,11 +53,7 @@ export default async function abandonedCartJob(container: MedusaContainer) {
 
 		totalCount = metadata?.count ?? 0
 
-		const eligible = carts.filter(
-			(cart) =>
-				(cart.items?.length ?? 0) > 0 &&
-				!cart.metadata?.abandoned_notification
-		)
+		const eligible = carts.filter(cart => (cart.items?.length ?? 0) > 0 && !cart.metadata?.abandoned_notification)
 
 		if (eligible.length > 0) {
 			try {

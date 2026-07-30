@@ -2,23 +2,17 @@ import * as zod from 'zod'
 import { useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-	Button,
-	FocusModal,
-	Heading,
-	Input,
-	Label,
-	Select,
-	Text,
-	toast
-} from '@medusajs/ui'
+import { Button, FocusModal, Heading, Input, Label, Select, Text, toast } from '@medusajs/ui'
 import { useCreateContentCollection } from '../hooks/content'
 import { sdk } from '../lib/sdk'
 import { ContentFieldsEditor, FieldInput } from './content-fields-editor'
 
 const schema = zod.object({
 	label: zod.string().min(1, 'Label is required'),
-	slug: zod.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, hyphens only'),
+	slug: zod
+		.string()
+		.min(1, 'Slug is required')
+		.regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, hyphens only'),
 	format: zod.string().min(1, 'Format is required'),
 	prefix: zod.string().optional().default('')
 })
@@ -104,10 +98,12 @@ export const CreateContentCollectionModal = ({ open, onOpenChange }: Props) => {
 					<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 						<div className="mx-auto flex w-full max-w-2xl flex-col gap-y-8 px-2 py-16">
 							<div>
-								<Heading>Create Content Collection</Heading>
-								<Text className="text-ui-fg-subtle mt-1">
-									Define a new collection of content and how it should be stored.
-								</Text>
+								<FocusModal.Title asChild>
+									<Heading>Create Content Collection</Heading>
+								</FocusModal.Title>
+								<FocusModal.Description asChild>
+									<Text className="text-ui-fg-subtle mt-1">Define a new collection of content and how it should be stored.</Text>
+								</FocusModal.Description>
 							</div>
 							<div className="flex flex-col gap-y-4">
 								<div className="flex flex-col gap-y-1">
@@ -131,11 +127,7 @@ export const CreateContentCollectionModal = ({ open, onOpenChange }: Props) => {
 														}
 													}}
 												/>
-												{fieldState.error && (
-													<Text className="text-ui-fg-error text-sm">
-														{fieldState.error.message}
-													</Text>
-												)}
+												{fieldState.error && <Text className="text-ui-fg-error text-sm">{fieldState.error.message}</Text>}
 											</>
 										)}
 									/>
@@ -159,11 +151,7 @@ export const CreateContentCollectionModal = ({ open, onOpenChange }: Props) => {
 														field.onChange(sanitizeSlug(e.target.value))
 													}}
 												/>
-												{fieldState.error && (
-													<Text className="text-ui-fg-error text-sm">
-														{fieldState.error.message}
-													</Text>
-												)}
+												{fieldState.error && <Text className="text-ui-fg-error text-sm">{fieldState.error.message}</Text>}
 											</>
 										)}
 									/>
@@ -190,11 +178,7 @@ export const CreateContentCollectionModal = ({ open, onOpenChange }: Props) => {
 														))}
 													</Select.Content>
 												</Select>
-												{fieldState.error && (
-													<Text className="text-ui-fg-error text-sm">
-														{fieldState.error.message}
-													</Text>
-												)}
+												{fieldState.error && <Text className="text-ui-fg-error text-sm">{fieldState.error.message}</Text>}
 											</>
 										)}
 									/>
@@ -203,17 +187,8 @@ export const CreateContentCollectionModal = ({ open, onOpenChange }: Props) => {
 									<Label htmlFor="prefix" className="text-ui-fg-subtle">
 										Storage Prefix
 									</Label>
-									<Controller
-										control={form.control}
-										name="prefix"
-										render={({ field }) => (
-											<Input {...field} id="prefix" placeholder="blog/" />
-										)}
-									/>
-									<Text className="text-ui-fg-muted text-sm">
-										Optional path prefix used when uploading files of this collection (e.g.
-										"blog/").
-									</Text>
+									<Controller control={form.control} name="prefix" render={({ field }) => <Input {...field} id="prefix" placeholder="blog/" />} />
+									<Text className="text-ui-fg-muted text-sm">Optional path prefix used when uploading files of this collection (e.g. "blog/").</Text>
 								</div>
 							</div>
 

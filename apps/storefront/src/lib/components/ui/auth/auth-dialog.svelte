@@ -12,12 +12,7 @@
 	import ErrorPart from './error.svelte'
 	import Submit from './submit.svelte'
 
-	type Classes = Partial<
-		Record<
-			'content' | 'header' | 'title' | 'form' | 'field' | 'label' | 'input' | 'submit',
-			string
-		>
-	>
+	type Classes = Partial<Record<'content' | 'header' | 'title' | 'form' | 'field' | 'label' | 'input' | 'submit', string>>
 	const MODES = ['login', 'register', 'forgot', 'reset'] as const
 	type Mode = (typeof MODES)[number]
 
@@ -77,9 +72,7 @@
 >
 	<Dialog.Content class={classes.content ?? 'sm:max-w-md'}>
 		<Dialog.Header class={classes.header}>
-			<Dialog.Title class={classes.header}
-				>{isMode(mode) ? (titles[mode] ?? defaultTitles[mode]) : ''}</Dialog.Title
-			>
+			<Dialog.Title class={classes.header}>{isMode(mode) ? (titles[mode] ?? defaultTitles[mode]) : ''}</Dialog.Title>
 			<Dialog.Description>{isMode(mode) ? descriptions[mode] : ''}</Dialog.Description>
 		</Dialog.Header>
 
@@ -97,20 +90,8 @@
 				</Field>
 				<ErrorPart />
 				<Submit class={classes.submit}>Sign in</Submit>
-				<button
-					type="button"
-					class="text-muted-foreground text-sm underline"
-					onclick={() => switchMode('register')}
-				>
-					Create an account
-				</button>
-				<button
-					type="button"
-					class="text-muted-foreground text-sm underline"
-					onclick={() => switchMode('forgot')}
-				>
-					Forgot your password?
-				</button>
+				<button type="button" class="text-sm text-muted-foreground underline" onclick={() => switchMode('register')}> Create an account </button>
+				<button type="button" class="text-sm text-muted-foreground underline" onclick={() => switchMode('forgot')}> Forgot your password? </button>
 			</LoginForm>
 		{:else if mode === 'register'}
 			<RegisterForm class={classes.form} onsuccess={close} onswitch={switchMode}>
@@ -126,26 +107,14 @@
 				</Field>
 				<ErrorPart />
 				<Submit class={classes.submit}>Create account</Submit>
-				<button
-					type="button"
-					class="text-muted-foreground text-sm underline"
-					onclick={() => switchMode('login')}
-				>
+				<button type="button" class="text-sm text-muted-foreground underline" onclick={() => switchMode('login')}>
 					Already have an account? Sign in
 				</button>
 			</RegisterForm>
 		{:else if mode === 'forgot'}
 			{#if sent}
-				<p class="text-muted-foreground text-sm">
-					If an account exists for that email, we've sent a link to reset your password.
-				</p>
-				<button
-					type="button"
-					class="text-muted-foreground text-sm underline"
-					onclick={() => switchMode('login')}
-				>
-					Back to sign in
-				</button>
+				<p class="text-sm text-muted-foreground">If an account exists for that email, we've sent a link to reset your password.</p>
+				<button type="button" class="text-sm text-muted-foreground underline" onclick={() => switchMode('login')}> Back to sign in </button>
 			{:else}
 				<ForgotForm class={classes.form} onsuccess={() => (sent = true)} onswitch={switchMode}>
 					<Field name="email" class={classes.field}>
@@ -155,32 +124,15 @@
 					</Field>
 					<ErrorPart />
 					<Submit class={classes.submit}>Send reset link</Submit>
-					<button
-						type="button"
-						class="text-muted-foreground text-sm underline"
-						onclick={() => switchMode('login')}
-					>
-						Back to sign in
-					</button>
+					<button type="button" class="text-sm text-muted-foreground underline" onclick={() => switchMode('login')}> Back to sign in </button>
 				</ForgotForm>
 			{/if}
 		{:else if mode === 'reset'}
 			{#if resetDone}
-				<p class="text-muted-foreground text-sm">Your password has been updated.</p>
-				<button
-					type="button"
-					class="text-muted-foreground text-sm underline"
-					onclick={() => switchMode('login')}
-				>
-					Sign in
-				</button>
+				<p class="text-sm text-muted-foreground">Your password has been updated.</p>
+				<button type="button" class="text-sm text-muted-foreground underline" onclick={() => switchMode('login')}> Sign in </button>
 			{:else}
-				<ResetForm
-					class={classes.form}
-					{token}
-					onsuccess={() => (resetDone = true)}
-					onswitch={switchMode}
-				>
+				<ResetForm class={classes.form} {token} onsuccess={() => (resetDone = true)} onswitch={switchMode}>
 					<Field name="password" class={classes.field}>
 						<Label class={classes.label}>New password</Label>
 						<Input type="password" autocomplete="new-password" class={classes.input} />

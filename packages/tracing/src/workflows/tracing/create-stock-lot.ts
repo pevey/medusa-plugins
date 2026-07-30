@@ -1,10 +1,4 @@
-import {
-	createWorkflow,
-	WorkflowResponse,
-	createStep,
-	StepResponse,
-	transform
-} from '@medusajs/framework/workflows-sdk'
+import { createWorkflow, WorkflowResponse, createStep, StepResponse, transform } from '@medusajs/framework/workflows-sdk'
 import { adjustInventoryLevelsStep } from '@medusajs/medusa/core-flows'
 import { TRACING_MODULE } from '../../modules/tracing'
 import { TracingService } from '../../modules/tracing/service'
@@ -25,26 +19,20 @@ const createStockLotStep = createStep(
 	}
 )
 
-export const createStockLotWorkflow = createWorkflow(
-	'create-stock-lot',
-	(input: AdminCreateStockLotType) => {
-		const stockLot = createStockLotStep(input)
+export const createStockLotWorkflow = createWorkflow('create-stock-lot', (input: AdminCreateStockLotType) => {
+	const stockLot = createStockLotStep(input)
 
-		const adjustmentInput = transform({ input }, data => {
-			const adjustment = Math.max(
-				data.input.stocked_quantity || 0,
-				data.input.initial_quantity || 0
-			)
-			return [
-				{
-					inventory_item_id: data.input.inventory_item_id,
-					location_id: data.input.stock_location_id,
-					adjustment: adjustment
-				}
-			]
-		})
-		adjustInventoryLevelsStep(adjustmentInput)
+	const adjustmentInput = transform({ input }, data => {
+		const adjustment = Math.max(data.input.stocked_quantity || 0, data.input.initial_quantity || 0)
+		return [
+			{
+				inventory_item_id: data.input.inventory_item_id,
+				location_id: data.input.stock_location_id,
+				adjustment: adjustment
+			}
+		]
+	})
+	adjustInventoryLevelsStep(adjustmentInput)
 
-		return new WorkflowResponse(stockLot)
-	}
-)
+	return new WorkflowResponse(stockLot)
+})

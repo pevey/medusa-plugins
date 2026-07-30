@@ -34,14 +34,7 @@ export const POST = async (req: MedusaRequest<StoreSubmitFormType>, res: MedusaR
 	// Look up form by handle, include fields for validation
 	const { data: forms } = await query.graph({
 		entity: 'form',
-		fields: [
-			'id',
-			'active',
-			'turnstile_enabled',
-			'form_fields.name',
-			'form_fields.label',
-			'form_fields.required'
-		],
+		fields: ['id', 'active', 'turnstile_enabled', 'form_fields.name', 'form_fields.label', 'form_fields.required'],
 		filters: { handle: req.params.handle }
 	})
 
@@ -52,10 +45,7 @@ export const POST = async (req: MedusaRequest<StoreSubmitFormType>, res: MedusaR
 	}
 
 	if (!form.active) {
-		throw new MedusaError(
-			MedusaError.Types.NOT_ALLOWED,
-			`Form "${req.params.handle}" is not accepting submissions`
-		)
+		throw new MedusaError(MedusaError.Types.NOT_ALLOWED, `Form "${req.params.handle}" is not accepting submissions`)
 	}
 
 	const { token, data } = req.validatedBody
@@ -69,10 +59,7 @@ export const POST = async (req: MedusaRequest<StoreSubmitFormType>, res: MedusaR
 		if (!allowedFieldNames.has(key)) continue
 		const val = data[key]
 		if (typeof val === 'string' && val.length > MAX_FIELD_VALUE_LENGTH) {
-			throw new MedusaError(
-				MedusaError.Types.INVALID_DATA,
-				`Field "${key}" exceeds maximum length of ${MAX_FIELD_VALUE_LENGTH} characters`
-			)
+			throw new MedusaError(MedusaError.Types.INVALID_DATA, `Field "${key}" exceeds maximum length of ${MAX_FIELD_VALUE_LENGTH} characters`)
 		}
 		filteredData[key] = val
 	}
@@ -84,10 +71,7 @@ export const POST = async (req: MedusaRequest<StoreSubmitFormType>, res: MedusaR
 		}
 		const { turnstileSecretKey } = formService.getOptions()
 		if (!turnstileSecretKey) {
-			throw new MedusaError(
-				MedusaError.Types.INVALID_DATA,
-				'Turnstile is not configured on the server'
-			)
+			throw new MedusaError(MedusaError.Types.INVALID_DATA, 'Turnstile is not configured on the server')
 		}
 		const valid = await validateTurnstileToken(token, turnstileSecretKey)
 		if (!valid) {
@@ -96,22 +80,16 @@ export const POST = async (req: MedusaRequest<StoreSubmitFormType>, res: MedusaR
 	}
 
 	// Validate required fields (against already-filtered data)
-	const missingFields = configuredFields
-		.filter(f => f.required && (filteredData[f.name] == null || filteredData[f.name] === ''))
-		.map(f => f.label)
+	const missingFields = configuredFields.filter(f => f.required && (filteredData[f.name] == null || filteredData[f.name] === '')).map(f => f.label)
 
 	if (missingFields.length > 0) {
-		throw new MedusaError(
-			MedusaError.Types.INVALID_DATA,
-			`Missing required fields: ${missingFields.join(', ')}`
-		)
+		throw new MedusaError(MedusaError.Types.INVALID_DATA, `Missing required fields: ${missingFields.join(', ')}`)
 	}
 
 	const submission = await formService.createFormSubmissions({
 		form_id: form.id,
 		data: filteredData,
-		ip_address:
-			(req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? req.ip ?? null,
+		ip_address: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? req.ip ?? null,
 		user_agent: req.headers['user-agent'] ?? null
 	})
 

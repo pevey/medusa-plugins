@@ -8,16 +8,13 @@ const BATCH_SIZE = 1000
 
 export default async function archiveAnalyticsJob(container: MedusaContainer) {
 	const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
-	const privateAnalyticsService: PrivateAnalyticsService =
-		container.resolve(PRIVATE_ANALYTICS_MODULE)
+	const privateAnalyticsService: PrivateAnalyticsService = container.resolve(PRIVATE_ANALYTICS_MODULE)
 
 	try {
 		const cutoff = new Date()
 		cutoff.setDate(cutoff.getDate() - RETENTION_DAYS)
 
-		logger.info(
-			`analytics-archive: deleting raw events older than ${cutoff.toISOString().slice(0, 10)} (${RETENTION_DAYS} day retention)`
-		)
+		logger.info(`analytics-archive: deleting raw events older than ${cutoff.toISOString().slice(0, 10)} (${RETENTION_DAYS} day retention)`)
 
 		const manager = (privateAnalyticsService as any).__container__?.manager
 		if (!manager) {
@@ -47,9 +44,7 @@ export default async function archiveAnalyticsJob(container: MedusaContainer) {
 			totalDeleted += batchDeleted
 		} while (batchDeleted === BATCH_SIZE)
 
-		logger.info(
-			`analytics-archive: deleted ${totalDeleted} raw events older than ${cutoff.toISOString().slice(0, 10)}`
-		)
+		logger.info(`analytics-archive: deleted ${totalDeleted} raw events older than ${cutoff.toISOString().slice(0, 10)}`)
 	} catch (error: any) {
 		logger.error(`analytics-archive: failed: ${error.message}`)
 	}

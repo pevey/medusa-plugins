@@ -13,4 +13,4 @@
  * browser bundles. For UI, gate on the `/admin/access/me/permissions` route
  * instead.
  */
-export * from "./utils"
+export * from './utils'

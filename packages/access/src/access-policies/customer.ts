@@ -1,8 +1,6 @@
-import { definePolicies } from "../utils"
-import { generateResourcePolicies } from "../utils"
+import { definePolicies } from '../utils'
+import { generateResourcePolicies } from '../utils'
 
-const customerResources = ["customer", "customer_address", "customer_group"]
+const customerResources = ['customer', 'customer_address', 'customer_group']
 
-export const customerPolicies = definePolicies(
-  generateResourcePolicies(customerResources)
-)
+export const customerPolicies = definePolicies(generateResourcePolicies(customerResources))

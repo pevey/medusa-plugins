@@ -5,8 +5,16 @@ import { StoreGetMyReviewsType } from '../../../../validators'
 export const GET = async (req: AuthenticatedMedusaRequest<StoreGetMyReviewsType>, res: MedusaResponse) => {
 	const customerId = req.auth_context.actor_id
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-	const { status, product_id, limit = 20, offset = 0, order } = req.validatedQuery as StoreGetMyReviewsType & {
-		limit?: number; offset?: number; order?: string
+	const {
+		status,
+		product_id,
+		limit = 20,
+		offset = 0,
+		order
+	} = req.validatedQuery as StoreGetMyReviewsType & {
+		limit?: number
+		offset?: number
+		order?: string
 	}
 	const { data, metadata } = await query.graph({
 		entity: 'review',
@@ -19,9 +27,7 @@ export const GET = async (req: AuthenticatedMedusaRequest<StoreGetMyReviewsType>
 		pagination: {
 			skip: offset,
 			take: limit,
-			order: order
-				? { [order.replace(/^-/, '')]: order.startsWith('-') ? 'DESC' : 'ASC' }
-				: { created_at: 'DESC' }
+			order: order ? { [order.replace(/^-/, '')]: order.startsWith('-') ? 'DESC' : 'ASC' } : { created_at: 'DESC' }
 		}
 	})
 	res.json({ reviews: data, count: metadata?.count ?? data.length, limit, offset })

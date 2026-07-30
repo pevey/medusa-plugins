@@ -5,10 +5,7 @@ export type Action = {
 	icon: React.ReactNode
 	label: string
 	disabled?: boolean
-} & (
-	| { to: string; onClick?: never }
-	| { onClick: () => void; to?: never }
-)
+} & ({ to: string; onClick?: never } | { onClick: () => void; to?: never })
 
 export type ActionGroup = {
 	actions: Action[]
@@ -46,12 +43,9 @@ export const ActionMenu = ({ groups }: ActionMenuProps) => {
 												e.stopPropagation()
 												action.onClick()
 											}}
-											className={clx(
-												'[&_svg]:text-ui-fg-subtle flex items-center gap-x-2',
-												{
-													'[&_svg]:text-ui-fg-disabled': action.disabled
-												}
-											)}
+											className={clx('[&_svg]:text-ui-fg-subtle flex items-center gap-x-2', {
+												'[&_svg]:text-ui-fg-disabled': action.disabled
+											})}
 										>
 											{action.icon}
 											<span>{action.label}</span>
@@ -62,12 +56,9 @@ export const ActionMenu = ({ groups }: ActionMenuProps) => {
 								return (
 									<div key={index}>
 										<DropdownMenu.Item
-											className={clx(
-												'[&_svg]:text-ui-fg-subtle flex items-center gap-x-2',
-												{
-													'[&_svg]:text-ui-fg-disabled': action.disabled
-												}
-											)}
+											className={clx('[&_svg]:text-ui-fg-subtle flex items-center gap-x-2', {
+												'[&_svg]:text-ui-fg-disabled': action.disabled
+											})}
 											asChild
 											disabled={action.disabled}
 										>

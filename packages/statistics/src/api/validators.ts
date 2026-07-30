@@ -24,13 +24,15 @@ export const AdminGetLowStock = z.object({
 export type AdminGetLowStockType = z.infer<typeof AdminGetLowStock>
 
 export const AdminSaveStatisticsLayout = z.object({
-	layout: z.array(z.object({
-		widget_id: z.string(),
-		x: z.number(),
-		y: z.number(),
-		w: z.number(),
-		h: z.number(),
-		visible: z.boolean().optional().default(true)
-	}))
+	layout: z.array(
+		z.object({
+			widget_id: z.string(),
+			x: z.number(),
+			y: z.number(),
+			w: z.number(),
+			h: z.number(),
+			visible: z.boolean().optional().default(true)
+		})
+	)
 })
 export type AdminSaveStatisticsLayoutType = z.infer<typeof AdminSaveStatisticsLayout>

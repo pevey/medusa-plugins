@@ -58,10 +58,7 @@ export const FormFieldOptionsModal = ({ formId, field, open, setOpen, onSaved }:
 	})
 
 	const add = () => {
-		setOptions(prev => [
-			...prev,
-			{ _key: crypto.randomUUID(), label: '', value: '', sort_order: prev.length }
-		])
+		setOptions(prev => [...prev, { _key: crypto.randomUUID(), label: '', value: '', sort_order: prev.length }])
 	}
 
 	const update = (key: string, patch: Partial<OptionInput>) => {
@@ -96,9 +93,12 @@ export const FormFieldOptionsModal = ({ formId, field, open, setOpen, onSaved }:
 		<Drawer open={open} onOpenChange={setOpen}>
 			<Drawer.Content>
 				<Drawer.Header>
-					<Heading level="h2">
-						Options — <span className="font-mono text-sm font-normal">{field.label}</span>
-					</Heading>
+					<Drawer.Title asChild>
+						<Heading level="h2">
+							Options — <span className="font-mono text-sm font-normal">{field.label}</span>
+						</Heading>
+					</Drawer.Title>
+					<Drawer.Description className="sr-only">Edit the selectable options for this field: their labels and values.</Drawer.Description>
 				</Drawer.Header>
 				<Drawer.Body className="flex flex-col gap-y-4 overflow-y-auto">
 					{options.length > 0 && (
@@ -113,10 +113,7 @@ export const FormFieldOptionsModal = ({ formId, field, open, setOpen, onSaved }:
 						</div>
 					)}
 					{options.map(opt => (
-						<div
-							key={opt._key}
-							className="grid grid-cols-[1fr_1fr_32px] gap-x-2 items-center"
-						>
+						<div key={opt._key} className="grid grid-cols-[1fr_1fr_32px] items-center gap-x-2">
 							<Input
 								size="small"
 								value={opt.label}
@@ -141,12 +138,7 @@ export const FormFieldOptionsModal = ({ formId, field, open, setOpen, onSaved }:
 									})
 								}
 							/>
-							<Button
-								type="button"
-								variant="transparent"
-								size="small"
-								onClick={() => remove(opt._key)}
-							>
+							<Button type="button" variant="transparent" size="small" onClick={() => remove(opt._key)}>
 								<Trash className="text-ui-fg-subtle" />
 							</Button>
 						</div>
@@ -156,24 +148,13 @@ export const FormFieldOptionsModal = ({ formId, field, open, setOpen, onSaved }:
 							No options yet. Add one below.
 						</Text>
 					)}
-					<Button
-						type="button"
-						variant="secondary"
-						size="small"
-						className="w-fit"
-						onClick={add}
-					>
+					<Button type="button" variant="secondary" size="small" className="w-fit" onClick={add}>
 						<Plus className="mr-1" />
 						Add Option
 					</Button>
 				</Drawer.Body>
 				<Drawer.Footer className="flex justify-end gap-x-2">
-					<Button
-						variant="secondary"
-						size="small"
-						onClick={() => setOpen(false)}
-						disabled={isPending}
-					>
+					<Button variant="secondary" size="small" onClick={() => setOpen(false)} disabled={isPending}>
 						Cancel
 					</Button>
 					<Button size="small" isLoading={isPending} disabled={isPending} onClick={handleSave}>

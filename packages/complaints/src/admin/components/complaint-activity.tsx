@@ -27,7 +27,7 @@ export const ComplaintActivity = ({ complaint }: ComplaintActivityProps) => {
 						Add Note
 					</Button>
 				</div>
-				<div className="flex flex-col p-6 gap-y-0.5">
+				<div className="flex flex-col gap-y-0.5 p-6">
 					{isLoading && <p>Loading activity...</p>}
 					{!isLoading && entries?.length === 0 && (
 						<div className="px-6 py-4">
@@ -38,23 +38,11 @@ export const ComplaintActivity = ({ complaint }: ComplaintActivityProps) => {
 					)}
 					{!isLoading &&
 						entries
-							?.sort(
-								(a, b) =>
-									new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-							)
-							.map((entry, index) => (
-								<ComplaintActivityEntry
-									isFirst={index === entries.length - 1}
-									entry={entry}
-								/>
-							))}
+							?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+							.map((entry, index) => <ComplaintActivityEntry isFirst={index === entries.length - 1} entry={entry} />)}
 				</div>
 			</Container>
-			<ComplaintNoteModal
-				open={createNoteOpen}
-				setOpen={setCreateNoteOpen}
-				complaintId={complaint.id}
-			/>
+			<ComplaintNoteModal open={createNoteOpen} setOpen={setCreateNoteOpen} complaintId={complaint.id} />
 		</>
 	)
 }

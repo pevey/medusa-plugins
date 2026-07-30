@@ -40,8 +40,7 @@
 			}
 		} catch (e) {
 			clientSecret = null
-			if (import.meta.env.DEV)
-				console.error(`[CheckoutStripe] initiate "${providerId}" session failed`, e)
+			if (import.meta.env.DEV) console.error(`[CheckoutStripe] initiate "${providerId}" session failed`, e)
 		}
 	})
 </script>
@@ -57,7 +56,5 @@
 		{@render children()}
 	</Elements>
 {:else}
-	<div data-checkout-stripe-loading class="text-muted-foreground py-8 text-center text-sm">
-		Loading secure payment…
-	</div>
+	<div data-checkout-stripe-loading class="py-8 text-center text-sm text-muted-foreground">Loading secure payment…</div>
 {/if}

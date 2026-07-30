@@ -3,8 +3,7 @@ import { PRIVATE_ANALYTICS_MODULE } from '../../../../../../modules/analytics'
 import type { PrivateAnalyticsService } from '../../../../../../modules/analytics/service'
 
 export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
-	const privateAnalyticsService: PrivateAnalyticsService =
-		req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
+	const privateAnalyticsService: PrivateAnalyticsService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
 	const segment = await privateAnalyticsService.retrieveAnalyticsSegment(req.params.id)
 
 	const members = await privateAnalyticsService.listAnalyticsSegmentMemberships({
@@ -12,10 +11,7 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 	} as any)
 	const actorIds = members.map((m: any) => m.actor_id)
 
-	const identities =
-		actorIds.length > 0
-			? await privateAnalyticsService.listAnalyticsIdentities({ actor_id: actorIds } as any)
-			: []
+	const identities = actorIds.length > 0 ? await privateAnalyticsService.listAnalyticsIdentities({ actor_id: actorIds } as any) : []
 
 	const identityMap = new Map(identities.map((i: any) => [i.actor_id, i]))
 

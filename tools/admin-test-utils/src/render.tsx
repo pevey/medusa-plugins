@@ -16,10 +16,7 @@ export type RenderAdminRouteResult = {
 	navigations: string[]
 }
 
-export function renderAdminRoute(
-	Component: ComponentType,
-	options: RenderAdminRouteOptions = {}
-): RenderAdminRouteResult {
+export function renderAdminRoute(Component: ComponentType, options: RenderAdminRouteOptions = {}): RenderAdminRouteResult {
 	const navigations: string[] = []
 	const initialPath = options.initialPath ?? '/'
 

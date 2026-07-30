@@ -1,8 +1,6 @@
-import { definePolicies } from "../utils"
-import { generateResourcePolicies } from "../utils"
+import { definePolicies } from '../utils'
+import { generateResourcePolicies } from '../utils'
 
-const regionResources = ["region"]
+const regionResources = ['region']
 
-export const regionPolicies = definePolicies(
-  generateResourcePolicies(regionResources)
-)
+export const regionPolicies = definePolicies(generateResourcePolicies(regionResources))

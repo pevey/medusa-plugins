@@ -1,8 +1,5 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
-import {
-	syncOrderToVeeqoWorkflow,
-	syncReplacementToVeeqoWorkflow
-} from '../../../../workflows/order'
+import { syncOrderToVeeqoWorkflow, syncReplacementToVeeqoWorkflow } from '../../../../workflows/order'
 import { SourceType } from '../../../../modules/veeqo/models/veeqo-order'
 
 type Body = {
@@ -34,9 +31,7 @@ export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse)
 	}
 
 	if (!body.order_id) {
-		return res
-			.status(400)
-			.json({ message: 'order_id is required when source_type is claim or exchange' })
+		return res.status(400).json({ message: 'order_id is required when source_type is claim or exchange' })
 	}
 
 	await syncReplacementToVeeqoWorkflow(req.scope).run({

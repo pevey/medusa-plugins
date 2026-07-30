@@ -20,13 +20,7 @@ import {
 } from '@medusajs/ui'
 import type { AdminGetReviewsType } from '../../../api/validators'
 import { AdminReview, ReviewStatus } from '../../types'
-import {
-	useReviewsList,
-	useApproveReviews,
-	useRejectReviews,
-	useDeleteReviews,
-	useFeatureReviews
-} from '../../hooks/reviews'
+import { useReviewsList, useApproveReviews, useRejectReviews, useDeleteReviews, useFeatureReviews } from '../../hooks/reviews'
 
 export const config = defineRouteConfig({ label: 'Reviews', icon: Star, rank: 10 })
 export const handle = { breadcrumb: () => 'Reviews' }
@@ -68,9 +62,7 @@ const ReviewsPage = () => {
 		// filter menu below only ever pushes this route's own status enum values into the array
 		// (see the seeding comment on `filtering`'s useState above), so this narrows to what
 		// AdminGetReviews actually accepts.
-		...(filtering.status !== undefined
-			? { status: filtering.status as AdminGetReviewsType['status'] }
-			: {}),
+		...(filtering.status !== undefined ? { status: filtering.status as AdminGetReviewsType['status'] } : {}),
 		order: sorting ? `${sorting.desc ? '-' : ''}${sorting.id}` : '-created_at'
 	})
 
@@ -103,7 +95,9 @@ const ReviewsPage = () => {
 				getValue() ? (
 					<Star className="text-ui-fg-interactive" />
 				) : (
-					<Text size="small" className="text-ui-fg-muted">—</Text>
+					<Text size="small" className="text-ui-fg-muted">
+						—
+					</Text>
 				)
 		}),
 		columnHelper.accessor('author_name', {
@@ -118,7 +112,7 @@ const ReviewsPage = () => {
 			cell: ({ getValue }) => {
 				const v = getValue()
 				return v ? (
-					<Text size="small" className="truncate max-w-[220px]">
+					<Text size="small" className="max-w-[220px] truncate">
 						{v}
 					</Text>
 				) : (
@@ -133,7 +127,7 @@ const ReviewsPage = () => {
 			cell: ({ getValue }) => {
 				const v = (getValue() as string | undefined) ?? ''
 				return (
-					<Text size="small" className="text-ui-fg-subtle truncate max-w-[280px]">
+					<Text size="small" className="text-ui-fg-subtle max-w-[280px] truncate">
 						{v.length > 60 ? `${v.slice(0, 60)}…` : v || '—'}
 					</Text>
 				)

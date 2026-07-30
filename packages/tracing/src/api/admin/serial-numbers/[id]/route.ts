@@ -4,10 +4,7 @@ import { AdminGetSerialNumberType, AdminUpdateSerialNumberType } from '../../../
 import { TRACING_MODULE } from '../../../../modules/tracing'
 import { TracingService } from '../../../../modules/tracing/service'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetSerialNumberType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetSerialNumberType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { id } = req.params
 
@@ -25,10 +22,7 @@ export const GET = async (
 	res.json({ serial_number: serialNumber })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateSerialNumberType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateSerialNumberType>, res: MedusaResponse) => {
 	const { id } = req.params
 	const tracingService: TracingService = req.scope.resolve(TRACING_MODULE)
 	const serialNumber = await tracingService.updateSerialNumbers({

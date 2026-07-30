@@ -30,8 +30,7 @@ const ProductVariantVeeqoWidget = ({ data: variant }: DetailWidgetProps<AdminPro
 	})
 
 	const syncMutation = useMutation({
-		mutationFn: () =>
-			sdk.client.fetch(`/admin/veeqo/products/${variant.product_id}/sync`, { method: 'POST' }),
+		mutationFn: () => sdk.client.fetch(`/admin/veeqo/products/${variant.product_id}/sync`, { method: 'POST' }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['product-variant', variant.id] })
 			toast.success('Product synced successfully')
@@ -44,22 +43,13 @@ const ProductVariantVeeqoWidget = ({ data: variant }: DetailWidgetProps<AdminPro
 		<Container className="divide-y p-0">
 			<div className="flex items-center justify-between px-6 py-4">
 				<Heading level="h2">Veeqo Sellable</Heading>
-				<Button
-					size="small"
-					variant="secondary"
-					onClick={() => syncMutation.mutate()}
-					disabled={syncMutation.isPending}
-				>
+				<Button size="small" variant="secondary" onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>
 					{syncMutation.isPending ? 'Syncing...' : 'Sync'}
 				</Button>
 			</div>
 
 			<div className="px-6 py-4">
-				<a
-					href={`https://app.veeqo.com/inventory/variants/${veeqoSellableId}`}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
+				<a href={`https://app.veeqo.com/inventory/variants/${veeqoSellableId}`} target="_blank" rel="noopener noreferrer">
 					<Text size="small">{isLoading ? 'Loading...' : 'ID: ' + veeqoSellableId}</Text>
 				</a>
 			</div>

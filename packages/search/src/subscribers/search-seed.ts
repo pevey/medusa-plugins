@@ -21,9 +21,7 @@ export default async function searchSeedHandler({ container }: SubscriberArgs<Re
 	const start = Date.now()
 	try {
 		const { result } = await reindexSearchDocumentsWorkflow(container).run({})
-		logger.info(
-			`[search] initial seed done in ${Date.now() - start}ms: ${JSON.stringify(result.counts)}`
-		)
+		logger.info(`[search] initial seed done in ${Date.now() - start}ms: ${JSON.stringify(result.counts)}`)
 	} catch (error) {
 		logger.error(`[search] initial seed failed: ${(error as Error).message}`)
 	}

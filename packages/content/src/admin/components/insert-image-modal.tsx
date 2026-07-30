@@ -14,9 +14,7 @@ export const InsertImageModal = ({ open, onOpenChange, onSelect }: Props) => {
 	const [search, setSearch] = useState('')
 
 	const { data: collectionsData } = useContentCollections({ limit: 100 })
-	const imgCollections: AdminContentCollection[] = (
-		collectionsData?.content_collections ?? []
-	).filter((t: AdminContentCollection) => t.format === 'img')
+	const imgCollections: AdminContentCollection[] = (collectionsData?.content_collections ?? []).filter((t: AdminContentCollection) => t.format === 'img')
 
 	useEffect(() => {
 		if (open && imgCollections.length > 0 && !selectedCollectionId) {
@@ -25,13 +23,8 @@ export const InsertImageModal = ({ open, onOpenChange, onSelect }: Props) => {
 		if (!open) setSearch('')
 	}, [open, imgCollections.length])
 
-	const { data: itemsData, isLoading } = useContentItems(
-		selectedCollectionId,
-		selectedCollectionId ? { limit: 100, q: search || undefined } : {}
-	)
-	const items: AdminContentItem[] = (itemsData?.content_items ?? []).filter(
-		(i: AdminContentItem) => i.body
-	)
+	const { data: itemsData, isLoading } = useContentItems(selectedCollectionId, selectedCollectionId ? { limit: 100, q: search || undefined } : {})
+	const items: AdminContentItem[] = (itemsData?.content_items ?? []).filter((i: AdminContentItem) => i.body)
 
 	const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, url: string) => {
 		const img = e.currentTarget
@@ -45,7 +38,12 @@ export const InsertImageModal = ({ open, onOpenChange, onSelect }: Props) => {
 		<FocusModal open={open} onOpenChange={onOpenChange}>
 			<FocusModal.Content>
 				<FocusModal.Header>
-					<Heading>Insert Image</Heading>
+					<FocusModal.Title asChild>
+						<Heading>Insert Image</Heading>
+					</FocusModal.Title>
+					<FocusModal.Description className="sr-only">
+						Choose an image from a content library collection to insert into the document.
+					</FocusModal.Description>
 				</FocusModal.Header>
 				<FocusModal.Body className="flex flex-col gap-4 overflow-hidden p-6">
 					{imgCollections.length === 0 ? (
@@ -54,10 +52,7 @@ export const InsertImageModal = ({ open, onOpenChange, onSelect }: Props) => {
 						<>
 							<div className="flex items-center gap-2">
 								{imgCollections.length > 1 && (
-									<Select
-										value={selectedCollectionId ?? ''}
-										onValueChange={setSelectedCollectionId}
-									>
+									<Select value={selectedCollectionId ?? ''} onValueChange={setSelectedCollectionId}>
 										<Select.Trigger className="w-48">
 											<Select.Value placeholder="Select image library..." />
 										</Select.Trigger>
@@ -70,27 +65,19 @@ export const InsertImageModal = ({ open, onOpenChange, onSelect }: Props) => {
 										</Select.Content>
 									</Select>
 								)}
-								<Input
-									type="search"
-									placeholder="Search images..."
-									value={search}
-									onChange={e => setSearch(e.target.value)}
-									className="w-48 md:w-64"
-								/>
+								<Input type="search" placeholder="Search images..." value={search} onChange={e => setSearch(e.target.value)} className="w-48 md:w-64" />
 							</div>
 
 							{isLoading ? (
 								<Text className="text-ui-fg-muted">Loading...</Text>
 							) : items.length === 0 ? (
-								<Text className="text-ui-fg-muted">
-									{search ? 'No images match your search.' : 'No images in this library.'}
-								</Text>
+								<Text className="text-ui-fg-muted">{search ? 'No images match your search.' : 'No images in this library.'}</Text>
 							) : (
 								<div className="flex flex-wrap gap-4 overflow-y-auto">
 									{items.map(item => (
 										<div
 											key={item.id}
-											className="flex-none flex flex-col cursor-pointer rounded-lg border border-ui-border-base bg-ui-bg-subtle overflow-hidden hover:border-ui-border-interactive transition-colors"
+											className="border-ui-border-base bg-ui-bg-subtle hover:border-ui-border-interactive flex flex-none cursor-pointer flex-col overflow-hidden rounded-lg border transition-colors"
 										>
 											<img
 												src={item.body!}

@@ -16,12 +16,7 @@ export type AdminGetContentCollectionsType = z.infer<typeof AdminGetContentColle
 export const AdminGetContentCollection = createFindParams()
 export type AdminGetContentCollectionType = z.infer<typeof AdminGetContentCollection>
 
-const slugSchema = z
-	.string()
-	.regex(
-		/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-		'Slug must use only lowercase letters, numbers, and hyphens'
-	)
+const slugSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must use only lowercase letters, numbers, and hyphens')
 
 export const AdminCreateContentCollection = z.object({
 	label: z.string(),
@@ -91,9 +86,7 @@ export const AdminCreateContentCollectionRelationship = z.object({
 	target_collection_id: z.string(),
 	relationship_type: z.enum(ContentRelationshipType)
 })
-export type AdminCreateContentCollectionRelationshipType = z.infer<
-	typeof AdminCreateContentCollectionRelationship
->
+export type AdminCreateContentCollectionRelationshipType = z.infer<typeof AdminCreateContentCollectionRelationship>
 
 // ── Content Creators ──────────────��───────────────────────────────────────────
 
@@ -135,16 +128,12 @@ export const AdminCreateContentCreatorActivity = z.object({
 	type: z.enum(ContentCreatorActivityType).default(ContentCreatorActivityType.NOTE),
 	note: z.string().nullable().optional()
 })
-export type AdminCreateContentCreatorActivityType = z.infer<
-	typeof AdminCreateContentCreatorActivity
->
+export type AdminCreateContentCreatorActivityType = z.infer<typeof AdminCreateContentCreatorActivity>
 
 export const AdminDeleteContentCreatorActivity = z.object({
 	ids: z.array(z.string()).min(1, 'At least one ID is required')
 })
-export type AdminDeleteContentCreatorActivityType = z.infer<
-	typeof AdminDeleteContentCreatorActivity
->
+export type AdminDeleteContentCreatorActivityType = z.infer<typeof AdminDeleteContentCreatorActivity>
 
 // ── Content Items ─────────────────────────────────────────────────────────────
 

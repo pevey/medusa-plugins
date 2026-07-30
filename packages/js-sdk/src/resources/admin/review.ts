@@ -11,92 +11,64 @@ import type {
 	AdminRejectReviewResponse,
 	AdminBulkDeleteReviewResponse,
 	AdminFeatureReviewResponse,
-	AdminUpdateReviewInput,
+	AdminUpdateReviewInput
 } from '../../types/review'
 
 export function createAdminReviewResource(client: Client) {
 	return {
-		list: async (
-			query?: AdminReviewListQuery,
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<AdminReviewListResponse>(
-				`/admin/reviews`,
-				{ query, headers },
-			)
+		list: async (query?: AdminReviewListQuery, headers?: ClientHeaders) => {
+			return client.fetch<AdminReviewListResponse>(`/admin/reviews`, { query, headers })
 		},
 
-		retrieve: async (
-			id: string,
-			query?: Record<string, unknown>,
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<AdminReviewResponse>(
-				`/admin/reviews/${id}`,
-				{ query, headers },
-			)
+		retrieve: async (id: string, query?: Record<string, unknown>, headers?: ClientHeaders) => {
+			return client.fetch<AdminReviewResponse>(`/admin/reviews/${id}`, { query, headers })
 		},
 
-		update: async (
-			id: string,
-			body: AdminUpdateReviewInput,
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<AdminReviewResponse>(
-				`/admin/reviews/${id}`,
-				{ method: 'POST', body, headers },
-			)
+		update: async (id: string, body: AdminUpdateReviewInput, headers?: ClientHeaders) => {
+			return client.fetch<AdminReviewResponse>(`/admin/reviews/${id}`, {
+				method: 'POST',
+				body,
+				headers
+			})
 		},
 
-		delete: async (
-			id: string,
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<AdminReviewDeleteResponse>(
-				`/admin/reviews/${id}`,
-				{ method: 'DELETE', headers },
-			)
+		delete: async (id: string, headers?: ClientHeaders) => {
+			return client.fetch<AdminReviewDeleteResponse>(`/admin/reviews/${id}`, {
+				method: 'DELETE',
+				headers
+			})
 		},
 
-		batchDelete: async (
-			ids: string[],
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<AdminBulkDeleteReviewResponse>(
-				`/admin/reviews`,
-				{ method: 'DELETE', body: { ids }, headers },
-			)
+		batchDelete: async (ids: string[], headers?: ClientHeaders) => {
+			return client.fetch<AdminBulkDeleteReviewResponse>(`/admin/reviews`, {
+				method: 'DELETE',
+				body: { ids },
+				headers
+			})
 		},
 
-		approve: async (
-			ids: string[],
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<AdminApproveReviewResponse>(
-				`/admin/reviews/approve`,
-				{ method: 'POST', body: { ids }, headers },
-			)
+		approve: async (ids: string[], headers?: ClientHeaders) => {
+			return client.fetch<AdminApproveReviewResponse>(`/admin/reviews/approve`, {
+				method: 'POST',
+				body: { ids },
+				headers
+			})
 		},
 
-		reject: async (
-			ids: string[],
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<AdminRejectReviewResponse>(
-				`/admin/reviews/reject`,
-				{ method: 'POST', body: { ids }, headers },
-			)
+		reject: async (ids: string[], headers?: ClientHeaders) => {
+			return client.fetch<AdminRejectReviewResponse>(`/admin/reviews/reject`, {
+				method: 'POST',
+				body: { ids },
+				headers
+			})
 		},
 
-		feature: async (
-			ids: string[],
-			featured = true,
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<AdminFeatureReviewResponse>(
-				`/admin/reviews/feature`,
-				{ method: 'POST', body: { ids, featured }, headers },
-			)
-		},
+		feature: async (ids: string[], featured = true, headers?: ClientHeaders) => {
+			return client.fetch<AdminFeatureReviewResponse>(`/admin/reviews/feature`, {
+				method: 'POST',
+				body: { ids, featured },
+				headers
+			})
+		}
 	}
 }

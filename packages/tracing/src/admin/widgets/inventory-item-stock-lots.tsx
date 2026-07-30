@@ -15,9 +15,7 @@ type StockLocation = {
 	name: string
 }
 
-const InventoryItemStockLotsWidget = ({
-	data: inventoryItem
-}: DetailWidgetProps<AdminInventoryItem>) => {
+const InventoryItemStockLotsWidget = ({ data: inventoryItem }: DetailWidgetProps<AdminInventoryItem>) => {
 	const [selectedLocationId, setSelectedLocationId] = useState<string>('')
 	const [showEnabledOnly, setShowEnabledOnly] = useState(true)
 	const [showAddForm, setShowAddForm] = useState(false)
@@ -33,11 +31,7 @@ const InventoryItemStockLotsWidget = ({
 	})
 
 	// Build query string, conditionally adding enabled filter
-	const lotsQueryString = [
-		`inventory_item_id=${inventoryItem.id}`,
-		`stock_location_id=${selectedLocationId}`,
-		showEnabledOnly ? `enabled=true` : null
-	]
+	const lotsQueryString = [`inventory_item_id=${inventoryItem.id}`, `stock_location_id=${selectedLocationId}`, showEnabledOnly ? `enabled=true` : null]
 		.filter(Boolean)
 		.join('&')
 
@@ -100,12 +94,8 @@ const InventoryItemStockLotsWidget = ({
 			{/* Enabled Filter Checkbox */}
 			{selectedLocationId && (
 				<div className="flex items-center gap-2 px-6 py-4">
-					<Checkbox
-						id="enabled-filter"
-						checked={showEnabledOnly}
-						onCheckedChange={checked => setShowEnabledOnly(checked === true)}
-					/>
-					<label htmlFor="enabled-filter" className="text-sm cursor-pointer">
+					<Checkbox id="enabled-filter" checked={showEnabledOnly} onCheckedChange={checked => setShowEnabledOnly(checked === true)} />
+					<label htmlFor="enabled-filter" className="cursor-pointer text-sm">
 						Show enabled lots only
 					</label>
 				</div>
@@ -118,10 +108,7 @@ const InventoryItemStockLotsWidget = ({
 						<Text>Loading lots...</Text>
 					) : lotsData?.stock_lots?.length ? (
 						lotsData.stock_lots.map(lot => (
-							<div
-								key={lot.id}
-								className="grid grid-cols-4 gap-4 py-2 border-b text-ui-fg-subtle"
-							>
+							<div key={lot.id} className="text-ui-fg-subtle grid grid-cols-4 gap-4 border-b py-2">
 								<Text size="small" weight="plus">
 									{lot.lot_number}
 								</Text>
@@ -141,12 +128,7 @@ const InventoryItemStockLotsWidget = ({
 					{showAddForm ? (
 						<div className="flex flex-col gap-3">
 							<Label htmlFor="lot-number">New Lot Number</Label>
-							<Input
-								id="lot-number"
-								placeholder="Lot number"
-								value={newLotNumber}
-								onChange={e => setNewLotNumber(e.target.value)}
-							/>
+							<Input id="lot-number" placeholder="Lot number" value={newLotNumber} onChange={e => setNewLotNumber(e.target.value)} />
 							<Label htmlFor="stocked-quantity">Stocked Quantity</Label>
 							<Input
 								id="stocked-quantity"
@@ -159,11 +141,7 @@ const InventoryItemStockLotsWidget = ({
 								<Button size="small" onClick={handleAddLot}>
 									Add Lot
 								</Button>
-								<Button
-									size="small"
-									variant="secondary"
-									onClick={() => setShowAddForm(false)}
-								>
+								<Button size="small" variant="secondary" onClick={() => setShowAddForm(false)}>
 									Cancel
 								</Button>
 							</div>

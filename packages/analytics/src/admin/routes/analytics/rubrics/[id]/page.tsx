@@ -12,12 +12,13 @@ type RubricLoaderData = { rubric: { id: string; label: string } }
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	const { id } = params
-	return sdk.client.fetch<RubricLoaderData>(`/admin/analytics/rubrics/${id}`, { query: { fields: 'id,label' } })
+	return sdk.client.fetch<RubricLoaderData>(`/admin/analytics/rubrics/${id}`, {
+		query: { fields: 'id,label' }
+	})
 }
 
 export const handle = {
-	breadcrumb: ({ data }: UIMatch<RubricLoaderData>) =>
-		data?.rubric?.label || data?.rubric?.id || 'Rubric'
+	breadcrumb: ({ data }: UIMatch<RubricLoaderData>) => data?.rubric?.label || data?.rubric?.id || 'Rubric'
 }
 
 const RubricDetailPage = () => {
@@ -31,40 +32,88 @@ const RubricDetailPage = () => {
 	const rubric = data?.rubric
 
 	const handleDelete = async () => {
-		const confirmed = await prompt({ title: 'Delete rubric?', description: 'This action cannot be undone.', confirmText: 'Delete', cancelText: 'Cancel', variant: 'danger' })
+		const confirmed = await prompt({
+			title: 'Delete rubric?',
+			description: 'This action cannot be undone.',
+			confirmText: 'Delete',
+			cancelText: 'Cancel',
+			variant: 'danger'
+		})
 		if (confirmed) {
 			deleteRubrics([rubric!.id], {
-				onSuccess: () => { toast.success('Rubric deleted successfully'); navigate('/analytics/rubrics') },
+				onSuccess: () => {
+					toast.success('Rubric deleted successfully')
+					navigate('/analytics/rubrics')
+				},
 				onError: () => toast.error('Failed to delete rubric')
 			})
 		}
 	}
 
-	if (isLoading) return <Container className="p-6"><Text>Loading...</Text></Container>
-	if (!rubric) return <Container className="p-6"><Text>Rubric not found.</Text></Container>
+	if (isLoading)
+		return (
+			<Container className="p-6">
+				<Text>Loading...</Text>
+			</Container>
+		)
+	if (!rubric)
+		return (
+			<Container className="p-6">
+				<Text>Rubric not found.</Text>
+			</Container>
+		)
 
 	return (
 		<div className="flex flex-col gap-4 p-4">
 			<Container className="divide-y p-0">
 				<div className="flex items-center justify-between px-6 py-4">
 					<Heading level="h1">Rubric Details</Heading>
-					<ActionMenu groups={[{ actions: [{ label: 'Edit', icon: <PencilSquare />, onClick: () => setEditOpen(true) }, { label: 'Delete', icon: <Trash />, onClick: handleDelete }] }]} />
+					<ActionMenu
+						groups={[
+							{
+								actions: [
+									{
+										label: 'Edit',
+										icon: <PencilSquare />,
+										onClick: () => setEditOpen(true)
+									},
+									{ label: 'Delete', icon: <Trash />, onClick: handleDelete }
+								]
+							}
+						]}
+					/>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
-					<Text size="small" weight="plus" leading="compact">Name</Text>
-					<Text size="small" leading="compact">{rubric.name ?? '-'}</Text>
+					<Text size="small" weight="plus" leading="compact">
+						Name
+					</Text>
+					<Text size="small" leading="compact">
+						{rubric.name ?? '-'}
+					</Text>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
-					<Text size="small" weight="plus" leading="compact">Label</Text>
-					<Text size="small" leading="compact">{rubric.label ?? '-'}</Text>
+					<Text size="small" weight="plus" leading="compact">
+						Label
+					</Text>
+					<Text size="small" leading="compact">
+						{rubric.label ?? '-'}
+					</Text>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
-					<Text size="small" weight="plus" leading="compact">Description</Text>
-					<Text size="small" leading="compact">{rubric.description ?? '-'}</Text>
+					<Text size="small" weight="plus" leading="compact">
+						Description
+					</Text>
+					<Text size="small" leading="compact">
+						{rubric.description ?? '-'}
+					</Text>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
-					<Text size="small" weight="plus" leading="compact">Status</Text>
-					<Badge color={rubric.active ? 'green' : 'grey'} size="xsmall">{rubric.active ? 'Active' : 'Inactive'}</Badge>
+					<Text size="small" weight="plus" leading="compact">
+						Status
+					</Text>
+					<Badge color={rubric.active ? 'green' : 'grey'} size="xsmall">
+						{rubric.active ? 'Active' : 'Inactive'}
+					</Badge>
 				</div>
 			</Container>
 			<RubricEventsTable rubricName={rubric.name} />

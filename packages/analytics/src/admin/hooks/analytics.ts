@@ -1,8 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sdk } from '../lib/sdk'
 import type {
-	AdminRubricsResponse, AdminRubricResponse,
-	AdminFunnelsResponse, AdminFunnelResponse, AdminFunnelQueryResponse,
+	AdminRubricsResponse,
+	AdminRubricResponse,
+	AdminFunnelsResponse,
+	AdminFunnelResponse,
+	AdminFunnelQueryResponse,
 	AdminEventsResponse
 } from '../types/analytics'
 
@@ -27,7 +30,10 @@ export const useCreateRubric = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: object) =>
-			sdk.client.fetch<AdminRubricResponse>('/admin/analytics/rubrics', { method: 'POST', body: data }),
+			sdk.client.fetch<AdminRubricResponse>('/admin/analytics/rubrics', {
+				method: 'POST',
+				body: data
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['analytics-rubrics'] })
 		}
@@ -38,7 +44,10 @@ export const useUpdateRubric = (id: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: object) =>
-			sdk.client.fetch<AdminRubricResponse>(`/admin/analytics/rubrics/${id}`, { method: 'POST', body: data }),
+			sdk.client.fetch<AdminRubricResponse>(`/admin/analytics/rubrics/${id}`, {
+				method: 'POST',
+				body: data
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['analytics-rubrics'] })
 			queryClient.invalidateQueries({ queryKey: ['analytics-rubric', id] })
@@ -49,8 +58,7 @@ export const useUpdateRubric = (id: string) => {
 export const useDeleteRubrics = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/analytics/rubrics', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/analytics/rubrics', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['analytics-rubrics'] })
 		}
@@ -88,7 +96,10 @@ export const useCreateFunnel = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: object) =>
-			sdk.client.fetch<AdminFunnelResponse>('/admin/analytics/funnels', { method: 'POST', body: data }),
+			sdk.client.fetch<AdminFunnelResponse>('/admin/analytics/funnels', {
+				method: 'POST',
+				body: data
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['analytics-funnels'] })
 			queryClient.invalidateQueries({ queryKey: ['analytics-funnel-query'] })
@@ -100,7 +111,10 @@ export const useUpdateFunnel = (id: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: object) =>
-			sdk.client.fetch<AdminFunnelResponse>(`/admin/analytics/funnels/${id}`, { method: 'POST', body: data }),
+			sdk.client.fetch<AdminFunnelResponse>(`/admin/analytics/funnels/${id}`, {
+				method: 'POST',
+				body: data
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['analytics-funnels'] })
 			queryClient.invalidateQueries({ queryKey: ['analytics-funnel', id] })
@@ -112,8 +126,7 @@ export const useUpdateFunnel = (id: string) => {
 export const useDeleteFunnels = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/analytics/funnels', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/analytics/funnels', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['analytics-funnels'] })
 			queryClient.invalidateQueries({ queryKey: ['analytics-funnel-query'] })

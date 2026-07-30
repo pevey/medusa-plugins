@@ -48,18 +48,13 @@ export class SesNotificationProvider extends AbstractNotificationProviderService
 		})
 	}
 
-	async send(
-		notification: NotificationTypes.ProviderSendNotificationDTO
-	): Promise<NotificationTypes.ProviderSendNotificationResultsDTO> {
+	async send(notification: NotificationTypes.ProviderSendNotificationDTO): Promise<NotificationTypes.ProviderSendNotificationResultsDTO> {
 		if (!notification) {
 			throw SesError('INVALID_ARGUMENT', `Notification is not defined`)
 		}
 
 		if (notification.channel !== 'email') {
-			throw SesError(
-				'INVALID_ARGUMENT',
-				`Notification is for channel email, got ${notification.channel}`
-			)
+			throw SesError('INVALID_ARGUMENT', `Notification is for channel email, got ${notification.channel}`)
 		}
 
 		if (!notification.content) {

@@ -34,36 +34,41 @@ export class Store {
 	// ── Overridden resources (expanded types) ────────────────────────────────
 
 	public product = {
-		list: async (
-			query?: HttpTypes.StoreProductListParams,
-			headers?: ClientHeaders,
-		) => {
-			return this.client.fetch<StoreProductListResponse>(
-				`/store/products`,
-				{ query, headers },
-			)
+		list: async (query?: HttpTypes.StoreProductListParams, headers?: ClientHeaders) => {
+			return this.client.fetch<StoreProductListResponse>(`/store/products`, { query, headers })
 		},
-		retrieve: async (
-			id: string,
-			query?: SelectParams,
-			headers?: ClientHeaders,
-		) => {
-			return this.client.fetch<StoreProductResponse>(
-				`/store/products/${id}`,
-				{ query, headers },
-			)
-		},
+		retrieve: async (id: string, query?: SelectParams, headers?: ClientHeaders) => {
+			return this.client.fetch<StoreProductResponse>(`/store/products/${id}`, { query, headers })
+		}
 	}
 
 	// ── Delegated core resources ─────────────────────────────────────────────
 
-	get region(): CoreStore['region'] { return this.core.region }
-	get collection(): CoreStore['collection'] { return this.core.collection }
-	get category(): CoreStore['category'] { return this.core.category }
-	get cart(): CoreStore['cart'] { return this.core.cart }
-	get order(): CoreStore['order'] { return this.core.order }
-	get customer(): CoreStore['customer'] { return this.core.customer }
-	get fulfillment(): CoreStore['fulfillment'] { return this.core.fulfillment }
-	get payment(): CoreStore['payment'] { return this.core.payment }
-	get locale(): CoreStore['locale'] { return this.core.locale }
+	get region(): CoreStore['region'] {
+		return this.core.region
+	}
+	get collection(): CoreStore['collection'] {
+		return this.core.collection
+	}
+	get category(): CoreStore['category'] {
+		return this.core.category
+	}
+	get cart(): CoreStore['cart'] {
+		return this.core.cart
+	}
+	get order(): CoreStore['order'] {
+		return this.core.order
+	}
+	get customer(): CoreStore['customer'] {
+		return this.core.customer
+	}
+	get fulfillment(): CoreStore['fulfillment'] {
+		return this.core.fulfillment
+	}
+	get payment(): CoreStore['payment'] {
+		return this.core.payment
+	}
+	get locale(): CoreStore['locale'] {
+		return this.core.locale
+	}
 }

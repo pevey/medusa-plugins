@@ -1,15 +1,5 @@
 import * as zod from 'zod'
-import {
-	FocusModal,
-	Heading,
-	Input,
-	Button,
-	Switch,
-	Select,
-	Text,
-	toast,
-	usePrompt
-} from '@medusajs/ui'
+import { FocusModal, Heading, Input, Button, Switch, Select, Text, toast, usePrompt } from '@medusajs/ui'
 import { Plus, Trash, ArrowUpMini, ArrowDownMini } from '@medusajs/icons'
 import { useEffect } from 'react'
 import { useForm, Controller, FormProvider, useFieldArray } from 'react-hook-form'
@@ -18,17 +8,27 @@ import { useBlocker } from 'react-router-dom'
 import { useCreateFunnel, useRubrics } from '../hooks/analytics'
 
 const BACKEND_RUBRIC_NAMES = [
-	'cart_created', 'cart_updated', 'order_placed', 'order_canceled', 'order_completed',
-	'shipment_created', 'customer_created', 'customer_updated', 'return_requested', 'return_received'
+	'cart_created',
+	'cart_updated',
+	'order_placed',
+	'order_canceled',
+	'order_completed',
+	'shipment_created',
+	'customer_created',
+	'customer_updated',
+	'return_requested',
+	'return_received'
 ]
 
-const toLabel = (name: string) =>
-	name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+const toLabel = (name: string) => name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 
-const SYSTEM_RUBRICS = BACKEND_RUBRIC_NAMES.map((name) => ({ name, label: toLabel(name) }))
+const SYSTEM_RUBRICS = BACKEND_RUBRIC_NAMES.map(name => ({ name, label: toLabel(name) }))
 
 const schema = zod.object({
-	name: zod.string().min(1, 'Required').regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case'),
+	name: zod
+		.string()
+		.min(1, 'Required')
+		.regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case'),
 	label: zod.string().min(1, 'Required'),
 	steps: zod.array(zod.object({ value: zod.string().min(1, 'Required') })).min(1, 'At least one step required'),
 	is_default: zod.boolean()
@@ -46,11 +46,8 @@ export const CreateFunnelModal = ({ open, setOpen }: CreateFunnelModalProps) => 
 	const prompt = usePrompt()
 
 	const customRubrics = rubricsData?.rubrics || []
-	const customNames = new Set(customRubrics.map((r) => r.name))
-	const allRubrics = [
-		...SYSTEM_RUBRICS.filter((r) => !customNames.has(r.name)),
-		...customRubrics
-	]
+	const customNames = new Set(customRubrics.map(r => r.name))
+	const allRubrics = [...SYSTEM_RUBRICS.filter(r => !customNames.has(r.name)), ...customRubrics]
 
 	const form = useForm<CreateFunnelFormData>({
 		resolver: zodResolver(schema),
@@ -67,10 +64,7 @@ export const CreateFunnelModal = ({ open, setOpen }: CreateFunnelModalProps) => 
 		name: 'steps'
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -105,12 +99,12 @@ export const CreateFunnelModal = ({ open, setOpen }: CreateFunnelModalProps) => 
 		}
 	}, [open, form])
 
-	const handleSubmit = form.handleSubmit((data) => {
+	const handleSubmit = form.handleSubmit(data => {
 		createFunnel.mutate(
 			{
 				name: data.name,
 				label: data.label,
-				steps: data.steps.map((s) => s.value),
+				steps: data.steps.map(s => s.value),
 				is_default: data.is_default
 			},
 			{
@@ -133,7 +127,10 @@ export const CreateFunnelModal = ({ open, setOpen }: CreateFunnelModalProps) => 
 						<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 							<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 								<div>
-									<Heading className="capitalize">Create Funnel</Heading>
+									<FocusModal.Title asChild>
+										<Heading className="capitalize">Create Funnel</Heading>
+									</FocusModal.Title>
+									<FocusModal.Description className="sr-only">Create a new funnel: name it and define its ordered steps.</FocusModal.Description>
 								</div>
 								<div className="grid grid-cols-2 gap-4">
 									{/* Name */}
@@ -146,9 +143,7 @@ export const CreateFunnelModal = ({ open, setOpen }: CreateFunnelModalProps) => 
 													Name
 												</Text>
 												<Input {...field} value={field.value} placeholder="main_funnel" />
-												{fieldState.error && (
-													<span className="text-sm text-ui-fg-error">{fieldState.error.message}</span>
-												)}
+												{fieldState.error && <span className="text-ui-fg-error text-sm">{fieldState.error.message}</span>}
 											</div>
 										)}
 									/>
@@ -163,9 +158,7 @@ export const CreateFunnelModal = ({ open, setOpen }: CreateFunnelModalProps) => 
 													Label
 												</Text>
 												<Input {...field} value={field.value} placeholder="Main Conversion Funnel" />
-												{fieldState.error && (
-													<span className="text-sm text-ui-fg-error">{fieldState.error.message}</span>
-												)}
+												{fieldState.error && <span className="text-ui-fg-error text-sm">{fieldState.error.message}</span>}
 											</div>
 										)}
 									/>
@@ -175,13 +168,9 @@ export const CreateFunnelModal = ({ open, setOpen }: CreateFunnelModalProps) => 
 										control={form.control}
 										name="is_default"
 										render={({ field }) => (
-											<div className="flex items-center gap-3 col-span-2">
-												<Switch
-													id="create-funnel-default-toggle"
-													checked={field.value}
-													onCheckedChange={field.onChange}
-												/>
-												<label htmlFor="create-funnel-default-toggle" className="text-sm cursor-pointer">
+											<div className="col-span-2 flex items-center gap-3">
+												<Switch id="create-funnel-default-toggle" checked={field.value} onCheckedChange={field.onChange} />
+												<label htmlFor="create-funnel-default-toggle" className="cursor-pointer text-sm">
 													Set as default
 												</label>
 											</div>
@@ -189,7 +178,7 @@ export const CreateFunnelModal = ({ open, setOpen }: CreateFunnelModalProps) => 
 									/>
 
 									{/* Steps */}
-									<div className="flex flex-col space-y-2 col-span-2">
+									<div className="col-span-2 flex flex-col space-y-2">
 										<Text size="small" weight="plus">
 											Steps
 										</Text>
@@ -208,7 +197,7 @@ export const CreateFunnelModal = ({ open, setOpen }: CreateFunnelModalProps) => 
 																	<Select.Value placeholder="Select event" />
 																</Select.Trigger>
 																<Select.Content>
-																	{allRubrics.map((r) => (
+																	{allRubrics.map(r => (
 																		<Select.Item key={r.name} value={r.name}>
 																			{r.label} ({r.name})
 																		</Select.Item>
@@ -218,13 +207,7 @@ export const CreateFunnelModal = ({ open, setOpen }: CreateFunnelModalProps) => 
 														</div>
 													)}
 												/>
-												<Button
-													size="small"
-													variant="transparent"
-													type="button"
-													onClick={() => i > 0 && swap(i, i - 1)}
-													disabled={i === 0}
-												>
+												<Button size="small" variant="transparent" type="button" onClick={() => i > 0 && swap(i, i - 1)} disabled={i === 0}>
 													<ArrowUpMini />
 												</Button>
 												<Button
@@ -236,22 +219,12 @@ export const CreateFunnelModal = ({ open, setOpen }: CreateFunnelModalProps) => 
 												>
 													<ArrowDownMini />
 												</Button>
-												<Button
-													size="small"
-													variant="transparent"
-													type="button"
-													onClick={() => remove(i)}
-												>
+												<Button size="small" variant="transparent" type="button" onClick={() => remove(i)}>
 													<Trash />
 												</Button>
 											</div>
 										))}
-										<Button
-											size="small"
-											variant="secondary"
-											type="button"
-											onClick={() => append({ value: '' })}
-										>
+										<Button size="small" variant="secondary" type="button" onClick={() => append({ value: '' })}>
 											<Plus /> Add Step
 										</Button>
 									</div>

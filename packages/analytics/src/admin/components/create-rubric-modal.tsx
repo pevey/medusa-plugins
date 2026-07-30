@@ -1,15 +1,5 @@
 import * as zod from 'zod'
-import {
-	FocusModal,
-	Heading,
-	Input,
-	Button,
-	Switch,
-	Textarea,
-	Text,
-	toast,
-	usePrompt
-} from '@medusajs/ui'
+import { FocusModal, Heading, Input, Button, Switch, Textarea, Text, toast, usePrompt } from '@medusajs/ui'
 import { useEffect } from 'react'
 import { useForm, Controller, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -17,7 +7,10 @@ import { useBlocker } from 'react-router-dom'
 import { useCreateRubric } from '../hooks/analytics'
 
 const schema = zod.object({
-	name: zod.string().min(1, 'Required').regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case'),
+	name: zod
+		.string()
+		.min(1, 'Required')
+		.regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case'),
 	label: zod.string().min(1, 'Required'),
 	description: zod.string().nullable().optional(),
 	active: zod.boolean()
@@ -43,10 +36,7 @@ export const CreateRubricModal = ({ open, setOpen }: CreateRubricModalProps) => 
 		}
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -101,7 +91,10 @@ export const CreateRubricModal = ({ open, setOpen }: CreateRubricModalProps) => 
 						<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 							<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 								<div>
-									<Heading className="capitalize">Create Event Rubric</Heading>
+									<FocusModal.Title asChild>
+										<Heading className="capitalize">Create Event Rubric</Heading>
+									</FocusModal.Title>
+									<FocusModal.Description className="sr-only">Create a new event rubric: name it, label it, and describe it.</FocusModal.Description>
 								</div>
 								<div className="grid grid-cols-2 gap-4">
 									{/* Name */}
@@ -114,9 +107,7 @@ export const CreateRubricModal = ({ open, setOpen }: CreateRubricModalProps) => 
 													Name
 												</Text>
 												<Input {...field} value={field.value} placeholder="product_viewed" />
-												{fieldState.error && (
-													<span className="text-sm text-ui-fg-error">{fieldState.error.message}</span>
-												)}
+												{fieldState.error && <span className="text-ui-fg-error text-sm">{fieldState.error.message}</span>}
 											</div>
 										)}
 									/>
@@ -131,9 +122,7 @@ export const CreateRubricModal = ({ open, setOpen }: CreateRubricModalProps) => 
 													Label
 												</Text>
 												<Input {...field} value={field.value} placeholder="Product Viewed" />
-												{fieldState.error && (
-													<span className="text-sm text-ui-fg-error">{fieldState.error.message}</span>
-												)}
+												{fieldState.error && <span className="text-ui-fg-error text-sm">{fieldState.error.message}</span>}
 											</div>
 										)}
 									/>
@@ -143,15 +132,11 @@ export const CreateRubricModal = ({ open, setOpen }: CreateRubricModalProps) => 
 										control={form.control}
 										name="description"
 										render={({ field }) => (
-											<div className="flex flex-col space-y-2 col-span-2">
+											<div className="col-span-2 flex flex-col space-y-2">
 												<Text size="small" weight="plus">
 													Description
 												</Text>
-												<Textarea
-													{...field}
-													value={field.value ?? ''}
-													placeholder="What triggers this event?"
-												/>
+												<Textarea {...field} value={field.value ?? ''} placeholder="What triggers this event?" />
 											</div>
 										)}
 									/>
@@ -161,13 +146,9 @@ export const CreateRubricModal = ({ open, setOpen }: CreateRubricModalProps) => 
 										control={form.control}
 										name="active"
 										render={({ field }) => (
-											<div className="flex items-center gap-3 col-span-2">
-												<Switch
-													id="create-rubric-active-toggle"
-													checked={field.value}
-													onCheckedChange={field.onChange}
-												/>
-												<label htmlFor="create-rubric-active-toggle" className="text-sm cursor-pointer">
+											<div className="col-span-2 flex items-center gap-3">
+												<Switch id="create-rubric-active-toggle" checked={field.value} onCheckedChange={field.onChange} />
+												<label htmlFor="create-rubric-active-toggle" className="cursor-pointer text-sm">
 													Active
 												</label>
 											</div>

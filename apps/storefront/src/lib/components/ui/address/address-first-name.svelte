@@ -10,11 +10,4 @@
 	const ctx = getAddressContext()
 </script>
 
-<InputText
-	field={ctx.form.fields[`${prefix}first_name`]}
-	{label}
-	autocomplete="given-name"
-	onChange={ctx.onchange}
-	class={className}
-	{...rest}
-/>
+<InputText field={ctx.form.fields[`${prefix}first_name`]} {label} autocomplete="given-name" onChange={ctx.onchange} class={className} {...rest} />

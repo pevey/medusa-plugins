@@ -68,11 +68,9 @@ medusaIntegrationTestRunner({
 
 		describe('POST /admin/affiliates', () => {
 			it('rejects invalid body', async () => {
-				await expect(api.post('/admin/affiliates', { name: '' }, auth())).rejects.toMatchObject(
-					{
-						response: { status: 400 }
-					}
-				)
+				await expect(api.post('/admin/affiliates', { name: '' }, auth())).rejects.toMatchObject({
+					response: { status: 400 }
+				})
 			})
 
 			it('creates affiliate atomically and returns affiliate_id', async () => {
@@ -92,9 +90,7 @@ medusaIntegrationTestRunner({
 					first_promotion: { ...createBody.first_promotion, code: uniqueCode }
 				}
 				await api.post('/admin/affiliates', body, auth())
-				await expect(
-					api.post('/admin/affiliates', { ...body, email: uniqueEmail2 }, auth())
-				).rejects.toMatchObject({ response: { status: 400 } })
+				await expect(api.post('/admin/affiliates', { ...body, email: uniqueEmail2 }, auth())).rejects.toMatchObject({ response: { status: 400 } })
 			})
 		})
 
@@ -146,11 +142,9 @@ medusaIntegrationTestRunner({
 
 			it('delete removes affiliate; promotions retired', async () => {
 				await api.delete(`/admin/affiliates/${affiliateId}`, auth())
-				await expect(api.get(`/admin/affiliates/${affiliateId}`, auth())).rejects.toMatchObject(
-					{
-						response: { status: 404 }
-					}
-				)
+				await expect(api.get(`/admin/affiliates/${affiliateId}`, auth())).rejects.toMatchObject({
+					response: { status: 404 }
+				})
 			})
 		})
 
@@ -232,16 +226,8 @@ medusaIntegrationTestRunner({
 				)
 				const pid = created.data.promotion.promotion_id
 
-				await api.post(
-					`/admin/affiliates/${promoAffiliateId}/promotions/${pid}/retire`,
-					{},
-					auth()
-				)
-				await api.post(
-					`/admin/affiliates/${promoAffiliateId}/promotions/${pid}/reactivate`,
-					{},
-					auth()
-				)
+				await api.post(`/admin/affiliates/${promoAffiliateId}/promotions/${pid}/retire`, {}, auth())
+				await api.post(`/admin/affiliates/${promoAffiliateId}/promotions/${pid}/reactivate`, {}, auth())
 				// implicit: no error means both succeeded
 			})
 
@@ -272,9 +258,7 @@ medusaIntegrationTestRunner({
 					}
 				])
 
-				await expect(
-					api.delete(`/admin/affiliates/${promoAffiliateId}/promotions/${pid}`, auth())
-				).rejects.toMatchObject({ response: { status: 400 } })
+				await expect(api.delete(`/admin/affiliates/${promoAffiliateId}/promotions/${pid}`, auth())).rejects.toMatchObject({ response: { status: 400 } })
 			})
 		})
 
@@ -348,12 +332,9 @@ medusaIntegrationTestRunner({
 				const testAffiliateId = freshRes.data.affiliate.affiliate_id
 				const testPrimaryAddressId = freshRes.data.affiliate.primary_address_id
 
-				await expect(
-					api.delete(
-						`/admin/affiliates/${testAffiliateId}/addresses/${testPrimaryAddressId}`,
-						auth()
-					)
-				).rejects.toMatchObject({ response: { status: 400 } })
+				await expect(api.delete(`/admin/affiliates/${testAffiliateId}/addresses/${testPrimaryAddressId}`, auth())).rejects.toMatchObject({
+					response: { status: 400 }
+				})
 
 				const added = await api.post(
 					`/admin/affiliates/${testAffiliateId}/addresses`,
@@ -369,10 +350,7 @@ medusaIntegrationTestRunner({
 					},
 					auth()
 				)
-				await api.delete(
-					`/admin/affiliates/${testAffiliateId}/addresses/${testPrimaryAddressId}`,
-					auth()
-				)
+				await api.delete(`/admin/affiliates/${testAffiliateId}/addresses/${testPrimaryAddressId}`, auth())
 			})
 
 			it('rejects update of address not belonging to the affiliate', async () => {
@@ -475,10 +453,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('basis=completed window=day returns only today (excludes voided)', async () => {
-				const res = await api.get(
-					`/admin/affiliates/${statsAffiliateId}/stats?basis=completed&window=day`,
-					auth()
-				)
+				const res = await api.get(`/admin/affiliates/${statsAffiliateId}/stats?basis=completed&window=day`, auth())
 				expect(res.status).toBe(200)
 				const usd = res.data.buckets.find((b: any) => b.currency_code === 'usd')
 				expect(usd).toBeDefined()
@@ -488,10 +463,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('basis=completed window=all returns all non-voided rows; usd first', async () => {
-				const res = await api.get(
-					`/admin/affiliates/${statsAffiliateId}/stats?basis=completed&window=all`,
-					auth()
-				)
+				const res = await api.get(`/admin/affiliates/${statsAffiliateId}/stats?basis=completed&window=all`, auth())
 				expect(res.status).toBe(200)
 				// Primary currency (usd) must be first
 				expect(res.data.buckets[0].currency_code).toBe('usd')
@@ -506,20 +478,14 @@ medusaIntegrationTestRunner({
 			})
 
 			it('basis=captured excludes rows with null captured_at', async () => {
-				const res = await api.get(
-					`/admin/affiliates/${statsAffiliateId}/stats?basis=captured&window=all`,
-					auth()
-				)
+				const res = await api.get(`/admin/affiliates/${statsAffiliateId}/stats?basis=captured&window=all`, auth())
 				expect(res.status).toBe(200)
 				// None of the seeded rows have captured_at set
 				expect(res.data.buckets).toEqual([])
 			})
 
 			it('promotion_id filter limits the rows', async () => {
-				const res = await api.get(
-					`/admin/affiliates/${statsAffiliateId}/stats?basis=completed&window=all&promotion_id=${statsPromotionId}`,
-					auth()
-				)
+				const res = await api.get(`/admin/affiliates/${statsAffiliateId}/stats?basis=completed&window=all&promotion_id=${statsPromotionId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.promotion_id).toBe(statsPromotionId)
 				expect(res.data.buckets.length).toBeGreaterThan(0)
@@ -535,9 +501,7 @@ medusaIntegrationTestRunner({
 		// flow is covered manually during dev test.
 		describe('cart promotion guard', () => {
 			it('helper allows last-wins for two affiliate codes', () => {
-				const {
-					evaluatePromotionStack
-				} = require('../../src/workflows/hooks/lib/evaluate-promotion-stack')
+				const { evaluatePromotionStack } = require('../../src/workflows/hooks/lib/evaluate-promotion-stack')
 				const d = evaluatePromotionStack({
 					currentCodes: ['GUARD_A'],
 					incomingCodes: ['GUARD_B'],

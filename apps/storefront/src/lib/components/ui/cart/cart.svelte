@@ -17,15 +17,7 @@
 		class?: string
 		children: Snippet
 	}
-	let {
-		onupdate,
-		onremove,
-		onerror,
-		checkoutUrl = '/checkout',
-		lineHref = defaultLineHref,
-		class: className = '',
-		children
-	}: Props = $props()
+	let { onupdate, onremove, onerror, checkoutUrl = '/checkout', lineHref = defaultLineHref, class: className = '', children }: Props = $props()
 
 	// Keep the live query object (not awaited) so the parts can render inline loading / empty / error
 	// states from `.current`/`.loading`/`.error`. The cast restores those members, which this package's

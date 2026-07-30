@@ -21,12 +21,8 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 	res.json({ funnel })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateFunnelType>,
-	res: MedusaResponse
-) => {
-	const privateAnalyticsService: PrivateAnalyticsService =
-		req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateFunnelType>, res: MedusaResponse) => {
+	const privateAnalyticsService: PrivateAnalyticsService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
 	const { steps, ...rest } = req.validatedBody
 	const funnel = await privateAnalyticsService.updateAnalyticsFunnels({
 		id: req.params.id,

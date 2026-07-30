@@ -6,8 +6,8 @@ export const productSource: SearchSource = {
 	entity: 'product',
 	fields: ['id', 'title', 'description', 'handle', 'status', 'variants.options.value', 'sales_channels.id'],
 	reindexFilters: { status: 'published' },
-	visibility: (p) => p.status === 'published',
-	buildDocument: (p) => buildProductDocument(p)
+	visibility: p => p.status === 'published',
+	buildDocument: p => buildProductDocument(p)
 }
 
 export const categorySource: SearchSource = {
@@ -15,8 +15,8 @@ export const categorySource: SearchSource = {
 	entity: 'product_category',
 	fields: ['id', 'name', 'handle', 'is_active', 'is_internal'],
 	reindexFilters: { is_active: true, is_internal: false },
-	visibility: (c) => !!c.is_active && !c.is_internal,
-	buildDocument: (c) => buildCategoryDocument(c)
+	visibility: c => !!c.is_active && !c.is_internal,
+	buildDocument: c => buildCategoryDocument(c)
 }
 
 export const collectionSource: SearchSource = {
@@ -24,7 +24,7 @@ export const collectionSource: SearchSource = {
 	entity: 'product_collection',
 	fields: ['id', 'title', 'handle'],
 	visibility: () => true,
-	buildDocument: (c) => buildCollectionDocument(c)
+	buildDocument: c => buildCollectionDocument(c)
 }
 
 const BUILTIN: Record<string, SearchSource> = {

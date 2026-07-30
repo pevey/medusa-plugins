@@ -3,10 +3,7 @@ import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import upsertSearchDocumentWorkflow from '../workflows/upsert-search-document'
 import deleteSearchDocumentWorkflow from '../workflows/delete-search-document'
 
-export default async function searchProductHandler({
-	event: { name: eventName, data },
-	container
-}: SubscriberArgs<{ id: string }>) {
+export default async function searchProductHandler({ event: { name: eventName, data }, container }: SubscriberArgs<{ id: string }>) {
 	const logger = container.resolve('logger')
 	const query = container.resolve(ContainerRegistrationKeys.QUERY)
 
@@ -14,9 +11,13 @@ export default async function searchProductHandler({
 		// Direct product events
 		if (eventName.startsWith('product.')) {
 			if (eventName === 'product.deleted') {
-				await deleteSearchDocumentWorkflow(container).run({ input: { type: 'product', id: data.id } })
+				await deleteSearchDocumentWorkflow(container).run({
+					input: { type: 'product', id: data.id }
+				})
 			} else {
-				await upsertSearchDocumentWorkflow(container).run({ input: { type: 'product', id: data.id } })
+				await upsertSearchDocumentWorkflow(container).run({
+					input: { type: 'product', id: data.id }
+				})
 			}
 			return
 		}
@@ -43,7 +44,9 @@ export default async function searchProductHandler({
 			logger.warn(`[search] ${eventName}: could not resolve product for id ${data.id}; nightly reindex will reconcile`)
 			return
 		}
-		await upsertSearchDocumentWorkflow(container).run({ input: { type: 'product', id: productId } })
+		await upsertSearchDocumentWorkflow(container).run({
+			input: { type: 'product', id: productId }
+		})
 	} catch (error) {
 		logger.error(`[search] ${eventName} failed for ${data.id}: ${(error as Error).message}`)
 	}

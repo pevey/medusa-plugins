@@ -16,11 +16,7 @@ export type FindParamsOptions = {
 // unconditionally via `?? 0` / `?? 20`, `order` defaulted on truthiness, and the
 // `with_deleted` string-to-boolean coercion. The equivalence guard compares the two
 // directly, so any drift here fails there.
-const numeric = (fallback: number) =>
-	z.preprocess(
-		(val) => (val && typeof val === 'string' ? parseInt(val) : val),
-		z.number().optional().default(fallback)
-	)
+const numeric = (fallback: number) => z.preprocess(val => (val && typeof val === 'string' ? parseInt(val) : val), z.number().optional().default(fallback))
 
 export function createFindParams(options: FindParamsOptions = {}) {
 	const { limit, offset, order } = options
@@ -29,7 +25,7 @@ export function createFindParams(options: FindParamsOptions = {}) {
 		offset: numeric(offset ?? 0),
 		limit: numeric(limit ?? 20),
 		order: order ? z.string().optional().default(order) : z.string().optional(),
-		with_deleted: z.preprocess((val) => {
+		with_deleted: z.preprocess(val => {
 			if (val && typeof val === 'string') {
 				return val === 'true' ? true : val === 'false' ? false : val
 			}

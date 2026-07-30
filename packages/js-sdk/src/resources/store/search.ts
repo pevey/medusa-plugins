@@ -8,6 +8,6 @@ export function createStoreSearchResource(client: Client) {
 	return {
 		query: async (query: StoreSearchQuery, headers?: ClientHeaders) => {
 			return client.fetch<StoreSearchResponse>(`/store/search`, { query, headers })
-		},
+		}
 	}
 }

@@ -24,10 +24,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetStockLots, {
-				defaults: [
-					'id', 'inventory_item_id', 'stock_location_id', 'lot_number',
-					'description', 'enabled', 'stocked_quantity', 'created_at', 'updated_at'
-				],
+				defaults: ['id', 'inventory_item_id', 'stock_location_id', 'lot_number', 'description', 'enabled', 'stocked_quantity', 'created_at', 'updated_at'],
 				isList: true,
 				defaultLimit: 20
 			})
@@ -59,9 +56,17 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetStockLot, {
 				defaults: [
-					'id', 'inventory_item_id', 'stock_location_id', 'lot_number',
-					'description', 'enabled', 'stocked_quantity', 'created_at', 'updated_at',
-					'inventory_item.*', 'stock_location.*'
+					'id',
+					'inventory_item_id',
+					'stock_location_id',
+					'lot_number',
+					'description',
+					'enabled',
+					'stocked_quantity',
+					'created_at',
+					'updated_at',
+					'inventory_item.*',
+					'stock_location.*'
 				],
 				isList: false
 			})
@@ -88,9 +93,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetSerialNumbers, {
-				defaults: [
-					'id', 'stock_lot_id', 'order_id', 'value', 'invalidated', 'created_at', 'updated_at'
-				],
+				defaults: ['id', 'stock_lot_id', 'order_id', 'value', 'invalidated', 'created_at', 'updated_at'],
 				isList: true,
 				defaultLimit: 20
 			})
@@ -111,10 +114,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetSerialNumber, {
-				defaults: [
-					'id', 'stock_lot_id', 'order_id', 'value', 'invalidated',
-					'created_at', 'updated_at', 'stock_lot.*', 'order.*'
-				],
+				defaults: ['id', 'stock_lot_id', 'order_id', 'value', 'invalidated', 'created_at', 'updated_at', 'stock_lot.*', 'order.*'],
 				isList: false
 			})
 		]

@@ -70,12 +70,8 @@
 	// Normalize + filter images. `$derived` (not `$effect` writing to state) so it is SSR-safe
 	// and the parts read it reactively through `gallery.items`.
 	const items = $derived.by(() => {
-		const all = images.map((img, i) =>
-			typeof img === 'string'
-				? { url: img, alt, key: `${i}` }
-				: { url: img.url, alt, key: img.id ?? `${i}` }
-		)
-		const filtered = filterString ? all.filter((it) => it.url.includes(filterString)) : all
+		const all = images.map((img, i) => (typeof img === 'string' ? { url: img, alt, key: `${i}` } : { url: img.url, alt, key: img.id ?? `${i}` }))
+		const filtered = filterString ? all.filter(it => it.url.includes(filterString)) : all
 		return filtered.length ? filtered : all
 	})
 
@@ -90,7 +86,7 @@
 	// The main carousel reports its embla api here (its `setApi`). Subscribe imperatively — this is
 	// an external event source, not derived state. embla removes these listeners when the carousel
 	// unmounts (it destroys the instance), so there is nothing to clean up and no `$effect` needed.
-	gallery.registerMain = (embla) => {
+	gallery.registerMain = embla => {
 		gallery.mainApi = embla
 		api = embla
 		if (!embla) return
@@ -108,10 +104,7 @@
 	setGalleryContext(gallery)
 </script>
 
-<div
-	class={cn('flex gap-4', DIR[thumbnails], className)}
-	style={`--gallery-peek:${peek === false ? '100%' : peek}`}
->
+<div class={cn('flex gap-4', DIR[thumbnails], className)} style={`--gallery-peek:${peek === false ? '100%' : peek}`}>
 	{#if zoom}
 		<ImageZoom.Root>{@render children()}</ImageZoom.Root>
 	{:else}

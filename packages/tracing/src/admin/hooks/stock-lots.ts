@@ -17,10 +17,7 @@ export const useInventoryItems = () => {
 	})
 }
 
-export const useStockLotSerialNumbers = (
-	stockLotId: string,
-	params: { limit: number; offset: number }
-) => {
+export const useStockLotSerialNumbers = (stockLotId: string, params: { limit: number; offset: number }) => {
 	return useQuery<AdminSerialNumbersResponse>({
 		queryFn: () =>
 			sdk.client.fetch(`/admin/stock-lots/${stockLotId}/serial-numbers`, {
@@ -54,12 +51,7 @@ export const useCreateStockLot = () => {
 export const useUpdateStockLot = (id: string | undefined) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: {
-			lot_number?: string
-			description?: string | null
-			stocked_quantity?: number
-			enabled?: boolean
-		}) =>
+		mutationFn: (data: { lot_number?: string; description?: string | null; stocked_quantity?: number; enabled?: boolean }) =>
 			sdk.client.fetch<AdminStockLotResponse>(`/admin/stock-lots/${id}`, {
 				method: 'POST',
 				body: data
@@ -92,8 +84,7 @@ export const useStockLot = (id: string | undefined) => {
 export const useDeleteStockLots = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/stock-lots', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/stock-lots', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['stock-lots'] })
 		}
@@ -103,8 +94,7 @@ export const useDeleteStockLots = () => {
 export const useEnableStockLots = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/stock-lots/enable', { method: 'POST', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/stock-lots/enable', { method: 'POST', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['stock-lots'] })
 		}
@@ -114,8 +104,7 @@ export const useEnableStockLots = () => {
 export const useDisableStockLots = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/stock-lots/disable', { method: 'POST', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/stock-lots/disable', { method: 'POST', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['stock-lots'] })
 		}

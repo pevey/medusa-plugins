@@ -48,8 +48,16 @@ describe('AnthropicProvider.chatStream', () => {
 				index: 1,
 				content_block: { type: 'tool_use', id: 'tool_1', name: 'get_weather', input: {} }
 			},
-			{ type: 'content_block_delta', index: 1, delta: { type: 'input_json_delta', partial_json: '{"city":' } },
-			{ type: 'content_block_delta', index: 1, delta: { type: 'input_json_delta', partial_json: '"NYC"}' } },
+			{
+				type: 'content_block_delta',
+				index: 1,
+				delta: { type: 'input_json_delta', partial_json: '{"city":' }
+			},
+			{
+				type: 'content_block_delta',
+				index: 1,
+				delta: { type: 'input_json_delta', partial_json: '"NYC"}' }
+			},
 			{ type: 'content_block_stop', index: 1 }
 		]
 		const streamImpl = jest.fn().mockReturnValue(fakeAnthropicStream(events, { stop_reason: 'tool_use' }))
@@ -74,7 +82,11 @@ describe('AnthropicProvider.chatStream', () => {
 		const provider = createProvider(streamImpl)
 
 		const result = await collect(
-			provider.chatStream({ messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }], tools: [], systemPrompt: 'sys' })
+			provider.chatStream({
+				messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }],
+				tools: [],
+				systemPrompt: 'sys'
+			})
 		)
 
 		expect(result[result.length - 1]).toEqual({ type: 'done', stopReason: 'end' })
@@ -82,14 +94,22 @@ describe('AnthropicProvider.chatStream', () => {
 
 	it('handles a tool_use block with no input_json_delta as an empty object', async () => {
 		const events = [
-			{ type: 'content_block_start', index: 0, content_block: { type: 'tool_use', id: 'tool_2', name: 'no_args', input: {} } },
+			{
+				type: 'content_block_start',
+				index: 0,
+				content_block: { type: 'tool_use', id: 'tool_2', name: 'no_args', input: {} }
+			},
 			{ type: 'content_block_stop', index: 0 }
 		]
 		const streamImpl = jest.fn().mockReturnValue(fakeAnthropicStream(events, { stop_reason: 'tool_use' }))
 		const provider = createProvider(streamImpl)
 
 		const result = await collect(
-			provider.chatStream({ messages: [{ role: 'user', content: [{ type: 'text', text: 'go' }] }], tools: [], systemPrompt: 'sys' })
+			provider.chatStream({
+				messages: [{ role: 'user', content: [{ type: 'text', text: 'go' }] }],
+				tools: [],
+				systemPrompt: 'sys'
+			})
 		)
 
 		expect(result[0]).toEqual({ type: 'tool_use', id: 'tool_2', name: 'no_args', input: {} })
@@ -110,7 +130,14 @@ describe('AnthropicProvider.chatStream', () => {
 			},
 			{
 				role: 'user',
-				content: [{ type: 'tool_result', tool_use_id: 'tool_1', content: '72F and sunny', is_error: false }]
+				content: [
+					{
+						type: 'tool_result',
+						tool_use_id: 'tool_1',
+						content: '72F and sunny',
+						is_error: false
+					}
+				]
 			}
 		]
 
@@ -129,7 +156,14 @@ describe('AnthropicProvider.chatStream', () => {
 			},
 			{
 				role: 'user',
-				content: [{ type: 'tool_result', tool_use_id: 'tool_1', content: '72F and sunny', is_error: false }]
+				content: [
+					{
+						type: 'tool_result',
+						tool_use_id: 'tool_1',
+						content: '72F and sunny',
+						is_error: false
+					}
+				]
 			}
 		])
 	})
@@ -156,16 +190,22 @@ describe('AnthropicProvider.chatStream', () => {
 		const provider = createProvider(streamImpl)
 
 		await collect(
-			provider.chatStream({ messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }], tools: [], systemPrompt: 'sys' })
+			provider.chatStream({
+				messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }],
+				tools: [],
+				systemPrompt: 'sys'
+			})
 		)
 		expect(streamImpl.mock.calls[0][0].tools).toBeUndefined()
 
 		const tools: ToolDefinition[] = [{ name: 'get_weather', description: 'gets weather', inputSchema: { type: 'object' } }]
 		await collect(
-			provider.chatStream({ messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }], tools, systemPrompt: 'sys' })
+			provider.chatStream({
+				messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }],
+				tools,
+				systemPrompt: 'sys'
+			})
 		)
-		expect(streamImpl.mock.calls[1][0].tools).toEqual([
-			{ name: 'get_weather', description: 'gets weather', input_schema: { type: 'object' } }
-		])
+		expect(streamImpl.mock.calls[1][0].tools).toEqual([{ name: 'get_weather', description: 'gets weather', input_schema: { type: 'object' } }])
 	})
 })

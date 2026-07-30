@@ -5,8 +5,8 @@ import type { DocumentMeta, PdfFonts } from '../types'
 async function makeFonts(doc: PDFDocument): Promise<PdfFonts> {
 	return {
 		regular: await doc.embedFont(StandardFonts.Helvetica),
-		bold:    await doc.embedFont(StandardFonts.HelveticaBold),
-		mono:    await doc.embedFont(StandardFonts.Courier)
+		bold: await doc.embedFont(StandardFonts.HelveticaBold),
+		mono: await doc.embedFont(StandardFonts.Courier)
 	}
 }
 
@@ -24,23 +24,23 @@ function makeDoc(overrides: Partial<DocumentMeta> = {}): DocumentMeta {
 
 describe('classify', () => {
 	it.each([
-		['application/pdf',  'pdf'],
-		['image/png',        'image-native'],
-		['image/jpeg',       'image-native'],
-		['image/gif',        'image-decode'],
-		['image/bmp',        'image-decode'],
-		['image/tiff',       'image-decode'],
-		['image/webp',       'image-decode'],
-		['text/plain',       'text'],
-		['text/csv',         'text'],
-		['text/markdown',    'text'],
-		['text/plain; charset=utf-8',     'text'],
-		['text/plain; charset=us-ascii',  'text'],
-		['TEXT/PLAIN',       'text'],
-		['application/zip',  'excluded'],
+		['application/pdf', 'pdf'],
+		['image/png', 'image-native'],
+		['image/jpeg', 'image-native'],
+		['image/gif', 'image-decode'],
+		['image/bmp', 'image-decode'],
+		['image/tiff', 'image-decode'],
+		['image/webp', 'image-decode'],
+		['text/plain', 'text'],
+		['text/csv', 'text'],
+		['text/markdown', 'text'],
+		['text/plain; charset=utf-8', 'text'],
+		['text/plain; charset=us-ascii', 'text'],
+		['TEXT/PLAIN', 'text'],
+		['application/zip', 'excluded'],
 		['application/x-zip-compressed', 'excluded'],
-		['application/octet-stream',     'excluded'],
-		['video/mp4',        'excluded']
+		['application/octet-stream', 'excluded'],
+		['video/mp4', 'excluded']
 	])('classifies %s as %s', (mime, expected) => {
 		expect(classify(mime)).toBe(expected)
 	})
@@ -77,8 +77,7 @@ describe('embedAttachment', () => {
 	it('embeds a PNG image as one page', async () => {
 		const pdf = await PDFDocument.create()
 		const fonts = await makeFonts(pdf)
-		const pngB64 =
-			'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+		const pngB64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
 		const bytes = Buffer.from(pngB64, 'base64')
 		const doc = makeDoc({ mime_type: 'image/png', filename: 'pixel.png' })
 		const result = await embedAttachment(pdf, 1, doc, bytes, fonts)

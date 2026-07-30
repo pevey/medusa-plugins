@@ -22,11 +22,7 @@ export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse)
 		order_id: orderId
 	})) as unknown as VeeqoOrderRow[]
 
-	const unhealthy = allRows.filter(
-		row =>
-			row.source_type !== SourceType.ORDER_PLACED &&
-			(row.veeqo_order_id == null || row.last_sync_error != null)
-	)
+	const unhealthy = allRows.filter(row => row.source_type !== SourceType.ORDER_PLACED && (row.veeqo_order_id == null || row.last_sync_error != null))
 
 	const results: {
 		source_type: string

@@ -11,13 +11,5 @@
 	// has no `"type": "module"`, so that output would be loaded as CJS and break at runtime.
 	// The admin sources are typechecked by `tsconfig.admin.json` instead; `yarn typecheck` runs both.
 	"include": ["**/*", ".medusa/types/*"],
-	"exclude": [
-		"node_modules",
-		".medusa/server",
-		".medusa/admin",
-		"src/admin",
-		".cache",
-		"**/__tests__/**",
-		"vitest.config.ts"
-	]
+	"exclude": ["node_modules", ".medusa/server", ".medusa/admin", "src/admin", ".cache", "**/__tests__/**", "vitest.config.ts"]
 }

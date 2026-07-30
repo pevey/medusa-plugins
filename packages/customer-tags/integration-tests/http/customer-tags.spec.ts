@@ -95,34 +95,22 @@ medusaIntegrationTestRunner({
 
 		describe('Validation', () => {
 			it('POST /admin/customer-tags rejects missing value', async () => {
-				const res = await api
-					.post('/admin/customer-tags', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/customer-tags', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('DELETE /admin/customer-tags rejects empty ids array', async () => {
-				const res = await api
-					.delete('/admin/customer-tags', { data: { ids: [] }, ...auth() })
-					.catch((e: any) => e.response)
+				const res = await api.delete('/admin/customer-tags', { data: { ids: [] }, ...auth() }).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/customers/:id/customer-tags rejects body with neither tag nor tag_id', async () => {
-				const res = await api
-					.post('/admin/customers/fake_cus/customer-tags', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/customers/fake_cus/customer-tags', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/customers/:id/customer-tags rejects body with both tag and tag_id', async () => {
-				const res = await api
-					.post(
-						'/admin/customers/fake_cus/customer-tags',
-						{ tag: 'ctag_x', tag_id: 'ctag_y' },
-						auth()
-					)
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/customers/fake_cus/customer-tags', { tag: 'ctag_x', tag_id: 'ctag_y' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 		})
@@ -145,9 +133,7 @@ medusaIntegrationTestRunner({
 			})
 
 			afterAll(async () => {
-				await api
-					.delete('/admin/customer-tags', { data: { ids: [tagId, tagId2] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/customer-tags', { data: { ids: [tagId, tagId2] }, ...auth() }).catch(() => {})
 			})
 
 			it('POST /admin/customer-tags creates a tag', async () => {
@@ -189,11 +175,7 @@ medusaIntegrationTestRunner({
 
 			it('POST /admin/customer-tags/:id updates a tag', async () => {
 				const ts = Date.now()
-				const res = await api.post(
-					`/admin/customer-tags/${tagId}`,
-					{ value: `vip-updated-${ts}` },
-					auth()
-				)
+				const res = await api.post(`/admin/customer-tags/${tagId}`, { value: `vip-updated-${ts}` }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.customer_tag).toMatchObject({
 					id: tagId,
@@ -254,27 +236,17 @@ medusaIntegrationTestRunner({
 			})
 
 			afterAll(async () => {
-				await api
-					.delete('/admin/customer-tags', { data: { ids: [tagId, tagId2] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/customer-tags', { data: { ids: [tagId, tagId2] }, ...auth() }).catch(() => {})
 			})
 
 			it('POST /admin/customers/:id/customer-tags links a tag by tag_id', async () => {
-				const res = await api.post(
-					`/admin/customers/${customerId}/customer-tags`,
-					{ tag_id: tagId },
-					auth()
-				)
+				const res = await api.post(`/admin/customers/${customerId}/customer-tags`, { tag_id: tagId }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data).toMatchObject({ customer_id: customerId, tag: tagId })
 			})
 
 			it('POST /admin/customers/:id/customer-tags links a tag by tag', async () => {
-				const res = await api.post(
-					`/admin/customers/${customerId}/customer-tags`,
-					{ tag: tagId2 },
-					auth()
-				)
+				const res = await api.post(`/admin/customers/${customerId}/customer-tags`, { tag: tagId2 }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data).toMatchObject({ customer_id: customerId, tag: tagId2 })
 			})
@@ -283,10 +255,7 @@ medusaIntegrationTestRunner({
 				// Per-test DB restore isolates tests, so create the links within this test
 				await api.post(`/admin/customers/${customerId}/customer-tags`, { tag_id: tagId }, auth())
 				await api.post(`/admin/customers/${customerId}/customer-tags`, { tag: tagId2 }, auth())
-				const res = await api.get(
-					`/admin/customers/${customerId}?fields=+customer_tags.id,+customer_tags.value`,
-					auth()
-				)
+				const res = await api.get(`/admin/customers/${customerId}?fields=+customer_tags.id,+customer_tags.value`, auth())
 				expect(res.status).toBe(200)
 				const tagIds = (res.data.customer.customer_tags ?? []).map((t: any) => t.id)
 				expect(tagIds).toContain(tagId)
@@ -297,10 +266,7 @@ medusaIntegrationTestRunner({
 				// Per-test DB restore isolates tests, so create the links within this test
 				await api.post(`/admin/customers/${customerId}/customer-tags`, { tag_id: tagId }, auth())
 				await api.post(`/admin/customers/${customerId}/customer-tags`, { tag: tagId2 }, auth())
-				const res = await api.delete(
-					`/admin/customers/${customerId}/customer-tags/${tagId}`,
-					auth()
-				)
+				const res = await api.delete(`/admin/customers/${customerId}/customer-tags/${tagId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data).toMatchObject({
 					customer_id: customerId,
@@ -309,10 +275,7 @@ medusaIntegrationTestRunner({
 				})
 
 				// Confirm the tag is no longer linked
-				const check = await api.get(
-					`/admin/customers/${customerId}?fields=+customer_tags.id`,
-					auth()
-				)
+				const check = await api.get(`/admin/customers/${customerId}?fields=+customer_tags.id`, auth())
 				const remaining = (check.data.customer.customer_tags ?? []).map((t: any) => t.id)
 				expect(remaining).not.toContain(tagId)
 				expect(remaining).toContain(tagId2)

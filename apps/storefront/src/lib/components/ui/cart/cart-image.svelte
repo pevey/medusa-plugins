@@ -11,9 +11,7 @@
 	{#if src}
 		<img
 			{src}
-			alt={item.variant_title
-				? `${item.product_title} — ${item.variant_title}`
-				: item.product_title}
+			alt={item.variant_title ? `${item.product_title} — ${item.variant_title}` : item.product_title}
 			class={cn('h-24 w-auto rounded-md object-cover', className)}
 		/>
 	{/if}

@@ -3,10 +3,7 @@ import { syncCustomerToVeeqoWorkflow } from '../../../../../workflows/customer'
 import { AdminSyncCustomerToVeeqoType } from '../../../../validators'
 
 // one-way sync of customers from medusa to veeqo
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminSyncCustomerToVeeqoType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminSyncCustomerToVeeqoType>, res: MedusaResponse) => {
 	const { customer_ids } = req.validatedBody
 	const results = await Promise.all(
 		customer_ids.map(customerId =>

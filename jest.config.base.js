@@ -14,9 +14,7 @@ const base = {
 			}
 		]
 	},
-	transformIgnorePatterns: [
-		'node_modules/(?!(@react-email)/)'
-	],
+	transformIgnorePatterns: ['node_modules/(?!(@react-email)/)'],
 	testEnvironment: 'node',
 	moduleFileExtensions: ['js', 'ts', 'json', 'tsx'],
 	modulePathIgnorePatterns: ['dist/', '<rootDir>/.medusa/']

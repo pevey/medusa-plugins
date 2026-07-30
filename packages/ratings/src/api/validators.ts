@@ -5,12 +5,7 @@ export type AdminGetReviewsType = z.infer<typeof AdminGetReviews>
 export const AdminGetReviews = createFindParams({ limit: 20, offset: 0 }).extend({
 	q: z.string().optional(),
 	// Accept a single value or the array the admin DataTable's multi-select filter sends.
-	status: z
-		.union([
-			z.enum(['pending', 'approved', 'rejected']),
-			z.array(z.enum(['pending', 'approved', 'rejected'])).min(1)
-		])
-		.optional(),
+	status: z.union([z.enum(['pending', 'approved', 'rejected']), z.array(z.enum(['pending', 'approved', 'rejected'])).min(1)]).optional(),
 	product_id: z.string().optional(),
 	customer_id: z.string().optional()
 })

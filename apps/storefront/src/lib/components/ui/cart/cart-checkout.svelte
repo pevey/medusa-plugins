@@ -7,10 +7,6 @@
 	const ctx = getCartContext()
 </script>
 
-<a
-	data-cart-checkout
-	href={ctx.checkoutUrl}
-	class={cn(buttonVariants({ variant: 'default' }), 'w-full', className)}
->
+<a data-cart-checkout href={ctx.checkoutUrl} class={cn(buttonVariants({ variant: 'default' }), 'w-full', className)}>
 	{#if children}{@render children()}{:else}Go to Checkout{/if}
 </a>

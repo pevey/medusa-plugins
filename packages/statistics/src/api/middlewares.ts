@@ -1,15 +1,5 @@
-import {
-	defineMiddlewares,
-	validateAndTransformBody,
-	validateAndTransformQuery
-} from '@medusajs/framework/http'
-import {
-	AdminGetStatistics,
-	AdminRecalculateStatistics,
-	AdminGetRecentOrders,
-	AdminGetLowStock,
-	AdminSaveStatisticsLayout
-} from './validators'
+import { defineMiddlewares, validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework/http'
+import { AdminGetStatistics, AdminRecalculateStatistics, AdminGetRecentOrders, AdminGetLowStock, AdminSaveStatisticsLayout } from './validators'
 
 export default defineMiddlewares([
 	{

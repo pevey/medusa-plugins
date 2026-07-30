@@ -3,11 +3,7 @@
 	import { getCheckoutContext } from './ctx.svelte.js'
 	import Item from './checkout-item.svelte'
 	import type { Snippet } from 'svelte'
-	let {
-		class: className = '',
-		children,
-		empty
-	}: { class?: string; children?: Snippet; empty?: Snippet } = $props()
+	let { class: className = '', children, empty }: { class?: string; children?: Snippet; empty?: Snippet } = $props()
 	const ctx = getCheckoutContext()
 	const items = $derived(ctx.cart?.items ?? [])
 </script>

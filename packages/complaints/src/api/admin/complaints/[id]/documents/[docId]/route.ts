@@ -10,10 +10,7 @@ export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaRespons
 
 	const document = await complaintService.retrieveComplaintDocument(docId)
 	if (document.complaint_id !== id) {
-		throw new MedusaError(
-			MedusaError.Types.NOT_FOUND,
-			`Document ${docId} does not belong to complaint ${id}`
-		)
+		throw new MedusaError(MedusaError.Types.NOT_FOUND, `Document ${docId} does not belong to complaint ${id}`)
 	}
 
 	await deleteComplaintDocumentsWorkflow(req.scope).run({

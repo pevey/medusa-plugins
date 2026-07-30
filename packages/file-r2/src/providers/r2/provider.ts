@@ -60,11 +60,7 @@ function decodeFileContent(content: string, mimeType?: string): Buffer {
 		return decodedBase64
 	}
 
-	const isTextContent =
-		mimeType?.startsWith('text/') ||
-		mimeType?.includes('csv') ||
-		mimeType?.includes('json') ||
-		mimeType?.includes('xml')
+	const isTextContent = mimeType?.startsWith('text/') || mimeType?.includes('csv') || mimeType?.includes('json') || mimeType?.includes('xml')
 
 	return isTextContent ? Buffer.from(content, 'utf8') : Buffer.from(content, 'binary')
 }
@@ -78,10 +74,7 @@ function decodeFileContent(content: string, mimeType?: string): Buffer {
  * endpoint with a trailing path segment equal to the bucket name removed;
  * otherwise it returns the endpoint unchanged.
  */
-export function stripBucketFromEndpoint(
-	endpoint: string | undefined,
-	bucket: string | undefined
-): string | undefined {
+export function stripBucketFromEndpoint(endpoint: string | undefined, bucket: string | undefined): string | undefined {
 	if (!endpoint || !bucket) {
 		return endpoint
 	}
@@ -134,10 +127,7 @@ export class R2FileProvider extends AbstractFileProviderService {
 		super()
 
 		if (!options.accessKeyId || !options.secretAccessKey) {
-			throw new MedusaError(
-				MedusaError.Types.INVALID_DATA,
-				`Access key ID and secret access key are required when using access key authentication`
-			)
+			throw new MedusaError(MedusaError.Types.INVALID_DATA, `Access key ID and secret access key are required when using access key authentication`)
 		}
 
 		this.config_ = {
@@ -160,10 +150,7 @@ export class R2FileProvider extends AbstractFileProviderService {
 		}
 		this.logger_ = logger
 		this.config_.endpoint = this.normalizeEndpoint(this.config_.endpoint, this.config_.bucket)
-		this.config_.privateEndpoint = this.normalizeEndpoint(
-			this.config_.privateEndpoint,
-			this.config_.privateBucket
-		)
+		this.config_.privateEndpoint = this.normalizeEndpoint(this.config_.privateEndpoint, this.config_.privateBucket)
 		this.client_ = this.getClient()
 		this.privateClient_ = this.getClient(true)
 	}
@@ -192,12 +179,7 @@ export class R2FileProvider extends AbstractFileProviderService {
 
 	protected getClient(priv: boolean = false): S3Client {
 		if (priv) {
-			if (
-				!this.config_.privateAccessKeyId ||
-				!this.config_.privateSecretAccessKey ||
-				!this.config_.privateBucket ||
-				!this.config_.privateEndpoint
-			) {
+			if (!this.config_.privateAccessKeyId || !this.config_.privateSecretAccessKey || !this.config_.privateBucket || !this.config_.privateEndpoint) {
 				throw new MedusaError(
 					MedusaError.Types.INVALID_DATA,
 					`Private bucket configuration is incomplete. Please provide privateAccessKeyId, privateSecretAccessKey, privateBucket, and privateEndpoint in the configuration.`
@@ -236,17 +218,12 @@ export class R2FileProvider extends AbstractFileProviderService {
 	protected sanitizeRequiredPath(prefix: string, filename: string): string {
 		const sanitized = sanitizeFilePath(`${prefix}${filename}`)
 		if (!sanitized) {
-			throw new MedusaError(
-				MedusaError.Types.INVALID_DATA,
-				`Filename "${filename}" resolves to an empty path after path traversal sanitization`
-			)
+			throw new MedusaError(MedusaError.Types.INVALID_DATA, `Filename "${filename}" resolves to an empty path after path traversal sanitization`)
 		}
 		return sanitized
 	}
 
-	async upload(
-		file: FileTypes.ProviderUploadFileDTO & { prefix?: string }
-	): Promise<FileTypes.ProviderFileResultDTO> {
+	async upload(file: FileTypes.ProviderUploadFileDTO & { prefix?: string }): Promise<FileTypes.ProviderFileResultDTO> {
 		const prefix = file.prefix ?? ''
 		if (!file) {
 			throw new MedusaError(MedusaError.Types.INVALID_DATA, `No file provided`)
@@ -258,9 +235,7 @@ export class R2FileProvider extends AbstractFileProviderService {
 
 		const parsedFilename = path.posix.parse(this.sanitizeRequiredPath(prefix, file.filename))
 
-		const fileKey = `${this.config_.globalPrefix}${
-			parsedFilename.dir ? `${parsedFilename.dir}/` : ''
-		}${parsedFilename.name}-${ulid()}${parsedFilename.ext}`
+		const fileKey = `${this.config_.globalPrefix}${parsedFilename.dir ? `${parsedFilename.dir}/` : ''}${parsedFilename.name}-${ulid()}${parsedFilename.ext}`
 
 		const content = decodeFileContent(file.content, file.mimeType)
 
@@ -285,8 +260,7 @@ export class R2FileProvider extends AbstractFileProviderService {
 			throw e
 		}
 
-		const url =
-			file.access === 'public' ? `${this.config_.fileUrl}/${encodeKeyForUrl(fileKey)}` : ''
+		const url = file.access === 'public' ? `${this.config_.fileUrl}/${encodeKeyForUrl(fileKey)}` : ''
 
 		return {
 			url,
@@ -294,9 +268,7 @@ export class R2FileProvider extends AbstractFileProviderService {
 		}
 	}
 
-	async getUploadStream(
-		fileData: FileTypes.ProviderUploadStreamDTO & { prefix?: string }
-	): Promise<{
+	async getUploadStream(fileData: FileTypes.ProviderUploadStreamDTO & { prefix?: string }): Promise<{
 		writeStream: Writable
 		promise: Promise<FileTypes.ProviderFileResultDTO>
 		url: string
@@ -308,17 +280,14 @@ export class R2FileProvider extends AbstractFileProviderService {
 
 		const prefix = fileData.prefix ?? ''
 		const parsedFilename = path.posix.parse(this.sanitizeRequiredPath(prefix, fileData.filename))
-		const fileKey = `${this.config_.globalPrefix}${
-			parsedFilename.dir ? `${parsedFilename.dir}/` : ''
-		}${parsedFilename.name}-${ulid()}${parsedFilename.ext}`
+		const fileKey = `${this.config_.globalPrefix}${parsedFilename.dir ? `${parsedFilename.dir}/` : ''}${parsedFilename.name}-${ulid()}${parsedFilename.ext}`
 
 		const pass = new PassThrough()
 
 		const upload = new Upload({
 			client: fileData.access === 'public' ? this.client_ : this.privateClient_,
 			params: {
-				Bucket:
-					fileData.access === 'public' ? this.config_.bucket : this.config_.privateBucket!,
+				Bucket: fileData.access === 'public' ? this.config_.bucket : this.config_.privateBucket!,
 				Key: fileKey,
 				Body: pass,
 				ContentType: fileData.mimeType,
@@ -329,26 +298,18 @@ export class R2FileProvider extends AbstractFileProviderService {
 			}
 		})
 		const promise = upload.done().then(() => ({
-			url:
-				fileData.access === 'public'
-					? `${this.config_.fileUrl}/${encodeKeyForUrl(fileKey)}`
-					: '',
+			url: fileData.access === 'public' ? `${this.config_.fileUrl}/${encodeKeyForUrl(fileKey)}` : '',
 			key: fileKey
 		}))
 		return {
 			writeStream: pass,
 			promise,
-			url:
-				fileData.access === 'public'
-					? `${this.config_.fileUrl}/${encodeKeyForUrl(fileKey)}`
-					: '',
+			url: fileData.access === 'public' ? `${this.config_.fileUrl}/${encodeKeyForUrl(fileKey)}` : '',
 			fileKey
 		}
 	}
 
-	async delete(
-		files: FileTypes.ProviderDeleteFileDTO | FileTypes.ProviderDeleteFileDTO[]
-	): Promise<void> {
+	async delete(files: FileTypes.ProviderDeleteFileDTO | FileTypes.ProviderDeleteFileDTO[]): Promise<void> {
 		try {
 			/**
 			 * Bulk delete files
@@ -417,10 +378,7 @@ export class R2FileProvider extends AbstractFileProviderService {
 	async getPresignedDownloadUrl(fileData: FileTypes.ProviderGetFileDTO): Promise<string> {
 		// For r2, only the private bucket supports presigned urls
 		if (fileData.access === 'public') {
-			throw new MedusaError(
-				MedusaError.Types.INVALID_DATA,
-				`Presigned URLs are not supported for public files.`
-			)
+			throw new MedusaError(MedusaError.Types.INVALID_DATA, `Presigned URLs are not supported for public files.`)
 		}
 		// TODO: Allow passing content disposition when getting a presigned URL
 		const command = new GetObjectCommand({
@@ -432,15 +390,10 @@ export class R2FileProvider extends AbstractFileProviderService {
 		})
 	}
 
-	async getPresignedUploadUrl(
-		fileData: FileTypes.ProviderGetPresignedUploadUrlDTO & { prefix?: string }
-	): Promise<FileTypes.ProviderFileResultDTO> {
+	async getPresignedUploadUrl(fileData: FileTypes.ProviderGetPresignedUploadUrlDTO & { prefix?: string }): Promise<FileTypes.ProviderFileResultDTO> {
 		// For r2, only the private bucket supports presigned urls
 		if (fileData.access === 'public') {
-			throw new MedusaError(
-				MedusaError.Types.INVALID_DATA,
-				`Presigned URLs are not supported for public files.`
-			)
+			throw new MedusaError(MedusaError.Types.INVALID_DATA, `Presigned URLs are not supported for public files.`)
 		}
 		if (!fileData?.filename) {
 			throw new MedusaError(MedusaError.Types.INVALID_DATA, `No filename provided`)

@@ -54,10 +54,7 @@ export async function fanOutTranslations(
 	const locales = await translatableLocalesForEntity(mod, reference, id)
 	for (const locale of locales) {
 		// `{ locale }` (second arg) substitutes translated values into the normal field names.
-		const { data } = await (query.graph as any)(
-			{ entity: source.entity, fields: source.fields, filters: { id } },
-			{ locale }
-		)
+		const { data } = await (query.graph as any)({ entity: source.entity, fields: source.fields, filters: { id } }, { locale })
 		const lrow = data[0]
 		if (!lrow) continue
 		const ldoc = source.buildDocument(lrow)

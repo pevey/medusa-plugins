@@ -1,8 +1,6 @@
 import type { ZodRawShape } from 'zod'
 
-export type McpToolHandler = (
-	args: any
-) => Promise<{ content: { type: 'text'; text: string }[] }>
+export type McpToolHandler = (args: any) => Promise<{ content: { type: 'text'; text: string }[] }>
 
 export type McpToolConfig = {
 	description: string

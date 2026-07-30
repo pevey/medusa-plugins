@@ -9,10 +9,7 @@ type FulfillmentCreatedData = {
 	fulfillment_id: string
 }
 
-export default async function fulfillmentCreatedHandler({
-	event: { data },
-	container,
-}: SubscriberArgs<FulfillmentCreatedData>) {
+export default async function fulfillmentCreatedHandler({ event: { data }, container }: SubscriberArgs<FulfillmentCreatedData>) {
 	const tracingService: TracingService = container.resolve(TRACING_MODULE)
 	const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
 	const query = container.resolve(ContainerRegistrationKeys.QUERY)
@@ -36,15 +33,12 @@ export default async function fulfillmentCreatedHandler({
 
 	for (const item of managedItems) {
 		try {
-			const lot = await tracingService.findFirstAvailable(
-				item.inventory_item_id!,
-				fulfillment.location_id
-			)
+			const lot = await tracingService.findFirstAvailable(item.inventory_item_id!, fulfillment.location_id)
 
 			if (!lot) {
 				logger.warn(
 					`tracing: no stock lot available for inventory item ${item.inventory_item_id} ` +
-					`at location ${fulfillment.location_id} — skipping lot tracking for fulfillment ${fulfillment.id}`
+						`at location ${fulfillment.location_id} — skipping lot tracking for fulfillment ${fulfillment.id}`
 				)
 				continue
 			}
@@ -65,12 +59,12 @@ export default async function fulfillmentCreatedHandler({
 		} catch (error) {
 			logger.error(
 				`tracing: failed to process stock lot for inventory item ${item.inventory_item_id} ` +
-				`in fulfillment ${fulfillment.id}: ${(error as Error).message}`
+					`in fulfillment ${fulfillment.id}: ${(error as Error).message}`
 			)
 		}
 	}
 }
 
 export const config: SubscriberConfig = {
-	event: 'order.fulfillment_created',
+	event: 'order.fulfillment_created'
 }

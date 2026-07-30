@@ -56,12 +56,10 @@
 					value={option.id}
 					bind:group={selected}
 					{onchange}
-					class="border-gray-300 text-gray-700 focus:ring-0 focus:ring-offset-0 size-4"
+					class="size-4 border-gray-300 text-gray-700 focus:ring-0 focus:ring-offset-0"
 				/>
 				<span>{option.name}</span>
-				<span class="ml-auto"
-					>{formatPrice(option.amount, ctx.cart?.currency_code ?? 'usd')}</span
-				>
+				<span class="ml-auto">{formatPrice(option.amount, ctx.cart?.currency_code ?? 'usd')}</span>
 			</label>
 		{:else}
 			<p class="text-sm text-muted-foreground">No delivery options available</p>

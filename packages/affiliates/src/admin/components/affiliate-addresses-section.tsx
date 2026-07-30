@@ -49,14 +49,14 @@ export const AffiliateAddressesSection = ({ affiliate }: { affiliate: AdminAffil
 
 	return (
 		<Container className="p-6">
-			<div className="flex items-center justify-between mb-4">
+			<div className="mb-4 flex items-center justify-between">
 				<Heading level="h2">Addresses</Heading>
 				<Button onClick={() => setAddOpen(true)}>Add address</Button>
 			</div>
 			<div className="flex flex-col gap-y-3">
 				{addresses.length === 0 && <div className="text-ui-fg-subtle">No addresses.</div>}
 				{addresses.map(a => (
-					<div key={a.id} className="flex items-center justify-between border rounded-md p-3">
+					<div key={a.id} className="flex items-center justify-between rounded-md border p-3">
 						<div className="flex flex-col">
 							<div className="flex items-center gap-2">
 								{a.id === affiliate.primary_address_id && (
@@ -85,11 +85,7 @@ export const AffiliateAddressesSection = ({ affiliate }: { affiliate: AdminAffil
 					</div>
 				))}
 			</div>
-			<AddAffiliateAddressDrawer
-				affiliateId={affiliate.id}
-				open={addOpen}
-				onOpenChange={setAddOpen}
-			/>
+			<AddAffiliateAddressDrawer affiliateId={affiliate.id} open={addOpen} onOpenChange={setAddOpen} />
 			<EditAffiliateAddressDrawer
 				affiliateId={affiliate.id}
 				address={editAddress}

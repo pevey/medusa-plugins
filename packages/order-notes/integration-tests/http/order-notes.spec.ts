@@ -90,16 +90,12 @@ medusaIntegrationTestRunner({
 
 		describe('Validation', () => {
 			it('POST /admin/order-notes rejects missing order_id', async () => {
-				const res = await api
-					.post('/admin/order-notes', { note: 'A note' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/order-notes', { note: 'A note' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/order-notes rejects missing note', async () => {
-				const res = await api
-					.post('/admin/order-notes', { order_id: 'ord_1' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/order-notes', { order_id: 'ord_1' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 		})
@@ -114,16 +110,8 @@ medusaIntegrationTestRunner({
 
 			beforeAll(async () => {
 				const [r1, r2] = await Promise.all([
-					api.post(
-						'/admin/order-notes',
-						{ order_id: ORDER_ID, note: 'Internal note for testing', sent: false },
-						auth()
-					),
-					api.post(
-						'/admin/order-notes',
-						{ order_id: ORDER_ID, note: 'Customer-facing note', sent: true },
-						auth()
-					)
+					api.post('/admin/order-notes', { order_id: ORDER_ID, note: 'Internal note for testing', sent: false }, auth()),
+					api.post('/admin/order-notes', { order_id: ORDER_ID, note: 'Customer-facing note', sent: true }, auth())
 				])
 				noteId = r1.data.order_note.id
 				sentNoteId = r2.data.order_note.id
@@ -138,11 +126,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/order-notes creates a note with sent: false by default', async () => {
-				const res = await api.post(
-					'/admin/order-notes',
-					{ order_id: ORDER_ID_2, note: 'Default sent flag' },
-					auth()
-				)
+				const res = await api.post('/admin/order-notes', { order_id: ORDER_ID_2, note: 'Default sent flag' }, auth())
 				expect(res.status).toBe(201)
 				expect(res.data.order_note).toMatchObject({
 					id: expect.any(String),
@@ -212,11 +196,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('DELETE /admin/order-notes/:id deletes a note', async () => {
-				const created = await api.post(
-					'/admin/order-notes',
-					{ order_id: ORDER_ID, note: 'To be deleted', sent: false },
-					auth()
-				)
+				const created = await api.post('/admin/order-notes', { order_id: ORDER_ID, note: 'To be deleted', sent: false }, auth())
 				const id = created.data.order_note.id
 
 				const res = await api.delete(`/admin/order-notes/${id}`, auth())
@@ -225,11 +205,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('DELETE /admin/order-notes/:id removes the note from subsequent list', async () => {
-				const created = await api.post(
-					'/admin/order-notes',
-					{ order_id: ORDER_ID, note: 'Ephemeral note', sent: false },
-					auth()
-				)
+				const created = await api.post('/admin/order-notes', { order_id: ORDER_ID, note: 'Ephemeral note', sent: false }, auth())
 				const id = created.data.order_note.id
 
 				await api.delete(`/admin/order-notes/${id}`, auth())

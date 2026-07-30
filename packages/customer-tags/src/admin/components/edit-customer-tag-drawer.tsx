@@ -18,11 +18,7 @@ type EditCustomerTagDrawerProps = {
 	setOpen: (open: boolean) => void
 }
 
-export const EditCustomerTagDrawer = ({
-	customerTag,
-	open,
-	setOpen
-}: EditCustomerTagDrawerProps) => {
+export const EditCustomerTagDrawer = ({ customerTag, open, setOpen }: EditCustomerTagDrawerProps) => {
 	const updateMutation = useUpdateCustomerTag(customerTag?.id)
 	const prompt = usePrompt()
 
@@ -33,10 +29,7 @@ export const EditCustomerTagDrawer = ({
 		}
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -87,7 +80,10 @@ export const EditCustomerTagDrawer = ({
 				<FormProvider {...form}>
 					<form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
 						<Drawer.Header>
-							<Heading level="h1">Edit Customer Tag</Heading>
+							<Drawer.Title asChild>
+								<Heading level="h1">Edit Customer Tag</Heading>
+							</Drawer.Title>
+							<Drawer.Description className="sr-only">Edit this customer tag's value.</Drawer.Description>
 						</Drawer.Header>
 						<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 							{/* Value */}
@@ -112,12 +108,7 @@ export const EditCustomerTagDrawer = ({
 										Cancel
 									</Button>
 								</Drawer.Close>
-								<Button
-									size="small"
-									type="submit"
-									disabled={!form.formState.isDirty}
-									isLoading={updateMutation.isPending}
-								>
+								<Button size="small" type="submit" disabled={!form.formState.isDirty} isLoading={updateMutation.isPending}>
 									Save
 								</Button>
 							</div>

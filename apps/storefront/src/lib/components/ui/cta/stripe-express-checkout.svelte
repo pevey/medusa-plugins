@@ -14,10 +14,7 @@
 		event: unknown
 		/** Finish the payment with a clientSecret you just created server-side (the component holds the
 		 *  Elements). Extra confirmParams (e.g. shipping) merge over the default `return_url`. */
-		confirm: (
-			clientSecret: string,
-			confirmParams?: Record<string, unknown>
-		) => Promise<PaymentIntentResult>
+		confirm: (clientSecret: string, confirmParams?: Record<string, unknown>) => Promise<PaymentIntentResult>
 	}
 
 	let {
@@ -52,10 +49,7 @@
 </script>
 
 <div data-stripe-express-checkout class={className}>
-	<Elements
-		publicKey={publishableKey}
-		elementsOptions={{ mode: 'payment', amount, currency } as any}
-	>
+	<Elements publicKey={publishableKey} elementsOptions={{ mode: 'payment', amount, currency } as any}>
 		{#snippet children({ stripe, elements })}
 			<ExpressCheckout
 				expressCheckoutOptions={options as any}
@@ -73,8 +67,7 @@
 								elements: elements!,
 								clientSecret,
 								confirmParams: {
-									return_url:
-										returnUrl ?? (typeof location !== 'undefined' ? location.href : ''),
+									return_url: returnUrl ?? (typeof location !== 'undefined' ? location.href : ''),
 									...(confirmParams ?? {})
 								},
 								redirect: 'if_required'

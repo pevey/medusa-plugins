@@ -20,9 +20,7 @@ const CustomerComplaintsWidget = ({ data: customer }: DetailWidgetProps<AdminCus
 	const { data: access, isLoading: accessLoading } = useQuery({
 		queryFn: async (): Promise<{ permissions: string[] } | null> => {
 			try {
-				return await sdk.client.fetch<{ permissions: string[] }>(
-					'/admin/access/me/permissions'
-				)
+				return await sdk.client.fetch<{ permissions: string[] }>('/admin/access/me/permissions')
 			} catch {
 				return null
 			}
@@ -35,8 +33,7 @@ const CustomerComplaintsWidget = ({ data: customer }: DetailWidgetProps<AdminCus
 	// access === null → plugin not installed → don't gate.
 	// access present  → require complaint:read.
 	const accessInstalled = !!access
-	const canReadComplaints =
-		!accessInstalled || !!access?.permissions?.includes('complaint:read')
+	const canReadComplaints = !accessInstalled || !!access?.permissions?.includes('complaint:read')
 
 	const { data, isLoading } = useQuery<AdminComplaintsResponse>({
 		queryFn: () =>
@@ -65,19 +62,14 @@ const CustomerComplaintsWidget = ({ data: customer }: DetailWidgetProps<AdminCus
 
 	const complaints = data?.complaints ?? []
 
-	const truncate = (text: string, maxLength = 100) =>
-		text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
+	const truncate = (text: string, maxLength = 100) => (text.length > maxLength ? `${text.slice(0, maxLength)}...` : text)
 
 	return (
 		<>
 			<Container className="divide-y p-0">
 				<div className="flex items-center justify-between px-6 py-4">
 					<Heading level="h2">Complaints</Heading>
-					<Button
-						size="small"
-						variant="secondary"
-						onClick={() => navigate(`/complaints/create?customer_id=${customer.id}`)}
-					>
+					<Button size="small" variant="secondary" onClick={() => navigate(`/complaints/create?customer_id=${customer.id}`)}>
 						Create Complaint
 					</Button>
 				</div>
@@ -90,7 +82,7 @@ const CustomerComplaintsWidget = ({ data: customer }: DetailWidgetProps<AdminCus
 					complaints.map(complaint => (
 						<div
 							key={complaint.id}
-							className="flex items-start justify-between gap-4 px-6 py-4 cursor-pointer hover:bg-ui-bg-subtle"
+							className="hover:bg-ui-bg-subtle flex cursor-pointer items-start justify-between gap-4 px-6 py-4"
 							onClick={() => navigate(`/complaints/${complaint.id}`)}
 						>
 							<div className="flex flex-col gap-1">

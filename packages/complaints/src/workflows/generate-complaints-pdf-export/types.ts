@@ -32,9 +32,14 @@ export type ComplaintForExport = {
 		activity: ActivityEntry[]
 		documents: DocumentMeta[]
 	}
-	customer: { id: string; email: string; first_name: string | null; last_name: string | null } | null
-	order:    { id: string; display_id: number; created_at: Date } | null
-	product:  { id: string; title: string; handle: string } | null
+	customer: {
+		id: string
+		email: string
+		first_name: string | null
+		last_name: string | null
+	} | null
+	order: { id: string; display_id: number; created_at: Date } | null
+	product: { id: string; title: string; handle: string } | null
 }
 
 export type DocumentBytes = {
@@ -45,9 +50,7 @@ export type DocumentBytes = {
 
 export type AttachmentClass = 'pdf' | 'image-native' | 'image-decode' | 'text' | 'excluded'
 
-export type EmbedResult =
-	| { embedded: true; pages_added: number }
-	| { embedded: false; reason: string }
+export type EmbedResult = { embedded: true; pages_added: number } | { embedded: false; reason: string }
 
 export type PdfFonts = {
 	regular: PDFFont

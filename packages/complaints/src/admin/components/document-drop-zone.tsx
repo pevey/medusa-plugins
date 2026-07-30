@@ -60,18 +60,18 @@ export const DocumentDropZone = ({ onFilesSelected, disabled }: DocumentDropZone
 		<div
 			className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors ${
 				disabled
-					? 'cursor-not-allowed border-ui-border-base bg-ui-bg-disabled opacity-60'
+					? 'border-ui-border-base bg-ui-bg-disabled cursor-not-allowed opacity-60'
 					: dragOver
-						? 'cursor-pointer border-ui-border-interactive bg-ui-bg-highlight'
-						: 'cursor-pointer border-ui-border-base bg-ui-bg-subtle hover:border-ui-border-strong'
+						? 'border-ui-border-interactive bg-ui-bg-highlight cursor-pointer'
+						: 'border-ui-border-base bg-ui-bg-subtle hover:border-ui-border-strong cursor-pointer'
 			}`}
 			onClick={() => !disabled && fileInputRef.current?.click()}
-			onDragOver={(e) => {
+			onDragOver={e => {
 				e.preventDefault()
 				if (!disabled) setDragOver(true)
 			}}
 			onDragLeave={() => setDragOver(false)}
-			onDrop={(e) => {
+			onDrop={e => {
 				e.preventDefault()
 				setDragOver(false)
 				if (disabled) return
@@ -89,7 +89,7 @@ export const DocumentDropZone = ({ onFilesSelected, disabled }: DocumentDropZone
 				accept={ACCEPT_ATTR}
 				className="hidden"
 				disabled={disabled}
-				onChange={(e) => {
+				onChange={e => {
 					if (e.target.files?.length) handle(e.target.files)
 					e.target.value = ''
 				}}

@@ -77,8 +77,7 @@ export const useStatisticsLayout = () => {
 export const useSaveStatisticsLayout = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (layout: LayoutItem[]) =>
-			sdk.client.fetch('/admin/statistics/layout', { method: 'POST', body: { layout } }),
+		mutationFn: (layout: LayoutItem[]) => sdk.client.fetch('/admin/statistics/layout', { method: 'POST', body: { layout } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['statistics-layout'] })
 		}
@@ -88,8 +87,7 @@ export const useSaveStatisticsLayout = () => {
 export const useRecalculateStatistics = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: () =>
-			sdk.client.fetch('/admin/statistics/recalculate', { method: 'POST', body: {} }),
+		mutationFn: () => sdk.client.fetch('/admin/statistics/recalculate', { method: 'POST', body: {} }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['statistics'] })
 		}

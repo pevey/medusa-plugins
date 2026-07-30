@@ -34,10 +34,7 @@ function resolveBaseUrl() {
 	if (process.env.REGISTRY_BASE_URL) return process.env.REGISTRY_BASE_URL.replace(/\/+$/, '')
 	const cfg = readFileSync(join(docsRoot, 'astro.config.mjs'), 'utf-8')
 	const site = cfg.match(/site:\s*['"]([^'"]+)['"]/)?.[1]
-	if (!site)
-		throw new Error(
-			'[sync-registry] Could not resolve a base URL (no REGISTRY_BASE_URL and no `site` in astro.config.mjs).'
-		)
+	if (!site) throw new Error('[sync-registry] Could not resolve a base URL (no REGISTRY_BASE_URL and no `site` in astro.config.mjs).')
 	return `${site.replace(/\/+$/, '')}/r`
 }
 
@@ -59,8 +56,7 @@ const readJson = path => JSON.parse(readFileSync(path, 'utf-8'))
 const repoRoot = resolve(docsRoot, '../..')
 // The Medusa release this repo builds against — every @medusajs/* pin lives at the root.
 const medusaVersion = readJson(join(repoRoot, 'package.json')).devDependencies?.['@medusajs/medusa']
-if (!medusaVersion)
-	throw new Error('[sync-registry] Could not read @medusajs/medusa from the root package.json.')
+if (!medusaVersion) throw new Error('[sync-registry] Could not read @medusajs/medusa from the root package.json.')
 // Our own workspace packages: `workspace:*` in the ui package.json must become something a
 // consumer can install. Prefer the compat range the ui package already declares as a peer;
 // fall back to a caret on the version we would publish.

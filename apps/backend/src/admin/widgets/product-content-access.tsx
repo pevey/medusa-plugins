@@ -1,7 +1,7 @@
-import { defineWidgetConfig } from "@medusajs/admin-sdk"
-import { DetailWidgetProps, AdminProduct } from "@medusajs/framework/types"
-import { Container, Heading, Text } from "@medusajs/ui"
-import { useQuery } from "@tanstack/react-query"
+import { defineWidgetConfig } from '@medusajs/admin-sdk'
+import { DetailWidgetProps, AdminProduct } from '@medusajs/framework/types'
+import { Container, Heading, Text } from '@medusajs/ui'
+import { useQuery } from '@tanstack/react-query'
 
 /**
  * REFERENCE — Usage Pattern A (UI side): a permission-gated widget defined at
@@ -18,35 +18,33 @@ import { useQuery } from "@tanstack/react-query"
  * `packages/complaints/src/admin/widgets/customer-complaints.tsx`, which wraps
  * the fetch in try/catch so it degrades gracefully when access is absent.
  */
-const ProductContentAccessWidget = ({
-  data: product,
-}: DetailWidgetProps<AdminProduct>) => {
-  const { data } = useQuery({
-    queryKey: ["access-me-permissions"],
-    queryFn: async (): Promise<{ permissions: string[] }> => {
-      const res = await fetch("/admin/access/me/permissions", {
-        credentials: "include",
-      })
-      return res.json()
-    },
-  })
+const ProductContentAccessWidget = ({ data: product }: DetailWidgetProps<AdminProduct>) => {
+	const { data } = useQuery({
+		queryKey: ['access-me-permissions'],
+		queryFn: async (): Promise<{ permissions: string[] }> => {
+			const res = await fetch('/admin/access/me/permissions', {
+				credentials: 'include'
+			})
+			return res.json()
+		}
+	})
 
-  if (!data?.permissions?.includes("content:read")) {
-    return null
-  }
+	if (!data?.permissions?.includes('content:read')) {
+		return null
+	}
 
-  return (
-    <Container className="p-6">
-      <Heading level="h2">Content</Heading>
-      <Text className="text-ui-fg-subtle" size="small">
-        You have permission to view content for product {product.id}.
-      </Text>
-    </Container>
-  )
+	return (
+		<Container className="p-6">
+			<Heading level="h2">Content</Heading>
+			<Text className="text-ui-fg-subtle" size="small">
+				You have permission to view content for product {product.id}.
+			</Text>
+		</Container>
+	)
 }
 
 export const config = defineWidgetConfig({
-  zone: "product.details.after",
+	zone: 'product.details.after'
 })
 
 export default ProductContentAccessWidget

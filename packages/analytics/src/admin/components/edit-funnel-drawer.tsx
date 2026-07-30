@@ -1,16 +1,5 @@
 import * as zod from 'zod'
-import {
-	Drawer,
-	Heading,
-	Label,
-	Input,
-	Button,
-	Switch,
-	Select,
-	Text,
-	toast,
-	usePrompt
-} from '@medusajs/ui'
+import { Drawer, Heading, Label, Input, Button, Switch, Select, Text, toast, usePrompt } from '@medusajs/ui'
 import { Plus, Trash, ArrowUpMini, ArrowDownMini } from '@medusajs/icons'
 import { useEffect } from 'react'
 import { useForm, Controller, FormProvider, useFieldArray } from 'react-hook-form'
@@ -20,17 +9,27 @@ import type { AdminFunnel } from '../types/analytics'
 import { useUpdateFunnel, useRubrics } from '../hooks/analytics'
 
 const BACKEND_RUBRIC_NAMES = [
-	'cart_created', 'cart_updated', 'order_placed', 'order_canceled', 'order_completed',
-	'shipment_created', 'customer_created', 'customer_updated', 'return_requested', 'return_received'
+	'cart_created',
+	'cart_updated',
+	'order_placed',
+	'order_canceled',
+	'order_completed',
+	'shipment_created',
+	'customer_created',
+	'customer_updated',
+	'return_requested',
+	'return_received'
 ]
 
-const toLabel = (name: string) =>
-	name.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+const toLabel = (name: string) => name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 
-const SYSTEM_RUBRICS = BACKEND_RUBRIC_NAMES.map((name) => ({ name, label: toLabel(name) }))
+const SYSTEM_RUBRICS = BACKEND_RUBRIC_NAMES.map(name => ({ name, label: toLabel(name) }))
 
 const schema = zod.object({
-	name: zod.string().min(1, 'Required').regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case'),
+	name: zod
+		.string()
+		.min(1, 'Required')
+		.regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case'),
 	label: zod.string().min(1, 'Required'),
 	steps: zod.array(zod.object({ value: zod.string().min(1, 'Required') })).min(1, 'At least one step required'),
 	is_default: zod.boolean()
@@ -49,11 +48,8 @@ export const EditFunnelDrawer = ({ funnel, open, setOpen }: EditFunnelDrawerProp
 	const prompt = usePrompt()
 
 	const customRubrics = rubricsData?.rubrics || []
-	const customNames = new Set(customRubrics.map((r) => r.name))
-	const allRubrics = [
-		...SYSTEM_RUBRICS.filter((r) => !customNames.has(r.name)),
-		...customRubrics
-	]
+	const customNames = new Set(customRubrics.map(r => r.name))
+	const allRubrics = [...SYSTEM_RUBRICS.filter(r => !customNames.has(r.name)), ...customRubrics]
 
 	const form = useForm<EditFunnelFormData>({
 		resolver: zodResolver(schema),
@@ -70,10 +66,7 @@ export const EditFunnelDrawer = ({ funnel, open, setOpen }: EditFunnelDrawerProp
 		name: 'steps'
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -102,18 +95,18 @@ export const EditFunnelDrawer = ({ funnel, open, setOpen }: EditFunnelDrawerProp
 			form.reset({
 				name: funnel.name,
 				label: funnel.label,
-				steps: funnel.steps.map((s) => ({ value: s })),
+				steps: funnel.steps.map(s => ({ value: s })),
 				is_default: funnel.is_default
 			})
 		}
 	}, [funnel, open, form])
 
-	const handleSubmit = form.handleSubmit((data) => {
+	const handleSubmit = form.handleSubmit(data => {
 		updateMutation.mutate(
 			{
 				name: data.name,
 				label: data.label,
-				steps: data.steps.map((s) => s.value),
+				steps: data.steps.map(s => s.value),
 				is_default: data.is_default
 			},
 			{
@@ -133,7 +126,10 @@ export const EditFunnelDrawer = ({ funnel, open, setOpen }: EditFunnelDrawerProp
 				<FormProvider {...form}>
 					<form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
 						<Drawer.Header>
-							<Heading level="h1">Edit Funnel</Heading>
+							<Drawer.Title asChild>
+								<Heading level="h1">Edit Funnel</Heading>
+							</Drawer.Title>
+							<Drawer.Description className="sr-only">Edit this funnel's name and its ordered steps.</Drawer.Description>
 						</Drawer.Header>
 						<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 							{/* Name */}
@@ -170,12 +166,8 @@ export const EditFunnelDrawer = ({ funnel, open, setOpen }: EditFunnelDrawerProp
 								name="is_default"
 								render={({ field }) => (
 									<div className="flex items-center gap-3">
-										<Switch
-											id="edit-funnel-default-toggle"
-											checked={field.value}
-											onCheckedChange={field.onChange}
-										/>
-										<label htmlFor="edit-funnel-default-toggle" className="text-sm cursor-pointer">
+										<Switch id="edit-funnel-default-toggle" checked={field.value} onCheckedChange={field.onChange} />
+										<label htmlFor="edit-funnel-default-toggle" className="cursor-pointer text-sm">
 											Set as default
 										</label>
 									</div>
@@ -188,79 +180,60 @@ export const EditFunnelDrawer = ({ funnel, open, setOpen }: EditFunnelDrawerProp
 									Steps
 								</Label>
 								{fields.map((field, i) => (
-										<div key={field.id} className="flex items-center gap-x-2">
-											<Text size="small" leading="compact" className="text-ui-fg-subtle w-6">
-												{i + 1}.
-											</Text>
-											<Controller
-												control={form.control}
-												name={`steps.${i}.value`}
-												render={({ field: stepField }) => (
-													<div className="flex-1">
-														<Select value={stepField.value} onValueChange={stepField.onChange}>
-															<Select.Trigger>
-																<Select.Value placeholder="Select event" />
-															</Select.Trigger>
-															<Select.Content>
-																{allRubrics.map((r) => (
-																	<Select.Item key={r.name} value={r.name}>
-																		{r.label} ({r.name})
-																	</Select.Item>
-																))}
-															</Select.Content>
-														</Select>
-													</div>
-												)}
-											/>
-											<Button
-												size="small"
-												variant="transparent"
-												type="button"
-												onClick={() => i > 0 && swap(i, i - 1)}
-												disabled={i === 0}
-											>
-												<ArrowUpMini />
-											</Button>
-											<Button
-												size="small"
-												variant="transparent"
-												type="button"
-												onClick={() => i < fields.length - 1 && swap(i, i + 1)}
-												disabled={i === fields.length - 1}
-											>
-												<ArrowDownMini />
-											</Button>
-											<Button
-												size="small"
-												variant="transparent"
-												type="button"
-												onClick={() => remove(i)}
-											>
-												<Trash />
-											</Button>
-										</div>
-									))}
-									<Button
-										size="small"
-										variant="secondary"
-										type="button"
-										onClick={() => append({ value: '' })}
-									>
-										<Plus /> Add Step
-									</Button>
+									<div key={field.id} className="flex items-center gap-x-2">
+										<Text size="small" leading="compact" className="text-ui-fg-subtle w-6">
+											{i + 1}.
+										</Text>
+										<Controller
+											control={form.control}
+											name={`steps.${i}.value`}
+											render={({ field: stepField }) => (
+												<div className="flex-1">
+													<Select value={stepField.value} onValueChange={stepField.onChange}>
+														<Select.Trigger>
+															<Select.Value placeholder="Select event" />
+														</Select.Trigger>
+														<Select.Content>
+															{allRubrics.map(r => (
+																<Select.Item key={r.name} value={r.name}>
+																	{r.label} ({r.name})
+																</Select.Item>
+															))}
+														</Select.Content>
+													</Select>
+												</div>
+											)}
+										/>
+										<Button size="small" variant="transparent" type="button" onClick={() => i > 0 && swap(i, i - 1)} disabled={i === 0}>
+											<ArrowUpMini />
+										</Button>
+										<Button
+											size="small"
+											variant="transparent"
+											type="button"
+											onClick={() => i < fields.length - 1 && swap(i, i + 1)}
+											disabled={i === fields.length - 1}
+										>
+											<ArrowDownMini />
+										</Button>
+										<Button size="small" variant="transparent" type="button" onClick={() => remove(i)}>
+											<Trash />
+										</Button>
+									</div>
+								))}
+								<Button size="small" variant="secondary" type="button" onClick={() => append({ value: '' })}>
+									<Plus /> Add Step
+								</Button>
 							</div>
 						</Drawer.Body>
 						<Drawer.Footer>
 							<div className="flex items-center justify-end gap-x-2">
 								<Drawer.Close asChild>
-									<Button size="small" variant="secondary">Cancel</Button>
+									<Button size="small" variant="secondary">
+										Cancel
+									</Button>
 								</Drawer.Close>
-								<Button
-									size="small"
-									type="submit"
-									disabled={!form.formState.isDirty}
-									isLoading={updateMutation.isPending}
-								>
+								<Button size="small" type="submit" disabled={!form.formState.isDirty} isLoading={updateMutation.isPending}>
 									Save
 								</Button>
 							</div>

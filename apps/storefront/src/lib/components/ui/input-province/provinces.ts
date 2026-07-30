@@ -105,11 +105,7 @@ export function resolveProvince(
  * configured option `value` for `country`. Returns the input unchanged for freeform countries
  * (no config entry) or when nothing matches, so manual and autocomplete entry agree.
  */
-export function resolveProvinceValue(
-	config: ProvinceConfig,
-	country: string | undefined,
-	province: string
-): string {
+export function resolveProvinceValue(config: ProvinceConfig, country: string | undefined, province: string): string {
 	if (!province) return province
 	const entry = country ? config[country.toLowerCase()] : undefined
 	if (!entry) return province

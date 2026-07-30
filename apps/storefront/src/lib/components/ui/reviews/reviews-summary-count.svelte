@@ -5,4 +5,4 @@
 	const ctx = getReviewsContext()
 </script>
 
-{#if ctx.count > 0}<span class={cn('text-muted-foreground text-sm', className)}>{ctx.count} reviews</span>{/if}
+{#if ctx.count > 0}<span class={cn('text-sm text-muted-foreground', className)}>{ctx.count} reviews</span>{/if}

@@ -3,15 +3,12 @@ import type { ComplaintForExport, DocumentBytes, EmbedResult, PdfFonts } from '.
 import { classify, embedAttachment } from './embed-attachment'
 import { renderComplaintDetailPages } from './render-detail'
 
-export async function buildComplaintsPdf(input: {
-	complaints: ComplaintForExport[]
-	docBytes: Record<string, DocumentBytes>
-}): Promise<Uint8Array> {
+export async function buildComplaintsPdf(input: { complaints: ComplaintForExport[]; docBytes: Record<string, DocumentBytes> }): Promise<Uint8Array> {
 	const pdf = await PDFDocument.create()
 	const fonts: PdfFonts = {
 		regular: await pdf.embedFont(StandardFonts.Helvetica),
-		bold:    await pdf.embedFont(StandardFonts.HelveticaBold),
-		mono:    await pdf.embedFont(StandardFonts.Courier)
+		bold: await pdf.embedFont(StandardFonts.HelveticaBold),
+		mono: await pdf.embedFont(StandardFonts.Courier)
 	}
 
 	for (const c of input.complaints) {
@@ -20,7 +17,10 @@ export async function buildComplaintsPdf(input: {
 			const cls = classify(d.mime_type)
 			const bytes = input.docBytes[d.id]
 			if (cls === 'excluded') {
-				embedClassifications[d.id] = { embedded: false, reason: `unsupported type ${d.mime_type}` }
+				embedClassifications[d.id] = {
+					embedded: false,
+					reason: `unsupported type ${d.mime_type}`
+				}
 			} else if (!bytes || bytes.bytes === null) {
 				embedClassifications[d.id] = { embedded: false, reason: bytes?.error ?? 'fetch failed' }
 			}

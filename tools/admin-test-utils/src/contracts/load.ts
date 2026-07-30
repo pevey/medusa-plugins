@@ -20,16 +20,10 @@ export type ContractMap = {
 	matchers(): string[]
 }
 
-type LoadInput =
-	| { routes?: TaggedRoute[] }
-	| TaggedRoute[]
-	| { default: { routes?: TaggedRoute[] } | TaggedRoute[] }
+type LoadInput = { routes?: TaggedRoute[] } | TaggedRoute[] | { default: { routes?: TaggedRoute[] } | TaggedRoute[] }
 
 function toRoutes(input: LoadInput): TaggedRoute[] {
-	const unwrapped =
-		input && typeof input === 'object' && 'default' in input
-			? (input as { default: LoadInput }).default
-			: input
+	const unwrapped = input && typeof input === 'object' && 'default' in input ? (input as { default: LoadInput }).default : input
 	if (Array.isArray(unwrapped)) return unwrapped as TaggedRoute[]
 	return (unwrapped as { routes?: TaggedRoute[] })?.routes ?? []
 }

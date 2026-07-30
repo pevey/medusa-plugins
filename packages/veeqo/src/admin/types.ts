@@ -1,10 +1,4 @@
-import {
-	AdminProduct,
-	AdminProductVariant,
-	AdminSalesChannel,
-	AdminShippingOption,
-	AdminStockLocation
-} from '@medusajs/framework/types'
+import { AdminProduct, AdminProductVariant, AdminSalesChannel, AdminShippingOption, AdminStockLocation } from '@medusajs/framework/types'
 
 export type AdminSalesChannelWithVeeqo = AdminSalesChannel & {
 	veeqo_channel?: { veeqo_channel_id?: string }

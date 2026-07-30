@@ -33,14 +33,10 @@
 		isOpen = $openStore
 	})
 
-	const currentImageData = $derived(
-		currentImageIndex !== null ? registeredImages[currentImageIndex] : null
-	)
+	const currentImageData = $derived(currentImageIndex !== null ? registeredImages[currentImageIndex] : null)
 	const hasMultipleImages = $derived(registeredImages.length > 1)
 	const hasPrevious = $derived(currentImageIndex !== null && currentImageIndex > 0)
-	const hasNext = $derived(
-		currentImageIndex !== null && currentImageIndex < registeredImages.length - 1
-	)
+	const hasNext = $derived(currentImageIndex !== null && currentImageIndex < registeredImages.length - 1)
 
 	function registerImage(imageData: Omit<ZoomImageData, 'index'>) {
 		const index = $registeredImagesStore.length
@@ -98,20 +94,13 @@
 		role="dialog"
 		tabindex="-1"
 	>
-		<button
-			type="button"
-			class="absolute inset-0 cursor-default"
-			onclick={closeZoom}
-			aria-label="Close"
-		></button>
+		<button type="button" class="absolute inset-0 cursor-default" onclick={closeZoom} aria-label="Close"></button>
 
-		<div
-			class="relative flex max-h-[90vh] max-w-[90vw] items-center justify-center pointer-events-none"
-		>
+		<div class="pointer-events-none relative flex max-h-[90vh] max-w-[90vw] items-center justify-center">
 			<img
 				src={currentImageData.src}
 				alt={currentImageData.alt}
-				class="block max-h-full max-w-full object-contain pointer-events-auto"
+				class="pointer-events-auto block max-h-full max-w-full object-contain"
 				transition:fade={{ duration: 300, delay: 50 }}
 			/>
 		</div>
@@ -120,7 +109,7 @@
 			<Button
 				variant="ghost"
 				size="icon"
-				class="absolute left-4 top-1/2 -translate-y-1/2 cursor-pointer text-white pointer-events-auto hover:bg-primary hover:text-gray-300 disabled:pointer-events-none disabled:opacity-30"
+				class="pointer-events-auto absolute top-1/2 left-4 -translate-y-1/2 cursor-pointer text-white hover:bg-primary hover:text-gray-300 disabled:pointer-events-none disabled:opacity-30"
 				onclick={prevImage}
 				disabled={!hasPrevious}
 				aria-label="Previous image"
@@ -131,7 +120,7 @@
 			<Button
 				variant="ghost"
 				size="icon"
-				class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-white pointer-events-auto hover:bg-primary hover:text-gray-300 disabled:pointer-events-none disabled:opacity-30"
+				class="pointer-events-auto absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer text-white hover:bg-primary hover:text-gray-300 disabled:pointer-events-none disabled:opacity-30"
 				onclick={nextImage}
 				disabled={!hasNext}
 				aria-label="Next image"
@@ -143,7 +132,7 @@
 		<Button
 			variant="ghost"
 			size="icon"
-			class="absolute right-4 top-4 cursor-pointer text-white pointer-events-auto hover:bg-primary hover:text-gray-300"
+			class="pointer-events-auto absolute top-4 right-4 cursor-pointer text-white hover:bg-primary hover:text-gray-300"
 			onclick={closeZoom}
 			aria-label="Close zoomed image"
 		>

@@ -20,8 +20,7 @@
 
 	async function authorizePayment() {
 		try {
-			if (!stripe.stripe || !cs.clientSecret)
-				return { ok: false, error: new Error('Payment not ready') }
+			if (!stripe.stripe || !cs.clientSecret) return { ok: false, error: new Error('Payment not ready') }
 			const billing = cartBillingDetails(ctx?.cart)
 			const { error } = await confirmIdealPayment(stripe.stripe, cs.clientSecret, {
 				billingDetails: { name: billing.name || '' } as any,
@@ -38,5 +37,5 @@
 </script>
 
 {#if note}
-	<p data-checkout-stripe-ideal class={cn('text-muted-foreground text-sm', className)}>{note}</p>
+	<p data-checkout-stripe-ideal class={cn('text-sm text-muted-foreground', className)}>{note}</p>
 {/if}

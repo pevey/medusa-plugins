@@ -38,11 +38,7 @@ try {
 	// the access utils (so these calls are type-checked) but is erased at
 	// compile time, so it adds no runtime dependency. medusa-plugin-access is
 	// declared only as an OPTIONAL peer dependency.
-	const {
-		definePolicies,
-		generateResourcePolicies,
-		requirePolicies
-	} = require('medusa-plugin-access') as typeof import('medusa-plugin-access')
+	const { definePolicies, generateResourcePolicies, requirePolicies } = require('medusa-plugin-access') as typeof import('medusa-plugin-access')
 
 	definePolicies(generateResourcePolicies(['complaint']))
 
@@ -94,8 +90,18 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetComplaints, {
 				defaults: [
-					'id', 'number', 'status', 'description', 'created_at', 'updated_at',
-					'customer_id', 'order_id', 'product_id', 'stock_lot_id', 'serial_number_id', 'tags.*'
+					'id',
+					'number',
+					'status',
+					'description',
+					'created_at',
+					'updated_at',
+					'customer_id',
+					'order_id',
+					'product_id',
+					'stock_lot_id',
+					'serial_number_id',
+					'tags.*'
 				],
 				isList: true,
 				defaultLimit: 20
@@ -123,9 +129,21 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetComplaint, {
 				defaults: [
-					'id', 'number', 'status', 'description', 'created_at', 'updated_at',
-					'customer_id', 'order_id', 'product_id', 'stock_lot_id', 'serial_number_id',
-					'tags.*', 'customer.*', 'order.*', 'product.*'
+					'id',
+					'number',
+					'status',
+					'description',
+					'created_at',
+					'updated_at',
+					'customer_id',
+					'order_id',
+					'product_id',
+					'stock_lot_id',
+					'serial_number_id',
+					'tags.*',
+					'customer.*',
+					'order.*',
+					'product.*'
 				],
 				isList: false
 			})
@@ -187,10 +205,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetComplaintActivities, {
-				defaults: [
-					'id', 'complaint_id', 'user_id', 'type', 'note', 'metadata',
-					'created_at', 'updated_at', 'user.*'
-				],
+				defaults: ['id', 'complaint_id', 'user_id', 'type', 'note', 'metadata', 'created_at', 'updated_at', 'user.*'],
 				isList: true,
 				defaultLimit: 20
 			})
@@ -211,10 +226,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetComplaintActivity, {
-				defaults: [
-					'id', 'complaint_id', 'user_id', 'type', 'note', 'metadata',
-					'created_at', 'updated_at', 'user.*'
-				],
+				defaults: ['id', 'complaint_id', 'user_id', 'type', 'note', 'metadata', 'created_at', 'updated_at', 'user.*'],
 				isList: false
 			})
 		]
@@ -229,9 +241,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetComplaintProductStat, {
-				defaults: [
-					'product_id', 'total_complaints', 'total_orders', 'complaint_rate', 'last_calculated_at'
-				],
+				defaults: ['product_id', 'total_complaints', 'total_orders', 'complaint_rate', 'last_calculated_at'],
 				isList: false
 			})
 		]
@@ -241,10 +251,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetComplaintDocuments, {
-				defaults: [
-					'id', 'complaint_id', 'filename', 'mime_type', 'size_bytes',
-					'uploaded_by', 'created_at'
-				],
+				defaults: ['id', 'complaint_id', 'filename', 'mime_type', 'size_bytes', 'uploaded_by', 'created_at'],
 				isList: true,
 				defaultLimit: 50
 			})

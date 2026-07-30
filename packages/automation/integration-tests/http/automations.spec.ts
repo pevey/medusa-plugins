@@ -85,8 +85,7 @@ function startMockServer(): Promise<{
 				url: `http://127.0.0.1:${port}`,
 				server,
 				lastBody: () => requests[requests.length - 1]?.body ?? null,
-				allBodies: () =>
-					requests.map(r => r.body).filter((b): b is Record<string, unknown> => b !== null),
+				allBodies: () => requests.map(r => r.body).filter((b): b is Record<string, unknown> => b !== null),
 				lastRequest: () => requests[requests.length - 1] ?? null,
 				allRequests: () => [...requests],
 				reset: () => requests.splice(0)
@@ -149,9 +148,7 @@ medusaIntegrationTestRunner({
 		})
 
 		afterAll(async () => {
-			await new Promise<void>((resolve, reject) =>
-				mock.server.close(err => (err ? reject(err) : resolve()))
-			)
+			await new Promise<void>((resolve, reject) => mock.server.close(err => (err ? reject(err) : resolve())))
 		})
 
 		beforeEach(() => mock.reset())
@@ -163,11 +160,7 @@ medusaIntegrationTestRunner({
 
 			beforeAll(async () => {
 				// Per-test DB restore isolates tests, so seed a trigger the get/list/update tests can use
-				const res = await api.post(
-					'/admin/automations',
-					{ name: 'CRUD Test Trigger', trigger_type: 'incoming_webhook', is_active: true },
-					auth()
-				)
+				const res = await api.post('/admin/automations', { name: 'CRUD Test Trigger', trigger_type: 'incoming_webhook', is_active: true }, auth())
 				triggerId = res.data.trigger.id
 				await seedSnapshot()
 			})
@@ -222,11 +215,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('updates trigger', async () => {
-				const res = await api.post(
-					`/admin/automations/${triggerId}`,
-					{ description: 'Updated via test', is_active: false },
-					auth()
-				)
+				const res = await api.post(`/admin/automations/${triggerId}`, { description: 'Updated via test', is_active: false }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.trigger.description).toBe('Updated via test')
 				expect(res.data.trigger.is_active).toBe(false)
@@ -246,11 +235,7 @@ medusaIntegrationTestRunner({
 			let actionId: string
 
 			beforeAll(async () => {
-				const res = await api.post(
-					'/admin/automations',
-					{ name: 'Action CRUD Trigger', trigger_type: 'incoming_webhook', is_active: true },
-					auth()
-				)
+				const res = await api.post('/admin/automations', { name: 'Action CRUD Trigger', trigger_type: 'incoming_webhook', is_active: true }, auth())
 				triggerId = res.data.trigger.id
 				// Seed an action the list/update tests can use (per-test DB restore isolates tests)
 				const actionRes = await api.post(
@@ -316,10 +301,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('deletes action', async () => {
-				const res = await api.delete(
-					`/admin/automations/${triggerId}/actions/${actionId}`,
-					auth()
-				)
+				const res = await api.delete(`/admin/automations/${triggerId}/actions/${actionId}`, auth())
 				expect(res.status).toBe(200)
 
 				// Verify gone
@@ -341,9 +323,34 @@ medusaIntegrationTestRunner({
 
 			beforeAll(async () => {
 				const [t1, t2, t3] = await Promise.all([
-					api.post('/admin/automations', { name: 'Filter: incoming active', trigger_type: 'incoming_webhook', is_active: true }, auth()),
-					api.post('/admin/automations', { name: 'Filter: event active', trigger_type: 'medusa_event', trigger_events: ['order.placed'], is_active: true }, auth()),
-					api.post('/admin/automations', { name: 'Filter: incoming inactive', trigger_type: 'incoming_webhook', is_active: false }, auth())
+					api.post(
+						'/admin/automations',
+						{
+							name: 'Filter: incoming active',
+							trigger_type: 'incoming_webhook',
+							is_active: true
+						},
+						auth()
+					),
+					api.post(
+						'/admin/automations',
+						{
+							name: 'Filter: event active',
+							trigger_type: 'medusa_event',
+							trigger_events: ['order.placed'],
+							is_active: true
+						},
+						auth()
+					),
+					api.post(
+						'/admin/automations',
+						{
+							name: 'Filter: incoming inactive',
+							trigger_type: 'incoming_webhook',
+							is_active: false
+						},
+						auth()
+					)
 				])
 				incomingTriggerId = t1.data.trigger.id
 				eventTriggerId = t2.data.trigger.id
@@ -354,9 +361,36 @@ medusaIntegrationTestRunner({
 				filterTriggerId = tRes.data.trigger.id
 
 				const [a1, a2, a3] = await Promise.all([
-					api.post(`/admin/automations/${filterTriggerId}/actions`, { name: 'Filter Action: outgoing active', action_type: 'outgoing_webhook', target_url: 'https://example.com', is_active: true }, auth()),
-					api.post(`/admin/automations/${filterTriggerId}/actions`, { name: 'Filter Action: workflow active', action_type: 'medusa_workflow', medusa_workflow: 'createOrderWorkflow', is_active: true }, auth()),
-					api.post(`/admin/automations/${filterTriggerId}/actions`, { name: 'Filter Action: outgoing inactive', action_type: 'outgoing_webhook', target_url: 'https://example.com', is_active: false }, auth())
+					api.post(
+						`/admin/automations/${filterTriggerId}/actions`,
+						{
+							name: 'Filter Action: outgoing active',
+							action_type: 'outgoing_webhook',
+							target_url: 'https://example.com',
+							is_active: true
+						},
+						auth()
+					),
+					api.post(
+						`/admin/automations/${filterTriggerId}/actions`,
+						{
+							name: 'Filter Action: workflow active',
+							action_type: 'medusa_workflow',
+							medusa_workflow: 'createOrderWorkflow',
+							is_active: true
+						},
+						auth()
+					),
+					api.post(
+						`/admin/automations/${filterTriggerId}/actions`,
+						{
+							name: 'Filter Action: outgoing inactive',
+							action_type: 'outgoing_webhook',
+							target_url: 'https://example.com',
+							is_active: false
+						},
+						auth()
+					)
 				])
 				outgoingActionId = a1.data.action.id
 				workflowActionId = a2.data.action.id
@@ -440,9 +474,26 @@ medusaIntegrationTestRunner({
 
 			it('GET deliveries filters by status=success', async () => {
 				// Create a trigger+action pointing at mock.url to ensure a success delivery
-				const tRes = await api.post('/admin/automations', { name: 'Delivery Filter Trigger', trigger_type: 'incoming_webhook', is_active: true }, auth())
+				const tRes = await api.post(
+					'/admin/automations',
+					{
+						name: 'Delivery Filter Trigger',
+						trigger_type: 'incoming_webhook',
+						is_active: true
+					},
+					auth()
+				)
 				const tid = tRes.data.trigger.id
-				const aRes = await api.post(`/admin/automations/${tid}/actions`, { name: 'Delivery Filter Action', action_type: 'outgoing_webhook', target_url: mock.url, is_active: true }, auth())
+				const aRes = await api.post(
+					`/admin/automations/${tid}/actions`,
+					{
+						name: 'Delivery Filter Action',
+						action_type: 'outgoing_webhook',
+						target_url: mock.url,
+						is_active: true
+					},
+					auth()
+				)
 				const aid = aRes.data.action.id
 
 				// Fire to create a success delivery
@@ -455,9 +506,26 @@ medusaIntegrationTestRunner({
 			})
 
 			it('GET deliveries filters by status=failed returns empty when all succeeded', async () => {
-				const tRes = await api.post('/admin/automations', { name: 'Delivery Failed Filter Trigger', trigger_type: 'incoming_webhook', is_active: true }, auth())
+				const tRes = await api.post(
+					'/admin/automations',
+					{
+						name: 'Delivery Failed Filter Trigger',
+						trigger_type: 'incoming_webhook',
+						is_active: true
+					},
+					auth()
+				)
 				const tid = tRes.data.trigger.id
-				const aRes = await api.post(`/admin/automations/${tid}/actions`, { name: 'Delivery Failed Action', action_type: 'outgoing_webhook', target_url: mock.url, is_active: true }, auth())
+				const aRes = await api.post(
+					`/admin/automations/${tid}/actions`,
+					{
+						name: 'Delivery Failed Action',
+						action_type: 'outgoing_webhook',
+						target_url: mock.url,
+						is_active: true
+					},
+					auth()
+				)
 				const aid = aRes.data.action.id
 
 				await api.post(`/webhooks/${tid}`, { hello: 'world' })
@@ -526,11 +594,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('upserts (updates) an existing query config', async () => {
-				const res = await api.post(
-					queryUrl(),
-					{ entity_name: 'order', fields: ['id', 'total'], limit: 5 },
-					auth()
-				)
+				const res = await api.post(queryUrl(), { entity_name: 'order', fields: ['id', 'total'], limit: 5 }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.query.entity_name).toBe('order')
 				expect(res.data.query.limit).toBe(5)
@@ -570,31 +634,21 @@ medusaIntegrationTestRunner({
 			})
 
 			it('returns 404 for an unknown trigger id', async () => {
-				const res = await api
-					.post('/webhooks/nonexistent-id-xyz', { foo: 'bar' })
-					.catch((e: any) => e.response)
+				const res = await api.post('/webhooks/nonexistent-id-xyz', { foo: 'bar' }).catch((e: any) => e.response)
 				expect(res.status).toBe(404)
 			})
 
 			it('returns 404 when trigger is inactive', async () => {
 				// Create a dedicated inactive trigger (avoids touching the signed one)
-				const tRes = await api.post(
-					'/admin/automations',
-					{ name: 'Inactive Trigger', trigger_type: 'incoming_webhook', is_active: false },
-					auth()
-				)
+				const tRes = await api.post('/admin/automations', { name: 'Inactive Trigger', trigger_type: 'incoming_webhook', is_active: false }, auth())
 				const id = tRes.data.trigger.id
 
-				const res = await api
-					.post(`/webhooks/${id}`, { foo: 'bar' })
-					.catch((e: any) => e.response)
+				const res = await api.post(`/webhooks/${id}`, { foo: 'bar' }).catch((e: any) => e.response)
 				expect(res.status).toBe(404)
 			})
 
 			it('returns 401 when signing key is required but header is missing', async () => {
-				const res = await api
-					.post(`/webhooks/${triggerId}`, { foo: 'bar' })
-					.catch((e: any) => e.response)
+				const res = await api.post(`/webhooks/${triggerId}`, { foo: 'bar' }).catch((e: any) => e.response)
 				expect(res.status).toBe(401)
 				expect(res.data.error).toMatch(/signature/i)
 			})
@@ -627,17 +681,21 @@ medusaIntegrationTestRunner({
 		describe('Configurable signature schemes', () => {
 			it('verifies a GitHub-style signature (X-Hub-Signature-256: sha256=<hex>)', async () => {
 				const key = 'gh-key'
-				const tRes = await api.post('/admin/automations', {
-					name: 'GitHub Trigger',
-					trigger_type: 'incoming_webhook',
-					trigger_signing_key: key,
-					signature_config: {
-						header: 'X-Hub-Signature-256',
-						prefix: 'sha256=',
-						encoding: 'hex'
+				const tRes = await api.post(
+					'/admin/automations',
+					{
+						name: 'GitHub Trigger',
+						trigger_type: 'incoming_webhook',
+						trigger_signing_key: key,
+						signature_config: {
+							header: 'X-Hub-Signature-256',
+							prefix: 'sha256=',
+							encoding: 'hex'
+						},
+						is_active: true
 					},
-					is_active: true
-				}, auth())
+					auth()
+				)
 				const tid = tRes.data.trigger.id
 
 				const body = { hello: 'world' }
@@ -650,27 +708,33 @@ medusaIntegrationTestRunner({
 				expect(ok.status).toBe(200)
 
 				const bad = await api
-					.post(`/webhooks/${tid}`, body, { headers: { 'X-Hub-Signature-256': 'sha256=deadbeef' } })
+					.post(`/webhooks/${tid}`, body, {
+						headers: { 'X-Hub-Signature-256': 'sha256=deadbeef' }
+					})
 					.catch((e: any) => e.response)
 				expect(bad.status).toBe(401)
 			})
 
 			it('verifies a Slack-style signature (v0=<hex> over v0:ts:body, with replay window)', async () => {
 				const key = 'slack-key'
-				const tRes = await api.post('/admin/automations', {
-					name: 'Slack Trigger',
-					trigger_type: 'incoming_webhook',
-					trigger_signing_key: key,
-					signature_config: {
-						header: 'X-Slack-Signature',
-						prefix: 'v0=',
-						encoding: 'hex',
-						template: 'v0:{ts}:{body}',
-						timestamp_header: 'X-Slack-Request-Timestamp',
-						tolerance_seconds: 300
+				const tRes = await api.post(
+					'/admin/automations',
+					{
+						name: 'Slack Trigger',
+						trigger_type: 'incoming_webhook',
+						trigger_signing_key: key,
+						signature_config: {
+							header: 'X-Slack-Signature',
+							prefix: 'v0=',
+							encoding: 'hex',
+							template: 'v0:{ts}:{body}',
+							timestamp_header: 'X-Slack-Request-Timestamp',
+							tolerance_seconds: 300
+						},
+						is_active: true
 					},
-					is_active: true
-				}, auth())
+					auth()
+				)
 				const tid = tRes.data.trigger.id
 
 				const body = { event: 'message' }
@@ -686,17 +750,21 @@ medusaIntegrationTestRunner({
 
 			it('rejects requests outside the replay tolerance window', async () => {
 				const key = 'replay-key'
-				const tRes = await api.post('/admin/automations', {
-					name: 'Replay Trigger',
-					trigger_type: 'incoming_webhook',
-					trigger_signing_key: key,
-					signature_config: {
-						template: 'v0:{ts}:{body}',
-						timestamp_header: 'X-Timestamp',
-						tolerance_seconds: 60
+				const tRes = await api.post(
+					'/admin/automations',
+					{
+						name: 'Replay Trigger',
+						trigger_type: 'incoming_webhook',
+						trigger_signing_key: key,
+						signature_config: {
+							template: 'v0:{ts}:{body}',
+							timestamp_header: 'X-Timestamp',
+							tolerance_seconds: 60
+						},
+						is_active: true
 					},
-					is_active: true
-				}, auth())
+					auth()
+				)
 				const tid = tRes.data.trigger.id
 
 				const body = { foo: 'old' }
@@ -715,22 +783,24 @@ medusaIntegrationTestRunner({
 
 			it('returns 401 when GitHub-style prefix is missing from header value', async () => {
 				const key = 'prefix-key'
-				const tRes = await api.post('/admin/automations', {
-					name: 'Prefix Trigger',
-					trigger_type: 'incoming_webhook',
-					trigger_signing_key: key,
-					signature_config: { prefix: 'sha256=' },
-					is_active: true
-				}, auth())
+				const tRes = await api.post(
+					'/admin/automations',
+					{
+						name: 'Prefix Trigger',
+						trigger_type: 'incoming_webhook',
+						trigger_signing_key: key,
+						signature_config: { prefix: 'sha256=' },
+						is_active: true
+					},
+					auth()
+				)
 				const tid = tRes.data.trigger.id
 
 				const body = { foo: 'bar' }
 				const sig = createHmac('sha256', key).update(JSON.stringify(body)).digest('hex')
 
 				// No 'sha256=' prefix → expected prefix mismatch
-				const bad = await api
-					.post(`/webhooks/${tid}`, body, { headers: { 'x-webhook-signature': sig } })
-					.catch((e: any) => e.response)
+				const bad = await api.post(`/webhooks/${tid}`, body, { headers: { 'x-webhook-signature': sig } }).catch((e: any) => e.response)
 				expect(bad.status).toBe(401)
 				expect(bad.data.error).toMatch(/prefix/i)
 			})
@@ -748,43 +818,63 @@ medusaIntegrationTestRunner({
 			let triggerId: string
 
 			beforeAll(async () => {
-				const tRes = await api.post('/admin/automations', {
-					name: 'SSRF Save-Time Trigger',
-					trigger_type: 'incoming_webhook',
-					is_active: true
-				}, auth())
+				const tRes = await api.post(
+					'/admin/automations',
+					{
+						name: 'SSRF Save-Time Trigger',
+						trigger_type: 'incoming_webhook',
+						is_active: true
+					},
+					auth()
+				)
 				triggerId = tRes.data.trigger.id
 				await seedSnapshot()
 			})
 
 			it('rejects file:// URLs at action create (scheme not in allowlist)', async () => {
-				const bad = await api.post(`/admin/automations/${triggerId}/actions`, {
-					name: 'File Scheme Action',
-					action_type: 'outgoing_webhook',
-					target_url: 'file:///etc/passwd',
-					is_active: true
-				}, auth()).catch((e: any) => e.response)
+				const bad = await api
+					.post(
+						`/admin/automations/${triggerId}/actions`,
+						{
+							name: 'File Scheme Action',
+							action_type: 'outgoing_webhook',
+							target_url: 'file:///etc/passwd',
+							is_active: true
+						},
+						auth()
+					)
+					.catch((e: any) => e.response)
 				expect(bad.status).toBe(400)
 				expect(JSON.stringify(bad.data)).toMatch(/scheme|allowed/i)
 			})
 
 			it('rejects malformed URLs at the validator layer', async () => {
-				const bad = await api.post(`/admin/automations/${triggerId}/actions`, {
-					name: 'Bad URL Action',
-					action_type: 'outgoing_webhook',
-					target_url: 'not-a-url',
-					is_active: true
-				}, auth()).catch((e: any) => e.response)
+				const bad = await api
+					.post(
+						`/admin/automations/${triggerId}/actions`,
+						{
+							name: 'Bad URL Action',
+							action_type: 'outgoing_webhook',
+							target_url: 'not-a-url',
+							is_active: true
+						},
+						auth()
+					)
+					.catch((e: any) => e.response)
 				expect(bad.status).toBe(400)
 			})
 
 			it('accepts a valid http target_url (test config allows http)', async () => {
-				const ok = await api.post(`/admin/automations/${triggerId}/actions`, {
-					name: 'Valid HTTP Action',
-					action_type: 'outgoing_webhook',
-					target_url: 'http://example.com/hook',
-					is_active: true
-				}, auth())
+				const ok = await api.post(
+					`/admin/automations/${triggerId}/actions`,
+					{
+						name: 'Valid HTTP Action',
+						action_type: 'outgoing_webhook',
+						target_url: 'http://example.com/hook',
+						is_active: true
+					},
+					auth()
+				)
 				expect(ok.status).toBe(200)
 			})
 		})
@@ -795,33 +885,47 @@ medusaIntegrationTestRunner({
 			let triggerId: string
 
 			beforeAll(async () => {
-				const tRes = await api.post('/admin/automations', {
-					name: 'Workflow Guard Trigger',
-					trigger_type: 'incoming_webhook',
-					is_active: true
-				}, auth())
+				const tRes = await api.post(
+					'/admin/automations',
+					{
+						name: 'Workflow Guard Trigger',
+						trigger_type: 'incoming_webhook',
+						is_active: true
+					},
+					auth()
+				)
 				triggerId = tRes.data.trigger.id
 				await seedSnapshot()
 			})
 
 			it('rejects creating a medusa_workflow action whose workflow name contains "delete"', async () => {
-				const bad = await api.post(`/admin/automations/${triggerId}/actions`, {
-					name: 'Destructive Action',
-					action_type: 'medusa_workflow',
-					medusa_workflow: 'deleteCustomersWorkflow',
-					is_active: true
-				}, auth()).catch((e: any) => e.response)
+				const bad = await api
+					.post(
+						`/admin/automations/${triggerId}/actions`,
+						{
+							name: 'Destructive Action',
+							action_type: 'medusa_workflow',
+							medusa_workflow: 'deleteCustomersWorkflow',
+							is_active: true
+						},
+						auth()
+					)
+					.catch((e: any) => e.response)
 				expect(bad.status).toBe(400)
 				expect(JSON.stringify(bad.data)).toMatch(/delete|blocked|destructive/i)
 			})
 
 			it('still allows non-destructive workflows (e.g. createCustomersWorkflow)', async () => {
-				const ok = await api.post(`/admin/automations/${triggerId}/actions`, {
-					name: 'Safe Workflow Action',
-					action_type: 'medusa_workflow',
-					medusa_workflow: 'createCustomersWorkflow',
-					is_active: true
-				}, auth())
+				const ok = await api.post(
+					`/admin/automations/${triggerId}/actions`,
+					{
+						name: 'Safe Workflow Action',
+						action_type: 'medusa_workflow',
+						medusa_workflow: 'createCustomersWorkflow',
+						is_active: true
+					},
+					auth()
+				)
 				expect(ok.status).toBe(200)
 			})
 		})
@@ -879,9 +983,7 @@ medusaIntegrationTestRunner({
 				})
 
 				// Dispatch is synchronous in the handler — body is received before response
-				expect(mock.lastBody()).toEqual(
-					expect.objectContaining({ email: 'b@test.com', full_name: 'Bob Jones' })
-				)
+				expect(mock.lastBody()).toEqual(expect.objectContaining({ email: 'b@test.com', full_name: 'Bob Jones' }))
 			})
 
 			it('merges static values into the outgoing payload', async () => {
@@ -889,9 +991,7 @@ medusaIntegrationTestRunner({
 					customer: { email: 'c@test.com', name: 'Carol' }
 				})
 
-				expect(mock.lastBody()).toEqual(
-					expect.objectContaining({ source: 'medusa', version: '2' })
-				)
+				expect(mock.lastBody()).toEqual(expect.objectContaining({ source: 'medusa', version: '2' }))
 			})
 
 			it('omits unmapped source fields from the outgoing payload', async () => {
@@ -913,10 +1013,7 @@ medusaIntegrationTestRunner({
 				const actionsRes = await api.get(`/admin/automations/${triggerId}/actions`, auth())
 				const actionId = actionsRes.data.actions[0].id
 
-				const delRes = await api.get(
-					`/admin/automations/${triggerId}/actions/${actionId}/deliveries`,
-					auth()
-				)
+				const delRes = await api.get(`/admin/automations/${triggerId}/actions/${actionId}/deliveries`, auth())
 				expect(delRes.status).toBe(200)
 				expect(delRes.data.deliveries.length).toBeGreaterThan(0)
 				expect(delRes.data.deliveries[0].status).toBe('success')
@@ -924,11 +1021,7 @@ medusaIntegrationTestRunner({
 
 			it('creates a FAILED delivery record when target URL is unreachable', async () => {
 				// Create a trigger pointing at port 1 (always refused)
-				const tRes = await api.post(
-					'/admin/automations',
-					{ name: 'Fail Trigger', trigger_type: 'incoming_webhook', is_active: true },
-					auth()
-				)
+				const tRes = await api.post('/admin/automations', { name: 'Fail Trigger', trigger_type: 'incoming_webhook', is_active: true }, auth())
 				const failTriggerId = tRes.data.trigger.id
 
 				const aRes = await api.post(
@@ -945,10 +1038,7 @@ medusaIntegrationTestRunner({
 
 				await api.post(`/webhooks/${failTriggerId}`, { test: 1 }).catch(() => {})
 
-				const delRes = await api.get(
-					`/admin/automations/${failTriggerId}/actions/${failActionId}/deliveries`,
-					auth()
-				)
+				const delRes = await api.get(`/admin/automations/${failTriggerId}/actions/${failActionId}/deliveries`, auth())
 				const failed = delRes.data.deliveries.find((d: any) => d.status === 'failed')
 				expect(failed).toMatchObject({
 					status: 'failed',
@@ -964,11 +1054,7 @@ medusaIntegrationTestRunner({
 			let actionId: string
 
 			beforeAll(async () => {
-				const tRes = await api.post(
-					'/admin/automations',
-					{ name: 'Coercion Trigger', trigger_type: 'incoming_webhook', is_active: true },
-					auth()
-				)
+				const tRes = await api.post('/admin/automations', { name: 'Coercion Trigger', trigger_type: 'incoming_webhook', is_active: true }, auth())
 				triggerId = tRes.data.trigger.id
 
 				// Map `customer` (single object) → `customersData[]` (array field)
@@ -997,17 +1083,11 @@ medusaIntegrationTestRunner({
 				expect(dispatchRes.status).toBe(200)
 
 				// Verify delivery was recorded as success
-				const delRes = await api.get(
-					`/admin/automations/${triggerId}/actions/${actionId}/deliveries`,
-					auth()
-				)
+				const delRes = await api.get(`/admin/automations/${triggerId}/actions/${actionId}/deliveries`, auth())
 				expect(delRes.data.deliveries[0].status).toBe('success')
 
 				// Verify customer was actually created
-				const custRes = await api.get(
-					`/admin/customers?q=${encodeURIComponent(uniqueEmail)}`,
-					auth()
-				)
+				const custRes = await api.get(`/admin/customers?q=${encodeURIComponent(uniqueEmail)}`, auth())
 				expect(custRes.data.customers.length).toBe(1)
 				expect(custRes.data.customers[0].email).toBe(uniqueEmail)
 			})
@@ -1020,11 +1100,7 @@ medusaIntegrationTestRunner({
 			let actionId: string
 
 			beforeAll(async () => {
-				const tRes = await api.post(
-					'/admin/automations',
-					{ name: 'Fanout Trigger', trigger_type: 'incoming_webhook', is_active: true },
-					auth()
-				)
+				const tRes = await api.post('/admin/automations', { name: 'Fanout Trigger', trigger_type: 'incoming_webhook', is_active: true }, auth())
 				triggerId = tRes.data.trigger.id
 
 				// Map `customers[].email` → `customersData[].email` etc.
@@ -1062,10 +1138,7 @@ medusaIntegrationTestRunner({
 				expect(dispatchRes.status).toBe(200)
 
 				// Delivery should be recorded as success
-				const delRes = await api.get(
-					`/admin/automations/${triggerId}/actions/${actionId}/deliveries`,
-					auth()
-				)
+				const delRes = await api.get(`/admin/automations/${triggerId}/actions/${actionId}/deliveries`, auth())
 				expect(delRes.data.deliveries[0].status).toBe('success')
 
 				// Both customers should have been created
@@ -1172,10 +1245,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('deletes the outgoing_request action', async () => {
-				const res = await api.delete(
-					`/admin/automations/${triggerId}/actions/${actionId}`,
-					auth()
-				)
+				const res = await api.delete(`/admin/automations/${triggerId}/actions/${actionId}`, auth())
 				expect(res.status).toBe(200)
 
 				const listRes = await api.get(`/admin/automations/${triggerId}/actions`, auth())
@@ -1190,11 +1260,7 @@ medusaIntegrationTestRunner({
 			let actionId: string
 
 			beforeAll(async () => {
-				const tRes = await api.post(
-					'/admin/automations',
-					{ name: 'Request POST Trigger', trigger_type: 'incoming_webhook', is_active: true },
-					auth()
-				)
+				const tRes = await api.post('/admin/automations', { name: 'Request POST Trigger', trigger_type: 'incoming_webhook', is_active: true }, auth())
 				triggerId = tRes.data.trigger.id
 
 				const aRes = await api.post(
@@ -1255,10 +1321,7 @@ medusaIntegrationTestRunner({
 					user: { email: 'del@test.com', id: 'usr_del' }
 				})
 
-				const delRes = await api.get(
-					`/admin/automations/${triggerId}/actions/${actionId}/deliveries`,
-					auth()
-				)
+				const delRes = await api.get(`/admin/automations/${triggerId}/actions/${actionId}/deliveries`, auth())
 				expect(delRes.data.deliveries.length).toBeGreaterThan(0)
 				expect(delRes.data.deliveries[0].status).toBe('success')
 			})
@@ -1270,11 +1333,7 @@ medusaIntegrationTestRunner({
 			let triggerId: string
 
 			beforeAll(async () => {
-				const tRes = await api.post(
-					'/admin/automations',
-					{ name: 'Request PUT Trigger', trigger_type: 'incoming_webhook', is_active: true },
-					auth()
-				)
+				const tRes = await api.post('/admin/automations', { name: 'Request PUT Trigger', trigger_type: 'incoming_webhook', is_active: true }, auth())
 				triggerId = tRes.data.trigger.id
 
 				await api.post(
@@ -1309,11 +1368,7 @@ medusaIntegrationTestRunner({
 			let actionId: string
 
 			beforeAll(async () => {
-				const tRes = await api.post(
-					'/admin/automations',
-					{ name: 'Request GET Trigger', trigger_type: 'incoming_webhook', is_active: true },
-					auth()
-				)
+				const tRes = await api.post('/admin/automations', { name: 'Request GET Trigger', trigger_type: 'incoming_webhook', is_active: true }, auth())
 				triggerId = tRes.data.trigger.id
 
 				const aRes = await api.post(
@@ -1379,10 +1434,7 @@ medusaIntegrationTestRunner({
 					search: { term: 'socks', limit: 1 }
 				})
 
-				const delRes = await api.get(
-					`/admin/automations/${triggerId}/actions/${actionId}/deliveries`,
-					auth()
-				)
+				const delRes = await api.get(`/admin/automations/${triggerId}/actions/${actionId}/deliveries`, auth())
 				expect(delRes.data.deliveries.length).toBeGreaterThan(0)
 				expect(delRes.data.deliveries[0].status).toBe('success')
 			})

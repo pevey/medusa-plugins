@@ -1,24 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { LoaderFunctionArgs, UIMatch, useBlocker, useNavigate, useParams } from 'react-router-dom'
-import {
-	Badge,
-	Button,
-	Container,
-	Heading,
-	Label,
-	Text,
-	Textarea,
-	toast,
-	Tooltip,
-	usePrompt
-} from '@medusajs/ui'
+import { Badge, Button, Container, Heading, Label, Text, Textarea, toast, Tooltip, usePrompt } from '@medusajs/ui'
 import { ArchiveBox, PaperPlane, PencilSquare, Trash } from '@medusajs/icons'
 import { ContentStatus } from '../../../../../types'
-import {
-	useContentItem,
-	useDeleteContentItems,
-	useUpdateContentItem
-} from '../../../../../hooks/content'
+import { useContentItem, useDeleteContentItems, useUpdateContentItem } from '../../../../../hooks/content'
 import { ActionMenu } from '../../../../../components/action-menu'
 import { ContentMarkdownEditor } from '../../../../../components/content-markdown-editor'
 import { EditContentItemDrawer } from '../../../../../components/edit-content-item-drawer'
@@ -28,17 +13,13 @@ type ContentItemLoaderData = { content_item: { id: string; title: string } }
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	const { collectionId, itemId } = params
-	return sdk.client.fetch<ContentItemLoaderData>(
-		`/admin/content/${collectionId}/items/${itemId}`,
-		{
-			query: { fields: 'id,title' }
-		}
-	)
+	return sdk.client.fetch<ContentItemLoaderData>(`/admin/content/${collectionId}/items/${itemId}`, {
+		query: { fields: 'id,title' }
+	})
 }
 
 export const handle = {
-	breadcrumb: ({ data }: UIMatch<ContentItemLoaderData>) =>
-		data?.content_item?.title || data?.content_item?.id || 'Item'
+	breadcrumb: ({ data }: UIMatch<ContentItemLoaderData>) => data?.content_item?.title || data?.content_item?.id || 'Item'
 }
 
 const STATUS_COLORS: Record<string, 'green' | 'orange' | 'grey'> = {
@@ -74,10 +55,7 @@ const ContentItemEditorPage = () => {
 
 	const isDirty = initialized && format !== 'img' && body !== (item?.body ?? '')
 
-	const blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	const blocker = useBlocker(({ currentLocation, nextLocation }) => isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	useEffect(() => {
 		if (blocker.state === 'blocked') {
@@ -220,11 +198,7 @@ const ContentItemEditorPage = () => {
 								toast.success('URL copied')
 							}}
 						>
-							<Text
-								size="small"
-								leading="compact"
-								className="cursor-pointer truncate font-mono max-w-xs"
-							>
+							<Text size="small" leading="compact" className="max-w-xs cursor-pointer truncate font-mono">
 								{item.body}
 							</Text>
 						</Tooltip>
@@ -234,13 +208,9 @@ const ContentItemEditorPage = () => {
 
 			{format === 'img' ? (
 				// ── Image item ─────────────────────────────────────────────────────
-				<Container className="p-6 flex items-center justify-center bg-ui-bg-subtle min-h-64">
+				<Container className="bg-ui-bg-subtle flex min-h-64 items-center justify-center p-6">
 					{item.body ? (
-						<img
-							src={item.body}
-							alt={item.title}
-							className="max-h-[60vh] max-w-full rounded-lg object-contain shadow"
-						/>
+						<img src={item.body} alt={item.title} className="max-h-[60vh] max-w-full rounded-lg object-contain shadow" />
 					) : (
 						<Text className="text-ui-fg-muted">No image</Text>
 					)}
@@ -249,16 +219,11 @@ const ContentItemEditorPage = () => {
 				// ── Text / Markdown / HTML / JSON item ─────────────────────────────
 				<>
 					{format === 'md' ? (
-						<ContentMarkdownEditor
-							value={body}
-							onChange={setBody}
-							onSave={handleSave}
-							isSaving={isPending}
-						/>
+						<ContentMarkdownEditor value={body} onChange={setBody} onSave={handleSave} isSaving={isPending} />
 					) : (
-						<Container className="p-6 flex flex-col gap-y-4">
+						<Container className="flex flex-col gap-y-4 p-6">
 							<div className="flex flex-col gap-y-1">
-								<div className="flex items-center justify-between mb-1">
+								<div className="mb-1 flex items-center justify-between">
 									{/* <Label className="text-ui-fg-subtle">Body</Label> */}
 									<Button size="small" onClick={handleSave} isLoading={isPending}>
 										Save
@@ -269,13 +234,7 @@ const ContentItemEditorPage = () => {
 									onChange={e => setBody(e.target.value)}
 									rows={20}
 									className="font-mono text-sm"
-									placeholder={
-										format === 'json'
-											? '{ "key": "value" }'
-											: format === 'html'
-												? '<p>Your content here</p>'
-												: 'Your content here...'
-									}
+									placeholder={format === 'json' ? '{ "key": "value" }' : format === 'html' ? '<p>Your content here</p>' : 'Your content here...'}
 								/>
 							</div>
 						</Container>

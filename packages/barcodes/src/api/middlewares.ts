@@ -1,12 +1,5 @@
 import { defineMiddlewares, validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework/http'
-import {
-	AdminCreateBarcode,
-	AdminDeleteBarcodes,
-	AdminGetBarcode,
-	AdminGetBarcodes,
-	AdminRenderBarcode,
-	AdminUpdateBarcode
-} from './validators'
+import { AdminCreateBarcode, AdminDeleteBarcodes, AdminGetBarcode, AdminGetBarcodes, AdminRenderBarcode, AdminUpdateBarcode } from './validators'
 
 export default defineMiddlewares([
 	{

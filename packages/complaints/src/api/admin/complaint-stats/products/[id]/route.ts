@@ -4,10 +4,7 @@ import { COMPLAINT_MODULE } from '../../../../../modules/complaint'
 import { ComplaintService } from '../../../../../modules/complaint/service'
 import { AdminGetComplaintProductStatsType } from '../../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetComplaintProductStatsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetComplaintProductStatsType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
 	const { id: product_id } = req.params

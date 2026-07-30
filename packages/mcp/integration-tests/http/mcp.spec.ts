@@ -71,7 +71,7 @@ medusaIntegrationTestRunner({
 				await dbUtils.snapshot()
 			})
 
-			it('lists only the caller\'s sessions in last_message_at DESC order, isolates ownership on load/delete, and cascades message deletes', async () => {
+			it("lists only the caller's sessions in last_message_at DESC order, isolates ownership on load/delete, and cascades message deletes", async () => {
 				const container = getContainer()
 				const mcp: any = container.resolve(MCP_MODULE)
 				const now = Date.now()
@@ -115,9 +115,7 @@ medusaIntegrationTestRunner({
 				expect(listB.data.sessions.map((s: any) => s.id)).toEqual([sessionB1.id])
 
 				// --- load: cross-owner is 404, never 403 ---
-				const loadForeign = await api
-					.get(`/admin/chat/sessions/${sessionA1.id}`, auth(adminB.token))
-					.catch((e: any) => e.response)
+				const loadForeign = await api.get(`/admin/chat/sessions/${sessionA1.id}`, auth(adminB.token)).catch((e: any) => e.response)
 				expect(loadForeign.status).toBe(404)
 
 				const loadOwn = await api.get(`/admin/chat/sessions/${sessionA1.id}`, auth(adminA.token))
@@ -129,9 +127,7 @@ medusaIntegrationTestRunner({
 				])
 
 				// --- delete: cross-owner is 404, never 403; cascades to messages ---
-				const deleteForeign = await api
-					.delete(`/admin/chat/sessions/${sessionA1.id}`, auth(adminB.token))
-					.catch((e: any) => e.response)
+				const deleteForeign = await api.delete(`/admin/chat/sessions/${sessionA1.id}`, auth(adminB.token)).catch((e: any) => e.response)
 				expect(deleteForeign.status).toBe(404)
 
 				const deleteOwn = await api.delete(`/admin/chat/sessions/${sessionA1.id}`, auth(adminA.token))
@@ -146,7 +142,7 @@ medusaIntegrationTestRunner({
 		})
 
 		describe('Chat message persistence (service round-trip)', () => {
-			it('creates a session, appends messages in order, and advances last_message_at on each persist — mirrors POST /admin/chat\'s persist() helper without calling the LLM', async () => {
+			it("creates a session, appends messages in order, and advances last_message_at on each persist — mirrors POST /admin/chat's persist() helper without calling the LLM", async () => {
 				const container = getContainer()
 				const mcp: any = container.resolve(MCP_MODULE)
 				const now = Date.now()
@@ -163,7 +159,7 @@ medusaIntegrationTestRunner({
 				await mcp.createChatMessages({
 					session_id: session.id,
 					role: 'user',
-					content: [{ type: 'text', text: 'What were yesterday\'s sales?' }]
+					content: [{ type: 'text', text: "What were yesterday's sales?" }]
 				})
 				await mcp.updateChatSessions({ id: session.id, last_message_at: new Date() })
 
@@ -177,12 +173,16 @@ medusaIntegrationTestRunner({
 				const [reloaded] = await mcp.listChatSessions({ id: session.id }, { relations: ['messages'] })
 				expect(reloaded).toBeDefined()
 
-				const orderedMessages = [...reloaded.messages].sort(
-					(a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-				)
+				const orderedMessages = [...reloaded.messages].sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 				expect(orderedMessages.map((m: any) => ({ role: m.role, content: m.content }))).toEqual([
-					{ role: 'user', content: [{ type: 'text', text: 'What were yesterday\'s sales?' }] },
-					{ role: 'assistant', content: [{ type: 'text', text: 'Yesterday you had 12 orders totaling $340.' }] }
+					{
+						role: 'user',
+						content: [{ type: 'text', text: "What were yesterday's sales?" }]
+					},
+					{
+						role: 'assistant',
+						content: [{ type: 'text', text: 'Yesterday you had 12 orders totaling $340.' }]
+					}
 				])
 
 				expect(new Date(reloaded.last_message_at).getTime()).toBeGreaterThan(initialLastMessageAt)

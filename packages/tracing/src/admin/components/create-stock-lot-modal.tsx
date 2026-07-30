@@ -1,15 +1,5 @@
 import * as zod from 'zod'
-import {
-	FocusModal,
-	Heading,
-	Text,
-	Button,
-	Input,
-	Switch,
-	Select,
-	toast,
-	usePrompt
-} from '@medusajs/ui'
+import { FocusModal, Heading, Text, Button, Input, Switch, Select, toast, usePrompt } from '@medusajs/ui'
 import { useEffect } from 'react'
 import { FormProvider, Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -49,10 +39,7 @@ export const CreateStockLotModal = ({ open, setOpen }: CreateStockLotDrawerProps
 		}
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -98,7 +85,12 @@ export const CreateStockLotModal = ({ open, setOpen }: CreateStockLotDrawerProps
 						<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 							<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 								<div>
-									<Heading className="capitalize">Create Stock Lot</Heading>
+									<FocusModal.Title asChild>
+										<Heading className="capitalize">Create Stock Lot</Heading>
+									</FocusModal.Title>
+									<FocusModal.Description className="sr-only">
+										Create a new stock lot: choose its inventory item and stock location, and record its lot number and stocked quantity.
+									</FocusModal.Description>
 								</div>
 								<div className="grid grid-cols-2 gap-4">
 									{/* Inventory Item */}
@@ -182,12 +174,7 @@ export const CreateStockLotModal = ({ open, setOpen }: CreateStockLotDrawerProps
 												<Text size="small" weight="plus">
 													Stocked Quantity
 												</Text>
-												<Input
-													type="number"
-													min={0}
-													value={field.value}
-													onChange={e => field.onChange(Number(e.target.value))}
-												/>
+												<Input type="number" min={0} value={field.value} onChange={e => field.onChange(Number(e.target.value))} />
 											</div>
 										)}
 									/>
@@ -197,15 +184,11 @@ export const CreateStockLotModal = ({ open, setOpen }: CreateStockLotDrawerProps
 										control={form.control}
 										name="description"
 										render={({ field }) => (
-											<div className="flex flex-col space-y-2 col-span-2">
+											<div className="col-span-2 flex flex-col space-y-2">
 												<Text size="small" weight="plus">
 													Description
 												</Text>
-												<Input
-													{...field}
-													value={field.value ?? ''}
-													placeholder="Optional description"
-												/>
+												<Input {...field} value={field.value ?? ''} placeholder="Optional description" />
 											</div>
 										)}
 									/>
@@ -215,16 +198,9 @@ export const CreateStockLotModal = ({ open, setOpen }: CreateStockLotDrawerProps
 										control={form.control}
 										name="enabled"
 										render={({ field }) => (
-											<div className="flex items-center gap-3 col-span-2">
-												<Switch
-													id="enabled-toggle"
-													checked={field.value}
-													onCheckedChange={field.onChange}
-												/>
-												<label
-													htmlFor="enabled-toggle"
-													className="text-sm cursor-pointer"
-												>
+											<div className="col-span-2 flex items-center gap-3">
+												<Switch id="enabled-toggle" checked={field.value} onCheckedChange={field.onChange} />
+												<label htmlFor="enabled-toggle" className="cursor-pointer text-sm">
 													Enabled
 												</label>
 											</div>
@@ -236,13 +212,7 @@ export const CreateStockLotModal = ({ open, setOpen }: CreateStockLotDrawerProps
 					</form>
 				</FormProvider>
 				<FocusModal.Footer className="flex w-full items-center justify-end gap-x-2">
-					<Button
-						type="button"
-						size="small"
-						variant="secondary"
-						onClick={() => setOpen(false)}
-						disabled={isPending}
-					>
+					<Button type="button" size="small" variant="secondary" onClick={() => setOpen(false)} disabled={isPending}>
 						Cancel
 					</Button>
 					<Button type="submit" size="small" isLoading={isPending} disabled={isPending}>

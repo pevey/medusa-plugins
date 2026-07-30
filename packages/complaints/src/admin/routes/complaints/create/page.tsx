@@ -17,14 +17,7 @@ const CreateComplaintPage = () => {
 		}
 	}
 
-	return (
-		<CreateComplaintModal
-			customerId={customerId}
-			orderId={orderId}
-			open={createOpen}
-			setOpen={handleOpenChange}
-		/>
-	)
+	return <CreateComplaintModal customerId={customerId} orderId={orderId} open={createOpen} setOpen={handleOpenChange} />
 }
 
 export default CreateComplaintPage

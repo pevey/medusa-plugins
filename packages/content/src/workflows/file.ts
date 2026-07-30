@@ -1,11 +1,6 @@
 import { FileTypes } from '@medusajs/framework/types'
 import { Modules } from '@medusajs/framework/utils'
-import {
-	createStep,
-	createWorkflow,
-	StepResponse,
-	WorkflowResponse
-} from '@medusajs/framework/workflows-sdk'
+import { createStep, createWorkflow, StepResponse, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -30,12 +25,13 @@ export const uploadFilesWithPrefixStep = createStep(
 		const provider = service.getProvider()
 
 		const created = await Promise.all(
-			data.files.map(({ prefix, ...file }) =>
-				provider.upload({ ...file, prefix: prefix ?? '' } as FileTypes.ProviderUploadFileDTO)
-			)
+			data.files.map(({ prefix, ...file }) => provider.upload({ ...file, prefix: prefix ?? '' } as FileTypes.ProviderUploadFileDTO))
 		)
 
-		return new StepResponse(created, created.map((file) => file.key))
+		return new StepResponse(
+			created,
+			created.map(file => file.key)
+		)
 	},
 	async (fileKeys: string[] | undefined, { container }) => {
 		if (!fileKeys?.length) {
@@ -43,7 +39,7 @@ export const uploadFilesWithPrefixStep = createStep(
 		}
 		const service = container.resolve(Modules.FILE)
 		const provider = service.getProvider()
-		await provider.delete(fileKeys.map((fileKey) => ({ fileKey, access: 'public' })))
+		await provider.delete(fileKeys.map(fileKey => ({ fileKey, access: 'public' })))
 	}
 )
 
@@ -51,9 +47,6 @@ export const uploadFilesWithPrefixStep = createStep(
 
 export const uploadFilesWithPrefixWorkflowId = 'upload-files-with-prefix'
 
-export const uploadFilesWithPrefixWorkflow = createWorkflow(
-	uploadFilesWithPrefixWorkflowId,
-	(input: UploadFilesWithPrefixInput) => {
-		return new WorkflowResponse(uploadFilesWithPrefixStep(input))
-	}
-)
+export const uploadFilesWithPrefixWorkflow = createWorkflow(uploadFilesWithPrefixWorkflowId, (input: UploadFilesWithPrefixInput) => {
+	return new WorkflowResponse(uploadFilesWithPrefixStep(input))
+})

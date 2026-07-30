@@ -1,12 +1,5 @@
 import { Context, FindConfig, InferEntityType, ModulesSdkTypes } from '@medusajs/framework/types'
-import {
-	InjectManager,
-	InjectTransactionManager,
-	MedusaContext,
-	MedusaService,
-	Modules,
-	promiseAll
-} from '@medusajs/framework/utils'
+import { InjectManager, InjectTransactionManager, MedusaContext, MedusaService, Modules, promiseAll } from '@medusajs/framework/utils'
 import { Policy, WILDCARD } from '../../utils'
 import {
 	AccessRoleDTO,
@@ -22,9 +15,7 @@ import { BOOTSTRAP_SUPER_ADMIN_EVENT } from '../../workflows/access/workflows/bo
 
 type InjectedDependencies = {
 	accessRepository: AccessRepository
-	accessRolePolicyService: ModulesSdkTypes.IMedusaInternalService<
-		InferEntityType<typeof AccessRolePolicy>
-	>
+	accessRolePolicyService: ModulesSdkTypes.IMedusaInternalService<InferEntityType<typeof AccessRolePolicy>>
 	accessRoleService: ModulesSdkTypes.IMedusaInternalService<InferEntityType<typeof AccessRole>>
 	accessPolicyService: ModulesSdkTypes.IMedusaInternalService<InferEntityType<typeof AccessPolicy>>
 }
@@ -41,15 +32,9 @@ export class AccessModuleService
 	implements IAccessModuleService
 {
 	protected readonly accessRepository_: AccessRepository
-	protected readonly accessRolePolicyService: ModulesSdkTypes.IMedusaInternalService<
-		InferEntityType<typeof AccessRolePolicy>
-	>
-	protected readonly accessRoleService: ModulesSdkTypes.IMedusaInternalService<
-		InferEntityType<typeof AccessRole>
-	>
-	protected readonly accessPolicyService: ModulesSdkTypes.IMedusaInternalService<
-		InferEntityType<typeof AccessPolicy>
-	>
+	protected readonly accessRolePolicyService: ModulesSdkTypes.IMedusaInternalService<InferEntityType<typeof AccessRolePolicy>>
+	protected readonly accessRoleService: ModulesSdkTypes.IMedusaInternalService<InferEntityType<typeof AccessRole>>
+	protected readonly accessPolicyService: ModulesSdkTypes.IMedusaInternalService<InferEntityType<typeof AccessPolicy>>
 	protected readonly container_: InjectedDependencies
 
 	constructor(container: InjectedDependencies) {
@@ -78,42 +63,30 @@ export class AccessModuleService
 			try {
 				const eventBus = (this.container_ as any)[Modules.EVENT_BUS]
 				if (!eventBus) {
-					logger.warn?.(
-						'[access] cannot bootstrap super-admin on startup — event bus module is not configured'
-					)
+					logger.warn?.('[access] cannot bootstrap super-admin on startup — event bus module is not configured')
 					return
 				}
 				await eventBus.emit({ name: BOOTSTRAP_SUPER_ADMIN_EVENT, data: {} })
 			} catch (error) {
-				logger.error?.(
-					`[access] failed to emit super-admin bootstrap event: ${(error as Error).message}`
-				)
+				logger.error?.(`[access] failed to emit super-admin bootstrap event: ${(error as Error).message}`)
 			}
 		}
 	}
 
 	@InjectTransactionManager()
-	private async syncRegisteredPolicies(
-		@MedusaContext() sharedContext: Context = {}
-	): Promise<void> {
-		const registeredPolicies = Object.entries(Policy).map(
-			([name, { resource, operation, description }]) => ({
-				key: `${resource}:${operation}`,
-				name,
-				resource,
-				operation,
-				description
-			})
-		)
+	private async syncRegisteredPolicies(@MedusaContext() sharedContext: Context = {}): Promise<void> {
+		const registeredPolicies = Object.entries(Policy).map(([name, { resource, operation, description }]) => ({
+			key: `${resource}:${operation}`,
+			name,
+			resource,
+			operation,
+			description
+		}))
 
 		const registeredKeys = registeredPolicies.map(p => p.key)
 
 		// Fetch all existing policies (including soft-deleted ones)
-		const existingPolicies = await this.listAccessPolicies(
-			{},
-			{ withDeleted: true },
-			sharedContext
-		)
+		const existingPolicies = await this.listAccessPolicies({}, { withDeleted: true }, sharedContext)
 
 		const existingPoliciesMap = new Map(existingPolicies.map(p => [p.key, p]))
 
@@ -129,10 +102,7 @@ export class AccessModuleService
 
 			const existing = existingPoliciesMap.get(registeredPolicy.key)
 
-			const hasChanges =
-				existing &&
-				(existing.name !== registeredPolicy.name ||
-					existing.description !== registeredPolicy.description)
+			const hasChanges = existing && (existing.name !== registeredPolicy.name || existing.description !== registeredPolicy.description)
 
 			if (!existing) {
 				policiesToCreate.push(registeredPolicy)
@@ -154,9 +124,7 @@ export class AccessModuleService
 			}
 		}
 
-		const policiesToSoftDelete = existingPolicies
-			.filter(p => !p.deleted_at && !registeredKeys.includes(p.key) && p.key !== SUPER_ADMIN_KEY)
-			.map(p => p.id)
+		const policiesToSoftDelete = existingPolicies.filter(p => !p.deleted_at && !registeredKeys.includes(p.key) && p.key !== SUPER_ADMIN_KEY).map(p => p.id)
 
 		// First restore any soft-deleted policies
 		if (policiesToRestore.length > 0) {
@@ -164,20 +132,14 @@ export class AccessModuleService
 		}
 
 		await promiseAll([
-			policiesToCreate.length > 0 &&
-				this.accessPolicyService.create(policiesToCreate, sharedContext),
-			policiesToUpdate.length > 0 &&
-				this.accessPolicyService.upsert(policiesToUpdate, sharedContext),
-			policiesToSoftDelete.length > 0 &&
-				this.accessPolicyService.softDelete(policiesToSoftDelete, sharedContext)
+			policiesToCreate.length > 0 && this.accessPolicyService.create(policiesToCreate, sharedContext),
+			policiesToUpdate.length > 0 && this.accessPolicyService.upsert(policiesToUpdate, sharedContext),
+			policiesToSoftDelete.length > 0 && this.accessPolicyService.softDelete(policiesToSoftDelete, sharedContext)
 		])
 	}
 
 	@InjectManager()
-	async listPoliciesForRole(
-		roleId: string,
-		@MedusaContext() sharedContext: Context = {}
-	): Promise<any[]> {
+	async listPoliciesForRole(roleId: string, @MedusaContext() sharedContext: Context = {}): Promise<any[]> {
 		return await this.accessRepository_.listPoliciesForRole(roleId, sharedContext)
 	}
 
@@ -190,15 +152,11 @@ export class AccessModuleService
 	): Promise<AccessRoleDTO[]> {
 		const roles = await super.listAccessRoles(filters, config as any, sharedContext)
 
-		const shouldIncludePolicies =
-			config.relations?.includes('policies') || config.select?.includes('policies')
+		const shouldIncludePolicies = config.relations?.includes('policies') || config.select?.includes('policies')
 
 		if (shouldIncludePolicies && roles.length > 0) {
 			const roleIds = roles.map(role => role.id)
-			const policiesByRole = await this.accessRepository_.listPoliciesForRoles(
-				roleIds,
-				sharedContext
-			)
+			const policiesByRole = await this.accessRepository_.listPoliciesForRoles(roleIds, sharedContext)
 
 			for (const role of roles) {
 				role.policies = policiesByRole.get(role.id) || []
@@ -215,21 +173,13 @@ export class AccessModuleService
 		config: FindConfig<AccessRoleDTO> = {},
 		@MedusaContext() sharedContext: Context = {}
 	): Promise<[AccessRoleDTO[], number]> {
-		const [roles, count] = await super.listAndCountAccessRoles(
-			filters,
-			config as any,
-			sharedContext
-		)
+		const [roles, count] = await super.listAndCountAccessRoles(filters, config as any, sharedContext)
 
-		const shouldIncludePolicies =
-			config.relations?.includes('policies') || config.select?.includes('policies')
+		const shouldIncludePolicies = config.relations?.includes('policies') || config.select?.includes('policies')
 
 		if (shouldIncludePolicies && roles.length > 0) {
 			const roleIds = roles.map(role => role.id)
-			const policiesByRole = await this.accessRepository_.listPoliciesForRoles(
-				roleIds,
-				sharedContext
-			)
+			const policiesByRole = await this.accessRepository_.listPoliciesForRoles(roleIds, sharedContext)
 
 			for (const role of roles) {
 				role.policies = policiesByRole.get(role.id) || []
@@ -241,29 +191,18 @@ export class AccessModuleService
 
 	@InjectManager()
 	// @ts-expect-error
-	async createAccessRoleParents(
-		data: CreateAccessRoleParentDTO[],
-		@MedusaContext() sharedContext: Context = {}
-	): Promise<AccessRoleParentDTO[]> {
+	async createAccessRoleParents(data: CreateAccessRoleParentDTO[], @MedusaContext() sharedContext: Context = {}): Promise<AccessRoleParentDTO[]> {
 		for (const parent of data) {
 			const { role_id, parent_id } = parent
 
 			if (role_id === parent_id) {
-				throw new Error(
-					`Cannot create role parent relationship: a role cannot be its own parent (role_id: ${role_id})`
-				)
+				throw new Error(`Cannot create role parent relationship: a role cannot be its own parent (role_id: ${role_id})`)
 			}
 
-			const wouldCreateCycle = await this.accessRepository_.checkForCycle(
-				role_id,
-				parent_id,
-				sharedContext
-			)
+			const wouldCreateCycle = await this.accessRepository_.checkForCycle(role_id, parent_id, sharedContext)
 
 			if (wouldCreateCycle) {
-				throw new Error(
-					`Cannot create role parent relationship: this would create a circular dependency (role_id: ${role_id}, parent_id: ${parent_id})`
-				)
+				throw new Error(`Cannot create role parent relationship: this would create a circular dependency (role_id: ${role_id}, parent_id: ${parent_id})`)
 			}
 		}
 
@@ -272,30 +211,19 @@ export class AccessModuleService
 
 	@InjectManager()
 	// @ts-expect-error
-	async updateAccessRoleParents(
-		data: UpdateAccessRoleParentDTO[],
-		@MedusaContext() sharedContext: Context = {}
-	): Promise<AccessRoleParentDTO[]> {
+	async updateAccessRoleParents(data: UpdateAccessRoleParentDTO[], @MedusaContext() sharedContext: Context = {}): Promise<AccessRoleParentDTO[]> {
 		for (const parent of data) {
 			const { role_id, parent_id } = parent
 
 			if (parent_id) {
 				if (role_id === parent_id) {
-					throw new Error(
-						`Cannot update role parent relationship: a role cannot be its own parent (role_id: ${role_id})`
-					)
+					throw new Error(`Cannot update role parent relationship: a role cannot be its own parent (role_id: ${role_id})`)
 				}
 
-				const wouldCreateCycle = await this.accessRepository_.checkForCycle(
-					role_id!,
-					parent_id,
-					sharedContext
-				)
+				const wouldCreateCycle = await this.accessRepository_.checkForCycle(role_id!, parent_id, sharedContext)
 
 				if (wouldCreateCycle) {
-					throw new Error(
-						`Cannot update role parent relationship: this would create a circular dependency (role_id: ${role_id}, parent_id: ${parent_id})`
-					)
+					throw new Error(`Cannot update role parent relationship: this would create a circular dependency (role_id: ${role_id}, parent_id: ${parent_id})`)
 				}
 			}
 		}

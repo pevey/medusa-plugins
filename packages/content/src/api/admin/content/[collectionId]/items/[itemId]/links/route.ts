@@ -2,15 +2,9 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { CONTENT_MODULE } from '../../../../../../../modules/content'
 import { ContentService } from '../../../../../../../modules/content/service'
-import {
-	AdminCreateContentItemLinkType,
-	AdminGetContentItemLinksType
-} from '../../../../../../validators'
+import { AdminCreateContentItemLinkType, AdminGetContentItemLinksType } from '../../../../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetContentItemLinksType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentItemLinksType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { itemId: source_item_id } = req.params
 
@@ -28,10 +22,7 @@ export const GET = async (
 	})
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateContentItemLinkType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateContentItemLinkType>, res: MedusaResponse) => {
 	const { itemId: source_item_id } = req.params
 	const { target_item_id, relationship_id } = req.validatedBody
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)

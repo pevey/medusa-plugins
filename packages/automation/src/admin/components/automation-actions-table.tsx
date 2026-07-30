@@ -74,20 +74,14 @@ export const AutomationActionsTable = ({ triggerId, triggerType, triggerEvents =
 				</Badge>
 			)
 		}),
-		columnHelper.accessor(
-			row =>
-				row.action_type === 'outgoing_webhook'
-					? (row.target_url ?? '—')
-					: (row.medusa_workflow ?? '—'),
-			{
-				id: 'destination',
-				header: 'Destination',
-				cell: ({ getValue }) => {
-					const val = getValue() as string
-					return val.length > 45 ? `${val.slice(0, 45)}…` : val
-				}
+		columnHelper.accessor(row => (row.action_type === 'outgoing_webhook' ? (row.target_url ?? '—') : (row.medusa_workflow ?? '—')), {
+			id: 'destination',
+			header: 'Destination',
+			cell: ({ getValue }) => {
+				const val = getValue() as string
+				return val.length > 45 ? `${val.slice(0, 45)}…` : val
 			}
-		)
+		})
 	]
 
 	const commandHelper = createDataTableCommandHelper()
@@ -139,13 +133,7 @@ export const AutomationActionsTable = ({ triggerId, triggerType, triggerEvents =
 				</DataTable>
 			</Container>
 
-			<CreateAutomationActionModal
-				triggerId={triggerId}
-				triggerType={triggerType}
-				triggerEvents={triggerEvents}
-				open={createOpen}
-				setOpen={setCreateOpen}
-			/>
+			<CreateAutomationActionModal triggerId={triggerId} triggerType={triggerType} triggerEvents={triggerEvents} open={createOpen} setOpen={setCreateOpen} />
 		</>
 	)
 }

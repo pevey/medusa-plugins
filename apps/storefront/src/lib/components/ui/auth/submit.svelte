@@ -7,6 +7,4 @@
 	const ctx = getAuthFormContext()
 </script>
 
-<Button type="submit" disabled={ctx.submitting} class={cn('w-full', className)}
-	>{@render children()}</Button
->
+<Button type="submit" disabled={ctx.submitting} class={cn('w-full', className)}>{@render children()}</Button>

@@ -17,8 +17,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 }
 
 export const handle = {
-	breadcrumb: ({ data }: UIMatch<ReviewLoaderData>) =>
-		data?.review?.author_name || data?.review?.id || 'Review'
+	breadcrumb: ({ data }: UIMatch<ReviewLoaderData>) => data?.review?.author_name || data?.review?.id || 'Review'
 }
 
 const STATUS_COLORS: Record<ReviewStatus, 'blue' | 'green' | 'red'> = {
@@ -93,12 +92,32 @@ const ReviewDetailPage = () => {
 		}
 	}
 
-	if (isLoading) return <Container className="p-6"><Text>Loading…</Text></Container>
-	if (!review) return <Container className="p-6"><Text>Review not found.</Text></Container>
+	if (isLoading)
+		return (
+			<Container className="p-6">
+				<Text>Loading…</Text>
+			</Container>
+		)
+	if (!review)
+		return (
+			<Container className="p-6">
+				<Text>Review not found.</Text>
+			</Container>
+		)
 
 	const fields: [string, React.ReactNode][] = [
-		['Status', <Badge size="xsmall" color={STATUS_COLORS[review.status]}>{STATUS_LABELS[review.status]}</Badge>],
-		['Featured', <Badge size="xsmall" color={review.featured ? 'green' : 'grey'}>{review.featured ? 'Yes' : 'No'}</Badge>],
+		[
+			'Status',
+			<Badge size="xsmall" color={STATUS_COLORS[review.status]}>
+				{STATUS_LABELS[review.status]}
+			</Badge>
+		],
+		[
+			'Featured',
+			<Badge size="xsmall" color={review.featured ? 'green' : 'grey'}>
+				{review.featured ? 'Yes' : 'No'}
+			</Badge>
+		],
 		['Rating', `${review.rating} / 5`],
 		['Author', review.author_name],
 		...(review.author_email ? [['Email', review.author_email] as [string, React.ReactNode]] : []),
@@ -118,20 +137,10 @@ const ReviewDetailPage = () => {
 					<div className="flex items-center gap-2">
 						{review.status === 'pending' && (
 							<>
-								<Button
-									size="small"
-									variant="secondary"
-									onClick={handleReject}
-									disabled={isUpdating}
-								>
+								<Button size="small" variant="secondary" onClick={handleReject} disabled={isUpdating}>
 									Reject
 								</Button>
-								<Button
-									size="small"
-									variant="primary"
-									onClick={handleApprove}
-									disabled={isUpdating}
-								>
+								<Button size="small" variant="primary" onClick={handleApprove} disabled={isUpdating}>
 									Approve
 								</Button>
 							</>
@@ -142,9 +151,7 @@ const ReviewDetailPage = () => {
 						<ActionMenu
 							groups={[
 								{
-									actions: [
-										{ label: 'Delete', icon: <Trash />, onClick: handleDelete }
-									]
+									actions: [{ label: 'Delete', icon: <Trash />, onClick: handleDelete }]
 								}
 							]}
 						/>

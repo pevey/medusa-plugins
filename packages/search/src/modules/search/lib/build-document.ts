@@ -44,7 +44,7 @@ export function buildProductDocument(p: ProductGraph): SearchDocumentInput {
 		primary_text: primary,
 		body_text: description,
 		weight: 1,
-		sales_channel_ids: (p.sales_channels ?? []).map((s) => s.id)
+		sales_channel_ids: (p.sales_channels ?? []).map(s => s.id)
 	}
 }
 

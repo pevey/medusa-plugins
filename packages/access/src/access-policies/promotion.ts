@@ -1,8 +1,6 @@
-import { definePolicies } from "../utils"
-import { generateResourcePolicies } from "../utils"
+import { definePolicies } from '../utils'
+import { generateResourcePolicies } from '../utils'
 
-const promotionResources = ["campaign", "promotion"]
+const promotionResources = ['campaign', 'promotion']
 
-export const promotionPolicies = definePolicies(
-  generateResourcePolicies(promotionResources)
-)
+export const promotionPolicies = definePolicies(generateResourcePolicies(promotionResources))

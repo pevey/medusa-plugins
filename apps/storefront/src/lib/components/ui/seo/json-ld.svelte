@@ -11,12 +11,7 @@
 	const processed = $derived(withContext(schema))
 	// Escape '<' so schema values can't break out of the script tag; split the CLOSING tag so
 	// the Svelte compiler doesn't end the module script block early.
-	const jsonLd = $derived(
-		'<script type="application/ld+json">' +
-			JSON.stringify(processed).replace(/</g, '\\u003c') +
-			'</scr' +
-			'ipt>'
-	)
+	const jsonLd = $derived('<script type="application/ld+json">' + JSON.stringify(processed).replace(/</g, '\\u003c') + '</scr' + 'ipt>')
 </script>
 
 <svelte:head>{@html jsonLd}</svelte:head>

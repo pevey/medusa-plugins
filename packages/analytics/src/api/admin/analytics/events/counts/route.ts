@@ -3,12 +3,8 @@ import { PRIVATE_ANALYTICS_MODULE } from '../../../../../modules/analytics'
 import type { PrivateAnalyticsService } from '../../../../../modules/analytics/service'
 import type { AdminGetEventCountsType } from '../../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetEventCountsType>,
-	res: MedusaResponse
-) => {
-	const privateAnalyticsService: PrivateAnalyticsService =
-		req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetEventCountsType>, res: MedusaResponse) => {
+	const privateAnalyticsService: PrivateAnalyticsService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
 	const validated = req.validatedQuery as AdminGetEventCountsType
 
 	const counts = await privateAnalyticsService.getEventCounts({

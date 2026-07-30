@@ -3,10 +3,7 @@ import { syncWarehouseToVeeqoWorkflow } from '../../../../../workflows/warehouse
 import { AdminSyncStockLocationsToVeeqoType } from '../../../../validators'
 
 // one-way sync of stock locations from medusa to veeqo
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminSyncStockLocationsToVeeqoType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminSyncStockLocationsToVeeqoType>, res: MedusaResponse) => {
 	const { stock_location_ids } = req.validatedBody
 	const results = await Promise.all(
 		stock_location_ids.map(stockLocationId =>

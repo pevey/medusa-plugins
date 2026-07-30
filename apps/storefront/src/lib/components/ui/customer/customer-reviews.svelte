@@ -73,14 +73,14 @@
 		get pageSize() {
 			return pageSize
 		},
-		setRating: (n) => {
+		setRating: n => {
 			rating = n
 		},
-		setOrder: (s) => {
+		setOrder: s => {
 			order = s
 			page = 0
 		},
-		setPage: (n) => {
+		setPage: n => {
 			page = n
 		},
 		// No local "just submitted" list to splice in here (unlike `Reviews.Root`'s fetch mode,

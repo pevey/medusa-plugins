@@ -1,16 +1,6 @@
 import { MedusaError, Modules } from '@medusajs/framework/utils'
-import {
-	createStep,
-	createWorkflow,
-	StepResponse,
-	WorkflowResponse,
-	transform
-} from '@medusajs/framework/workflows-sdk'
-import {
-	createPromotionsWorkflow,
-	createPromotionRulesWorkflow,
-	createCampaignsWorkflow
-} from '@medusajs/medusa/core-flows'
+import { createStep, createWorkflow, StepResponse, WorkflowResponse, transform } from '@medusajs/framework/workflows-sdk'
+import { createPromotionsWorkflow, createPromotionRulesWorkflow, createCampaignsWorkflow } from '@medusajs/medusa/core-flows'
 import { createRemoteLinkStep } from '@medusajs/medusa/core-flows'
 import { AFFILIATE_MODULE } from '../modules/affiliate'
 import { AffiliateService } from '../modules/affiliate/service'
@@ -88,10 +78,7 @@ export const createAffiliateBaseStep = createStep(
 			primary_address_id: address.id
 		}
 
-		return new StepResponse(
-			{ affiliate_id: affiliate.id, primary_address_id: address.id },
-			rollback
-		)
+		return new StepResponse({ affiliate_id: affiliate.id, primary_address_id: address.id }, rollback)
 	},
 	async (rollback: AffiliateRollback, { container }) => {
 		if (!rollback) return
@@ -102,63 +89,60 @@ export const createAffiliateBaseStep = createStep(
 
 export const createAffiliateWorkflowId = 'create-affiliate'
 
-export const createAffiliateWorkflow = createWorkflow(
-	createAffiliateWorkflowId,
-	(input: CreateAffiliateInput) => {
-		const base = createAffiliateBaseStep(input)
+export const createAffiliateWorkflow = createWorkflow(createAffiliateWorkflowId, (input: CreateAffiliateInput) => {
+	const base = createAffiliateBaseStep(input)
 
-		const campaignInput = transform({ input }, ({ input }) =>
-			input.first_promotion.end_date
-				? [
-						{
-							name: `Affiliate ${input.first_promotion.code} campaign`,
-							campaign_identifier: `affiliate-${input.first_promotion.code}`,
-							starts_at: new Date(),
-							ends_at: new Date(input.first_promotion.end_date)
-						}
-					]
-				: []
-		)
+	const campaignInput = transform({ input }, ({ input }) =>
+		input.first_promotion.end_date
+			? [
+					{
+						name: `Affiliate ${input.first_promotion.code} campaign`,
+						campaign_identifier: `affiliate-${input.first_promotion.code}`,
+						starts_at: new Date(),
+						ends_at: new Date(input.first_promotion.end_date)
+					}
+				]
+			: []
+	)
 
-		const campaigns = createCampaignsWorkflow.runAsStep({
-			input: { campaignsData: campaignInput }
-		})
+	const campaigns = createCampaignsWorkflow.runAsStep({
+		input: { campaignsData: campaignInput }
+	})
 
-		const promotionInput = transform({ input, campaigns }, ({ input, campaigns }) => [
-			{
-				code: input.first_promotion.code,
-				type: 'standard' as const,
-				is_automatic: false,
-				status: 'active' as const,
-				campaign_id: campaigns.length ? campaigns[0].id : undefined,
-				application_method: {
-					type: input.first_promotion.discount_type,
-					value: input.first_promotion.discount_value,
-					target_type: 'order' as const,
-					currency_code: input.currency_code ?? undefined
-				}
+	const promotionInput = transform({ input, campaigns }, ({ input, campaigns }) => [
+		{
+			code: input.first_promotion.code,
+			type: 'standard' as const,
+			is_automatic: false,
+			status: 'active' as const,
+			campaign_id: campaigns.length ? campaigns[0].id : undefined,
+			application_method: {
+				type: input.first_promotion.discount_type,
+				value: input.first_promotion.discount_value,
+				target_type: 'order' as const,
+				currency_code: input.currency_code ?? undefined
 			}
-		])
+		}
+	])
 
-		const promotions = createPromotionsWorkflow.runAsStep({
-			input: { promotionsData: promotionInput }
-		})
+	const promotions = createPromotionsWorkflow.runAsStep({
+		input: { promotionsData: promotionInput }
+	})
 
-		const linkInput = transform({ base, promotions }, ({ base, promotions }) => [
-			{
-				[AFFILIATE_MODULE]: { affiliate_id: base.affiliate_id },
-				[Modules.PROMOTION]: { promotion_id: promotions[0].id }
-			}
-		])
+	const linkInput = transform({ base, promotions }, ({ base, promotions }) => [
+		{
+			[AFFILIATE_MODULE]: { affiliate_id: base.affiliate_id },
+			[Modules.PROMOTION]: { promotion_id: promotions[0].id }
+		}
+	])
 
-		createRemoteLinkStep(linkInput)
+	createRemoteLinkStep(linkInput)
 
-		const result = transform({ base, promotions }, ({ base, promotions }) => ({
-			affiliate_id: base.affiliate_id,
-			primary_address_id: base.primary_address_id,
-			promotion_id: promotions[0].id
-		}))
+	const result = transform({ base, promotions }, ({ base, promotions }) => ({
+		affiliate_id: base.affiliate_id,
+		primary_address_id: base.primary_address_id,
+		promotion_id: promotions[0].id
+	}))
 
-		return new WorkflowResponse(result)
-	}
-)
+	return new WorkflowResponse(result)
+})

@@ -31,7 +31,7 @@
 <Carousel.Root
 	orientation={resolvedOrientation}
 	opts={{ dragFree: true }}
-	setApi={(a) => (gallery.thumbApi = a)}
+	setApi={a => (gallery.thumbApi = a)}
 	class={cn(RAIL[layout.thumbnailBreakpoint], vertical ? 'w-20' : 'w-full', className)}
 >
 	<Carousel.Content>{@render children()}</Carousel.Content>

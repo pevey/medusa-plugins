@@ -28,10 +28,7 @@ type EventPayloadForShipment = { id: string; no_notification: boolean }
 
 type EventPayload = EventPayloadWithId | EventPayloadForAuth | EventPayloadForShipment
 
-export default async function emailDispatchHandler({
-	event: { data, name },
-	container
-}: SubscriberArgs<EventPayload>) {
+export default async function emailDispatchHandler({ event: { data, name }, container }: SubscriberArgs<EventPayload>) {
 	switch (name) {
 		case 'auth.password_reset':
 			await sendAuthResetPasswordNotificationWorkflow(container).run({

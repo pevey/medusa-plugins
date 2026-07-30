@@ -86,20 +86,14 @@ const AutomationsPage = () => {
 				</Badge>
 			)
 		}),
-		columnHelper.accessor(
-			row =>
-				row.trigger_type === 'medusa_event'
-					? (row.trigger_events ?? []).join(', ') || '—'
-					: 'POST /webhooks/' + row.id,
-			{
-				id: 'details',
-				header: 'Details',
-				cell: ({ getValue }) => {
-					const val = getValue() as string
-					return val.length > 55 ? `${val.slice(0, 55)}…` : val
-				}
+		columnHelper.accessor(row => (row.trigger_type === 'medusa_event' ? (row.trigger_events ?? []).join(', ') || '—' : 'POST /webhooks/' + row.id), {
+			id: 'details',
+			header: 'Details',
+			cell: ({ getValue }) => {
+				const val = getValue() as string
+				return val.length > 55 ? `${val.slice(0, 55)}…` : val
 			}
-		)
+		})
 	]
 
 	const [rowSelection, setRowSelection] = useState<DataTableRowSelectionState>({})

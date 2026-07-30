@@ -16,9 +16,7 @@
 			onclick={() => gallery.select(i)}
 			class={cn(
 				'block overflow-hidden rounded-[var(--radius)] border-2 transition',
-				gallery.selected === i
-					? 'border-primary'
-					: 'border-transparent opacity-70 hover:opacity-100',
+				gallery.selected === i ? 'border-primary' : 'border-transparent opacity-70 hover:opacity-100',
 				className
 			)}
 		>

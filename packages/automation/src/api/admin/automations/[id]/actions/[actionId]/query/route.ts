@@ -11,10 +11,7 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 	res.json({ query: queries[0] ?? null })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpsertAutomationQueryType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpsertAutomationQueryType>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { actionId } = req.params
 	const body = req.validatedBody

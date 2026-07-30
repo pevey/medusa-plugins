@@ -32,9 +32,7 @@ export function domCssVarResolver(): CssVarResolver {
 		ctx.fillStyle = raw
 		ctx.fillRect(0, 0, 1, 1)
 		const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data
-		return a === 255
-			? `rgb(${r}, ${g}, ${b})`
-			: `rgba(${r}, ${g}, ${b}, ${+(a / 255).toFixed(3)})`
+		return a === 255 ? `rgb(${r}, ${g}, ${b})` : `rgba(${r}, ${g}, ${b}, ${+(a / 255).toFixed(3)})`
 	}
 }
 

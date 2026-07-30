@@ -46,7 +46,11 @@ export class AnthropicProvider implements LlmProvider {
 		systemPrompt: string
 		signal?: AbortSignal
 	}): AsyncIterable<StreamEvent> {
-		const anthropicTools = tools.map(t => ({ name: t.name, description: t.description, input_schema: t.inputSchema as any }))
+		const anthropicTools = tools.map(t => ({
+			name: t.name,
+			description: t.description,
+			input_schema: t.inputSchema as any
+		}))
 		const stream = this.client.messages.stream(
 			{
 				model: this.model,
@@ -62,7 +66,11 @@ export class AnthropicProvider implements LlmProvider {
 
 		for await (const ev of stream) {
 			if (ev.type === 'content_block_start' && ev.content_block.type === 'tool_use') {
-				pending.set(ev.index, { id: ev.content_block.id, name: ev.content_block.name, json: '' })
+				pending.set(ev.index, {
+					id: ev.content_block.id,
+					name: ev.content_block.name,
+					json: ''
+				})
 			} else if (ev.type === 'content_block_delta') {
 				if (ev.delta.type === 'text_delta') {
 					yield { type: 'text', delta: ev.delta.text }
@@ -74,7 +82,12 @@ export class AnthropicProvider implements LlmProvider {
 				const p = pending.get(ev.index)
 				if (p) {
 					pending.delete(ev.index)
-					yield { type: 'tool_use', id: p.id, name: p.name, input: p.json ? JSON.parse(p.json) : {} }
+					yield {
+						type: 'tool_use',
+						id: p.id,
+						name: p.name,
+						input: p.json ? JSON.parse(p.json) : {}
+					}
 				}
 			}
 		}

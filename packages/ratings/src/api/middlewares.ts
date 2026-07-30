@@ -1,9 +1,4 @@
-import {
-	authenticate,
-	defineMiddlewares,
-	validateAndTransformBody,
-	validateAndTransformQuery
-} from '@medusajs/framework/http'
+import { authenticate, defineMiddlewares, validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework/http'
 import {
 	AdminApproveReviews,
 	AdminRejectReviews,
@@ -147,18 +142,7 @@ export default defineMiddlewares([
 		middlewares: [
 			authenticate('customer', 'bearer', { allowUnauthenticated: true }),
 			validateAndTransformQuery(StoreGetReviews, {
-				defaults: [
-					'id',
-					'status',
-					'rating',
-					'title',
-					'body',
-					'author_name',
-					'product_id',
-					'customer_id',
-					'featured',
-					'created_at'
-				],
+				defaults: ['id', 'status', 'rating', 'title', 'body', 'author_name', 'product_id', 'customer_id', 'featured', 'created_at'],
 				isList: true,
 				defaultLimit: 20
 			})

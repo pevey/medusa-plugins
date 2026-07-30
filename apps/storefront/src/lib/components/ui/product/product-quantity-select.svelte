@@ -13,23 +13,14 @@
 		navigate?: (href: string) => void
 		class?: string
 	}
-	let {
-		minQuantity = 1,
-		stepQuantity = 1,
-		maxQuantity = 10,
-		value = $bindable(1),
-		navigate = goto,
-		class: className = ''
-	}: Props = $props()
+	let { minQuantity = 1, stepQuantity = 1, maxQuantity = 10, value = $bindable(1), navigate = goto, class: className = '' }: Props = $props()
 
 	const ctx = getProductContextOptional()
 
 	// Inside Product.Root the quantity is URL-derived (ctx.quantity); standalone it's the bindable value.
 	const current = $derived(ctx ? ctx.quantity : value)
 	const variant = $derived(ctx?.selectedVariant ?? null)
-	const options = $derived(
-		logic.quantityRange(variant, { min: minQuantity, step: stepQuantity, max: maxQuantity })
-	)
+	const options = $derived(logic.quantityRange(variant, { min: minQuantity, step: stepQuantity, max: maxQuantity }))
 	const hi = $derived(logic.effectiveMax(variant, maxQuantity))
 	const disabled = $derived(hi < minQuantity)
 	const shown = $derived(logic.clampQuantity(current, minQuantity, Math.max(hi, minQuantity)))
@@ -47,19 +38,10 @@
 </script>
 
 <div class="relative">
-	<select
-		data-quantity-select
-		aria-label="Quantity"
-		{disabled}
-		value={String(shown)}
-		{onchange}
-		class={cn(selectClass, className)}
-	>
+	<select data-quantity-select aria-label="Quantity" {disabled} value={String(shown)} {onchange} class={cn(selectClass, className)}>
 		{#each options as n (n)}
 			<option value={String(n)}>{n}</option>
 		{/each}
 	</select>
-	<ChevronDown
-		class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 opacity-50"
-	/>
+	<ChevronDown class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 opacity-50" />
 </div>

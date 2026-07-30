@@ -22,14 +22,22 @@ export const GET = async (req: MedusaRequest<StoreGetReviewsType>, res: MedusaRe
 	const caching = resolveCaching(req)
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const customerId = (req as AuthenticatedMedusaRequest).auth_context?.actor_id
-	const { featured, rating, limit = 20, offset = 0, order } = req.validatedQuery as StoreGetReviewsType & {
-		limit?: number; offset?: number; order?: string
+	const {
+		featured,
+		rating,
+		limit = 20,
+		offset = 0,
+		order
+	} = req.validatedQuery as StoreGetReviewsType & {
+		limit?: number
+		offset?: number
+		order?: string
 	}
 
 	const cacheKey = buildListCacheKey(productId)
 	let approvedReviews: any[]
 
-	const cached = caching ? (await caching.get({ key: cacheKey })) as { reviews: any[] } | null : null
+	const cached = caching ? ((await caching.get({ key: cacheKey })) as { reviews: any[] } | null) : null
 	if (cached) {
 		approvedReviews = cached.reviews
 	} else {
@@ -40,7 +48,11 @@ export const GET = async (req: MedusaRequest<StoreGetReviewsType>, res: MedusaRe
 		})
 		approvedReviews = data
 		if (caching) {
-			await caching.set({ key: cacheKey, data: { reviews: approvedReviews } as unknown as object, ttl: TTL })
+			await caching.set({
+				key: cacheKey,
+				data: { reviews: approvedReviews } as unknown as object,
+				ttl: TTL
+			})
 		}
 	}
 
@@ -62,7 +74,8 @@ export const GET = async (req: MedusaRequest<StoreGetReviewsType>, res: MedusaRe
 
 	const [field, dir] = order?.startsWith('-') ? [order.slice(1), -1] : [order ?? 'created_at', 1]
 	rows = [...rows].sort((a, b) => {
-		const av = a[field], bv = b[field]
+		const av = a[field],
+			bv = b[field]
 		if (av === bv) return 0
 		return (av > bv ? 1 : -1) * (dir as number)
 	})
@@ -72,10 +85,7 @@ export const GET = async (req: MedusaRequest<StoreGetReviewsType>, res: MedusaRe
 	res.json({ reviews: page, count, limit, offset })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<StoreCreateReviewType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<StoreCreateReviewType>, res: MedusaResponse) => {
 	const { productId } = req.params
 	const customerId = req.auth_context.actor_id
 	const caching = resolveCaching(req)

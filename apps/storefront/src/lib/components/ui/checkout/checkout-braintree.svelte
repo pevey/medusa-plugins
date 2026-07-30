@@ -15,12 +15,7 @@
 		onerror?: (err: unknown) => void
 		class?: string
 	}
-	let {
-		form = braintreeCheckoutForm as unknown as RemoteForm<any, any>,
-		googlePlacesApiKey,
-		restrictToCurrentRegion,
-		...rest
-	}: Props = $props()
+	let { form = braintreeCheckoutForm as unknown as RemoteForm<any, any>, googlePlacesApiKey, restrictToCurrentRegion, ...rest }: Props = $props()
 </script>
 
 <form {...form}>

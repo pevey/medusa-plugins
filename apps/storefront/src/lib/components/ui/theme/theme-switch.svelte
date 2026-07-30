@@ -10,13 +10,7 @@
 		'aria-label'?: string
 		field?: RemoteFormField<any>
 	}
-	let {
-		onMode = 'light',
-		size = 'default',
-		class: className = '',
-		'aria-label': ariaLabel = 'Toggle theme',
-		field
-	}: Props = $props()
+	let { onMode = 'light', size = 'default', class: className = '', 'aria-label': ariaLabel = 'Toggle theme', field }: Props = $props()
 
 	const otherMode = $derived<'light' | 'dark'>(onMode === 'light' ? 'dark' : 'light')
 	const checked = $derived(mode.current === onMode)

@@ -13,8 +13,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 }
 
 export const handle = {
-	breadcrumb: ({ data }: UIMatch<PolicyLoaderData>) =>
-		data?.policy?.key || data?.policy?.id || 'Policy'
+	breadcrumb: ({ data }: UIMatch<PolicyLoaderData>) => data?.policy?.key || data?.policy?.id || 'Policy'
 }
 
 const Row = ({ label, value }: { label: string; value?: string | null }) => (
@@ -72,7 +71,7 @@ const PolicyDetailPage = () => {
 					roles.map(r => (
 						<div
 							key={r.id}
-							className="flex cursor-pointer items-center justify-between px-6 py-4 hover:bg-ui-bg-subtle"
+							className="hover:bg-ui-bg-subtle flex cursor-pointer items-center justify-between px-6 py-4"
 							onClick={() => navigate(`/settings/access-roles/${r.id}`)}
 						>
 							<div className="flex flex-col">

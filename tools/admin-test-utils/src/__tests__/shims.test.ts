@@ -1,18 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { z } from 'zod'
-import {
-	defineMiddlewares,
-	validateAndTransformBody,
-	validateAndTransformQuery,
-	authenticate
-} from '../shims/framework-http.js'
+import { defineMiddlewares, validateAndTransformBody, validateAndTransformQuery, authenticate } from '../shims/framework-http.js'
 import { createFindParams } from '../shims/medusa-validators.js'
 
 describe('framework-http shim', () => {
 	it('normalizes `method` to `methods` and preserves unknown keys', () => {
-		const result = defineMiddlewares([
-			{ matcher: '/admin/things', method: ['GET'], middlewares: [], policies: ['read'] }
-		])
+		const result = defineMiddlewares([{ matcher: '/admin/things', method: ['GET'], middlewares: [], policies: ['read'] }])
 		expect(result.routes[0].methods).toEqual(['GET'])
 		expect(result.routes[0]).not.toHaveProperty('method')
 		expect(result.routes[0].policies).toEqual(['read'])
@@ -66,7 +59,7 @@ describe('createFindParams shim', () => {
 		expect(parsed.offset).toBe(0)
 	})
 
-	it('applies Medusa\'s own defaults when called bare', () => {
+	it("applies Medusa's own defaults when called bare", () => {
 		// Real `createFindParams()` defaults to `offset ?? 0` / `limit ?? 20` unconditionally —
 		// the caller's options only change WHICH default, never WHETHER there is one. Every
 		// plugin in this repo calls it bare, so this is the path that matters most.

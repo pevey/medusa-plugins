@@ -1,8 +1,4 @@
-import {
-	defineMiddlewares,
-	validateAndTransformBody,
-	validateAndTransformQuery
-} from '@medusajs/framework/http'
+import { defineMiddlewares, validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework/http'
 import {
 	AdminGetRubrics,
 	AdminGetRubric,
@@ -33,15 +29,7 @@ export default defineMiddlewares({
 			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminGetRubrics, {
-					defaults: [
-						'id',
-						'name',
-						'label',
-						'description',
-						'active',
-						'created_at',
-						'updated_at'
-					],
+					defaults: ['id', 'name', 'label', 'description', 'active', 'created_at', 'updated_at'],
 					isList: true,
 					defaultLimit: 50
 				})
@@ -62,16 +50,7 @@ export default defineMiddlewares({
 			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminGetRubric, {
-					defaults: [
-						'id',
-						'name',
-						'label',
-						'description',
-						'expected_properties',
-						'active',
-						'created_at',
-						'updated_at'
-					],
+					defaults: ['id', 'name', 'label', 'description', 'expected_properties', 'active', 'created_at', 'updated_at'],
 					isList: false
 				})
 			]
@@ -87,16 +66,7 @@ export default defineMiddlewares({
 			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminGetEvents, {
-					defaults: [
-						'id',
-						'event',
-						'actor_id',
-						'source',
-						'sales_channel_id',
-						'properties',
-						'timestamp',
-						'created_at'
-					],
+					defaults: ['id', 'event', 'actor_id', 'source', 'sales_channel_id', 'properties', 'timestamp', 'created_at'],
 					isList: true,
 					defaultLimit: 50
 				})
@@ -119,17 +89,7 @@ export default defineMiddlewares({
 			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminGetFunnels, {
-					defaults: [
-						'id',
-						'name',
-						'label',
-						'description',
-						'steps',
-						'sales_channel_id',
-						'is_default',
-						'created_at',
-						'updated_at'
-					],
+					defaults: ['id', 'name', 'label', 'description', 'steps', 'sales_channel_id', 'is_default', 'created_at', 'updated_at'],
 					isList: true,
 					defaultLimit: 50
 				})
@@ -150,17 +110,7 @@ export default defineMiddlewares({
 			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminGetFunnel, {
-					defaults: [
-						'id',
-						'name',
-						'label',
-						'description',
-						'steps',
-						'sales_channel_id',
-						'is_default',
-						'created_at',
-						'updated_at'
-					],
+					defaults: ['id', 'name', 'label', 'description', 'steps', 'sales_channel_id', 'is_default', 'created_at', 'updated_at'],
 					isList: false
 				})
 			]
@@ -176,17 +126,7 @@ export default defineMiddlewares({
 			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminGetSegments, {
-					defaults: [
-						'id',
-						'name',
-						'label',
-						'description',
-						'rules',
-						'sales_channel_id',
-						'created_by',
-						'created_at',
-						'updated_at'
-					],
+					defaults: ['id', 'name', 'label', 'description', 'rules', 'sales_channel_id', 'created_by', 'created_at', 'updated_at'],
 					isList: true,
 					defaultLimit: 50
 				})
@@ -207,17 +147,7 @@ export default defineMiddlewares({
 			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminGetSegment, {
-					defaults: [
-						'id',
-						'name',
-						'label',
-						'description',
-						'rules',
-						'sales_channel_id',
-						'created_by',
-						'created_at',
-						'updated_at'
-					],
+					defaults: ['id', 'name', 'label', 'description', 'rules', 'sales_channel_id', 'created_by', 'created_at', 'updated_at'],
 					isList: false
 				})
 			]

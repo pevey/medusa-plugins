@@ -18,11 +18,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
 	const [trigger] = await automationService.listAutomationTriggers({ id }, { take: 1 })
 
-	if (
-		!trigger ||
-		trigger.trigger_type !== AutomationTriggerType.INCOMING_WEBHOOK ||
-		!trigger.is_active
-	) {
+	if (!trigger || trigger.trigger_type !== AutomationTriggerType.INCOMING_WEBHOOK || !trigger.is_active) {
 		return res.status(404).json({ error: 'Webhook not found or not active' })
 	}
 
@@ -52,9 +48,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 			const headerName = (sigConfig.header ?? 'x-webhook-signature').toLowerCase()
 			const sigValue = req.headers[headerName] as string | undefined
 			if (sigValue) {
-				const seen = automationService
-					.getSignatureCache()
-					.checkAndRecord(trigger.id, sigValue, sigConfig.tolerance_seconds!)
+				const seen = automationService.getSignatureCache().checkAndRecord(trigger.id, sigValue, sigConfig.tolerance_seconds!)
 				if (seen) {
 					return res.status(409).json({ error: 'Replayed signature' })
 				}
@@ -66,10 +60,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
 	// Log the receipt if enabled for this trigger
 	if ((trigger as any).log_incoming) {
-		const requestIp =
-			(req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ??
-			req.socket?.remoteAddress ??
-			null
+		const requestIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ?? req.socket?.remoteAddress ?? null
 		await automationService.createAutomationReceipts({
 			trigger_id: trigger.id,
 			request_ip: requestIp,
@@ -94,14 +85,10 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 	}
 
 	const results = await Promise.allSettled(
-		actions.map(action =>
-			dispatchAndRecord(req.scope, action, incomingPayload, `incoming_webhook:${action.name}`, opts)
-		)
+		actions.map(action => dispatchAndRecord(req.scope, action, incomingPayload, `incoming_webhook:${action.name}`, opts))
 	)
 
-	const anyFailed = results.some(
-		r => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.status === 'failed')
-	)
+	const anyFailed = results.some(r => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.status === 'failed'))
 
 	res.status(anyFailed ? 207 : 200).json({
 		received: true,

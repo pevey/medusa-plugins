@@ -1,18 +1,5 @@
 import * as zod from 'zod'
-import {
-	Badge,
-	Button,
-	FocusModal,
-	Heading,
-	Input,
-	Label,
-	RadioGroup,
-	Select,
-	Switch,
-	Text,
-	Textarea,
-	toast
-} from '@medusajs/ui'
+import { Badge, Button, FocusModal, Heading, Input, Label, RadioGroup, Select, Switch, Text, Textarea, toast } from '@medusajs/ui'
 import { useEffect } from 'react'
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form'
 import { useBlocker } from 'react-router-dom'
@@ -29,14 +16,16 @@ const schema = zod.object({
 	trigger_type: zod.enum(['medusa_event', 'incoming_webhook'] satisfies [TriggerType, ...TriggerType[]]),
 	trigger_events: zod.array(zod.string()).optional(),
 	trigger_signing_key: zod.string().optional(),
-	signature_config: zod.object({
-		header: zod.string().optional(),
-		encoding: zod.enum(['hex', 'base64']).optional(),
-		prefix: zod.string().optional(),
-		template: zod.string().optional(),
-		timestamp_header: zod.string().optional(),
-		tolerance_seconds: zod.string().optional() // form gives string; converted in onSubmit
-	}).optional(),
+	signature_config: zod
+		.object({
+			header: zod.string().optional(),
+			encoding: zod.enum(['hex', 'base64']).optional(),
+			prefix: zod.string().optional(),
+			template: zod.string().optional(),
+			timestamp_header: zod.string().optional(),
+			tolerance_seconds: zod.string().optional() // form gives string; converted in onSubmit
+		})
+		.optional(),
 	log_incoming: zod.boolean().optional()
 })
 
@@ -44,15 +33,8 @@ type FormData = zod.infer<typeof schema>
 
 // ─── EventMultiSelect ─────────────────────────────────────────────────────────
 
-const EventMultiSelect = ({
-	value,
-	onChange
-}: {
-	value: string[]
-	onChange: (v: string[]) => void
-}) => {
-	const toggle = (name: string) =>
-		onChange(value.includes(name) ? value.filter(e => e !== name) : [...value, name])
+const EventMultiSelect = ({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) => {
+	const toggle = (name: string) => onChange(value.includes(name) ? value.filter(e => e !== name) : [...value, name])
 	return (
 		<div className="flex flex-col">
 			{MEDUSA_EVENT_CATEGORIES.map(cat => (
@@ -61,12 +43,7 @@ const EventMultiSelect = ({
 						{cat}
 					</Text> */}
 					{MEDUSA_EVENTS.filter(e => e.category === cat).map(ev => (
-						<button
-							key={ev.name}
-							type="button"
-							onClick={() => toggle(ev.name)}
-							className="cursor-pointer m-1"
-						>
+						<button key={ev.name} type="button" onClick={() => toggle(ev.name)} className="m-1 cursor-pointer">
 							<Badge size="xsmall" color={value.includes(ev.name) ? 'orange' : 'grey'}>
 								{ev.label}
 							</Badge>
@@ -159,12 +136,17 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 		<FocusModal open={open} onOpenChange={setOpen}>
 			<FocusModal.Content>
 				<FormProvider {...form}>
-					<form onSubmit={onSubmit} className="flex flex-col h-full">
+					<form onSubmit={onSubmit} className="flex h-full flex-col">
 						<FocusModal.Header></FocusModal.Header>
 						<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 							<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 								<div className="flex flex-col gap-y-4">
-									<Heading level="h1">Create Trigger</Heading>
+									<FocusModal.Title asChild>
+										<Heading level="h1">Create Trigger</Heading>
+									</FocusModal.Title>
+									<FocusModal.Description className="sr-only">
+										Create a new trigger: name it and choose the Medusa events or incoming webhook that starts it.
+									</FocusModal.Description>
 									<div className="flex flex-col gap-y-1">
 										<Label htmlFor="wt-name" size="small" weight="plus">
 											Name
@@ -174,11 +156,7 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 											control={control}
 											render={({ field, fieldState }) => (
 												<>
-													<Input
-														id="wt-name"
-														{...field}
-														placeholder="My Webhook Trigger"
-													/>
+													<Input id="wt-name" {...field} placeholder="My Webhook Trigger" />
 													{fieldState.error && (
 														<Text size="small" className="text-ui-fg-error">
 															{fieldState.error.message}
@@ -195,13 +173,7 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 										<Controller
 											name="description"
 											control={control}
-											render={({ field }) => (
-												<Textarea
-													id="wt-desc"
-													{...field}
-													placeholder="Optional description…"
-												/>
-											)}
+											render={({ field }) => <Textarea id="wt-desc" {...field} placeholder="Optional description…" />}
 										/>
 									</div>
 									<div>
@@ -223,8 +195,7 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 																Medusa Event
 															</Label>
 															<Text size="small" className="text-ui-fg-subtle">
-																One or more Medusa events fire (order placed,
-																customer created, etc.)
+																One or more Medusa events fire (order placed, customer created, etc.)
 															</Text>
 														</div>
 													</label>
@@ -232,16 +203,9 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 														htmlFor="trig-webhook"
 														className={`flex cursor-pointer items-start gap-x-3 rounded-lg border p-4 transition-colors ${field.value === 'incoming_webhook' ? 'border-ui-border-interactive bg-ui-bg-field' : 'border-ui-border-base bg-ui-bg-base'}`}
 													>
-														<RadioGroup.Item
-															value="incoming_webhook"
-															id="trig-webhook"
-														/>
+														<RadioGroup.Item value="incoming_webhook" id="trig-webhook" />
 														<div>
-															<Label
-																htmlFor="trig-webhook"
-																size="small"
-																weight="plus"
-															>
+															<Label htmlFor="trig-webhook" size="small" weight="plus">
 																Incoming Webhook
 															</Label>
 															<Text size="small" className="text-ui-fg-subtle">
@@ -262,56 +226,37 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 											<Controller
 												name="trigger_events"
 												control={control}
-												render={({ field }) => (
-													<EventMultiSelect
-														value={field.value ?? []}
-														onChange={field.onChange}
-													/>
-												)}
+												render={({ field }) => <EventMultiSelect value={field.value ?? []} onChange={field.onChange} />}
 											/>
 										</div>
 									)}
 
 									{triggerType === 'incoming_webhook' && (
-										<div className="flex flex-col gap-y-3 rounded-lg border border-ui-border-base p-4">
+										<div className="border-ui-border-base flex flex-col gap-y-3 rounded-lg border p-4">
 											<Text size="small" weight="plus" leading="compact">
 												Webhook URL
 											</Text>
 											<Text size="small" className="text-ui-fg-subtle">
 												After saving, external services should POST to:
 											</Text>
-											<code className="font-mono text-xs bg-ui-bg-subtle rounded px-2 py-1 text-ui-fg-subtle">
+											<code className="bg-ui-bg-subtle text-ui-fg-subtle rounded px-2 py-1 font-mono text-xs">
 												{window.location.origin}/webhooks/{'<trigger-id>'}
 											</code>
-											<div className="flex flex-col gap-y-1 mt-2">
+											<div className="mt-2 flex flex-col gap-y-1">
 												<Label htmlFor="wt-signing-key" size="small" weight="plus">
-													Signing Key{' '}
-													<span className="text-ui-fg-subtle font-normal">
-														(optional)
-													</span>
+													Signing Key <span className="text-ui-fg-subtle font-normal">(optional)</span>
 												</Label>
 												<Text size="small" className="text-ui-fg-subtle">
-													If set, incoming requests must include a matching HMAC-SHA256
-													signature in the{' '}
-													<code className="font-mono text-xs">
-														x-webhook-signature
-													</code>{' '}
-													header.
+													If set, incoming requests must include a matching HMAC-SHA256 signature in the{' '}
+													<code className="font-mono text-xs">x-webhook-signature</code> header.
 												</Text>
 												<Controller
 													name="trigger_signing_key"
 													control={control}
-													render={({ field }) => (
-														<Input
-															id="wt-signing-key"
-															{...field}
-															type="password"
-															placeholder="my-secret-key"
-														/>
-													)}
+													render={({ field }) => <Input id="wt-signing-key" {...field} type="password" placeholder="my-secret-key" />}
 												/>
 											</div>
-											<div className="flex items-center justify-between mt-2">
+											<div className="mt-2 flex items-center justify-between">
 												<div>
 													<Label htmlFor="wt-log-incoming" size="small" weight="plus">
 														Log Incoming Payloads
@@ -323,13 +268,7 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 												<Controller
 													name="log_incoming"
 													control={control}
-													render={({ field }) => (
-														<Switch
-															id="wt-log-incoming"
-															checked={field.value ?? false}
-															onCheckedChange={field.onChange}
-														/>
-													)}
+													render={({ field }) => <Switch id="wt-log-incoming" checked={field.value ?? false} onCheckedChange={field.onChange} />}
 												/>
 											</div>
 
@@ -338,25 +277,23 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 													<Text size="small" weight="plus" className="inline">
 														Advanced signing options
 													</Text>
-													<Text size="xsmall" className="text-ui-fg-subtle inline ml-2">
+													<Text size="xsmall" className="text-ui-fg-subtle ml-2 inline">
 														(only needed for non-default senders)
 													</Text>
 												</summary>
-												<div className="flex flex-col gap-y-3 mt-3 pl-2 border-l border-ui-border-base">
+												<div className="border-ui-border-base mt-3 flex flex-col gap-y-3 border-l pl-2">
 													<div>
 														<Label htmlFor="wt-sig-header" size="small" weight="plus">
 															Signature Header
 														</Label>
 														<Text size="xsmall" className="text-ui-fg-subtle">
-															Default: <code className="font-mono">x-webhook-signature</code>.
-															Override for senders like GitHub (<code className="font-mono">X-Hub-Signature-256</code>) or Slack.
+															Default: <code className="font-mono">x-webhook-signature</code>. Override for senders like GitHub (
+															<code className="font-mono">X-Hub-Signature-256</code>) or Slack.
 														</Text>
 														<Controller
 															name="signature_config.header"
 															control={control}
-															render={({ field }) => (
-																<Input id="wt-sig-header" {...field} placeholder="x-webhook-signature" />
-															)}
+															render={({ field }) => <Input id="wt-sig-header" {...field} placeholder="x-webhook-signature" />}
 														/>
 													</div>
 													<div>
@@ -387,15 +324,12 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 															Header Prefix
 														</Label>
 														<Text size="xsmall" className="text-ui-fg-subtle">
-															Stripped from the header value before decoding. E.g.{' '}
-															<code className="font-mono">sha256=</code> for GitHub.
+															Stripped from the header value before decoding. E.g. <code className="font-mono">sha256=</code> for GitHub.
 														</Text>
 														<Controller
 															name="signature_config.prefix"
 															control={control}
-															render={({ field }) => (
-																<Input id="wt-sig-prefix" {...field} placeholder="(none)" />
-															)}
+															render={({ field }) => <Input id="wt-sig-prefix" {...field} placeholder="(none)" />}
 														/>
 													</div>
 													<div>
@@ -403,17 +337,13 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 															Signed Input Template
 														</Label>
 														<Text size="xsmall" className="text-ui-fg-subtle">
-															Supports <code className="font-mono">{'{body}'}</code> and{' '}
-															<code className="font-mono">{'{ts}'}</code>. Default:{' '}
-															<code className="font-mono">{'{body}'}</code>. Slack-style:{' '}
-															<code className="font-mono">{'v0:{ts}:{body}'}</code>.
+															Supports <code className="font-mono">{'{body}'}</code> and <code className="font-mono">{'{ts}'}</code>. Default:{' '}
+															<code className="font-mono">{'{body}'}</code>. Slack-style: <code className="font-mono">{'v0:{ts}:{body}'}</code>.
 														</Text>
 														<Controller
 															name="signature_config.template"
 															control={control}
-															render={({ field }) => (
-																<Input id="wt-sig-template" {...field} placeholder="{body}" />
-															)}
+															render={({ field }) => <Input id="wt-sig-template" {...field} placeholder="{body}" />}
 														/>
 													</div>
 													<div>
@@ -421,15 +351,12 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 															Timestamp Header
 														</Label>
 														<Text size="xsmall" className="text-ui-fg-subtle">
-															Header to read the timestamp from for{' '}
-															<code className="font-mono">{'{ts}'}</code> substitution and replay checks.
+															Header to read the timestamp from for <code className="font-mono">{'{ts}'}</code> substitution and replay checks.
 														</Text>
 														<Controller
 															name="signature_config.timestamp_header"
 															control={control}
-															render={({ field }) => (
-																<Input id="wt-sig-ts-header" {...field} placeholder="X-Slack-Request-Timestamp" />
-															)}
+															render={({ field }) => <Input id="wt-sig-ts-header" {...field} placeholder="X-Slack-Request-Timestamp" />}
 														/>
 													</div>
 													<div>
@@ -442,9 +369,7 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 														<Controller
 															name="signature_config.tolerance_seconds"
 															control={control}
-															render={({ field }) => (
-																<Input id="wt-sig-tolerance" {...field} placeholder="300" inputMode="numeric" />
-															)}
+															render={({ field }) => <Input id="wt-sig-tolerance" {...field} placeholder="300" inputMode="numeric" />}
 														/>
 													</div>
 												</div>
@@ -455,14 +380,7 @@ export const CreateAutomationTriggerModal = ({ open, setOpen }: Props) => {
 							</div>
 						</FocusModal.Body>
 						<FocusModal.Footer className="flex w-full items-end justify-end gap-x-2">
-							<Button
-								className="ml-auto"
-								type="button"
-								variant="secondary"
-								size="small"
-								onClick={() => setOpen(false)}
-								disabled={isPending}
-							>
+							<Button className="ml-auto" type="button" variant="secondary" size="small" onClick={() => setOpen(false)} disabled={isPending}>
 								Cancel
 							</Button>
 							<Button type="submit" size="small" isLoading={isPending} disabled={isPending}>

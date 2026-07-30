@@ -22,12 +22,8 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 	res.json({ rubric })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateRubricType>,
-	res: MedusaResponse
-) => {
-	const privateAnalyticsService: PrivateAnalyticsService =
-		req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateRubricType>, res: MedusaResponse) => {
+	const privateAnalyticsService: PrivateAnalyticsService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
 	const rubric = await privateAnalyticsService.updateAnalyticsRubrics({
 		id: req.params.id,
 		...req.validatedBody

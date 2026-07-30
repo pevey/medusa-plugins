@@ -21,13 +21,7 @@
 	{#if trigger}
 		{@render trigger()}
 	{/if}
-	<Sheet.Content
-		{side}
-		class={cn(
-			'w-full! sm:w-4/5! md:w-2/3! lg:w-2/3! xl:w-1/2! sm:max-w-none! gap-0 overflow-y-auto',
-			className
-		)}
-	>
+	<Sheet.Content {side} class={cn('w-full! gap-0 overflow-y-auto sm:w-4/5! sm:max-w-none! md:w-2/3! lg:w-2/3! xl:w-1/2!', className)}>
 		{@render children()}
 	</Sheet.Content>
 </Sheet.Root>

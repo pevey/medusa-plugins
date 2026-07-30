@@ -4,12 +4,8 @@ import { PRIVATE_ANALYTICS_MODULE } from '../../../../modules/analytics'
 import type { PrivateAnalyticsService } from '../../../../modules/analytics/service'
 import type { AdminGetFunnelQueryType } from '../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetFunnelQueryType>,
-	res: MedusaResponse
-) => {
-	const privateAnalyticsService: PrivateAnalyticsService =
-		req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetFunnelQueryType>, res: MedusaResponse) => {
+	const privateAnalyticsService: PrivateAnalyticsService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
 	const validated = req.validatedQuery as AdminGetFunnelQueryType
 
 	let funnel
@@ -23,10 +19,7 @@ export const GET = async (
 	}
 
 	if (!funnel) {
-		throw new MedusaError(
-			MedusaError.Types.NOT_FOUND,
-			'No funnel found. Create a funnel and set it as default.'
-		)
+		throw new MedusaError(MedusaError.Types.NOT_FOUND, 'No funnel found. Create a funnel and set it as default.')
 	}
 
 	const steps = funnel.steps as unknown as string[]
@@ -34,8 +27,7 @@ export const GET = async (
 		steps,
 		start_date: new Date(validated.start_date),
 		end_date: new Date(validated.end_date),
-		sales_channel_id:
-			validated.sales_channel_id ?? (funnel.sales_channel_id as string | undefined)
+		sales_channel_id: validated.sales_channel_id ?? (funnel.sales_channel_id as string | undefined)
 	})
 
 	res.json({ funnel: { id: funnel.id, name: funnel.name, label: funnel.label }, results })

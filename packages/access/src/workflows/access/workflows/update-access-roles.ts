@@ -1,108 +1,93 @@
-import { isDefined } from "@medusajs/framework/utils"
-import {
-  WorkflowData,
-  WorkflowResponse,
-  createWorkflow,
-  transform,
-  when,
-} from "@medusajs/framework/workflows-sdk"
-import { UpdateAccessRoleDTO } from "../../../modules/access/types"
-import { createAccessRolePoliciesStep, setRoleParentStep } from "../steps"
-import { updateAccessRolesStep } from "../steps/update-access-roles"
-import { validateUserPermissionsStep } from "../steps/validate-user-permissions"
+import { isDefined } from '@medusajs/framework/utils'
+import { WorkflowData, WorkflowResponse, createWorkflow, transform, when } from '@medusajs/framework/workflows-sdk'
+import { UpdateAccessRoleDTO } from '../../../modules/access/types'
+import { createAccessRolePoliciesStep, setRoleParentStep } from '../steps'
+import { updateAccessRolesStep } from '../steps/update-access-roles'
+import { validateUserPermissionsStep } from '../steps/validate-user-permissions'
 
 /**
  * @ignore
  * @featureFlag access
  */
 export type UpdateAccessRolesWorkflowInput = {
-  actor_id?: string
-  actor?: string
-  selector: Record<string, any>
-  update: Omit<UpdateAccessRoleDTO, "id"> & {
-    parent_ids?: string[]
-    policy_ids?: string[]
-  }
+	actor_id?: string
+	actor?: string
+	selector: Record<string, any>
+	update: Omit<UpdateAccessRoleDTO, 'id'> & {
+		parent_ids?: string[]
+		policy_ids?: string[]
+	}
 }
 
 /**
  * @ignore
  * @featureFlag access
  */
-export const updateAccessRolesWorkflowId = "update-access-roles"
+export const updateAccessRolesWorkflowId = 'update-access-roles'
 
 /**
  * @ignore
  * @featureFlag access
  */
-export const updateAccessRolesWorkflow = createWorkflow(
-  updateAccessRolesWorkflowId,
-  (input: WorkflowData<UpdateAccessRolesWorkflowInput>) => {
-    const validationData = transform({ input }, ({ input }) => {
-      const policyIds = input.update.policy_ids || []
-      return {
-        actor_id: input.actor_id!,
-        policy_ids: policyIds,
-        actor: input.actor,
-      }
-    })
+export const updateAccessRolesWorkflow = createWorkflow(updateAccessRolesWorkflowId, (input: WorkflowData<UpdateAccessRolesWorkflowInput>) => {
+	const validationData = transform({ input }, ({ input }) => {
+		const policyIds = input.update.policy_ids || []
+		return {
+			actor_id: input.actor_id!,
+			policy_ids: policyIds,
+			actor: input.actor
+		}
+	})
 
-    when({ validationData }, ({ validationData }) => {
-      return !!validationData?.actor_id && !!validationData?.policy_ids?.length
-    }).then(() => {
-      validateUserPermissionsStep(validationData)
-    })
+	when({ validationData }, ({ validationData }) => {
+		return !!validationData?.actor_id && !!validationData?.policy_ids?.length
+	}).then(() => {
+		validateUserPermissionsStep(validationData)
+	})
 
-    const roleUpdateData = transform({ input }, ({ input }) => ({
-      selector: input.selector,
-      update: {
-        name: input.update.name,
-        description: input.update.description,
-        metadata: input.update.metadata,
-      },
-    }))
+	const roleUpdateData = transform({ input }, ({ input }) => ({
+		selector: input.selector,
+		update: {
+			name: input.update.name,
+			description: input.update.description,
+			metadata: input.update.metadata
+		}
+	}))
 
-    const updatedRoles = updateAccessRolesStep(roleUpdateData)
+	const updatedRoles = updateAccessRolesStep(roleUpdateData)
 
-    const parentUpdateData = transform(
-      { input, updatedRoles },
-      ({ input, updatedRoles }) => {
-        if (!isDefined(input.update.parent_ids)) {
-          return []
-        }
+	const parentUpdateData = transform({ input, updatedRoles }, ({ input, updatedRoles }) => {
+		if (!isDefined(input.update.parent_ids)) {
+			return []
+		}
 
-        return updatedRoles.map((role) => ({
-          role_id: role.id,
-          parent_ids: input.update.parent_ids || [],
-        }))
-      }
-    )
+		return updatedRoles.map(role => ({
+			role_id: role.id,
+			parent_ids: input.update.parent_ids || []
+		}))
+	})
 
-    setRoleParentStep(parentUpdateData)
+	setRoleParentStep(parentUpdateData)
 
-    const policiesUpdateData = transform(
-      { input, updatedRoles },
-      ({ input, updatedRoles }) => {
-        if (!isDefined(input.update.policy_ids)) {
-          return { policies: [] }
-        }
+	const policiesUpdateData = transform({ input, updatedRoles }, ({ input, updatedRoles }) => {
+		if (!isDefined(input.update.policy_ids)) {
+			return { policies: [] }
+		}
 
-        const allPolicies: any[] = []
-        updatedRoles.forEach((role) => {
-          const policyIds = input.update.policy_ids || []
-          policyIds.forEach((policyId) => {
-            allPolicies.push({
-              role_id: role.id,
-              policy_id: policyId,
-            })
-          })
-        })
-        return { policies: allPolicies }
-      }
-    )
+		const allPolicies: any[] = []
+		updatedRoles.forEach(role => {
+			const policyIds = input.update.policy_ids || []
+			policyIds.forEach(policyId => {
+				allPolicies.push({
+					role_id: role.id,
+					policy_id: policyId
+				})
+			})
+		})
+		return { policies: allPolicies }
+	})
 
-    createAccessRolePoliciesStep(policiesUpdateData)
+	createAccessRolePoliciesStep(policiesUpdateData)
 
-    return new WorkflowResponse(updatedRoles)
-  }
-)
+	return new WorkflowResponse(updatedRoles)
+})

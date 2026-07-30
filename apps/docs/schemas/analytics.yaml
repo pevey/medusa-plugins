@@ -95,7 +95,6 @@ paths:
               properties:
                 name:
                   type: string
-                  minLength: 1
                 label:
                   type: string
                   minLength: 1
@@ -232,7 +231,6 @@ paths:
               properties:
                 name:
                   type: string
-                  minLength: 1
                 label:
                   type: string
                   minLength: 1
@@ -509,7 +507,6 @@ paths:
               properties:
                 name:
                   type: string
-                  minLength: 1
                 label:
                   type: string
                   minLength: 1
@@ -654,7 +651,6 @@ paths:
               properties:
                 name:
                   type: string
-                  minLength: 1
                 label:
                   type: string
                   minLength: 1
@@ -760,7 +756,6 @@ paths:
               properties:
                 name:
                   type: string
-                  minLength: 1
                 label:
                   type: string
                   minLength: 1
@@ -772,13 +767,11 @@ paths:
                     - AND
                     - OR
                 conditions:
-                  type: array
-                  items:
-                    type: string
-                    enum:
-                      - event_performed
-                      - event_not_performed
-                      - identity_property
+                  type: string
+                  enum:
+                    - event_performed
+                    - event_not_performed
+                    - identity_property
                 event:
                   type: string
                 count:
@@ -924,7 +917,6 @@ paths:
               properties:
                 name:
                   type: string
-                  minLength: 1
                 label:
                   type: string
                   minLength: 1
@@ -937,13 +929,11 @@ paths:
                     - AND
                     - OR
                 conditions:
-                  type: array
-                  items:
-                    type: string
-                    enum:
-                      - event_performed
-                      - event_not_performed
-                      - identity_property
+                  type: string
+                  enum:
+                    - event_performed
+                    - event_not_performed
+                    - identity_property
                 event:
                   type: string
                 count:

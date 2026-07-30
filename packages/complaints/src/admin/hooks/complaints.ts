@@ -159,8 +159,7 @@ export const useComplaint = (id: string | undefined) => {
 export const useDeleteComplaints = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/complaints', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/complaints', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['complaints'] })
 		}
@@ -179,8 +178,7 @@ export const useGenerateComplaintsPdfExport = () => {
 
 export const useRecalculateComplaintStats = () => {
 	return useMutation({
-		mutationFn: () =>
-			sdk.client.fetch('/admin/complaint-stats/recalculate', { method: 'POST' })
+		mutationFn: () => sdk.client.fetch('/admin/complaint-stats/recalculate', { method: 'POST' })
 	})
 }
 
@@ -217,7 +215,7 @@ export const useUploadComplaintDocument = () => {
 				xhr.open('POST', `/admin/complaints/${complaintId}/documents`)
 				xhr.withCredentials = true
 
-				xhr.upload.addEventListener('progress', (e) => {
+				xhr.upload.addEventListener('progress', e => {
 					if (e.lengthComputable && onProgress) {
 						onProgress({
 							loaded: e.loaded,
@@ -276,16 +274,8 @@ export const useDeleteComplaintDocument = (complaintId: string | undefined) => {
 
 export const useDownloadComplaintDocument = () => {
 	return useMutation({
-		mutationFn: async ({
-			complaintId,
-			docId
-		}: {
-			complaintId: string
-			docId: string
-		}) => {
-			const res = await sdk.client.fetch<AdminComplaintDocumentDownloadResponse>(
-				`/admin/complaints/${complaintId}/documents/${docId}/download`
-			)
+		mutationFn: async ({ complaintId, docId }: { complaintId: string; docId: string }) => {
+			const res = await sdk.client.fetch<AdminComplaintDocumentDownloadResponse>(`/admin/complaints/${complaintId}/documents/${docId}/download`)
 			window.open(res.url, '_blank', 'noopener,noreferrer')
 			return res
 		}

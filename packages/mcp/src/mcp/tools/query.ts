@@ -4,12 +4,32 @@ import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { z } from 'zod'
 
 const ALLOWED_ENTITIES = [
-	'order', 'product', 'product_variant', 'customer', 'inventory_item',
-	'fulfillment', 'cart', 'shipping_option', 'sales_channel', 'store',
-	'form', 'form_submission', 'review', 'complaint', 'complaint_tag',
-	'content_item', 'content_collection', 'stock_lot', 'serial_number',
-	'veeqo_order', 'veeqo_shipment', 'webhook_trigger', 'webhook_action',
-	'barcode', 'order_note', 'customer_tag'
+	'order',
+	'product',
+	'product_variant',
+	'customer',
+	'inventory_item',
+	'fulfillment',
+	'cart',
+	'shipping_option',
+	'sales_channel',
+	'store',
+	'form',
+	'form_submission',
+	'review',
+	'complaint',
+	'complaint_tag',
+	'content_item',
+	'content_collection',
+	'stock_lot',
+	'serial_number',
+	'veeqo_order',
+	'veeqo_shipment',
+	'webhook_trigger',
+	'webhook_action',
+	'barcode',
+	'order_note',
+	'customer_tag'
 ]
 
 export function registerQueryTool(server: McpToolRegistry, scope: MedusaContainer) {
@@ -39,10 +59,12 @@ export function registerQueryTool(server: McpToolRegistry, scope: MedusaContaine
 			})
 
 			return {
-				content: [{
-					type: 'text' as const,
-					text: JSON.stringify({ data, count: metadata?.count ?? data.length, limit, offset }, null, 2)
-				}]
+				content: [
+					{
+						type: 'text' as const,
+						text: JSON.stringify({ data, count: metadata?.count ?? data.length, limit, offset }, null, 2)
+					}
+				]
 			}
 		}
 	)

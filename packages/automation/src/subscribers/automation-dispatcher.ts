@@ -8,10 +8,7 @@ import { AutomationTriggerType } from '../modules/automation/models/automation-t
 import { MEDUSA_EVENTS } from '../admin/lib/medusa-events'
 import { augmentWithQuery, dispatchAndRecord } from '../lib/dispatch'
 
-export default async function automationDispatchHandler({
-	event: { name: eventName, data: eventData },
-	container
-}: SubscriberArgs<Record<string, unknown>>) {
+export default async function automationDispatchHandler({ event: { name: eventName, data: eventData }, container }: SubscriberArgs<Record<string, unknown>>) {
 	const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
 	const automationService = container.resolve(AUTOMATION_MODULE) as AutomationService
 
@@ -22,9 +19,7 @@ export default async function automationDispatchHandler({
 			is_active: true
 		})
 	} catch (err) {
-		logger.error(
-			`automation-dispatcher: failed to list triggers for ${eventName}: ${err instanceof Error ? err.message : JSON.stringify(err)}`
-		)
+		logger.error(`automation-dispatcher: failed to list triggers for ${eventName}: ${err instanceof Error ? err.message : JSON.stringify(err)}`)
 		return
 	}
 
@@ -50,12 +45,7 @@ export default async function automationDispatchHandler({
 			await Promise.allSettled(
 				actions.map(async action => {
 					// Step 1: Optionally augment event data with a query
-					const sourceData = await augmentWithQuery(
-						container,
-						automationService,
-						action.id,
-						eventData as Record<string, unknown>
-					)
+					const sourceData = await augmentWithQuery(container, automationService, action.id, eventData as Record<string, unknown>)
 
 					// Step 2: Dispatch the action and record the delivery
 					await dispatchAndRecord(container, action, sourceData, eventName, opts)

@@ -6,8 +6,7 @@ import type { AdminUpdateSegmentType } from '../../../../validators'
 
 export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-	const privateAnalyticsService: PrivateAnalyticsService =
-		req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
+	const privateAnalyticsService: PrivateAnalyticsService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
 
 	const {
 		data: [segment]
@@ -30,12 +29,8 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 	})
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateSegmentType>,
-	res: MedusaResponse
-) => {
-	const privateAnalyticsService: PrivateAnalyticsService =
-		req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateSegmentType>, res: MedusaResponse) => {
+	const privateAnalyticsService: PrivateAnalyticsService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
 	const segment = await privateAnalyticsService.updateAnalyticsSegments({
 		id: req.params.id,
 		...req.validatedBody

@@ -10,24 +10,8 @@ describe('forms admin ↔ api contract', () => {
 				contracts,
 				validators,
 				declaredFields: {
-					'GET /admin/forms': [
-						'id',
-						'name',
-						'handle',
-						'active',
-						'turnstile_enabled',
-						'form_fields'
-					],
-					'GET /admin/forms/:id': [
-						'id',
-						'name',
-						'handle',
-						'description',
-						'active',
-						'turnstile_enabled',
-						'notification_emails',
-						'form_fields'
-					]
+					'GET /admin/forms': ['id', 'name', 'handle', 'active', 'turnstile_enabled', 'form_fields'],
+					'GET /admin/forms/:id': ['id', 'name', 'handle', 'description', 'active', 'turnstile_enabled', 'notification_emails', 'form_fields']
 				}
 			})
 		).not.toThrow()

@@ -11,10 +11,7 @@
 	data-checkout-place-order
 	disabled={ctx.placing}
 	onclick={() => ctx.placeOrder()}
-	class={cn(
-		'bg-primary text-primary-foreground h-10 w-full rounded-md text-sm font-medium disabled:opacity-50',
-		className
-	)}
+	class={cn('h-10 w-full rounded-md bg-primary text-sm font-medium text-primary-foreground disabled:opacity-50', className)}
 >
 	{#if children}{@render children()}{:else}{ctx.placing ? 'Processing…' : 'Place order'}{/if}
 </button>

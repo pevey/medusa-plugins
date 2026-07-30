@@ -123,51 +123,37 @@ medusaIntegrationTestRunner({
 
 		describe('Validation', () => {
 			it('POST /admin/content rejects missing label', async () => {
-				const res = await api
-					.post('/admin/content', { slug: 'x', format: 'html' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content', { slug: 'x', format: 'html' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/content rejects missing slug', async () => {
-				const res = await api
-					.post('/admin/content', { label: 'x', format: 'html' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content', { label: 'x', format: 'html' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/content rejects missing format', async () => {
-				const res = await api
-					.post('/admin/content', { label: 'x', slug: 'x' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content', { label: 'x', slug: 'x' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('DELETE /admin/content rejects empty ids array', async () => {
-				const res = await api
-					.delete('/admin/content', { data: { ids: [] }, ...auth() })
-					.catch((e: any) => e.response)
+				const res = await api.delete('/admin/content', { data: { ids: [] }, ...auth() }).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/content/:id/fields rejects missing name', async () => {
-				const res = await api
-					.post('/admin/content/fake_id/fields', { label: 'x', field_type: 'text' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content/fake_id/fields', { label: 'x', field_type: 'text' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/content/:id/fields rejects missing field_type', async () => {
-				const res = await api
-					.post('/admin/content/fake_id/fields', { name: 'x', label: 'x' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content/fake_id/fields', { name: 'x', label: 'x' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/content/:id/relationships rejects missing target_collection_id', async () => {
-				const res = await api
-					.post('/admin/content/fake_id/relationships', { relationship_type: 'many_to_many' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content/fake_id/relationships', { relationship_type: 'many_to_many' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
@@ -179,74 +165,59 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/content-creators rejects missing name', async () => {
-				const res = await api
-					.post('/admin/content-creators', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content-creators', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('DELETE /admin/content-creators rejects empty ids array', async () => {
-				const res = await api
-					.delete('/admin/content-creators', { data: { ids: [] }, ...auth() })
-					.catch((e: any) => e.response)
+				const res = await api.delete('/admin/content-creators', { data: { ids: [] }, ...auth() }).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/content/:id/items rejects missing title', async () => {
-				const res = await api
-					.post('/admin/content/fake_id/items', { slug: 'x' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content/fake_id/items', { slug: 'x' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/content/:id/items rejects missing slug', async () => {
-				const res = await api
-					.post('/admin/content/fake_id/items', { title: 'x' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content/fake_id/items', { title: 'x' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('DELETE /admin/content/:id/items rejects empty ids array', async () => {
-				const res = await api
-					.delete('/admin/content/fake_id/items', { data: { ids: [] }, ...auth() })
-					.catch((e: any) => e.response)
+				const res = await api.delete('/admin/content/fake_id/items', { data: { ids: [] }, ...auth() }).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/content rejects slug with spaces', async () => {
-				const res = await api
-					.post('/admin/content', { label: 'x', slug: 'hello world', format: 'html' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content', { label: 'x', slug: 'hello world', format: 'html' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/content rejects slug with uppercase', async () => {
-				const res = await api
-					.post('/admin/content', { label: 'x', slug: 'Hello-World', format: 'html' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content', { label: 'x', slug: 'Hello-World', format: 'html' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/content rejects slug with special characters', async () => {
-				const res = await api
-					.post('/admin/content', { label: 'x', slug: 'hello_world!', format: 'html' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content', { label: 'x', slug: 'hello_world!', format: 'html' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/content accepts valid slug', async () => {
 				const ts = Date.now()
-				const res = await api
-					.post('/admin/content', { label: 'x', slug: `valid-slug-${ts}`, format: 'html' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content', { label: 'x', slug: `valid-slug-${ts}`, format: 'html' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(200)
-				await api.delete('/admin/content', { data: { ids: [res.data.content_collection.id] }, ...auth() }).catch(() => {})
+				await api
+					.delete('/admin/content', {
+						data: { ids: [res.data.content_collection.id] },
+						...auth()
+					})
+					.catch(() => {})
 			})
 
 			it('POST /admin/content/:id/items rejects slug with spaces', async () => {
-				const res = await api
-					.post('/admin/content/fake_id/items', { title: 'x', slug: 'hello world' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/content/fake_id/items', { title: 'x', slug: 'hello world' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 		})
@@ -270,7 +241,10 @@ medusaIntegrationTestRunner({
 
 			afterAll(async () => {
 				await api
-					.delete('/admin/content', { data: { ids: [collectionId, collectionId2] }, ...auth() })
+					.delete('/admin/content', {
+						data: { ids: [collectionId, collectionId2] },
+						...auth()
+					})
 					.catch(() => {})
 			})
 
@@ -278,7 +252,12 @@ medusaIntegrationTestRunner({
 				const ts = Date.now()
 				const res = await api.post(
 					'/admin/content',
-					{ label: `Temp Collection ${ts}`, slug: `temp-collection-${ts}`, format: 'html', metadata: { icon: 'file' } },
+					{
+						label: `Temp Collection ${ts}`,
+						slug: `temp-collection-${ts}`,
+						format: 'html',
+						metadata: { icon: 'file' }
+					},
 					auth()
 				)
 				expect(res.status).toBe(200)
@@ -289,7 +268,10 @@ medusaIntegrationTestRunner({
 					metadata: { icon: 'file' }
 				})
 				await api
-					.delete('/admin/content', { data: { ids: [res.data.content_collection.id] }, ...auth() })
+					.delete('/admin/content', {
+						data: { ids: [res.data.content_collection.id] },
+						...auth()
+					})
 					.catch(() => {})
 			})
 
@@ -330,21 +312,13 @@ medusaIntegrationTestRunner({
 
 			it('POST /admin/content/:id updates label', async () => {
 				const ts = Date.now()
-				const res = await api.post(
-					`/admin/content/${collectionId2}`,
-					{ label: `Updated Label ${ts}` },
-					auth()
-				)
+				const res = await api.post(`/admin/content/${collectionId2}`, { label: `Updated Label ${ts}` }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_collection.label).toBe(`Updated Label ${ts}`)
 			})
 
 			it('DELETE /admin/content/:id deletes a single content collection', async () => {
-				const created = await api.post(
-					'/admin/content',
-					{ label: 'To Delete', slug: `to-delete-${Date.now()}`, format: 'html' },
-					auth()
-				)
+				const created = await api.post('/admin/content', { label: 'To Delete', slug: `to-delete-${Date.now()}`, format: 'html' }, auth())
 				const id = created.data.content_collection.id
 
 				const res = await api.delete(`/admin/content/${id}`, auth())
@@ -373,7 +347,13 @@ medusaIntegrationTestRunner({
 				beforeAll(async () => {
 					const res = await api.post(
 						`/admin/content/${collectionId}/fields`,
-						{ name: 'headline', label: 'Headline', field_type: 'text', required: true, sort_order: 1 },
+						{
+							name: 'headline',
+							label: 'Headline',
+							field_type: 'text',
+							required: true,
+							sort_order: 1
+						},
 						auth()
 					)
 					fieldId = res.data.field.id
@@ -382,7 +362,10 @@ medusaIntegrationTestRunner({
 
 				afterAll(async () => {
 					await api
-						.delete(`/admin/content/${collectionId}/fields`, { data: { ids: [fieldId] }, ...auth() })
+						.delete(`/admin/content/${collectionId}/fields`, {
+							data: { ids: [fieldId] },
+							...auth()
+						})
 						.catch(() => {})
 				})
 
@@ -401,21 +384,23 @@ medusaIntegrationTestRunner({
 						required: false
 					})
 					await api
-						.delete(`/admin/content/${collectionId}/fields`, { data: { ids: [res.data.field.id] }, ...auth() })
+						.delete(`/admin/content/${collectionId}/fields`, {
+							data: { ids: [res.data.field.id] },
+							...auth()
+						})
 						.catch(() => {})
 				})
 
 				it('POST .../fields creates a select field with options', async () => {
 					const options = { values: ['red', 'green', 'blue'] }
-					const res = await api.post(
-						`/admin/content/${collectionId}/fields`,
-						{ name: 'color', label: 'Color', field_type: 'select', options },
-						auth()
-					)
+					const res = await api.post(`/admin/content/${collectionId}/fields`, { name: 'color', label: 'Color', field_type: 'select', options }, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.field.options).toEqual(options)
 					await api
-						.delete(`/admin/content/${collectionId}/fields`, { data: { ids: [res.data.field.id] }, ...auth() })
+						.delete(`/admin/content/${collectionId}/fields`, {
+							data: { ids: [res.data.field.id] },
+							...auth()
+						})
 						.catch(() => {})
 				})
 
@@ -427,37 +412,23 @@ medusaIntegrationTestRunner({
 				})
 
 				it('GET .../fields/:fieldId retrieves a single field', async () => {
-					const res = await api.get(
-						`/admin/content/${collectionId}/fields/${fieldId}`,
-						auth()
-					)
+					const res = await api.get(`/admin/content/${collectionId}/fields/${fieldId}`, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.field.id).toBe(fieldId)
 				})
 
 				it('POST .../fields/:fieldId updates a field', async () => {
-					const res = await api.post(
-						`/admin/content/${collectionId}/fields/${fieldId}`,
-						{ label: 'Updated Headline', sort_order: 10 },
-						auth()
-					)
+					const res = await api.post(`/admin/content/${collectionId}/fields/${fieldId}`, { label: 'Updated Headline', sort_order: 10 }, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.field.label).toBe('Updated Headline')
 					expect(res.data.field.sort_order).toBe(10)
 				})
 
 				it('DELETE .../fields/:fieldId deletes a field', async () => {
-					const created = await api.post(
-						`/admin/content/${collectionId}/fields`,
-						{ name: 'temp_field', label: 'Temp', field_type: 'text' },
-						auth()
-					)
+					const created = await api.post(`/admin/content/${collectionId}/fields`, { name: 'temp_field', label: 'Temp', field_type: 'text' }, auth())
 					const id = created.data.field.id
 
-					const res = await api.delete(
-						`/admin/content/${collectionId}/fields/${id}`,
-						auth()
-					)
+					const res = await api.delete(`/admin/content/${collectionId}/fields/${id}`, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.deleted).toContain(id)
 				})
@@ -469,10 +440,10 @@ medusaIntegrationTestRunner({
 					])
 					const ids = [a.data.field.id, b.data.field.id]
 
-					const res = await api.delete(
-						`/admin/content/${collectionId}/fields`,
-						{ data: { ids }, ...auth() }
-					)
+					const res = await api.delete(`/admin/content/${collectionId}/fields`, {
+						data: { ids },
+						...auth()
+					})
 					expect(res.status).toBe(200)
 					expect(res.data.deleted).toEqual(expect.arrayContaining(ids))
 				})
@@ -518,10 +489,7 @@ medusaIntegrationTestRunner({
 				})
 
 				it('GET .../relationships lists relationships including both sides', async () => {
-					const res = await api.get(
-						`/admin/content/${sourceCollectionId}/relationships`,
-						auth()
-					)
+					const res = await api.get(`/admin/content/${sourceCollectionId}/relationships`, auth())
 					expect(res.status).toBe(200)
 					expect(Array.isArray(res.data.relationships)).toBe(true)
 					const rel = res.data.relationships.find((r: any) => r.id === relId)
@@ -530,10 +498,7 @@ medusaIntegrationTestRunner({
 				})
 
 				it('GET .../relationships returns the relationship when queried from target side', async () => {
-					const res = await api.get(
-						`/admin/content/${targetCollectionId}/relationships`,
-						auth()
-					)
+					const res = await api.get(`/admin/content/${targetCollectionId}/relationships`, auth())
 					expect(res.status).toBe(200)
 					const rel = res.data.relationships.find((r: any) => r.id === relId)
 					expect(rel).toMatchObject({
@@ -543,10 +508,7 @@ medusaIntegrationTestRunner({
 				})
 
 				it('GET .../relationships/:relId retrieves a single relationship', async () => {
-					const res = await api.get(
-						`/admin/content/${sourceCollectionId}/relationships/${relId}`,
-						auth()
-					)
+					const res = await api.get(`/admin/content/${sourceCollectionId}/relationships/${relId}`, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.relationship).toMatchObject({
 						id: relId,
@@ -563,15 +525,15 @@ medusaIntegrationTestRunner({
 					])
 					const created = await api.post(
 						`/admin/content/${s.data.content_collection.id}/relationships`,
-						{ target_collection_id: t.data.content_collection.id, relationship_type: 'one_to_many' },
+						{
+							target_collection_id: t.data.content_collection.id,
+							relationship_type: 'one_to_many'
+						},
 						auth()
 					)
 					const id = created.data.relationship.id
 
-					const res = await api.delete(
-						`/admin/content/${s.data.content_collection.id}/relationships/${id}`,
-						auth()
-					)
+					const res = await api.delete(`/admin/content/${s.data.content_collection.id}/relationships/${id}`, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.deleted).toContain(id)
 
@@ -604,7 +566,10 @@ medusaIntegrationTestRunner({
 
 			afterAll(async () => {
 				await api
-					.delete('/admin/content-creators', { data: { ids: [creatorId, creatorId2] }, ...auth() })
+					.delete('/admin/content-creators', {
+						data: { ids: [creatorId, creatorId2] },
+						...auth()
+					})
 					.catch(() => {})
 			})
 
@@ -612,7 +577,11 @@ medusaIntegrationTestRunner({
 				const ts = Date.now()
 				const res = await api.post(
 					'/admin/content-creators',
-					{ name: `Temp Creator ${ts}`, bio: 'Temporary', avatar_url: 'https://example.com/avatar.jpg' },
+					{
+						name: `Temp Creator ${ts}`,
+						bio: 'Temporary',
+						avatar_url: 'https://example.com/avatar.jpg'
+					},
 					auth()
 				)
 				expect(res.status).toBe(200)
@@ -622,7 +591,10 @@ medusaIntegrationTestRunner({
 					bio: 'Temporary'
 				})
 				await api
-					.delete('/admin/content-creators', { data: { ids: [res.data.content_creator.id] }, ...auth() })
+					.delete('/admin/content-creators', {
+						data: { ids: [res.data.content_creator.id] },
+						...auth()
+					})
 					.catch(() => {})
 			})
 
@@ -649,11 +621,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/content-creators/:id updates a creator and auto-logs EDIT', async () => {
-				const res = await api.post(
-					`/admin/content-creators/${creatorId}`,
-					{ bio: 'Updated bio' },
-					auth()
-				)
+				const res = await api.post(`/admin/content-creators/${creatorId}`, { bio: 'Updated bio' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_creator.bio).toBe('Updated bio')
 
@@ -687,11 +655,7 @@ medusaIntegrationTestRunner({
 
 			describe('Activity', () => {
 				it('POST .../activity creates a manual note entry', async () => {
-					const res = await api.post(
-						`/admin/content-creators/${creatorId}/activity`,
-						{ type: 'note', note: 'Left a note on this creator' },
-						auth()
-					)
+					const res = await api.post(`/admin/content-creators/${creatorId}/activity`, { type: 'note', note: 'Left a note on this creator' }, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.entry).toMatchObject({
 						type: 'note',
@@ -715,17 +679,13 @@ medusaIntegrationTestRunner({
 				})
 
 				it('DELETE .../activity bulk deletes entries', async () => {
-					const created = await api.post(
-						`/admin/content-creators/${creatorId}/activity`,
-						{ type: 'note', note: 'to be deleted' },
-						auth()
-					)
+					const created = await api.post(`/admin/content-creators/${creatorId}/activity`, { type: 'note', note: 'to be deleted' }, auth())
 					const id = created.data.entry.id
 
-					const res = await api.delete(
-						`/admin/content-creators/${creatorId}/activity`,
-						{ data: { ids: [id] }, ...auth() }
-					)
+					const res = await api.delete(`/admin/content-creators/${creatorId}/activity`, {
+						data: { ids: [id] },
+						...auth()
+					})
 					expect(res.status).toBe(200)
 					expect(res.data.deleted).toContain(id)
 				})
@@ -778,14 +738,13 @@ medusaIntegrationTestRunner({
 
 			afterAll(async () => {
 				await api
-					.delete(`/admin/content/${collectionId}/items`, { data: { ids: [itemId, itemId2] }, ...auth() })
+					.delete(`/admin/content/${collectionId}/items`, {
+						data: { ids: [itemId, itemId2] },
+						...auth()
+					})
 					.catch(() => {})
-				await api
-					.delete('/admin/content', { data: { ids: [collectionId] }, ...auth() })
-					.catch(() => {})
-				await api
-					.delete('/admin/content-creators', { data: { ids: [creatorId] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/content', { data: { ids: [collectionId] }, ...auth() }).catch(() => {})
+				await api.delete('/admin/content-creators', { data: { ids: [creatorId] }, ...auth() }).catch(() => {})
 			})
 
 			it('POST /admin/content/:id/items creates a content item', async () => {
@@ -814,10 +773,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('GET /admin/content/:id/items filters by creator_id', async () => {
-				const res = await api.get(
-					`/admin/content/${collectionId}/items?creator_id=${creatorId}`,
-					auth()
-				)
+				const res = await api.get(`/admin/content/${collectionId}/items?creator_id=${creatorId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_items.length).toBeGreaterThanOrEqual(1)
 				expect(res.data.content_items.every((i: any) => i.creator?.id === creatorId)).toBe(true)
@@ -846,11 +802,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/content/:id/items/:itemId updates title', async () => {
-				const res = await api.post(
-					`/admin/content/${collectionId}/items/${itemId}`,
-					{ title: 'Updated First Article' },
-					auth()
-				)
+				const res = await api.post(`/admin/content/${collectionId}/items/${itemId}`, { title: 'Updated First Article' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_item.title).toBe('Updated First Article')
 			})
@@ -864,11 +816,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST .../items/:itemId auto-logs PUBLISH and sets published_at on status change to published', async () => {
-				const res = await api.post(
-					`/admin/content/${collectionId}/items/${itemId}`,
-					{ status: 'published' },
-					auth()
-				)
+				const res = await api.post(`/admin/content/${collectionId}/items/${itemId}`, { status: 'published' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_item.status).toBe('published')
 				expect(res.data.content_item.published_at).not.toBeNull()
@@ -895,16 +843,15 @@ medusaIntegrationTestRunner({
 				expect(returnedDate.getFullYear()).toBe(2024)
 
 				await api
-					.delete(`/admin/content/${collectionId}/items`, { data: { ids: [created.data.content_item.id] }, ...auth() })
+					.delete(`/admin/content/${collectionId}/items`, {
+						data: { ids: [created.data.content_item.id] },
+						...auth()
+					})
 					.catch(() => {})
 			})
 
 			it('POST .../items/:itemId auto-logs ARCHIVE on status change to archived', async () => {
-				const res = await api.post(
-					`/admin/content/${collectionId}/items/${itemId}`,
-					{ status: 'archived' },
-					auth()
-				)
+				const res = await api.post(`/admin/content/${collectionId}/items/${itemId}`, { status: 'archived' }, auth())
 				expect(res.status).toBe(200)
 
 				const actRes = await api.get(`/admin/content/${collectionId}/items/${itemId}/activity`, auth())
@@ -914,11 +861,7 @@ medusaIntegrationTestRunner({
 			it('POST .../items/:itemId auto-logs DRAFT on status change to draft', async () => {
 				// ensure a real published->draft change (per-test restore isolates tests)
 				await api.post(`/admin/content/${collectionId}/items/${itemId}`, { status: 'published' }, auth())
-				const res = await api.post(
-					`/admin/content/${collectionId}/items/${itemId}`,
-					{ status: 'draft' },
-					auth()
-				)
+				const res = await api.post(`/admin/content/${collectionId}/items/${itemId}`, { status: 'draft' }, auth())
 				expect(res.status).toBe(200)
 
 				const actRes = await api.get(`/admin/content/${collectionId}/items/${itemId}/activity`, auth())
@@ -927,11 +870,7 @@ medusaIntegrationTestRunner({
 
 			it('DELETE /admin/content/:id/items/:itemId deletes a content item', async () => {
 				const ts = Date.now()
-				const created = await api.post(
-					`/admin/content/${collectionId}/items`,
-					{ title: `To Delete ${ts}`, slug: `to-delete-${ts}` },
-					auth()
-				)
+				const created = await api.post(`/admin/content/${collectionId}/items`, { title: `To Delete ${ts}`, slug: `to-delete-${ts}` }, auth())
 				const id = created.data.content_item.id
 
 				const res = await api.delete(`/admin/content/${collectionId}/items/${id}`, auth())
@@ -947,7 +886,10 @@ medusaIntegrationTestRunner({
 				])
 				const ids = [a.data.content_item.id, b.data.content_item.id]
 
-				const res = await api.delete(`/admin/content/${collectionId}/items`, { data: { ids }, ...auth() })
+				const res = await api.delete(`/admin/content/${collectionId}/items`, {
+					data: { ids },
+					...auth()
+				})
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toEqual(expect.arrayContaining(ids))
 			})
@@ -956,11 +898,7 @@ medusaIntegrationTestRunner({
 
 			describe('Activity', () => {
 				it('POST .../activity creates a manual note entry', async () => {
-					const res = await api.post(
-						`/admin/content/${collectionId}/items/${itemId2}/activity`,
-						{ type: 'note', note: 'Reviewer comment here' },
-						auth()
-					)
+					const res = await api.post(`/admin/content/${collectionId}/items/${itemId2}/activity`, { type: 'note', note: 'Reviewer comment here' }, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.entry).toMatchObject({
 						type: 'note',
@@ -983,17 +921,10 @@ medusaIntegrationTestRunner({
 				})
 
 				it('DELETE .../activity bulk deletes entries', async () => {
-					const created = await api.post(
-						`/admin/content/${collectionId}/items/${itemId}/activity`,
-						{ type: 'note', note: 'to be deleted' },
-						auth()
-					)
+					const created = await api.post(`/admin/content/${collectionId}/items/${itemId}/activity`, { type: 'note', note: 'to be deleted' }, auth())
 					const id = created.data.entry.id
 
-					const res = await api.delete(
-						`/admin/content/${collectionId}/items/${itemId}/activity`,
-						{ data: { ids: [id] }, ...auth() }
-					)
+					const res = await api.delete(`/admin/content/${collectionId}/items/${itemId}/activity`, { data: { ids: [id] }, ...auth() })
 					expect(res.status).toBe(200)
 					expect(res.data.deleted).toContain(id)
 				})
@@ -1009,11 +940,7 @@ medusaIntegrationTestRunner({
 
 				beforeAll(async () => {
 					const ts = Date.now()
-					const targetCollectionRes = await api.post(
-						'/admin/content',
-						{ label: `Tag Type ${ts}`, slug: `tag-type-${ts}`, format: 'html' },
-						auth()
-					)
+					const targetCollectionRes = await api.post('/admin/content', { label: `Tag Type ${ts}`, slug: `tag-type-${ts}`, format: 'html' }, auth())
 					targetCollectionId = targetCollectionRes.data.content_collection.id
 
 					const relRes = await api.post(
@@ -1035,12 +962,13 @@ medusaIntegrationTestRunner({
 				afterAll(async () => {
 					if (linkedItemId) {
 						await api
-							.delete(`/admin/content/${targetCollectionId}/items`, { data: { ids: [linkedItemId] }, ...auth() })
+							.delete(`/admin/content/${targetCollectionId}/items`, {
+								data: { ids: [linkedItemId] },
+								...auth()
+							})
 							.catch(() => {})
 					}
-					await api
-						.delete('/admin/content', { data: { ids: [targetCollectionId] }, ...auth() })
-						.catch(() => {})
+					await api.delete('/admin/content', { data: { ids: [targetCollectionId] }, ...auth() }).catch(() => {})
 				})
 
 				it('POST .../links creates a link between two content items', async () => {
@@ -1066,10 +994,7 @@ medusaIntegrationTestRunner({
 				})
 
 				it('DELETE .../links/:linkId deletes a link', async () => {
-					const res = await api.delete(
-						`/admin/content/${collectionId}/items/${itemId}/links/${linkId}`,
-						auth()
-					)
+					const res = await api.delete(`/admin/content/${collectionId}/items/${itemId}/links/${linkId}`, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.deleted).toContain(linkId)
 				})
@@ -1081,11 +1006,7 @@ medusaIntegrationTestRunner({
 				let tagId: string
 
 				it('POST .../tags creates a tag on the item', async () => {
-					const res = await api.post(
-						`/admin/content/${collectionId}/items/${itemId}/tags`,
-						{ value: 'featured' },
-						auth()
-					)
+					const res = await api.post(`/admin/content/${collectionId}/items/${itemId}/tags`, { value: 'featured' }, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.tag).toMatchObject({
 						id: expect.any(String),
@@ -1105,17 +1026,13 @@ medusaIntegrationTestRunner({
 				})
 
 				it('DELETE .../tags bulk removes tags from the item', async () => {
-					const created = await api.post(
-						`/admin/content/${collectionId}/items/${itemId}/tags`,
-						{ value: 'to-remove' },
-						auth()
-					)
+					const created = await api.post(`/admin/content/${collectionId}/items/${itemId}/tags`, { value: 'to-remove' }, auth())
 					const id = created.data.tag.id
 
-					const res = await api.delete(
-						`/admin/content/${collectionId}/items/${itemId}/tags`,
-						{ data: { ids: [id] }, ...auth() }
-					)
+					const res = await api.delete(`/admin/content/${collectionId}/items/${itemId}/tags`, {
+						data: { ids: [id] },
+						...auth()
+					})
 					expect(res.status).toBe(200)
 					expect(res.data.deleted).toContain(id)
 				})
@@ -1134,16 +1051,16 @@ medusaIntegrationTestRunner({
 				const ts = Date.now()
 				const collectionRes = await api.post(
 					'/admin/content',
-					{ label: `Tag Test Collection ${ts}`, slug: `tag-test-collection-${ts}`, format: 'html' },
+					{
+						label: `Tag Test Collection ${ts}`,
+						slug: `tag-test-collection-${ts}`,
+						format: 'html'
+					},
 					auth()
 				)
 				tagCollectionId = collectionRes.data.content_collection.id
 
-				const itemRes = await api.post(
-					`/admin/content/${tagCollectionId}/items`,
-					{ title: `Tag Test Item ${ts}`, slug: `tag-test-item-${ts}` },
-					auth()
-				)
+				const itemRes = await api.post(`/admin/content/${tagCollectionId}/items`, { title: `Tag Test Item ${ts}`, slug: `tag-test-item-${ts}` }, auth())
 				tagItemId = itemRes.data.content_item.id
 
 				const [r1, r2] = await Promise.all([
@@ -1156,31 +1073,29 @@ medusaIntegrationTestRunner({
 			})
 
 			afterAll(async () => {
+				await api.delete('/admin/content-tags', { data: { ids: [tagId, tagId2] }, ...auth() }).catch(() => {})
 				await api
-					.delete('/admin/content-tags', { data: { ids: [tagId, tagId2] }, ...auth() })
+					.delete(`/admin/content/${tagCollectionId}/items`, {
+						data: { ids: [tagItemId] },
+						...auth()
+					})
 					.catch(() => {})
-				await api
-					.delete(`/admin/content/${tagCollectionId}/items`, { data: { ids: [tagItemId] }, ...auth() })
-					.catch(() => {})
-				await api
-					.delete('/admin/content', { data: { ids: [tagCollectionId] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/content', { data: { ids: [tagCollectionId] }, ...auth() }).catch(() => {})
 			})
 
 			it('POST /admin/content-tags creates a tag', async () => {
 				const ts = Date.now()
-				const res = await api.post(
-					'/admin/content-tags',
-					{ value: `temp-tag-${ts}`, item_id: tagItemId },
-					auth()
-				)
+				const res = await api.post('/admin/content-tags', { value: `temp-tag-${ts}`, item_id: tagItemId }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_tag).toMatchObject({
 					id: expect.any(String),
 					value: `temp-tag-${ts}`
 				})
 				await api
-					.delete('/admin/content-tags', { data: { ids: [res.data.content_tag.id] }, ...auth() })
+					.delete('/admin/content-tags', {
+						data: { ids: [res.data.content_tag.id] },
+						...auth()
+					})
 					.catch(() => {})
 			})
 
@@ -1192,10 +1107,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('GET /admin/content-tags filters by item_id', async () => {
-				const res = await api.get(
-					`/admin/content-tags?item_id=${tagItemId}`,
-					auth()
-				)
+				const res = await api.get(`/admin/content-tags?item_id=${tagItemId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_tags.length).toBeGreaterThanOrEqual(2)
 			})
@@ -1213,22 +1125,14 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/content-tags/:id updates a tag', async () => {
-				const res = await api.post(
-					`/admin/content-tags/${tagId}`,
-					{ value: 'updated-tag-value' },
-					auth()
-				)
+				const res = await api.post(`/admin/content-tags/${tagId}`, { value: 'updated-tag-value' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_tag.value).toBe('updated-tag-value')
 			})
 
 			it('DELETE /admin/content-tags/:id deletes a single tag', async () => {
 				const ts = Date.now()
-				const created = await api.post(
-					'/admin/content-tags',
-					{ value: `to-delete-${ts}`, item_id: tagItemId },
-					auth()
-				)
+				const created = await api.post('/admin/content-tags', { value: `to-delete-${ts}`, item_id: tagItemId }, auth())
 				const id = created.data.content_tag.id
 
 				const res = await api.delete(`/admin/content-tags/${id}`, auth())
@@ -1260,7 +1164,12 @@ medusaIntegrationTestRunner({
 				const ts = Date.now()
 				const res = await api.post(
 					'/admin/content',
-					{ label: `Upload Test ${ts}`, slug: `upload-test-${ts}`, format: 'img', prefix: PREFIX },
+					{
+						label: `Upload Test ${ts}`,
+						slug: `upload-test-${ts}`,
+						format: 'img',
+						prefix: PREFIX
+					},
 					auth()
 				)
 				imgCollectionId = res.data.content_collection.id
@@ -1268,9 +1177,7 @@ medusaIntegrationTestRunner({
 			})
 
 			afterAll(async () => {
-				await api
-					.delete('/admin/content', { data: { ids: [imgCollectionId] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/content', { data: { ids: [imgCollectionId] }, ...auth() }).catch(() => {})
 			})
 
 			it('GET /admin/content/:id returns prefix field', async () => {
@@ -1280,16 +1187,17 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/content/:id/upload returns 401 without auth', async () => {
-				const res = await api
-					.post(`/admin/content/${imgCollectionId}/upload`, {})
-					.catch((e: any) => e.response)
+				const res = await api.post(`/admin/content/${imgCollectionId}/upload`, {}).catch((e: any) => e.response)
 				expect(res.status).toBe(401)
 			})
 
 			it('POST /admin/content/:id/upload returns 404 for unknown collection', async () => {
 				const FormData = require('form-data')
 				const form = new FormData()
-				form.append('files', Buffer.from('fake'), { filename: 'test.png', contentType: 'image/png' })
+				form.append('files', Buffer.from('fake'), {
+					filename: 'test.png',
+					contentType: 'image/png'
+				})
 				const res = await api
 					.post('/admin/content/nonexistent_id/upload', form, {
 						...auth(),
@@ -1326,11 +1234,7 @@ medusaIntegrationTestRunner({
 				publishedItemSlug = `pub-item-${ts}`
 				draftItemSlug = `draft-item-${ts}`
 
-				const collectionRes = await api.post(
-					'/admin/content',
-					{ label: `Public Collection ${ts}`, slug: publicCollectionSlug, format: 'html' },
-					auth()
-				)
+				const collectionRes = await api.post('/admin/content', { label: `Public Collection ${ts}`, slug: publicCollectionSlug, format: 'html' }, auth())
 				publicCollectionId = collectionRes.data.content_collection.id
 
 				await Promise.all([
@@ -1361,7 +1265,13 @@ medusaIntegrationTestRunner({
 			afterAll(async () => {
 				const items = await api.get(`/admin/content/${publicCollectionId}/items`, auth())
 				const ids = items.data.content_items.map((i: any) => i.id)
-				if (ids.length) await api.delete(`/admin/content/${publicCollectionId}/items`, { data: { ids }, ...auth() }).catch(() => {})
+				if (ids.length)
+					await api
+						.delete(`/admin/content/${publicCollectionId}/items`, {
+							data: { ids },
+							...auth()
+						})
+						.catch(() => {})
 				await api.delete('/admin/content', { data: { ids: [publicCollectionId] }, ...auth() }).catch(() => {})
 			})
 
@@ -1482,7 +1392,16 @@ medusaIntegrationTestRunner({
 				htmlCollectionId = html.data.content_collection.id
 				await Promise.all([
 					api.post(`/admin/content/${mdCollectionId}/items`, { title: `MD ${ts}`, slug: mdItemSlug, body: MD_BODY, status: 'published' }, auth()),
-					api.post(`/admin/content/${htmlCollectionId}/items`, { title: `HTML ${ts}`, slug: htmlItemSlug, body: '<p>hi</p>', status: 'published' }, auth())
+					api.post(
+						`/admin/content/${htmlCollectionId}/items`,
+						{
+							title: `HTML ${ts}`,
+							slug: htmlItemSlug,
+							body: '<p>hi</p>',
+							status: 'published'
+						},
+						auth()
+					)
 				])
 				await seedSnapshot()
 			})
@@ -1493,7 +1412,12 @@ medusaIntegrationTestRunner({
 					const ids = items?.data.content_items.map((i: any) => i.id) ?? []
 					if (ids.length) await api.delete(`/admin/content/${cid}/items`, { data: { ids }, ...auth() }).catch(() => {})
 				}
-				await api.delete('/admin/content', { data: { ids: [mdCollectionId, htmlCollectionId] }, ...auth() }).catch(() => {})
+				await api
+					.delete('/admin/content', {
+						data: { ids: [mdCollectionId, htmlCollectionId] },
+						...auth()
+					})
+					.catch(() => {})
 			})
 
 			it('omits body_html when render is not requested', async () => {

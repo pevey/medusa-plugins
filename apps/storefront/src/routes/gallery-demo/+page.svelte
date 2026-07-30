@@ -85,12 +85,7 @@
 			<!-- Autoplay: embla plugin + opts passthrough via Root. -->
 			<section data-testid="example-autoplay">
 				<h2 class="mb-4 text-lg font-semibold">Autoplay (embla plugin)</h2>
-				<Gallery.Root
-					{images}
-					alt={product.title}
-					opts={{ loop: true }}
-					plugins={[Autoplay({ delay: 2500 })]}
-				>
+				<Gallery.Root {images} alt={product.title} opts={{ loop: true }} plugins={[Autoplay({ delay: 2500 })]}>
 					<Gallery.Thumbnails><Gallery.ThumbnailImage /></Gallery.Thumbnails>
 					<Gallery.Main>
 						<Gallery.Carousel><Gallery.Image /></Gallery.Carousel>

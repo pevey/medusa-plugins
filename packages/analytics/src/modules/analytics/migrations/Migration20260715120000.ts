@@ -7,9 +7,7 @@ import { Migration } from '@medusajs/framework/mikro-orm/migrations'
  */
 export class Migration20260715120000 extends Migration {
 	override async up(): Promise<void> {
-		this.addSql(
-			`CREATE INDEX IF NOT EXISTS "IDX_analytics_identity_country" ON "analytics_identity" ((properties->>'country')) WHERE deleted_at IS NULL;`
-		)
+		this.addSql(`CREATE INDEX IF NOT EXISTS "IDX_analytics_identity_country" ON "analytics_identity" ((properties->>'country')) WHERE deleted_at IS NULL;`)
 	}
 
 	override async down(): Promise<void> {

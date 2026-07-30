@@ -17,24 +17,16 @@ export class TaxLookupProvider implements TaxTypes.ITaxProvider {
 		this.logger_ = logger
 
 		if (!options?.dataDirectory) {
-			throw new MedusaError(
-				MedusaError.Types.INVALID_DATA,
-				`[tax-lookup] dataDirectory is required`
-			)
+			throw new MedusaError(MedusaError.Types.INVALID_DATA, `[tax-lookup] dataDirectory is required`)
 		}
 
-		const dir = path.isAbsolute(options.dataDirectory)
-			? options.dataDirectory
-			: path.resolve(process.cwd(), options.dataDirectory)
+		const dir = path.isAbsolute(options.dataDirectory) ? options.dataDirectory : path.resolve(process.cwd(), options.dataDirectory)
 
 		if (!fs.existsSync(dir)) {
-			throw new MedusaError(
-				MedusaError.Types.INVALID_DATA,
-				`[tax-lookup] dataDirectory does not exist: ${dir}`
-			)
+			throw new MedusaError(MedusaError.Types.INVALID_DATA, `[tax-lookup] dataDirectory does not exist: ${dir}`)
 		}
 
-		const csvFiles = fs.readdirSync(dir).filter((f) => f.endsWith('.csv'))
+		const csvFiles = fs.readdirSync(dir).filter(f => f.endsWith('.csv'))
 
 		if (csvFiles.length === 0) {
 			this.logger_.warn(`[tax-lookup] no CSV files found in ${dir}`)
@@ -43,11 +35,11 @@ export class TaxLookupProvider implements TaxTypes.ITaxProvider {
 		for (const file of csvFiles) {
 			const filePath = path.join(dir, file)
 			const content = fs.readFileSync(filePath, 'utf-8')
-			const lines = content.split('\n').filter((l) => l.trim())
+			const lines = content.split('\n').filter(l => l.trim())
 
 			if (lines.length === 0) continue
 
-			const headers = lines[0].split(',').map((h) => h.trim().toLowerCase())
+			const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
 			const zipIdx = headers.indexOf('zipcode')
 			const rateIdx = headers.indexOf('estimatedcombinedrate')
 

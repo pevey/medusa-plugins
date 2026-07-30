@@ -1,20 +1,15 @@
 import * as zod from 'zod'
-import {
-	Button,
-	Drawer,
-	Heading,
-	Input,
-	Label,
-	Select,
-	Switch,
-	Text,
-	Textarea,
-	toast
-} from '@medusajs/ui'
+import { Button, Drawer, Heading, Input, Label, Select, Switch, Text, Textarea, toast } from '@medusajs/ui'
 import { Plus, Trash } from '@medusajs/icons'
 import { useEffect } from 'react'
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form'
-import { useUpdateAutomationAction, useUpsertAutomationActionQuery, useDeleteAutomationActionQuery, useAutomationSecrets, useAutomationActionQuery } from '../hooks/automations'
+import {
+	useUpdateAutomationAction,
+	useUpsertAutomationActionQuery,
+	useDeleteAutomationActionQuery,
+	useAutomationSecrets,
+	useAutomationActionQuery
+} from '../hooks/automations'
 import { MEDUSA_EVENTS, EventPayloadField } from '../lib/medusa-events'
 import {
 	MEDUSA_WORKFLOWS,
@@ -48,9 +43,7 @@ const schema = zod.object({
 	target_url: zod.string().optional(),
 	signing_secret_id: zod.string().nullable().optional(),
 	request_method: zod.enum(['GET', 'POST', 'PUT', 'DELETE'] satisfies [RequestMethod, ...RequestMethod[]]).optional(),
-	target_headers: zod
-		.array(zod.object({ key: zod.string().min(1), value: zod.string() }))
-		.optional(),
+	target_headers: zod.array(zod.object({ key: zod.string().min(1), value: zod.string() })).optional(),
 	medusa_workflow: zod.string().optional(),
 	field_mappings: zod
 		.array(
@@ -60,9 +53,7 @@ const schema = zod.object({
 			})
 		)
 		.optional(),
-	static_values: zod
-		.array(zod.object({ key: zod.string().min(1), value: zod.string() }))
-		.optional(),
+	static_values: zod.array(zod.object({ key: zod.string().min(1), value: zod.string() })).optional(),
 	query: querySchema
 })
 
@@ -71,13 +62,7 @@ type QueryFormData = NonNullable<NonNullable<FormData['query']>>
 
 // ─── StaticValuesEditor ───────────────────────────────────────────────────────
 
-const StaticValuesEditor = ({
-	value,
-	onChange
-}: {
-	value: StaticValue[]
-	onChange: (v: StaticValue[]) => void
-}) => {
+const StaticValuesEditor = ({ value, onChange }: { value: StaticValue[]; onChange: (v: StaticValue[]) => void }) => {
 	const addRow = () => onChange([...value, { key: '', value: '' }])
 	const removeRow = (i: number) => onChange(value.filter((_, idx) => idx !== i))
 	const update = (i: number, field: keyof StaticValue, v: string) => {
@@ -100,17 +85,9 @@ const StaticValuesEditor = ({
 				</div>
 			)}
 			{value.map((row, i) => (
-				<div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
-					<Input
-						placeholder="e.g. source or customer.type"
-						value={row.key}
-						onChange={e => update(i, 'key', e.target.value)}
-					/>
-					<Input
-						placeholder="e.g. my-system"
-						value={row.value}
-						onChange={e => update(i, 'value', e.target.value)}
-					/>
+				<div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
+					<Input placeholder="e.g. source or customer.type" value={row.key} onChange={e => update(i, 'key', e.target.value)} />
+					<Input placeholder="e.g. my-system" value={row.value} onChange={e => update(i, 'value', e.target.value)} />
 					<Button type="button" size="small" variant="secondary" onClick={() => removeRow(i)}>
 						<Trash />
 					</Button>
@@ -125,13 +102,7 @@ const StaticValuesEditor = ({
 
 // ─── FieldsEditor ─────────────────────────────────────────────────────────────
 
-const FieldsEditor = ({
-	value,
-	onChange
-}: {
-	value: string[]
-	onChange: (v: string[]) => void
-}) => {
+const FieldsEditor = ({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) => {
 	const addRow = () => onChange([...value, ''])
 	const removeRow = (i: number) => onChange(value.filter((_, idx) => idx !== i))
 	const update = (i: number, v: string) => {
@@ -143,13 +114,8 @@ const FieldsEditor = ({
 	return (
 		<div className="flex flex-col gap-2">
 			{value.map((field, i) => (
-				<div key={i} className="flex gap-2 items-center">
-					<Input
-						placeholder="e.g. id, total, customer.*, items.*"
-						value={field}
-						onChange={e => update(i, e.target.value)}
-						className="flex-1"
-					/>
+				<div key={i} className="flex items-center gap-2">
+					<Input placeholder="e.g. id, total, customer.*, items.*" value={field} onChange={e => update(i, e.target.value)} className="flex-1" />
 					<Button type="button" size="small" variant="secondary" onClick={() => removeRow(i)}>
 						<Trash />
 					</Button>
@@ -210,23 +176,18 @@ const FieldMappingEditor = ({
 	value: FieldMapping[]
 	onChange: (v: FieldMapping[]) => void
 }) => {
-	const eventSourcePaths =
-		triggerType === 'medusa_event' ? getSourcePathsForEvents(triggerEvents) : []
+	const eventSourcePaths = triggerType === 'medusa_event' ? getSourcePathsForEvents(triggerEvents) : []
 
 	const querySourcePaths =
-		triggerType === 'medusa_event' && queryConfig?.entity_name
-			? getQueryResultPaths(queryConfig.entity_name, queryConfig.fields ?? [])
-			: []
+		triggerType === 'medusa_event' && queryConfig?.entity_name ? getQueryResultPaths(queryConfig.entity_name, queryConfig.fields ?? []) : []
 
-	const workflowDef =
-		actionType === 'medusa_workflow' ? MEDUSA_WORKFLOWS_BY_NAME[medusaWorkflow] : null
+	const workflowDef = actionType === 'medusa_workflow' ? MEDUSA_WORKFLOWS_BY_NAME[medusaWorkflow] : null
 	const workflowTargetPaths = workflowDef ? flattenWorkflowInputPaths(workflowDef.inputFields) : []
 
 	const sourceIsDropdown = triggerType === 'medusa_event'
 	const targetIsDropdown = actionType === 'medusa_workflow' && workflowTargetPaths.length > 0
 
-	const sourceLabel =
-		triggerType === 'medusa_event' ? 'Event / Query Field' : 'Incoming Field (dot path)'
+	const sourceLabel = triggerType === 'medusa_event' ? 'Event / Query Field' : 'Incoming Field (dot path)'
 	const targetLabel =
 		actionType === 'medusa_workflow'
 			? 'Workflow Input Field'
@@ -255,7 +216,7 @@ const FieldMappingEditor = ({
 			</div>
 
 			{value.map((row, i) => (
-				<div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+				<div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
 					{sourceIsDropdown ? (
 						<Select value={row.source_path} onValueChange={v => update(i, 'source_path', v)}>
 							<Select.Trigger>
@@ -285,11 +246,7 @@ const FieldMappingEditor = ({
 							</Select.Content>
 						</Select>
 					) : (
-						<Input
-							placeholder="e.g. data.customer.email"
-							value={row.source_path}
-							onChange={e => update(i, 'source_path', e.target.value)}
-						/>
+						<Input placeholder="e.g. data.customer.email" value={row.source_path} onChange={e => update(i, 'source_path', e.target.value)} />
 					)}
 
 					{targetIsDropdown ? (
@@ -301,9 +258,7 @@ const FieldMappingEditor = ({
 								{workflowDef?.hasAdditionalData && (
 									<Select.Group>
 										<Select.Label>additional_data (custom)</Select.Label>
-										<Select.Item value="additional_data.__custom__">
-											additional_data.… (type key below)
-										</Select.Item>
+										<Select.Item value="additional_data.__custom__">additional_data.… (type key below)</Select.Item>
 									</Select.Group>
 								)}
 								<Select.Group>
@@ -318,11 +273,7 @@ const FieldMappingEditor = ({
 						</Select>
 					) : (
 						<Input
-							placeholder={
-								actionType === 'medusa_workflow'
-									? 'e.g. customersData[].email'
-									: 'e.g. customer_email'
-							}
+							placeholder={actionType === 'medusa_workflow' ? 'e.g. customersData[].email' : 'e.g. customer_email'}
 							value={row.target_key}
 							onChange={e => update(i, 'target_key', e.target.value)}
 						/>
@@ -335,12 +286,10 @@ const FieldMappingEditor = ({
 			))}
 
 			{workflowDef?.hasAdditionalData && (
-				<div className="rounded-lg border border-ui-border-base bg-ui-bg-subtle p-3">
+				<div className="border-ui-border-base bg-ui-bg-subtle rounded-lg border p-3">
 					<Text size="small" className="text-ui-fg-subtle">
-						This workflow accepts <code className="font-mono text-xs">additional_data</code>.
-						Map any field to{' '}
-						<code className="font-mono text-xs">additional_data.your_key</code> to pass custom
-						data through to workflow hooks.
+						This workflow accepts <code className="font-mono text-xs">additional_data</code>. Map any field to{' '}
+						<code className="font-mono text-xs">additional_data.your_key</code> to pass custom data through to workflow hooks.
 					</Text>
 				</div>
 			)}
@@ -378,14 +327,7 @@ type Props = {
 	setOpen: (open: boolean) => void
 }
 
-export const EditAutomationActionDrawer = ({
-	action,
-	triggerId,
-	triggerType = 'medusa_event',
-	triggerEvents = [],
-	open,
-	setOpen
-}: Props) => {
+export const EditAutomationActionDrawer = ({ action, triggerId, triggerType = 'medusa_event', triggerEvents = [], open, setOpen }: Props) => {
 	const isMedusaEvent = triggerType === 'medusa_event'
 	const { mutateAsync: updateAction, isPending } = useUpdateAutomationAction(triggerId, action.id)
 	const { mutateAsync: upsertQuery } = useUpsertAutomationActionQuery(triggerId, action.id)
@@ -517,10 +459,7 @@ export const EditAutomationActionDrawer = ({
 		}
 	})
 
-	const showMapping =
-		actionType === 'outgoing_webhook' ||
-		actionType === 'outgoing_request' ||
-		(actionType === 'medusa_workflow' && !!medusaWorkflow)
+	const showMapping = actionType === 'outgoing_webhook' || actionType === 'outgoing_request' || (actionType === 'medusa_workflow' && !!medusaWorkflow)
 
 	return (
 		<Drawer open={open} onOpenChange={setOpen}>
@@ -528,7 +467,10 @@ export const EditAutomationActionDrawer = ({
 				<FormProvider {...form}>
 					<form onSubmit={onSubmit} className="flex flex-1 flex-col overflow-hidden">
 						<Drawer.Header>
-							<Heading level="h1">Edit Action</Heading>
+							<Drawer.Title asChild>
+								<Heading level="h1">Edit Action</Heading>
+							</Drawer.Title>
+							<Drawer.Description className="sr-only">Edit this action's name and what it does when its trigger fires.</Drawer.Description>
 						</Drawer.Header>
 
 						<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
@@ -580,11 +522,7 @@ export const EditAutomationActionDrawer = ({
 									<Label htmlFor="edit-description" size="small" weight="plus">
 										Description
 									</Label>
-									<Controller
-										name="description"
-										control={control}
-										render={({ field }) => <Textarea id="edit-description" {...field} />}
-									/>
+									<Controller name="description" control={control} render={({ field }) => <Textarea id="edit-description" {...field} />} />
 								</div>
 
 								<div className="flex items-center justify-between">
@@ -599,9 +537,7 @@ export const EditAutomationActionDrawer = ({
 									<Controller
 										name="is_active"
 										control={control}
-										render={({ field }) => (
-											<Switch checked={field.value} onCheckedChange={field.onChange} />
-										)}
+										render={({ field }) => <Switch checked={field.value} onCheckedChange={field.onChange} />}
 									/>
 								</div>
 							</div>
@@ -616,14 +552,7 @@ export const EditAutomationActionDrawer = ({
 										<Controller
 											name="target_url"
 											control={control}
-											render={({ field }) => (
-												<Input
-													id="edit-target-url"
-													{...field}
-													type="url"
-													placeholder="https://example.com/webhook"
-												/>
-											)}
+											render={({ field }) => <Input id="edit-target-url" {...field} type="url" placeholder="https://example.com/webhook" />}
 										/>
 									</div>
 									<div className="flex flex-col gap-y-1">
@@ -638,12 +567,7 @@ export const EditAutomationActionDrawer = ({
 											name="signing_secret_id"
 											control={control}
 											render={({ field }) => (
-												<Select
-													value={field.value ?? '__none__'}
-													onValueChange={v =>
-														field.onChange(v === '__none__' ? null : v)
-													}
-												>
+												<Select value={field.value ?? '__none__'} onValueChange={v => field.onChange(v === '__none__' ? null : v)}>
 													<Select.Trigger>
 														<Select.Value placeholder="None (unsigned)" />
 													</Select.Trigger>
@@ -665,40 +589,23 @@ export const EditAutomationActionDrawer = ({
 											Custom Headers
 										</Text>
 										{headerFields.map((item, i) => (
-											<div
-												key={item.id}
-												className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center"
-											>
+											<div key={item.id} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
 												<Controller
 													name={`target_headers.${i}.key`}
 													control={control}
-													render={({ field }) => (
-														<Input {...field} placeholder="Header name" />
-													)}
+													render={({ field }) => <Input {...field} placeholder="Header name" />}
 												/>
 												<Controller
 													name={`target_headers.${i}.value`}
 													control={control}
-													render={({ field }) => (
-														<Input {...field} placeholder="Header value" />
-													)}
+													render={({ field }) => <Input {...field} placeholder="Header value" />}
 												/>
-												<Button
-													type="button"
-													size="small"
-													variant="secondary"
-													onClick={() => removeHeader(i)}
-												>
+												<Button type="button" size="small" variant="secondary" onClick={() => removeHeader(i)}>
 													<Trash />
 												</Button>
 											</div>
 										))}
-										<Button
-											type="button"
-											size="small"
-											variant="secondary"
-											onClick={() => appendHeader({ key: '', value: '' })}
-										>
+										<Button type="button" size="small" variant="secondary" onClick={() => appendHeader({ key: '', value: '' })}>
 											<Plus /> Add Header
 										</Button>
 									</div>
@@ -715,18 +622,13 @@ export const EditAutomationActionDrawer = ({
 										<Controller
 											name="target_url"
 											control={control}
-											render={({ field }) => (
-												<Input
-													id="edit-req-url"
-													{...field}
-													type="url"
-													placeholder="https://example.com/api/endpoint"
-												/>
-											)}
+											render={({ field }) => <Input id="edit-req-url" {...field} type="url" placeholder="https://example.com/api/endpoint" />}
 										/>
 									</div>
 									<div className="flex flex-col gap-y-1">
-										<Label size="small" weight="plus">Method</Label>
+										<Label size="small" weight="plus">
+											Method
+										</Label>
 										<Controller
 											name="request_method"
 											control={control}
@@ -755,40 +657,23 @@ export const EditAutomationActionDrawer = ({
 											Custom Headers
 										</Text>
 										{headerFields.map((item, i) => (
-											<div
-												key={item.id}
-												className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center"
-											>
+											<div key={item.id} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
 												<Controller
 													name={`target_headers.${i}.key`}
 													control={control}
-													render={({ field }) => (
-														<Input {...field} placeholder="Header name" />
-													)}
+													render={({ field }) => <Input {...field} placeholder="Header name" />}
 												/>
 												<Controller
 													name={`target_headers.${i}.value`}
 													control={control}
-													render={({ field }) => (
-														<Input {...field} placeholder="Header value" />
-													)}
+													render={({ field }) => <Input {...field} placeholder="Header value" />}
 												/>
-												<Button
-													type="button"
-													size="small"
-													variant="secondary"
-													onClick={() => removeHeader(i)}
-												>
+												<Button type="button" size="small" variant="secondary" onClick={() => removeHeader(i)}>
 													<Trash />
 												</Button>
 											</div>
 										))}
-										<Button
-											type="button"
-											size="small"
-											variant="secondary"
-											onClick={() => appendHeader({ key: '', value: '' })}
-										>
+										<Button type="button" size="small" variant="secondary" onClick={() => appendHeader({ key: '', value: '' })}>
 											<Plus /> Add Header
 										</Button>
 									</div>
@@ -825,16 +710,11 @@ export const EditAutomationActionDrawer = ({
 										)}
 									/>
 									{workflowDef && (
-										<div className="rounded-lg border border-ui-border-base bg-ui-bg-subtle p-3">
-											<Text
-												size="small"
-												weight="plus"
-												leading="compact"
-												className="text-ui-fg-subtle mb-1"
-											>
+										<div className="border-ui-border-base bg-ui-bg-subtle rounded-lg border p-3">
+											<Text size="small" weight="plus" leading="compact" className="text-ui-fg-subtle mb-1">
 												Expected input shape
 											</Text>
-											<pre className="font-mono text-xs text-ui-fg-subtle whitespace-pre-wrap">
+											<pre className="text-ui-fg-subtle font-mono text-xs whitespace-pre-wrap">
 												{renderWorkflowInputShape(workflowDef.inputFields)}
 												{workflowDef.hasAdditionalData ? '\nadditional_data?: { … }' : ''}
 											</pre>
@@ -851,8 +731,7 @@ export const EditAutomationActionDrawer = ({
 											Augment Data with Query
 										</Text>
 										<Text size="small" className="text-ui-fg-subtle">
-											Optionally fetch additional Medusa data before mapping. The query result
-											is merged under the entity name (e.g.{' '}
+											Optionally fetch additional Medusa data before mapping. The query result is merged under the entity name (e.g.{' '}
 											<code className="font-mono text-xs">order.total</code>).
 										</Text>
 									</div>
@@ -862,18 +741,12 @@ export const EditAutomationActionDrawer = ({
 											type="button"
 											size="small"
 											variant="secondary"
-											onClick={() =>
-												setValue(
-													'query',
-													{ entity_name: '', fields: [], filters_json: '', limit: 10 },
-													{ shouldDirty: true }
-												)
-											}
+											onClick={() => setValue('query', { entity_name: '', fields: [], filters_json: '', limit: 10 }, { shouldDirty: true })}
 										>
 											<Plus /> Configure Query
 										</Button>
 									) : (
-										<div className="flex flex-col gap-y-4 rounded-lg border border-ui-border-base p-4">
+										<div className="border-ui-border-base flex flex-col gap-y-4 rounded-lg border p-4">
 											{/* Entity */}
 											<div className="flex flex-col gap-y-1">
 												<Label size="small" weight="plus">
@@ -884,10 +757,7 @@ export const EditAutomationActionDrawer = ({
 													control={control}
 													render={({ field, fieldState }) => (
 														<>
-															<Select
-																value={field.value ?? ''}
-																onValueChange={field.onChange}
-															>
+															<Select value={field.value ?? ''} onValueChange={field.onChange}>
 																<Select.Trigger>
 																	<Select.Value placeholder="Select entity…" />
 																</Select.Trigger>
@@ -915,38 +785,25 @@ export const EditAutomationActionDrawer = ({
 													Fields
 												</Label>
 												<Text size="small" className="text-ui-fg-subtle">
-													Which fields to retrieve. Use dot notation and{' '}
-													<code className="font-mono text-xs">*</code> wildcards (e.g.{' '}
+													Which fields to retrieve. Use dot notation and <code className="font-mono text-xs">*</code> wildcards (e.g.{' '}
 													<code className="font-mono text-xs">customer.*</code>).
 												</Text>
 												<Controller
 													name="query.fields"
 													control={control}
-													render={({ field }) => (
-														<FieldsEditor
-															value={field.value ?? []}
-															onChange={field.onChange}
-														/>
-													)}
+													render={({ field }) => <FieldsEditor value={field.value ?? []} onChange={field.onChange} />}
 												/>
 											</div>
 
 											{/* Filters */}
 											<div className="flex flex-col gap-y-1">
 												<Label size="small" weight="plus">
-													Filters{' '}
-													<span className="text-ui-fg-subtle font-normal">(JSON, optional)</span>
+													Filters <span className="text-ui-fg-subtle font-normal">(JSON, optional)</span>
 												</Label>
 												<Text size="small" className="text-ui-fg-subtle">
-													Use{' '}
-													<code className="font-mono text-xs">"$event.fieldName"</code> to
-													reference event data (e.g.{' '}
+													Use <code className="font-mono text-xs">"$event.fieldName"</code> to reference event data (e.g.{' '}
 													<code className="font-mono text-xs">{'{ "id": "$event.id" }'}</code>
-													). Supports operators:{' '}
-													<code className="font-mono text-xs">
-														$eq $in $gt $lt $ne $like
-													</code>
-													.
+													). Supports operators: <code className="font-mono text-xs">$eq $in $gt $lt $ne $like</code>.
 												</Text>
 												<Controller
 													name="query.filters_json"
@@ -966,8 +823,7 @@ export const EditAutomationActionDrawer = ({
 											{/* Limit */}
 											<div className="flex flex-col gap-y-1">
 												<Label htmlFor="edit-query-limit" size="small" weight="plus">
-													Limit{' '}
-													<span className="text-ui-fg-subtle font-normal">(1–100)</span>
+													Limit <span className="text-ui-fg-subtle font-normal">(1–100)</span>
 												</Label>
 												<Controller
 													name="query.limit"
@@ -987,12 +843,7 @@ export const EditAutomationActionDrawer = ({
 												/>
 											</div>
 
-											<Button
-												type="button"
-												size="small"
-												variant="secondary"
-												onClick={() => setValue('query', null, { shouldDirty: true })}
-											>
+											<Button type="button" size="small" variant="secondary" onClick={() => setValue('query', null, { shouldDirty: true })}>
 												<Trash /> Remove Query
 											</Button>
 										</div>
@@ -1014,12 +865,8 @@ export const EditAutomationActionDrawer = ({
 											{triggerType === 'medusa_event' &&
 												actionType === 'medusa_workflow' &&
 												'Map event (and query result) fields to the workflow input.'}
-											{triggerType === 'incoming_webhook' &&
-												actionType === 'outgoing_webhook' &&
-												'Map incoming fields to the outgoing JSON body.'}
-											{triggerType === 'incoming_webhook' &&
-												actionType === 'medusa_workflow' &&
-												'Map incoming fields to the workflow input.'}
+											{triggerType === 'incoming_webhook' && actionType === 'outgoing_webhook' && 'Map incoming fields to the outgoing JSON body.'}
+											{triggerType === 'incoming_webhook' && actionType === 'medusa_workflow' && 'Map incoming fields to the workflow input.'}
 										</Text>
 									</div>
 									<Controller
@@ -1048,22 +895,14 @@ export const EditAutomationActionDrawer = ({
 										Static Values
 									</Text>
 									<Text size="small" className="text-ui-fg-subtle">
-										Fixed key/value pairs always merged into the{' '}
-										{actionType === 'outgoing_webhook'
-											? 'outgoing payload'
-											: 'workflow input'}
-										. Sent with every delivery regardless of the trigger data.
+										Fixed key/value pairs always merged into the {actionType === 'outgoing_webhook' ? 'outgoing payload' : 'workflow input'}. Sent
+										with every delivery regardless of the trigger data.
 									</Text>
 								</div>
 								<Controller
 									name="static_values"
 									control={control}
-									render={({ field }) => (
-										<StaticValuesEditor
-											value={field.value ?? []}
-											onChange={field.onChange}
-										/>
-									)}
+									render={({ field }) => <StaticValuesEditor value={field.value ?? []} onChange={field.onChange} />}
 								/>
 							</div>
 						</Drawer.Body>
@@ -1075,12 +914,7 @@ export const EditAutomationActionDrawer = ({
 										Cancel
 									</Button>
 								</Drawer.Close>
-								<Button
-									type="submit"
-									size="small"
-									isLoading={isPending}
-									disabled={!isDirty || isPending}
-								>
+								<Button type="submit" size="small" isLoading={isPending} disabled={!isDirty || isPending}>
 									Save Changes
 								</Button>
 							</div>

@@ -1,11 +1,4 @@
-import {
-	AdminCustomer,
-	AdminOrder,
-	AdminProduct,
-	AdminUser,
-	FindParams,
-	PaginatedResponse
-} from '@medusajs/framework/types'
+import { AdminCustomer, AdminOrder, AdminProduct, AdminUser, FindParams, PaginatedResponse } from '@medusajs/framework/types'
 
 export type AdminCustomerWithOrders = AdminCustomer & {
 	orders: AdminOrder[]

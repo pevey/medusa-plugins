@@ -32,7 +32,7 @@ export const AdminCreateStockLot = z
 		stocked_quantity: z.number().optional(),
 		metadata: z.record(z.string(), z.unknown()).nullable().optional()
 	})
-	.check((ctx) => {
+	.check(ctx => {
 		const val = ctx.value
 		if (val.initial_quantity === undefined && val.stocked_quantity === undefined) {
 			ctx.issues.push({
@@ -41,28 +41,16 @@ export const AdminCreateStockLot = z
 				input: val,
 				message: 'Either initial_quantity or stocked_quantity must be provided'
 			})
-		} else if (
-			val.initial_quantity !== undefined &&
-			val.stocked_quantity !== undefined &&
-			val.initial_quantity !== val.stocked_quantity
-		) {
+		} else if (val.initial_quantity !== undefined && val.stocked_quantity !== undefined && val.initial_quantity !== val.stocked_quantity) {
 			ctx.issues.push({
 				path: ['initial_quantity', 'stocked_quantity'],
 				code: 'custom',
 				input: val,
 				message: 'initial_quantity and stocked_quantity must be equal'
 			})
-		} else if (
-			val.initial_quantity === undefined &&
-			val.stocked_quantity !== undefined &&
-			val.stocked_quantity > 0
-		) {
+		} else if (val.initial_quantity === undefined && val.stocked_quantity !== undefined && val.stocked_quantity > 0) {
 			val.initial_quantity = val.stocked_quantity
-		} else if (
-			val.stocked_quantity === undefined &&
-			val.initial_quantity !== undefined &&
-			val.initial_quantity > 0
-		) {
+		} else if (val.stocked_quantity === undefined && val.initial_quantity !== undefined && val.initial_quantity > 0) {
 			val.stocked_quantity = val.initial_quantity
 		}
 	})

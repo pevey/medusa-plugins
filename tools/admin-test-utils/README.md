@@ -26,16 +26,16 @@ it with the real schema, and answers from a fixture projected through `queryConf
 The point: a component that sends a request the real backend would reject fails here, loudly, in
 about a second.
 
-| File | Responsibility |
-|---|---|
-| `src/config.ts` | `defineAdminTestConfig()` — the vitest config factory each plugin calls |
-| `src/shims/framework-http.ts` | Stand-in for `@medusajs/framework/http`; tags validators with `__schema` / `__queryConfig` |
-| `src/shims/medusa-validators.ts` | Stand-in for `createFindParams`, kept identical to Medusa's |
-| `src/contracts/load.ts` | Walks the tagged middleware tree into a route map |
-| `src/contracts/match.ts` | Path matching; literal segments beat `:param` |
-| `src/contracts/invariants.ts` | No-DOM static checks (unwired validators, `defaultLimit`, declared fields) |
-| `src/fake-sdk.ts` | The validating fake `sdk.client.fetch` |
-| `src/render.tsx` | Mounts a route component inside the providers the real dashboard supplies |
+| File                             | Responsibility                                                                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------ |
+| `src/config.ts`                  | `defineAdminTestConfig()` — the vitest config factory each plugin calls                    |
+| `src/shims/framework-http.ts`    | Stand-in for `@medusajs/framework/http`; tags validators with `__schema` / `__queryConfig` |
+| `src/shims/medusa-validators.ts` | Stand-in for `createFindParams`, kept identical to Medusa's                                |
+| `src/contracts/load.ts`          | Walks the tagged middleware tree into a route map                                          |
+| `src/contracts/match.ts`         | Path matching; literal segments beat `:param`                                              |
+| `src/contracts/invariants.ts`    | No-DOM static checks (unwired validators, `defaultLimit`, declared fields)                 |
+| `src/fake-sdk.ts`                | The validating fake `sdk.client.fetch`                                                     |
+| `src/render.tsx`                 | Mounts a route component inside the providers the real dashboard supplies                  |
 
 Wired today: `packages/ratings`, `packages/forms`.
 
@@ -46,11 +46,13 @@ Wired today: `packages/ratings`, `packages/forms`.
    root, and a second copy breaks the shared React Query and router contexts.
 2. scripts: `"test:admin": "vitest run"`.
 3. `vitest.config.ts`:
+
    ```ts
    import { defineAdminTestConfig } from 'admin-test-utils/config'
 
    export default defineAdminTestConfig({ root: import.meta.dirname })
    ```
+
 4. `src/admin/__tests__/setup.ts` — copy the one in `packages/ratings`, keeping the `currentFake`
    indirection (see below).
 5. Tests go in `src/admin/__tests__/*.test.tsx`.
@@ -64,18 +66,18 @@ Each of these cost real debugging time.
 
 **`vi.resetModules()` does not evict an evaluated module graph in browser mode.** A second `mount()`
 in one file re-runs `vi.doMock`, but the component keeps the sdk module it already imported — so it
-talks to the *previous* test's fake. It renders correctly while the new fake records **zero calls**,
+talks to the _previous_ test's fake. It renders correctly while the new fake records **zero calls**,
 so assertions on `fake.calls` silently inspect an object nothing touched. `installFake` therefore
 stores the fake in a module-level `currentFake` the mocked `fetch` resolves at call time. Don't
 "simplify" that away.
 
 **`fake.calls` is recorded before validation.** Deliberate — it lets a test inspect a rejected
-request. But a test asserting *only* on `fake.calls` passes even when the request threw. If the
+request. But a test asserting _only_ on `fake.calls` passes even when the request threw. If the
 point is "the UI sends something the API accepts", also gate on a signal the component only produces
 on success (a modal closing, a success toast).
 
 **Two tsconfigs per plugin.** `src/admin/lib/sdk.ts` uses `import.meta.env`, which needs
-`module: Preserve` / `moduleResolution: Bundler`. Putting those on the plugin's *server* tsconfig
+`module: Preserve` / `moduleResolution: Bundler`. Putting those on the plugin's _server_ tsconfig
 flips its emitted `.medusa/server/**/*.js` from CommonJS to ESM — and no plugin declares
 `"type": "module"`, so that output breaks at runtime. Keep `src/admin` excluded from the server
 config and typecheck it from `tsconfig.admin.json`.
@@ -107,7 +109,7 @@ letting every plugin's contract tests validate against a stale approximation. It
 **When you bump Medusa, bump it here too.** This package declares its own
 `@medusajs/medusa` devDependency so the guard can import the real implementation. Package versions
 in this repo are synced by hand, so nothing stops that pin from lagging the root's — and if it does,
-the guard compares the shim against a *stale* Medusa while the plugins run against the current one.
+the guard compares the shim against a _stale_ Medusa while the plugins run against the current one.
 The single check whose entire job is detecting drift would itself be silently stale. Keep it equal
 to the root's `@medusajs/*` version.
 

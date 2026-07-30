@@ -62,7 +62,13 @@ medusaIntegrationTestRunner({
 		describe('module + migration', () => {
 			it('creates/lists a search_document and pg_trgm is installed', async () => {
 				const [doc] = await service.createSearchDocuments([
-					seed({ entity_id: 'prod_test_1', slug: 'ethiopia-yirgacheffe', title: 'Ethiopia Yirgacheffe', primary_text: 'Ethiopia Yirgacheffe', sales_channel_ids: ['sc_1'] })
+					seed({
+						entity_id: 'prod_test_1',
+						slug: 'ethiopia-yirgacheffe',
+						title: 'Ethiopia Yirgacheffe',
+						primary_text: 'Ethiopia Yirgacheffe',
+						sales_channel_ids: ['sc_1']
+					})
 				])
 				expect(doc.id).toMatch(/^srch_/)
 				const listed = await service.listSearchDocuments({ entity_id: 'prod_test_1' })
@@ -76,10 +82,42 @@ medusaIntegrationTestRunner({
 
 		describe('service: registry + search()', () => {
 			beforeAll(async () => {
-				await service.upsertDocument(seed({ entity_id: 's_yirg', slug: 'ethiopia-yirgacheffe', title: 'Ethiopia Yirgacheffe', primary_text: 'Ethiopia Yirgacheffe Decaf Regular Whole Bean' }))
-				await service.upsertDocument(seed({ entity_id: 's_reg', slug: 'sumatra', title: 'Sumatra', primary_text: 'Sumatra Regular Whole Bean' }))
-				await service.upsertDocument(seed({ type: 'category', entity_id: 's_cat', slug: 'single-origin', title: 'Single Origin', primary_text: 'Single Origin', weight: 0.9, sales_channel_ids: null }))
-				await service.upsertDocument(seed({ entity_id: 's_wholesale', slug: 'bulk', title: 'Bulk Beans', primary_text: 'Bulk Beans', sales_channel_ids: ['sc_wholesale'] }))
+				await service.upsertDocument(
+					seed({
+						entity_id: 's_yirg',
+						slug: 'ethiopia-yirgacheffe',
+						title: 'Ethiopia Yirgacheffe',
+						primary_text: 'Ethiopia Yirgacheffe Decaf Regular Whole Bean'
+					})
+				)
+				await service.upsertDocument(
+					seed({
+						entity_id: 's_reg',
+						slug: 'sumatra',
+						title: 'Sumatra',
+						primary_text: 'Sumatra Regular Whole Bean'
+					})
+				)
+				await service.upsertDocument(
+					seed({
+						type: 'category',
+						entity_id: 's_cat',
+						slug: 'single-origin',
+						title: 'Single Origin',
+						primary_text: 'Single Origin',
+						weight: 0.9,
+						sales_channel_ids: null
+					})
+				)
+				await service.upsertDocument(
+					seed({
+						entity_id: 's_wholesale',
+						slug: 'bulk',
+						title: 'Bulk Beans',
+						primary_text: 'Bulk Beans',
+						sales_channel_ids: ['sc_wholesale']
+					})
+				)
 				await seedSnapshot()
 			})
 
@@ -96,19 +134,19 @@ medusaIntegrationTestRunner({
 
 			it('is typo tolerant on product names', async () => {
 				const hits = await service.search('yirgachefe', 12, ['sc_retail'])
-				expect(hits.map((h) => h.slug)).toContain('ethiopia-yirgacheffe')
+				expect(hits.map(h => h.slug)).toContain('ethiopia-yirgacheffe')
 			})
 
 			it('matches available attribute values, excludes products without them', async () => {
-				const slugs = (await service.search('decaf', 12, ['sc_retail'])).map((h) => h.slug)
+				const slugs = (await service.search('decaf', 12, ['sc_retail'])).map(h => h.slug)
 				expect(slugs).toContain('ethiopia-yirgacheffe')
 				expect(slugs).not.toContain('sumatra')
 			})
 
 			it('scopes by sales channel; global docs always appear', async () => {
-				expect((await service.search('bulk', 12, ['sc_retail'])).map((h) => h.slug)).not.toContain('bulk')
-				expect((await service.search('bulk', 12, ['sc_wholesale'])).map((h) => h.slug)).toContain('bulk')
-				expect((await service.search('single origin', 12, ['sc_retail'])).map((h) => h.type)).toContain('category')
+				expect((await service.search('bulk', 12, ['sc_retail'])).map(h => h.slug)).not.toContain('bulk')
+				expect((await service.search('bulk', 12, ['sc_wholesale'])).map(h => h.slug)).toContain('bulk')
+				expect((await service.search('single origin', 12, ['sc_retail'])).map(h => h.type)).toContain('category')
 			})
 
 			it('upsertDocument inserts then updates; deleteDocumentByEntity removes', async () => {
@@ -124,25 +162,44 @@ medusaIntegrationTestRunner({
 
 		describe('hybrid tsvector lane', () => {
 			beforeAll(async () => {
-				await service.upsertDocument(seed({
-					entity_id: 'h_brew', slug: 'brewing-guide', title: 'Brewing Guide',
-					primary_text: 'Brewing Guide',
-					body_text: 'Our beans are roasted daily and shipped fresh to your door.'
-				}))
+				await service.upsertDocument(
+					seed({
+						entity_id: 'h_brew',
+						slug: 'brewing-guide',
+						title: 'Brewing Guide',
+						primary_text: 'Brewing Guide',
+						body_text: 'Our beans are roasted daily and shipped fresh to your door.'
+					})
+				)
 				await seedSnapshot()
 			})
 			it('matches a token present only in the long body (not in primary_text)', async () => {
 				const hits = await service.search('roasted', 12, ['sc_retail'])
-				expect(hits.map((h) => h.slug)).toContain('brewing-guide')
+				expect(hits.map(h => h.slug)).toContain('brewing-guide')
 			})
 		})
 
 		describe('translations (forced via option)', () => {
 			beforeAll(async () => {
 				;(service as any).options_.translations = true
-				await service.upsertDocument(seed({ entity_id: 'loc_1', slug: 'loc-1', title: 'Coffee', primary_text: 'Coffee', body_text: 'beans' }))
+				await service.upsertDocument(
+					seed({
+						entity_id: 'loc_1',
+						slug: 'loc-1',
+						title: 'Coffee',
+						primary_text: 'Coffee',
+						body_text: 'beans'
+					})
+				)
 				const base = (await service.listSearchDocuments({ type: 'product', entity_id: 'loc_1' }))[0]
-				await service.upsertTranslation({ search_document_id: base.id, locale: 'es-ES', title: 'Café', snippet: null, primary_text: 'Café', body_text: 'granos molidos' })
+				await service.upsertTranslation({
+					search_document_id: base.id,
+					locale: 'es-ES',
+					title: 'Café',
+					snippet: null,
+					primary_text: 'Café',
+					body_text: 'granos molidos'
+				})
 				await seedSnapshot()
 			})
 			afterAll(() => {
@@ -162,17 +219,26 @@ medusaIntegrationTestRunner({
 
 			it('localized search returns the translated title, and falls back to base for an untranslated locale', async () => {
 				const es = await service.search('café', 12, ['sc_retail'], 'es-ES')
-				expect(es.find((h) => h.slug === 'loc-1')?.title).toBe('Café')
+				expect(es.find(h => h.slug === 'loc-1')?.title).toBe('Café')
 				const de = await service.search('coffee', 12, ['sc_retail'], 'de-DE')
-				expect(de.find((h) => h.slug === 'loc-1')?.title).toBe('Coffee')
+				expect(de.find(h => h.slug === 'loc-1')?.title).toBe('Coffee')
 			})
 
 			it('pruneTranslations removes locales no longer present', async () => {
 				const base = (await service.listSearchDocuments({ type: 'product', entity_id: 'loc_1' }))[0]
-				await service.upsertTranslation({ search_document_id: base.id, locale: 'fr-FR', title: 'Café FR', snippet: null, primary_text: 'Café FR', body_text: null })
+				await service.upsertTranslation({
+					search_document_id: base.id,
+					locale: 'fr-FR',
+					title: 'Café FR',
+					snippet: null,
+					primary_text: 'Café FR',
+					body_text: null
+				})
 				expect(await service.listSearchDocumentTranslations({ search_document_id: base.id })).toHaveLength(2)
 				await service.pruneTranslations(base.id, ['es-ES'])
-				const left = await service.listSearchDocumentTranslations({ search_document_id: base.id })
+				const left = await service.listSearchDocumentTranslations({
+					search_document_id: base.id
+				})
 				expect(left.map((r: any) => r.locale)).toEqual(['es-ES'])
 			})
 		})
@@ -181,38 +247,53 @@ medusaIntegrationTestRunner({
 			it('passing a locale never removes results (base returned when no translation matches)', async () => {
 				const withLoc = await service.search('yirgachefe', 12, ['sc_retail'], 'es-ES')
 				const without = await service.search('yirgachefe', 12, ['sc_retail'])
-				expect(withLoc.map((h) => h.slug).sort()).toEqual(without.map((h) => h.slug).sort())
+				expect(withLoc.map(h => h.slug).sort()).toEqual(without.map(h => h.slug).sort())
 			})
 		})
 
 		describe('workflows', () => {
 			it('indexes a published product with its available option values', async () => {
-				const { result } = await createProductsWorkflow(container).run({ input: { products: [decafProduct('Ethiopia Yirgacheffe', 'published')] } })
+				const { result } = await createProductsWorkflow(container).run({
+					input: { products: [decafProduct('Ethiopia Yirgacheffe', 'published')] }
+				})
 				const productId = result[0].id
-				await upsertSearchDocumentWorkflow(container).run({ input: { type: 'product', id: productId } })
-				const [doc] = await service.listSearchDocuments({ type: 'product', entity_id: productId })
+				await upsertSearchDocumentWorkflow(container).run({
+					input: { type: 'product', id: productId }
+				})
+				const [doc] = await service.listSearchDocuments({
+					type: 'product',
+					entity_id: productId
+				})
 				expect(doc).toBeDefined()
 				expect(doc.primary_text).toContain('Decaf')
 				expect(doc.primary_text).toContain('Regular')
 			})
 
 			it('removes the document when the product becomes unpublished', async () => {
-				const { result } = await createProductsWorkflow(container).run({ input: { products: [decafProduct('Temp', 'published')] } })
+				const { result } = await createProductsWorkflow(container).run({
+					input: { products: [decafProduct('Temp', 'published')] }
+				})
 				const id = result[0].id
 				await upsertSearchDocumentWorkflow(container).run({ input: { type: 'product', id } })
 				expect(await service.listSearchDocuments({ type: 'product', entity_id: id })).toHaveLength(1)
-				await updateProductsWorkflow(container).run({ input: { selector: { id }, update: { status: 'draft' } } })
+				await updateProductsWorkflow(container).run({
+					input: { selector: { id }, update: { status: 'draft' } }
+				})
 				await upsertSearchDocumentWorkflow(container).run({ input: { type: 'product', id } })
 				expect(await service.listSearchDocuments({ type: 'product', entity_id: id })).toHaveLength(0)
 			})
 
 			it('reindex rebuilds documents for all published products (registry-driven)', async () => {
-				await createProductsWorkflow(container).run({ input: { products: [decafProduct('Reindex Coffee A', 'published'), decafProduct('Reindex Coffee B', 'draft')] } })
+				await createProductsWorkflow(container).run({
+					input: {
+						products: [decafProduct('Reindex Coffee A', 'published'), decafProduct('Reindex Coffee B', 'draft')]
+					}
+				})
 				const { result } = await reindexSearchDocumentsWorkflow(container).run({})
 				expect(result.counts.product).toBeGreaterThanOrEqual(1)
 				const docs = await service.listSearchDocuments({ type: 'product' })
-				expect(docs.some((d) => d.title === 'Reindex Coffee A')).toBe(true)
-				expect(docs.some((d) => d.title === 'Reindex Coffee B')).toBe(false)
+				expect(docs.some(d => d.title === 'Reindex Coffee A')).toBe(true)
+				expect(docs.some(d => d.title === 'Reindex Coffee B')).toBe(false)
 			})
 		})
 
@@ -220,7 +301,9 @@ medusaIntegrationTestRunner({
 			const fire = (handler: any, name: string, id: string) => handler({ event: { name, data: { id } }, container })
 
 			it('product subscriber indexes on created, removes on deleted, reindexes on variant', async () => {
-				const { result } = await createProductsWorkflow(container).run({ input: { products: [decafProduct('Sub Coffee', 'published')] } })
+				const { result } = await createProductsWorkflow(container).run({
+					input: { products: [decafProduct('Sub Coffee', 'published')] }
+				})
 				const productId = result[0].id
 				const variantId = result[0].variants[0].id
 				await fire(searchProductHandler, 'product.created', productId)
@@ -233,7 +316,9 @@ medusaIntegrationTestRunner({
 			})
 
 			it('category subscriber indexes when the category source is enabled', async () => {
-				const { result } = await createProductCategoriesWorkflow(container).run({ input: { product_categories: [{ name: 'Single Origin', is_active: true }] } })
+				const { result } = await createProductCategoriesWorkflow(container).run({
+					input: { product_categories: [{ name: 'Single Origin', is_active: true }] }
+				})
 				const id = result[0].id
 				await fire(searchCategoryHandler, 'product-category.created', id)
 				expect(await service.listSearchDocuments({ type: 'category', entity_id: id })).toHaveLength(1)
@@ -247,12 +332,30 @@ medusaIntegrationTestRunner({
 			let scId: string
 
 			beforeAll(async () => {
-				const { result: channels } = await createSalesChannelsWorkflow(container).run({ input: { salesChannelsData: [{ name: 'Retail Test' }] } })
+				const { result: channels } = await createSalesChannelsWorkflow(container).run({
+					input: { salesChannelsData: [{ name: 'Retail Test' }] }
+				})
 				scId = channels[0].id
-				const { result: keys } = await createApiKeysWorkflow(container).run({ input: { api_keys: [{ title: 'Retail PAK', type: 'publishable', created_by: 'test' }] } })
+				const { result: keys } = await createApiKeysWorkflow(container).run({
+					input: {
+						api_keys: [{ title: 'Retail PAK', type: 'publishable', created_by: 'test' }]
+					}
+				})
 				pak = keys[0].token
-				await linkSalesChannelsToApiKeyWorkflow(container).run({ input: { id: keys[0].id, add: [scId] } })
-				await service.upsertDocument(seed({ entity_id: 'rt_yirg', slug: 'ethiopia-yirgacheffe', title: 'Ethiopia Yirgacheffe', primary_text: 'Ethiopia Yirgacheffe Decaf', snippet: 'Floral', body_text: 'Floral', sales_channel_ids: [scId] }))
+				await linkSalesChannelsToApiKeyWorkflow(container).run({
+					input: { id: keys[0].id, add: [scId] }
+				})
+				await service.upsertDocument(
+					seed({
+						entity_id: 'rt_yirg',
+						slug: 'ethiopia-yirgacheffe',
+						title: 'Ethiopia Yirgacheffe',
+						primary_text: 'Ethiopia Yirgacheffe Decaf',
+						snippet: 'Floral',
+						body_text: 'Floral',
+						sales_channel_ids: [scId]
+					})
+				)
 				await seedSnapshot()
 			})
 

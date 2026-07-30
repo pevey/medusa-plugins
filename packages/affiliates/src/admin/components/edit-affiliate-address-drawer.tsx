@@ -66,7 +66,10 @@ export const EditAffiliateAddressDrawer = ({ affiliateId, address, open, onOpenC
 			<Drawer.Content>
 				<form onSubmit={submit} className="flex flex-1 flex-col overflow-hidden">
 					<Drawer.Header>
-						<Heading level="h1">Edit address</Heading>
+						<Drawer.Title asChild>
+							<Heading level="h1">Edit address</Heading>
+						</Drawer.Title>
+						<Drawer.Description className="sr-only">Edit this affiliate's address.</Drawer.Description>
 					</Drawer.Header>
 					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 						<div className="grid grid-cols-2 gap-4">
@@ -116,10 +119,7 @@ export const EditAffiliateAddressDrawer = ({ affiliateId, address, open, onOpenC
 								<Label size="small" weight="plus">
 									Country
 								</Label>
-								<Input
-									value={country}
-									onChange={e => setCountry(e.target.value.toLowerCase())}
-								/>
+								<Input value={country} onChange={e => setCountry(e.target.value.toLowerCase())} />
 							</div>
 							<div className="flex flex-col space-y-2">
 								<Label size="small" weight="plus">
@@ -142,12 +142,7 @@ export const EditAffiliateAddressDrawer = ({ affiliateId, address, open, onOpenC
 									Cancel
 								</Button>
 							</Drawer.Close>
-							<Button
-								size="small"
-								type="submit"
-								disabled={update.isPending}
-								isLoading={update.isPending}
-							>
+							<Button size="small" type="submit" disabled={update.isPending} isLoading={update.isPending}>
 								Save
 							</Button>
 						</div>

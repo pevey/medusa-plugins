@@ -7,6 +7,4 @@
 	const ctx = getReviewFormContext()
 </script>
 
-<Button type="button" variant="secondary" onclick={() => ctx.setOpen(false)} class={cn('', className)}
-	>{@render children()}</Button
->
+<Button type="button" variant="secondary" onclick={() => ctx.setOpen(false)} class={cn('', className)}>{@render children()}</Button>

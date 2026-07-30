@@ -1,11 +1,5 @@
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
-import {
-	createStep,
-	createWorkflow,
-	StepResponse,
-	WorkflowResponse,
-	transform
-} from '@medusajs/framework/workflows-sdk'
+import { createStep, createWorkflow, StepResponse, WorkflowResponse, transform } from '@medusajs/framework/workflows-sdk'
 import { updatePromotionsWorkflow } from '@medusajs/medusa/core-flows'
 import { AFFILIATE_MODULE } from '../modules/affiliate'
 import { AffiliateService } from '../modules/affiliate/service'
@@ -58,10 +52,7 @@ export const updateAffiliateStatusStep = createStep(
 			deactivated_promotion_ids: []
 		}
 
-		return new StepResponse<StatusStepOutput, NonNullStatusSnapshot>(
-			{ snapshot, going_inactive: input.status === AffiliateStatus.INACTIVE },
-			snapshot
-		)
+		return new StepResponse<StatusStepOutput, NonNullStatusSnapshot>({ snapshot, going_inactive: input.status === AffiliateStatus.INACTIVE }, snapshot)
 	},
 	async (snapshot: NonNullStatusSnapshot | undefined, { container }) => {
 		if (!snapshot) return
@@ -94,26 +85,21 @@ export const collectActivePromotionIdsStep = createStep(
 
 export const updateAffiliateStatusWorkflowId = 'update-affiliate-status'
 
-export const updateAffiliateStatusWorkflow = createWorkflow(
-	updateAffiliateStatusWorkflowId,
-	function (input: UpdateAffiliateStatusInput) {
-		const statusResult = updateAffiliateStatusStep(input)
+export const updateAffiliateStatusWorkflow = createWorkflow(updateAffiliateStatusWorkflowId, function (input: UpdateAffiliateStatusInput) {
+	const statusResult = updateAffiliateStatusStep(input)
 
-		const collectInput = transform({ input, statusResult }, ({ input, statusResult }) => ({
-			affiliate_id: input.id,
-			going_inactive: statusResult.going_inactive
-		}))
+	const collectInput = transform({ input, statusResult }, ({ input, statusResult }) => ({
+		affiliate_id: input.id,
+		going_inactive: statusResult.going_inactive
+	}))
 
-		const ids = collectActivePromotionIdsStep(collectInput)
+	const ids = collectActivePromotionIdsStep(collectInput)
 
-		const promotionsData = transform({ ids }, ({ ids }) =>
-			ids.promotionIds.map(id => ({ id, status: 'inactive' as const }))
-		)
+	const promotionsData = transform({ ids }, ({ ids }) => ids.promotionIds.map(id => ({ id, status: 'inactive' as const })))
 
-		updatePromotionsWorkflow.runAsStep({
-			input: { promotionsData }
-		})
+	updatePromotionsWorkflow.runAsStep({
+		input: { promotionsData }
+	})
 
-		return new WorkflowResponse(statusResult)
-	}
-)
+	return new WorkflowResponse(statusResult)
+})

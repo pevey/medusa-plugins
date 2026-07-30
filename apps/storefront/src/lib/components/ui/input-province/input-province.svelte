@@ -14,37 +14,13 @@
 		onchange?: (event: Event) => void
 		[key: string]: unknown
 	}
-	let {
-		field,
-		country = '',
-		config = defaultProvinceConfig,
-		label,
-		placeholder = '',
-		class: className = '',
-		onchange,
-		...rest
-	}: Props = $props()
+	let { field, country = '', config = defaultProvinceConfig, label, placeholder = '', class: className = '', onchange, ...rest }: Props = $props()
 
 	const resolved = $derived(resolveProvince(config, country))
 </script>
 
 {#if resolved.mode === 'select'}
-	<InputSelect
-		{field}
-		options={resolved.options}
-		label={label ?? resolved.label}
-		{placeholder}
-		class={className}
-		{onchange}
-		{...rest}
-	/>
+	<InputSelect {field} options={resolved.options} label={label ?? resolved.label} {placeholder} class={className} {onchange} {...rest} />
 {:else}
-	<InputText
-		{field}
-		label={label ?? 'Province'}
-		{placeholder}
-		class={className}
-		{onchange}
-		{...rest}
-	/>
+	<InputText {field} label={label ?? 'Province'} {placeholder} class={className} {onchange} {...rest} />
 {/if}

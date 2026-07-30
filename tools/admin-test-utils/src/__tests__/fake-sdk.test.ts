@@ -12,9 +12,7 @@ const build = () =>
 		contracts,
 		responders: {
 			'GET /admin/things': () => ({
-				things: [
-					{ id: 'thing_1', name: 'One', created_at: '2026-01-01', secret: 'nope' }
-				],
+				things: [{ id: 'thing_1', name: 'One', created_at: '2026-01-01', secret: 'nope' }],
 				count: 1
 			}),
 			'DELETE /admin/things': () => ({ deleted: ['thing_1'] }),
@@ -34,23 +32,17 @@ describe('createContractFake', () => {
 	it('records every call', async () => {
 		const fake = build()
 		await fake.fetch('/admin/things', { query: { q: 'abc' } })
-		expect(fake.calls).toEqual([
-			{ method: 'GET', path: '/admin/things', query: { q: 'abc' }, body: undefined }
-		])
+		expect(fake.calls).toEqual([{ method: 'GET', path: '/admin/things', query: { q: 'abc' }, body: undefined }])
 	})
 
 	it('rejects a query the real schema refuses', async () => {
 		const fake = build()
-		await expect(fake.fetch('/admin/things', { query: { q: 123 } })).rejects.toThrow(
-			/GET \/admin\/things/
-		)
+		await expect(fake.fetch('/admin/things', { query: { q: 123 } })).rejects.toThrow(/GET \/admin\/things/)
 	})
 
 	it('rejects a body the real schema refuses', async () => {
 		const fake = build()
-		await expect(
-			fake.fetch('/admin/things', { method: 'DELETE', body: { ids: [] } })
-		).rejects.toThrow(/DELETE \/admin\/things/)
+		await expect(fake.fetch('/admin/things', { method: 'DELETE', body: { ids: [] } })).rejects.toThrow(/DELETE \/admin\/things/)
 	})
 
 	it('rejects an unknown path so route renames cannot pass silently', async () => {
@@ -167,11 +159,7 @@ describe('createContractFake query handling', () => {
 	})
 
 	it('throws on a fields list it cannot interpret rather than answering generously', async () => {
-		await expect(
-			pagedFake().fetch('/admin/paged', { query: { fields: 'id,,name' } })
-		).rejects.toThrow(/empty entry/i)
-		await expect(
-			pagedFake().fetch('/admin/paged', { query: { fields: '-id,-name' } })
-		).rejects.toThrow(/no fields at all/i)
+		await expect(pagedFake().fetch('/admin/paged', { query: { fields: 'id,,name' } })).rejects.toThrow(/empty entry/i)
+		await expect(pagedFake().fetch('/admin/paged', { query: { fields: '-id,-name' } })).rejects.toThrow(/no fields at all/i)
 	})
 })

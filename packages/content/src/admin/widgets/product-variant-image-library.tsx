@@ -19,9 +19,7 @@ type ProductWithImages = {
 	}
 }
 
-const ProductVariantImageLibraryWidget = ({
-	data: variant
-}: DetailWidgetProps<AdminProductVariant>) => {
+const ProductVariantImageLibraryWidget = ({ data: variant }: DetailWidgetProps<AdminProductVariant>) => {
 	const queryClient = useQueryClient()
 	const [pickerOpen, setPickerOpen] = useState(false)
 
@@ -41,10 +39,7 @@ const ProductVariantImageLibraryWidget = ({
 
 			// Step 1: Add the URL to the product's images array
 			const { product: updatedProduct } = await sdk.admin.product.update(variant.product_id!, {
-				images: [
-					...existingImages.map(img => ({ id: img.id, url: img.url })),
-					{ url: item.body! }
-				]
+				images: [...existingImages.map(img => ({ id: img.id, url: img.url })), { url: item.body! }]
 			})
 
 			// Step 2: Find the newly created image by matching URL
@@ -74,23 +69,14 @@ const ProductVariantImageLibraryWidget = ({
 			<Container className="divide-y p-0">
 				<div className="flex items-center justify-between px-6 py-4">
 					<Heading level="h2">Image Library</Heading>
-					<Button
-						size="small"
-						variant="secondary"
-						onClick={() => setPickerOpen(true)}
-						isLoading={mutation.isPending}
-					>
+					<Button size="small" variant="secondary" onClick={() => setPickerOpen(true)} isLoading={mutation.isPending}>
 						<ImageSparkle className="mr-1" />
 						Add from Library
 					</Button>
 				</div>
 			</Container>
 
-			<LibraryImagePickerModal
-				open={pickerOpen}
-				onOpenChange={setPickerOpen}
-				onSelect={item => mutation.mutate(item)}
-			/>
+			<LibraryImagePickerModal open={pickerOpen} onOpenChange={setPickerOpen} onSelect={item => mutation.mutate(item)} />
 		</>
 	)
 }

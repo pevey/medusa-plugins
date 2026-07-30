@@ -29,8 +29,6 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 		total: orders.length,
 		succeeded,
 		failed,
-		errors: results
-			.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
-			.map(r => r.reason?.message ?? String(r.reason))
+		errors: results.filter((r): r is PromiseRejectedResult => r.status === 'rejected').map(r => r.reason?.message ?? String(r.reason))
 	})
 }

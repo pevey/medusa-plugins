@@ -94,8 +94,7 @@ function parseMiddlewares(source) {
 
 		const matcherPath = mm[1]
 		const methods = methodMatch[1].match(/['"](\w+)['"]/g)?.map(m => m.replace(/['"]/g, '')) || []
-		const authenticated =
-			fullBlock.includes('authenticate(') && !fullBlock.includes('allowUnauthenticated')
+		const authenticated = fullBlock.includes('authenticate(') && !fullBlock.includes('allowUnauthenticated')
 
 		// Extract validator references
 		let queryValidator = null
@@ -112,8 +111,7 @@ function parseMiddlewares(source) {
 		let isList = false
 		const defaultsMatch = fullBlock.match(/defaults:\s*\[([^\]]*)\]/)
 		if (defaultsMatch) {
-			responseDefaults =
-				defaultsMatch[1].match(/['"]([^'"]+)['"]/g)?.map(s => s.replace(/['"]/g, '')) || []
+			responseDefaults = defaultsMatch[1].match(/['"]([^'"]+)['"]/g)?.map(s => s.replace(/['"]/g, '')) || []
 		}
 		const isListMatch = fullBlock.match(/isList:\s*(true|false)/)
 		if (isListMatch) isList = isListMatch[1] === 'true'
@@ -331,21 +329,9 @@ function inferFieldType(fieldName) {
 	if (fieldName.endsWith('_id')) return 'string'
 	if (fieldName.endsWith('_at')) return { type: 'string', format: 'date-time' }
 	if (fieldName === 'metadata') return { type: 'object', additionalProperties: true }
-	if (
-		fieldName === 'rating' ||
-		fieldName === 'number' ||
-		fieldName === 'count' ||
-		fieldName === 'attempts'
-	)
-		return 'integer'
+	if (fieldName === 'rating' || fieldName === 'number' || fieldName === 'count' || fieldName === 'attempts') return 'integer'
 	if (fieldName === 'is_active' || fieldName === 'sent') return 'boolean'
-	if (
-		fieldName.endsWith('_count') ||
-		fieldName === 'limit' ||
-		fieldName === 'offset' ||
-		fieldName === 'response_status'
-	)
-		return 'integer'
+	if (fieldName.endsWith('_count') || fieldName === 'limit' || fieldName === 'offset' || fieldName === 'response_status') return 'integer'
 	// Nested fields like 'activity.*' — skip for now, just mark as present
 	if (fieldName.includes('.*')) return { type: 'array', items: { type: 'object' } }
 	return 'string'
@@ -388,12 +374,7 @@ function buildResourceProperties(defaults) {
 			// Nested object — recurse to build its properties
 			const nestedProps = buildResourceProperties(value)
 			// Heuristic: if the key is plural, it's likely an array of objects
-			const isArray =
-				key.endsWith('s') &&
-				!key.endsWith('ss') &&
-				!key.endsWith('us') &&
-				key !== 'address' &&
-				key !== 'status'
+			const isArray = key.endsWith('s') && !key.endsWith('ss') && !key.endsWith('us') && key !== 'address' && key !== 'status'
 			if (isArray) {
 				properties[key] = { type: 'array', items: { type: 'object', properties: nestedProps } }
 			} else {
@@ -436,9 +417,7 @@ function buildResponseSchema(path, method, responseDefaults, isList) {
 	}
 
 	// Derive the resource name from the path for the response key
-	const segments = path
-		.split('/')
-		.filter(s => s && !s.startsWith('{') && s !== 'admin' && s !== 'store')
+	const segments = path.split('/').filter(s => s && !s.startsWith('{') && s !== 'admin' && s !== 'store')
 	const resourceKey = segments[segments.length - 1] || 'data'
 
 	const resourceProps = buildResourceProperties(responseDefaults)
@@ -471,15 +450,7 @@ function generateOpenAPI(pluginName, routes, schemas) {
 	const paths = {}
 
 	for (const route of routes) {
-		const {
-			path,
-			method,
-			queryValidator,
-			bodyValidator,
-			authenticated,
-			responseDefaults,
-			isList
-		} = route
+		const { path, method, queryValidator, bodyValidator, authenticated, responseDefaults, isList } = route
 		if (!paths[path]) paths[path] = {}
 
 		const operation = {
@@ -568,8 +539,7 @@ function generateOpenAPI(pluginName, routes, schemas) {
 		info: {
 			title: `${formatPluginName(pluginName)} API`,
 			version,
-			description:
-				pkgDesc || `API reference for the ${formatPluginName(pluginName)} Medusa plugin.`
+			description: pkgDesc || `API reference for the ${formatPluginName(pluginName)} Medusa plugin.`
 		},
 		servers: [{ url: 'http://localhost:9000', description: 'Local development' }],
 		paths
@@ -606,8 +576,7 @@ function buildOperationId(method, path) {
 
 function singularize(word) {
 	if (word.endsWith('ies')) return word.slice(0, -3) + 'y'
-	if (word.endsWith('ses') || word.endsWith('xes') || word.endsWith('zes'))
-		return word.slice(0, -2)
+	if (word.endsWith('ses') || word.endsWith('xes') || word.endsWith('zes')) return word.slice(0, -2)
 	if (word.endsWith('s') && !word.endsWith('ss')) return word.slice(0, -1)
 	return word
 }
@@ -618,12 +587,9 @@ function buildSummary(method, path) {
 	const lastIsParam = lastSegment.startsWith('{')
 
 	// Get all non-parameter, non-scope segments
-	const resourceSegments = segments.filter(
-		p => !p.startsWith('{') && p !== 'admin' && p !== 'store'
-	)
+	const resourceSegments = segments.filter(p => !p.startsWith('{') && p !== 'admin' && p !== 'store')
 	const resource = resourceSegments[resourceSegments.length - 1] || ''
-	const parentResource =
-		resourceSegments.length > 1 ? resourceSegments[resourceSegments.length - 2] : ''
+	const parentResource = resourceSegments.length > 1 ? resourceSegments[resourceSegments.length - 2] : ''
 
 	const formatted = resource.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 	const singular = singularize(formatted)
@@ -639,9 +605,7 @@ function buildSummary(method, path) {
 
 	if (isActionRoute) {
 		// Action route: "Approve Reviews", "Reject Reviews"
-		const parentFormatted = singularize(
-			parentResource.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-		)
+		const parentFormatted = singularize(parentResource.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))
 		return `${formatted} ${parentFormatted}`
 	}
 

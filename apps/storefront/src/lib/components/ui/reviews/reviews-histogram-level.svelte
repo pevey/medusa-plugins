@@ -2,11 +2,7 @@
 	import { getReviewsContext, setHistogramLevelContext } from './reviews-ctx.svelte.js'
 	import { barFill } from './reviews-logic.js'
 	import type { Snippet } from 'svelte'
-	let {
-		level,
-		orientation,
-		children
-	}: { level: number; orientation: 'horizontal' | 'vertical'; children: Snippet } = $props()
+	let { level, orientation, children }: { level: number; orientation: 'horizontal' | 'vertical'; children: Snippet } = $props()
 	const ctx = getReviewsContext()
 	setHistogramLevelContext({
 		get level() {

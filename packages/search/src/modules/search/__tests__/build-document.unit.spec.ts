@@ -1,8 +1,4 @@
-import {
-	buildProductDocument,
-	buildCategoryDocument,
-	buildCollectionDocument
-} from '../lib/build-document'
+import { buildProductDocument, buildCategoryDocument, buildCollectionDocument } from '../lib/build-document'
 
 describe('buildProductDocument', () => {
 	it('folds distinct available option values into primary_text and captures channels', () => {
@@ -11,10 +7,7 @@ describe('buildProductDocument', () => {
 			title: 'Ethiopia Yirgacheffe',
 			description: 'Floral, citrus',
 			handle: 'ethiopia-yirgacheffe',
-			variants: [
-				{ options: [{ value: 'Decaf' }, { value: 'Whole Bean' }] },
-				{ options: [{ value: 'Regular' }, { value: 'Whole Bean' }] }
-			],
+			variants: [{ options: [{ value: 'Decaf' }, { value: 'Whole Bean' }] }, { options: [{ value: 'Regular' }, { value: 'Whole Bean' }] }],
 			sales_channels: [{ id: 'sc_retail' }]
 		})
 		expect(doc.type).toBe('product')
@@ -35,7 +28,12 @@ describe('buildProductDocument', () => {
 
 	it('puts the full untruncated description in body_text and a truncated snippet', () => {
 		const longDesc = 'x'.repeat(500)
-		const doc = buildProductDocument({ id: 'p1', title: 'Coffee', handle: 'coffee', description: longDesc })
+		const doc = buildProductDocument({
+			id: 'p1',
+			title: 'Coffee',
+			handle: 'coffee',
+			description: longDesc
+		})
 		expect(doc.body_text).toBe(longDesc)
 		expect(doc.snippet!.length).toBeLessThanOrEqual(160)
 		expect('secondary_text' in doc).toBe(false)
@@ -44,7 +42,11 @@ describe('buildProductDocument', () => {
 
 describe('buildCategoryDocument / buildCollectionDocument', () => {
 	it('category is global (null channels), weight 0.9', () => {
-		const doc = buildCategoryDocument({ id: 'pcat_1', name: 'Single Origin', handle: 'single-origin' })
+		const doc = buildCategoryDocument({
+			id: 'pcat_1',
+			name: 'Single Origin',
+			handle: 'single-origin'
+		})
 		expect(doc).toMatchObject({
 			type: 'category',
 			entity_id: 'pcat_1',
@@ -59,6 +61,11 @@ describe('buildCategoryDocument / buildCollectionDocument', () => {
 
 	it('collection weight 0.9', () => {
 		const doc = buildCollectionDocument({ id: 'pcol_1', title: 'Holiday', handle: 'holiday' })
-		expect(doc).toMatchObject({ type: 'collection', slug: 'holiday', weight: 0.9, sales_channel_ids: null })
+		expect(doc).toMatchObject({
+			type: 'collection',
+			slug: 'holiday',
+			weight: 0.9,
+			sales_channel_ids: null
+		})
 	})
 })

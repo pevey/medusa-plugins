@@ -29,8 +29,7 @@ export const AffiliateStatsSection = ({ affiliate }: { affiliate: AdminAffiliate
 
 	const buckets = stats.data?.buckets ?? []
 	const primaryCurrency = stats.data?.primary_currency_code ?? null
-	const primaryBucket =
-		buckets.find(b => b.currency_code === primaryCurrency) ?? buckets[0] ?? null
+	const primaryBucket = buckets.find(b => b.currency_code === primaryCurrency) ?? buckets[0] ?? null
 	const otherBuckets = buckets.filter(b => b !== primaryBucket)
 
 	const renderTable = (rows: AdminAffiliateStatsBucket[]) => (
@@ -62,7 +61,7 @@ export const AffiliateStatsSection = ({ affiliate }: { affiliate: AdminAffiliate
 
 	return (
 		<Container className="p-6">
-			<div className="flex items-center justify-between mb-4">
+			<div className="mb-4 flex items-center justify-between">
 				<Heading level="h2">Promotion usage</Heading>
 				<div className="flex items-center gap-2">
 					<Select value={window} onValueChange={v => setWindow(v as Window)}>
@@ -103,11 +102,7 @@ export const AffiliateStatsSection = ({ affiliate }: { affiliate: AdminAffiliate
 				</div>
 			</div>
 
-			{primaryBucket ? (
-				renderTable([primaryBucket])
-			) : (
-				<div className="text-ui-fg-subtle">No data in primary currency.</div>
-			)}
+			{primaryBucket ? renderTable([primaryBucket]) : <div className="text-ui-fg-subtle">No data in primary currency.</div>}
 
 			{otherBuckets.length > 0 && (
 				<div className="mt-6">
@@ -116,14 +111,9 @@ export const AffiliateStatsSection = ({ affiliate }: { affiliate: AdminAffiliate
 				</div>
 			)}
 
-			<div className="mt-4 flex items-center justify-between text-ui-fg-subtle text-xs">
+			<div className="text-ui-fg-subtle mt-4 flex items-center justify-between text-xs">
 				<span>Order attribution synced daily.</span>
-				<Button
-					variant="secondary"
-					size="small"
-					onClick={onRecalc}
-					isLoading={recalc.isPending}
-				>
+				<Button variant="secondary" size="small" onClick={onRecalc} isLoading={recalc.isPending}>
 					Resync now
 				</Button>
 			</div>

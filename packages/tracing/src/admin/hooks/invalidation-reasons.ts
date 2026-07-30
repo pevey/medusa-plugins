@@ -49,8 +49,7 @@ export const useInvalidationReason = (id: string | undefined) => {
 export const useDeleteInvalidationReasons = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/invalidation-reasons', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/invalidation-reasons', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['invalidation-reasons'] })
 		}

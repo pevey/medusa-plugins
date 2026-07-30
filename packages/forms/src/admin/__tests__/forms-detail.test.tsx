@@ -63,19 +63,13 @@ describe('form detail view', () => {
 		// inside the `try` block, after `updateForm(...)` has actually resolved, so waiting for it
 		// to close is what proves acceptance, the same way the sibling ratings suite gates on a
 		// validator-accepted value instead of the call log alone (see reviews-list.test.tsx).
-		await expect
-			.element(page.getByRole('heading', { name: 'Edit Form' }))
-			.not.toBeInTheDocument()
+		await expect.element(page.getByRole('heading', { name: 'Edit Form' })).not.toBeInTheDocument()
 
-		const update = fake.calls.find(
-			call => call.method === 'POST' && call.path === '/admin/forms/form_1'
-		)
+		const update = fake.calls.find(call => call.method === 'POST' && call.path === '/admin/forms/form_1')
 		expect(update?.body).toMatchObject({
 			name: 'Contact Us v2',
 			handle: 'contact-us',
-			form_fields: [
-				{ id: 'fld_1', name: 'email', label: 'Email', field_type: 'email', required: true }
-			]
+			form_fields: [{ id: 'fld_1', name: 'email', label: 'Email', field_type: 'email', required: true }]
 		})
 	})
 

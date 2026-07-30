@@ -3,11 +3,7 @@
 	import { getCheckoutContext } from './ctx.svelte.js'
 	import { formatPrice } from './format-price.js'
 
-	let {
-		class: className = '',
-		label = 'Total',
-		locale = 'en-US'
-	}: { class?: string; label?: string; locale?: string } = $props()
+	let { class: className = '', label = 'Total', locale = 'en-US' }: { class?: string; label?: string; locale?: string } = $props()
 
 	const ctx = getCheckoutContext()
 	const amount = $derived(ctx.cart?.total)
@@ -15,10 +11,7 @@
 </script>
 
 {#if formatted}
-	<div
-		data-checkout-summary-total
-		class={cn('flex justify-between border-t pt-2 font-semibold text-base', className)}
-	>
+	<div data-checkout-summary-total class={cn('flex justify-between border-t pt-2 text-base font-semibold', className)}>
 		<dt>{label}</dt>
 		<dd>{formatted}</dd>
 	</div>

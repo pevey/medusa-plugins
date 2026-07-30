@@ -1,10 +1,6 @@
 import { Drawer, Heading, Text, Button, DataTableRowSelectionState, toast } from '@medusajs/ui'
 import { useEffect, useMemo, useState } from 'react'
-import {
-	useAccessRolePolicies,
-	useAddAccessRolePolicies,
-	useRemoveAccessRolePolicy
-} from '../hooks/roles'
+import { useAccessRolePolicies, useAddAccessRolePolicies, useRemoveAccessRolePolicy } from '../hooks/roles'
 import { PolicyPicker } from './policy-picker'
 
 type ManageRolePermissionsDrawerProps = {
@@ -17,21 +13,14 @@ type ManageRolePermissionsDrawerProps = {
  * Seeds a policy picker from the role's current policies, then on save diffs the
  * selection: newly-checked policies are attached, unchecked ones are detached.
  */
-export const ManageRolePermissionsDrawer = ({
-	roleId,
-	open,
-	setOpen
-}: ManageRolePermissionsDrawerProps) => {
+export const ManageRolePermissionsDrawer = ({ roleId, open, setOpen }: ManageRolePermissionsDrawerProps) => {
 	const { data: rolePolicies } = useAccessRolePolicies(open ? roleId : undefined)
 	const addPolicies = useAddAccessRolePolicies(roleId)
 	const removePolicy = useRemoveAccessRolePolicy(roleId)
 	const [selection, setSelection] = useState<DataTableRowSelectionState>({})
 	const [isSaving, setIsSaving] = useState(false)
 
-	const initialIds = useMemo(
-		() => new Set((rolePolicies?.policies || []).map(p => p.policy_id)),
-		[rolePolicies]
-	)
+	const initialIds = useMemo(() => new Set((rolePolicies?.policies || []).map(p => p.policy_id)), [rolePolicies])
 
 	// Seed the selection from the role's current policies when the drawer opens.
 	useEffect(() => {
@@ -76,12 +65,16 @@ export const ManageRolePermissionsDrawer = ({
 		<Drawer open={open} onOpenChange={setOpen}>
 			<Drawer.Content className="max-w-[720px]">
 				<Drawer.Header>
-					<Heading level="h1">Manage Permissions</Heading>
+					<Drawer.Title asChild>
+						<Heading level="h1">Manage Permissions</Heading>
+					</Drawer.Title>
 				</Drawer.Header>
 				<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-4 overflow-y-auto">
-					<Text size="small" className="text-ui-fg-subtle">
-						Check the policies this role should grant.
-					</Text>
+					<Drawer.Description asChild>
+						<Text size="small" className="text-ui-fg-subtle">
+							Check the policies this role should grant.
+						</Text>
+					</Drawer.Description>
 					<PolicyPicker selection={selection} onSelectionChange={setSelection} />
 				</Drawer.Body>
 				<Drawer.Footer>

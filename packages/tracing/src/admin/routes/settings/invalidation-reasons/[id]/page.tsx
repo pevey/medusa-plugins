@@ -11,12 +11,13 @@ type InvalidationReasonLoaderData = { invalidation_reason: { id: string; value: 
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	const { id } = params
-	return sdk.client.fetch<InvalidationReasonLoaderData>(`/admin/invalidation-reasons/${id}`, { query: { fields: 'id,value' } })
+	return sdk.client.fetch<InvalidationReasonLoaderData>(`/admin/invalidation-reasons/${id}`, {
+		query: { fields: 'id,value' }
+	})
 }
 
 export const handle = {
-	breadcrumb: ({ data }: UIMatch<InvalidationReasonLoaderData>) =>
-		data?.invalidation_reason?.value || data?.invalidation_reason?.id || 'Invalidation Reason'
+	breadcrumb: ({ data }: UIMatch<InvalidationReasonLoaderData>) => data?.invalidation_reason?.value || data?.invalidation_reason?.id || 'Invalidation Reason'
 }
 
 const InvalidationReasonDetailPage = () => {
@@ -30,28 +31,64 @@ const InvalidationReasonDetailPage = () => {
 	const invalidationReason = data?.invalidation_reason
 
 	const handleDelete = async () => {
-		const confirmed = await prompt({ title: 'Delete invalidation reason?', description: 'This action cannot be undone.', confirmText: 'Delete', cancelText: 'Cancel', variant: 'danger' })
+		const confirmed = await prompt({
+			title: 'Delete invalidation reason?',
+			description: 'This action cannot be undone.',
+			confirmText: 'Delete',
+			cancelText: 'Cancel',
+			variant: 'danger'
+		})
 		if (confirmed) {
 			deleteInvalidationReasons([invalidationReason!.id], {
-				onSuccess: () => { toast.success('Invalidation reason deleted successfully'); navigate('/settings/invalidation-reasons') },
+				onSuccess: () => {
+					toast.success('Invalidation reason deleted successfully')
+					navigate('/settings/invalidation-reasons')
+				},
 				onError: () => toast.error('Failed to delete invalidation reason')
 			})
 		}
 	}
 
-	if (isLoading) return <Container className="p-6"><Text>Loading...</Text></Container>
-	if (!invalidationReason) return <Container className="p-6"><Text>Invalidation reason not found.</Text></Container>
+	if (isLoading)
+		return (
+			<Container className="p-6">
+				<Text>Loading...</Text>
+			</Container>
+		)
+	if (!invalidationReason)
+		return (
+			<Container className="p-6">
+				<Text>Invalidation reason not found.</Text>
+			</Container>
+		)
 
 	return (
 		<div className="flex flex-col gap-4 p-4">
 			<Container className="divide-y p-0">
 				<div className="flex items-center justify-between px-6 py-4">
 					<Heading level="h1">Invalidation Reason Details</Heading>
-					<ActionMenu groups={[{ actions: [{ label: 'Edit', icon: <PencilSquare />, onClick: () => setEditOpen(true) }, { label: 'Delete', icon: <Trash />, onClick: handleDelete }] }]} />
+					<ActionMenu
+						groups={[
+							{
+								actions: [
+									{
+										label: 'Edit',
+										icon: <PencilSquare />,
+										onClick: () => setEditOpen(true)
+									},
+									{ label: 'Delete', icon: <Trash />, onClick: handleDelete }
+								]
+							}
+						]}
+					/>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
-					<Text size="small" weight="plus" leading="compact">Value</Text>
-					<Text size="small" leading="compact">{invalidationReason.value ?? '-'}</Text>
+					<Text size="small" weight="plus" leading="compact">
+						Value
+					</Text>
+					<Text size="small" leading="compact">
+						{invalidationReason.value ?? '-'}
+					</Text>
 				</div>
 			</Container>
 			<EditInvalidationReasonDrawer invalidationReason={invalidationReason} open={editOpen} setOpen={setEditOpen} />

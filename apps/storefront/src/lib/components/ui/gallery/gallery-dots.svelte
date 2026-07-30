@@ -14,9 +14,7 @@
 		lg: 'flex lg:hidden',
 		xl: 'flex xl:hidden'
 	} as const
-	const visibility = $derived(
-		layout.thumbnails === 'none' ? 'flex' : DOTS[layout.thumbnailBreakpoint]
-	)
+	const visibility = $derived(layout.thumbnails === 'none' ? 'flex' : DOTS[layout.thumbnailBreakpoint])
 </script>
 
 {#if gallery.items.length > 1}
@@ -27,10 +25,7 @@
 				aria-label={`Go to image ${i + 1}`}
 				aria-current={gallery.selected === i}
 				onclick={() => gallery.select(i)}
-				class={cn(
-					'h-2 w-2 rounded-full transition',
-					gallery.selected === i ? 'bg-primary' : 'bg-muted-foreground/40'
-				)}
+				class={cn('h-2 w-2 rounded-full transition', gallery.selected === i ? 'bg-primary' : 'bg-muted-foreground/40')}
 			></button>
 		{/each}
 	</div>

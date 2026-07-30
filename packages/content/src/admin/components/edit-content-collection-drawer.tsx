@@ -18,7 +18,10 @@ function sanitizeSlug(value: string) {
 
 const schema = zod.object({
 	label: zod.string().min(1, 'Label is required'),
-	slug: zod.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, hyphens only'),
+	slug: zod
+		.string()
+		.min(1, 'Slug is required')
+		.regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, hyphens only'),
 	prefix: zod.string().optional().default('')
 })
 type FormData = zod.infer<typeof schema>
@@ -30,9 +33,7 @@ type Props = {
 }
 
 export const EditContentCollectionDrawer = ({ contentCollection, open, onOpenChange }: Props) => {
-	const { mutateAsync: updateContentCollection, isPending } = useUpdateContentCollection(
-		contentCollection?.id ?? ''
-	)
+	const { mutateAsync: updateContentCollection, isPending } = useUpdateContentCollection(contentCollection?.id ?? '')
 	const form = useForm<FormData>({
 		resolver: zodResolver(schema),
 		defaultValues: { label: '', slug: '', prefix: '' }
@@ -133,7 +134,10 @@ export const EditContentCollectionDrawer = ({ contentCollection, open, onOpenCha
 			<Drawer.Content>
 				<form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
 					<Drawer.Header>
-						<Heading level="h1">Edit Content Collection</Heading>
+						<Drawer.Title asChild>
+							<Heading level="h1">Edit Content Collection</Heading>
+						</Drawer.Title>
+						<Drawer.Description className="sr-only">Edit this content collection's settings and fields.</Drawer.Description>
 					</Drawer.Header>
 					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 						<div className="flex flex-col gap-y-4">
@@ -145,9 +149,7 @@ export const EditContentCollectionDrawer = ({ contentCollection, open, onOpenCha
 									control={form.control}
 									name="label"
 									rules={{ required: 'Label is required' }}
-									render={({ field }) => (
-										<Input {...field} id="edit-label" placeholder="Blog Post" />
-									)}
+									render={({ field }) => <Input {...field} id="edit-label" placeholder="Blog Post" />}
 								/>
 							</div>
 							<div className="flex flex-col gap-y-1">
@@ -159,12 +161,7 @@ export const EditContentCollectionDrawer = ({ contentCollection, open, onOpenCha
 									name="slug"
 									rules={{ required: 'Slug is required' }}
 									render={({ field }) => (
-										<Input
-											{...field}
-											id="edit-slug"
-											placeholder="blog-post"
-											onChange={e => field.onChange(sanitizeSlug(e.target.value))}
-										/>
+										<Input {...field} id="edit-slug" placeholder="blog-post" onChange={e => field.onChange(sanitizeSlug(e.target.value))} />
 									)}
 								/>
 							</div>
@@ -172,16 +169,8 @@ export const EditContentCollectionDrawer = ({ contentCollection, open, onOpenCha
 								<Label htmlFor="edit-prefix" className="text-ui-fg-subtle">
 									Storage Prefix
 								</Label>
-								<Controller
-									control={form.control}
-									name="prefix"
-									render={({ field }) => (
-										<Input {...field} id="edit-prefix" placeholder="blog/" />
-									)}
-								/>
-								<Text className="text-ui-fg-muted text-sm">
-									Path prefix used when uploading files of this collection.
-								</Text>
+								<Controller control={form.control} name="prefix" render={({ field }) => <Input {...field} id="edit-prefix" placeholder="blog/" />} />
+								<Text className="text-ui-fg-muted text-sm">Path prefix used when uploading files of this collection.</Text>
 							</div>
 						</div>
 

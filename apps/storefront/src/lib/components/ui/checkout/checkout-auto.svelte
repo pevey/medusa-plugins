@@ -44,14 +44,6 @@
 
 <form {...form}>
 	<Root {form} {...rest}>
-		<AutoSwitch
-			{form}
-			{config}
-			{googlePlacesApiKey}
-			{publishableKey}
-			{returnUrl}
-			{restrictToCurrentRegion}
-			{allowExpressCheckout}
-		/>
+		<AutoSwitch {form} {config} {googlePlacesApiKey} {publishableKey} {returnUrl} {restrictToCurrentRegion} {allowExpressCheckout} />
 	</Root>
 </form>

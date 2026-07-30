@@ -9,9 +9,7 @@ import type { ChatMessage } from './llm-provider'
  */
 export function dropUnpairedToolUse(messages: ChatMessage[]): ChatMessage[] {
 	const pairedIds = new Set<string>()
-	for (const m of messages)
-		for (const b of m.content)
-			if (b.type === 'tool_result') pairedIds.add(b.tool_use_id)
+	for (const m of messages) for (const b of m.content) if (b.type === 'tool_result') pairedIds.add(b.tool_use_id)
 
 	const out: ChatMessage[] = []
 	for (const m of messages) {
@@ -31,10 +29,11 @@ export function dropUnpairedToolUse(messages: ChatMessage[]): ChatMessage[] {
  */
 export function windowHistory(messages: ChatMessage[], maxTurns: number): ChatMessage[] {
 	if (maxTurns <= 0) return messages
-	const isTurnStart = (m: ChatMessage) =>
-		m.role === 'user' && m.content.some(b => b.type === 'text')
+	const isTurnStart = (m: ChatMessage) => m.role === 'user' && m.content.some(b => b.type === 'text')
 	const starts: number[] = []
-	messages.forEach((m, i) => { if (isTurnStart(m)) starts.push(i) })
+	messages.forEach((m, i) => {
+		if (isTurnStart(m)) starts.push(i)
+	})
 	if (starts.length <= maxTurns) return messages
 	return messages.slice(starts[starts.length - maxTurns])
 }

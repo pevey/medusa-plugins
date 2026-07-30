@@ -14,27 +14,12 @@
 		sun?: Snippet
 		moon?: Snippet
 	}
-	let {
-		size = 'default',
-		variant = 'outline',
-		onMode = 'light',
-		label = 'Mode',
-		class: className = '',
-		sun,
-		moon
-	}: Props = $props()
+	let { size = 'default', variant = 'outline', onMode = 'light', label = 'Mode', class: className = '', sun, moon }: Props = $props()
 	const isLight = $derived(mode.current !== 'dark')
 	const pressed = $derived(mode.current === onMode)
 </script>
 
-<Toggle
-	{variant}
-	{size}
-	{pressed}
-	onPressedChange={() => toggleMode()}
-	class={className}
-	aria-label="Toggle theme"
->
+<Toggle {variant} {size} {pressed} onPressedChange={() => toggleMode()} class={className} aria-label="Toggle theme">
 	{#if isLight}
 		{#if sun}{@render sun()}{:else}<SunIcon />{/if}
 	{:else if moon}{@render moon()}{:else}<MoonIcon />{/if}

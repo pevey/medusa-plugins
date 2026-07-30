@@ -1,31 +1,24 @@
-import {
-  WorkflowData,
-  WorkflowResponse,
-  createWorkflow,
-} from "@medusajs/framework/workflows-sdk"
-import { createAccessPoliciesStep } from "../steps"
+import { WorkflowData, WorkflowResponse, createWorkflow } from '@medusajs/framework/workflows-sdk'
+import { createAccessPoliciesStep } from '../steps'
 
 /**
  * @ignore
  * @featureFlag access
  */
 export type CreateAccessPoliciesWorkflowInput = {
-  policies: any[]
+	policies: any[]
 }
 
 /**
  * @ignore
  * @featureFlag access
  */
-export const createAccessPoliciesWorkflowId = "create-access-policies"
+export const createAccessPoliciesWorkflowId = 'create-access-policies'
 
 /**
  * @ignore
  * @featureFlag access
  */
-export const createAccessPoliciesWorkflow = createWorkflow(
-  createAccessPoliciesWorkflowId,
-  (input: WorkflowData<CreateAccessPoliciesWorkflowInput>) => {
-    return new WorkflowResponse(createAccessPoliciesStep(input))
-  }
-)
+export const createAccessPoliciesWorkflow = createWorkflow(createAccessPoliciesWorkflowId, (input: WorkflowData<CreateAccessPoliciesWorkflowInput>) => {
+	return new WorkflowResponse(createAccessPoliciesStep(input))
+})

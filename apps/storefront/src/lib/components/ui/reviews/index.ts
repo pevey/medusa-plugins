@@ -35,7 +35,11 @@ import FormError from './reviews-form-error.svelte'
 // separate cross-family leak by never mutating the shared `Review` compound in place (see
 // `customer/index.ts`); that guard is unrelated to Summary/Histogram/Form, which have exactly
 // one builder now.
-const Histogram = Object.assign(HistogramRoot, { Root: HistogramRoot, Bar: HistogramBar, Label: HistogramLabel })
+const Histogram = Object.assign(HistogramRoot, {
+	Root: HistogramRoot,
+	Bar: HistogramBar,
+	Label: HistogramLabel
+})
 export const Summary = Object.assign(SummaryRoot, {
 	Root: SummaryRoot,
 	Title: SummaryTitle,
@@ -73,19 +77,10 @@ export { default as Carousel } from './reviews-carousel.svelte'
 // `../review/index.js` directly rather than through here (it no longer builds a Reviews compound).
 export { default as Review, Star } from '../review/index.js'
 
-export {
-	setReviewsContext,
-	getReviewsContext,
-	getReviewsContextOptional,
-	setHistogramLevelContext,
-	getHistogramLevelContext
-} from './reviews-ctx.svelte.js'
+export { setReviewsContext, getReviewsContext, getReviewsContextOptional, setHistogramLevelContext, getHistogramLevelContext } from './reviews-ctx.svelte.js'
 export type { ReviewsListContext, HistogramLevelContext } from './reviews-ctx.svelte.js'
 
-export {
-	setReviewItemContext,
-	getReviewItemContextOptional
-} from '../review/index.js'
+export { setReviewItemContext, getReviewItemContextOptional } from '../review/index.js'
 export type { ReviewItemContext } from '../review/index.js'
 
 export * as logic from './reviews-logic.js'
@@ -93,10 +88,4 @@ export * as logic from './reviews-logic.js'
 // no longer re-exports it (product only re-exports `Rating`/`Star`).
 export * as reviewsLogic from './reviews-logic.js'
 
-export type {
-	StoreReview,
-	ReviewSummary,
-	ReviewsListResponse,
-	SummaryQuery,
-	ReviewsQuery
-} from '../review/review-types.js'
+export type { StoreReview, ReviewSummary, ReviewsListResponse, SummaryQuery, ReviewsQuery } from '../review/review-types.js'

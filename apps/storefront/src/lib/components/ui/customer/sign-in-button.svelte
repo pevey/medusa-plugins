@@ -4,11 +4,7 @@
 	import { buttonVariants } from '$lib/components/ui/button/index.js'
 	import type { Snippet } from 'svelte'
 
-	let {
-		href = '?auth=login',
-		class: className = '',
-		children
-	}: { href?: string; class?: string; children?: Snippet } = $props()
+	let { href = '?auth=login', class: className = '', children }: { href?: string; class?: string; children?: Snippet } = $props()
 </script>
 
 <a {href} class={cn(buttonVariants({ variant: 'default' }), className)}>

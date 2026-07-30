@@ -13,12 +13,12 @@
 
 <div class="mx-auto max-w-2xl space-y-4 p-8">
 	<h1 class="text-2xl font-bold">Address form (preset)</h1>
-	<p class="text-muted-foreground text-sm">
+	<p class="text-sm text-muted-foreground">
 		The batteries-included <code>AddressForm</code> preset. See also
 		<a class="underline" href="/address-demo/compose">compose-your-own →</a>
 	</p>
 	<form {...address}>
 		<AddressForm form={address} googlePlacesApiKey={GOOGLE_PLACES_API_KEY} {provinceConfig} />
-		<button class="bg-primary text-primary-foreground mt-4 h-9 rounded-md px-4 text-sm font-medium">Save</button>
+		<button class="mt-4 h-9 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">Save</button>
 	</form>
 </div>

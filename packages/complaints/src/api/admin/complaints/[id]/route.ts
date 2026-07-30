@@ -5,10 +5,7 @@ import { ComplaintService } from '../../../../modules/complaint/service'
 import { deleteComplaintsWithDocumentsWorkflow } from '../../../../workflows/delete-complaints-with-documents'
 import { AdminGetComplaintType, AdminUpdateComplaintType } from '../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetComplaintType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetComplaintType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { id } = req.params
 
@@ -25,10 +22,7 @@ export const GET = async (
 	res.json({ complaint })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateComplaintType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateComplaintType>, res: MedusaResponse) => {
 	const complaintService: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)
 	const { id } = req.params
 	const currentComplaint = await complaintService.retrieveComplaint(id)

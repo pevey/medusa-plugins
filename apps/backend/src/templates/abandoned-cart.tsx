@@ -1,19 +1,4 @@
-import {
-	Body,
-	Button,
-	Column,
-	Container,
-	Head,
-	Heading,
-	Hr,
-	Html,
-	Img,
-	Preview,
-	Row,
-	Section,
-	Tailwind,
-	Text
-} from 'react-email'
+import { Body, Button, Column, Container, Head, Heading, Hr, Html, Img, Preview, Row, Section, Tailwind, Text } from 'react-email'
 
 type CartItem = {
 	title: string
@@ -36,71 +21,53 @@ function formatMoney(cents: number) {
 function Template({ customer_first_name, recovery_url, items, storeName }: Props) {
 	return (
 		<Tailwind>
-			<Html className="font-sans bg-gray-100">
+			<Html className="bg-gray-100 font-sans">
 				<Head />
-				<Preview>
-					Hi {customer_first_name}, you left something in your cart — complete your purchase
-					before it's gone.
-				</Preview>
-				<Body className="bg-white my-10 mx-auto w-full max-w-2xl">
+				<Preview>Hi {customer_first_name}, you left something in your cart — complete your purchase before it's gone.</Preview>
+				<Body className="mx-auto my-10 w-full max-w-2xl bg-white">
 					<Container className="p-6">
-						<Heading className="text-lg font-semibold text-black mb-2 text-center">
-							You Left Something Behind
-						</Heading>
+						<Heading className="mb-2 text-center text-lg font-semibold text-black">You Left Something Behind</Heading>
 
-						<Text className="text-sm text-black leading-relaxed mb-6 text-center">
-							Hi {customer_first_name}, you left some items in your cart. Complete your
-							purchase today.
+						<Text className="mb-6 text-center text-sm leading-relaxed text-black">
+							Hi {customer_first_name}, you left some items in your cart. Complete your purchase today.
 						</Text>
 
-						<Hr className="border-gray-200 my-4" />
+						<Hr className="my-4 border-gray-200" />
 
 						{/* Line items */}
 						{items.map((item, i) => (
 							<Section key={i} className="py-2">
 								<Row>
 									<Column className="w-1/6 align-middle">
-										{item.thumbnail ? (
-											<Img
-												src={item.thumbnail}
-												width="100%"
-												alt={item.title}
-												className="rounded-lg"
-											/>
-										) : null}
+										{item.thumbnail ? <Img src={item.thumbnail} width="100%" alt={item.title} className="rounded-lg" /> : null}
 									</Column>
 									<Column className="pl-4 align-middle">
-										<Text className="text-sm text-black m-0">
+										<Text className="m-0 text-sm text-black">
 											<span className="font-semibold">{item.title}</span>
 											<br />
 											<span className="text-xs">Qty: {item.quantity}</span>
 										</Text>
 									</Column>
 									<Column className="text-right align-middle">
-										<Text className="text-sm text-black font-semibold m-0">
-											{formatMoney(item.unit_price)}
-										</Text>
+										<Text className="m-0 text-sm font-semibold text-black">{formatMoney(item.unit_price)}</Text>
 									</Column>
 								</Row>
 							</Section>
 						))}
 
-						<Hr className="border-gray-200 my-4" />
+						<Hr className="my-4 border-gray-200" />
 
 						{/* CTA */}
-						<Section className="text-center my-8">
-							<Button
-								href={recovery_url}
-								className="bg-black text-white py-3 px-8 inline-block"
-							>
+						<Section className="my-8 text-center">
+							<Button href={recovery_url} className="inline-block bg-black px-8 py-3 text-white">
 								Complete Your Purchase
 							</Button>
 						</Section>
 					</Container>
 
 					{/* Footer */}
-					<Section className="bg-gray-50 p-6 mt-10">
-						<Text className="text-center text-black text-xs mt-4">
+					<Section className="mt-10 bg-gray-50 p-6">
+						<Text className="mt-4 text-center text-xs text-black">
 							© {new Date().getFullYear()} {storeName}, Inc. All rights reserved.
 						</Text>
 					</Section>
@@ -115,9 +82,7 @@ export default function getAbandonedCartTemplate(props?: Props) {
 		<Template
 			customer_first_name={props?.customer_first_name ?? 'there'}
 			recovery_url={props?.recovery_url ?? '#'}
-			items={
-				props?.items ?? [{ title: 'Sample Product', quantity: 1, unit_price: 9900 }]
-			}
+			items={props?.items ?? [{ title: 'Sample Product', quantity: 1, unit_price: 9900 }]}
 			storeName={props?.storeName ?? 'Demo Store'}
 		/>
 	)

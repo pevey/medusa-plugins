@@ -88,9 +88,7 @@ describe('BraintreeProvider caching', () => {
 		it('throws when customerId is missing', async () => {
 			const expiry = Math.floor(Date.now() / 1000) + 3600
 
-			await expect(
-				provider.saveClientTokenToCache('tok_abc', '', expiry)
-			).rejects.toThrow('Customer ID is required')
+			await expect(provider.saveClientTokenToCache('tok_abc', '', expiry)).rejects.toThrow('Customer ID is required')
 		})
 	})
 

@@ -18,16 +18,7 @@ export function registerProductTools(server: McpToolRegistry, scope: MedusaConta
 		async ({ q, limit }) => {
 			const { data } = await query.graph({
 				entity: 'product',
-				fields: [
-					'id',
-					'title',
-					'handle',
-					'status',
-					'variants.id',
-					'variants.title',
-					'variants.sku',
-					'created_at'
-				],
+				fields: ['id', 'title', 'handle', 'status', 'variants.id', 'variants.title', 'variants.sku', 'created_at'],
 				filters: { title: { $ilike: `%${q}%` } },
 				pagination: { take: limit }
 			})

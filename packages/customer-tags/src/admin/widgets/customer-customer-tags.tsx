@@ -76,9 +76,7 @@ const CustomerTagsWidget = ({ data: customer }: DetailWidgetProps<AdminCustomer>
 	})
 
 	// Filter out tags already associated with the customer
-	const availableTags = allTagsData?.customer_tags?.filter(
-		tag => !associatedTags.some(t => t.id === tag.id)
-	)
+	const availableTags = allTagsData?.customer_tags?.filter(tag => !associatedTags.some(t => t.id === tag.id))
 
 	const isLoading = customerLoading
 
@@ -152,7 +150,7 @@ const CustomerTagsWidget = ({ data: customer }: DetailWidgetProps<AdminCustomer>
 								</Badge>
 								<button
 									onClick={() => removeTag(tag.id)}
-									className="text-ui-fg-subtle hover:text-ui-fg-base text-xs ml-1"
+									className="text-ui-fg-subtle hover:text-ui-fg-base ml-1 text-xs"
 									aria-label={`Remove tag ${tag.value}`}
 								>
 									✕

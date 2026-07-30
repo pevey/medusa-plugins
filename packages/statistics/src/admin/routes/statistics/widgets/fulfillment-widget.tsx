@@ -6,10 +6,12 @@ export const FulfillmentWidget = ({ totals }: WidgetProps) => {
 	const color = count === 0 ? 'green' : count <= 5 ? 'orange' : 'red'
 
 	return (
-		<Container className="h-full p-4 flex flex-col">
+		<Container className="flex h-full flex-col p-4">
 			<Heading level="h3">Pending Fulfillment</Heading>
-			<div className="flex-1 flex flex-col items-center justify-center">
-				<Text size="xlarge" weight="plus" className="text-ui-fg-base text-4xl">{count}</Text>
+			<div className="flex flex-1 flex-col items-center justify-center">
+				<Text size="xlarge" weight="plus" className="text-ui-fg-base text-4xl">
+					{count}
+				</Text>
 				<Badge size="small" color={color} className="mt-2">
 					{count === 0 ? 'All fulfilled' : `${count} awaiting`}
 				</Badge>

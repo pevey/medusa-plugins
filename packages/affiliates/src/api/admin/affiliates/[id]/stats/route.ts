@@ -2,19 +2,10 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { AFFILIATE_MODULE } from '../../../../../modules/affiliate'
 import { AffiliateService } from '../../../../../modules/affiliate/service'
-import {
-	bucketByCurrency,
-	selectRowsByBasis,
-	windowStart,
-	StatsBasis,
-	StatsWindow
-} from '../../../../../modules/affiliate/stats'
+import { bucketByCurrency, selectRowsByBasis, windowStart, StatsBasis, StatsWindow } from '../../../../../modules/affiliate/stats'
 import { AdminGetStatsType } from '../../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetStatsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetStatsType>, res: MedusaResponse) => {
 	const svc: AffiliateService = req.scope.resolve(AFFILIATE_MODULE)
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
@@ -35,15 +26,7 @@ export const GET = async (
 	if (promotionId) filters.promotion_id = promotionId
 
 	const rows = await svc.listAffiliateAttributions(filters, {
-		select: [
-			'currency_code',
-			'gross_subtotal',
-			'net_subtotal',
-			'placed_at',
-			'captured_at',
-			'completed_at',
-			'voided_at'
-		]
+		select: ['currency_code', 'gross_subtotal', 'net_subtotal', 'placed_at', 'captured_at', 'completed_at', 'voided_at']
 	})
 
 	const cutoff = windowStart(window, new Date())

@@ -4,11 +4,7 @@
 	import { getCustomer } from 'sveltekit-medusa-sdk/customer'
 	import type { Snippet } from 'svelte'
 
-	let {
-		onsignout,
-		class: className = '',
-		children
-	}: { onsignout?: () => void; class?: string; children?: Snippet } = $props()
+	let { onsignout, class: className = '', children }: { onsignout?: () => void; class?: string; children?: Snippet } = $props()
 
 	let pending = $state(false)
 

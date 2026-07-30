@@ -1,10 +1,5 @@
 import { MedusaError } from '@medusajs/framework/utils'
-import {
-	createStep,
-	createWorkflow,
-	StepResponse,
-	WorkflowResponse
-} from '@medusajs/framework/workflows-sdk'
+import { createStep, createWorkflow, StepResponse, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
 import { AFFILIATE_MODULE } from '../modules/affiliate'
 import { AffiliateService } from '../modules/affiliate/service'
 
@@ -39,10 +34,7 @@ export const updateAffiliateStep = createStep(
 				affiliate_id: input.id
 			})
 			if (!match) {
-				throw new MedusaError(
-					MedusaError.Types.INVALID_DATA,
-					`Address ${input.primary_address_id} does not belong to affiliate ${input.id}`
-				)
+				throw new MedusaError(MedusaError.Types.INVALID_DATA, `Address ${input.primary_address_id} does not belong to affiliate ${input.id}`)
 			}
 		}
 
@@ -60,8 +52,7 @@ export const updateAffiliateStep = createStep(
 		if (input.email !== undefined) patch.email = input.email
 		if (input.phone !== undefined) patch.phone = input.phone
 		if (input.currency_code !== undefined) patch.currency_code = input.currency_code
-		if (input.primary_address_id !== undefined)
-			patch.primary_address_id = input.primary_address_id
+		if (input.primary_address_id !== undefined) patch.primary_address_id = input.primary_address_id
 
 		await svc.updateAffiliates(patch as any)
 
@@ -83,10 +74,7 @@ export const updateAffiliateStep = createStep(
 
 export const updateAffiliateWorkflowId = 'update-affiliate'
 
-export const updateAffiliateWorkflow = createWorkflow(
-	updateAffiliateWorkflowId,
-	(input: UpdateAffiliateInput) => {
-		updateAffiliateStep(input)
-		return new WorkflowResponse(input)
-	}
-)
+export const updateAffiliateWorkflow = createWorkflow(updateAffiliateWorkflowId, (input: UpdateAffiliateInput) => {
+	updateAffiliateStep(input)
+	return new WorkflowResponse(input)
+})

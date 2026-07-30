@@ -6,7 +6,7 @@ import { createFindParams } from '@medusajs/medusa/api/utils/validators'
 export type AdminGetRubricsType = z.infer<typeof AdminGetRubrics>
 export const AdminGetRubrics = createFindParams({ limit: 50, offset: 0 }).extend({
 	q: z.string().optional(),
-	active: z.preprocess((val) => {
+	active: z.preprocess(val => {
 		if (val === 'true') return true
 		if (val === 'false') return false
 		return val
@@ -18,7 +18,10 @@ export const AdminGetRubric = createFindParams()
 
 export type AdminCreateRubricType = z.infer<typeof AdminCreateRubric>
 export const AdminCreateRubric = z.object({
-	name: z.string().min(1).regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case (e.g. product_viewed)'),
+	name: z
+		.string()
+		.min(1)
+		.regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case (e.g. product_viewed)'),
 	label: z.string().min(1),
 	description: z.string().optional(),
 	expected_properties: z.record(z.string(), z.unknown()).optional(),
@@ -27,7 +30,11 @@ export const AdminCreateRubric = z.object({
 
 export type AdminUpdateRubricType = z.infer<typeof AdminUpdateRubric>
 export const AdminUpdateRubric = z.object({
-	name: z.string().min(1).regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case').optional(),
+	name: z
+		.string()
+		.min(1)
+		.regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case')
+		.optional(),
 	label: z.string().min(1).optional(),
 	description: z.string().nullable().optional(),
 	expected_properties: z.record(z.string(), z.unknown()).nullable().optional(),
@@ -78,7 +85,10 @@ export const AdminGetFunnel = createFindParams()
 
 export type AdminCreateFunnelType = z.infer<typeof AdminCreateFunnel>
 export const AdminCreateFunnel = z.object({
-	name: z.string().min(1).regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case'),
+	name: z
+		.string()
+		.min(1)
+		.regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case'),
 	label: z.string().min(1),
 	description: z.string().optional(),
 	steps: z.array(z.string()).min(1),
@@ -88,7 +98,11 @@ export const AdminCreateFunnel = z.object({
 
 export type AdminUpdateFunnelType = z.infer<typeof AdminUpdateFunnel>
 export const AdminUpdateFunnel = z.object({
-	name: z.string().min(1).regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case').optional(),
+	name: z
+		.string()
+		.min(1)
+		.regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case')
+		.optional(),
 	label: z.string().min(1).optional(),
 	description: z.string().nullable().optional(),
 	steps: z.array(z.string()).min(1).optional(),
@@ -111,39 +125,56 @@ export const AdminGetSegment = createFindParams()
 
 export type AdminCreateSegmentType = z.infer<typeof AdminCreateSegment>
 export const AdminCreateSegment = z.object({
-	name: z.string().min(1).regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case'),
+	name: z
+		.string()
+		.min(1)
+		.regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case'),
 	label: z.string().min(1),
 	description: z.string().optional(),
 	rules: z.object({
 		operator: z.enum(['AND', 'OR']),
-		conditions: z.array(z.object({
-			type: z.enum(['event_performed', 'event_not_performed', 'identity_property']),
-			event: z.string().optional(),
-			count: z.record(z.string(), z.number()).optional(),
-			timeframe_days: z.number().optional(),
-			key: z.string().optional(),
-			operator: z.string().optional()
-		})).min(1)
+		conditions: z
+			.array(
+				z.object({
+					type: z.enum(['event_performed', 'event_not_performed', 'identity_property']),
+					event: z.string().optional(),
+					count: z.record(z.string(), z.number()).optional(),
+					timeframe_days: z.number().optional(),
+					key: z.string().optional(),
+					operator: z.string().optional()
+				})
+			)
+			.min(1)
 	}),
 	sales_channel_id: z.string().nullable().optional()
 })
 
 export type AdminUpdateSegmentType = z.infer<typeof AdminUpdateSegment>
 export const AdminUpdateSegment = z.object({
-	name: z.string().min(1).regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case').optional(),
+	name: z
+		.string()
+		.min(1)
+		.regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case')
+		.optional(),
 	label: z.string().min(1).optional(),
 	description: z.string().nullable().optional(),
-	rules: z.object({
-		operator: z.enum(['AND', 'OR']),
-		conditions: z.array(z.object({
-			type: z.enum(['event_performed', 'event_not_performed', 'identity_property']),
-			event: z.string().optional(),
-			count: z.record(z.string(), z.number()).optional(),
-			timeframe_days: z.number().optional(),
-			key: z.string().optional(),
-			operator: z.string().optional()
-		})).min(1)
-	}).optional(),
+	rules: z
+		.object({
+			operator: z.enum(['AND', 'OR']),
+			conditions: z
+				.array(
+					z.object({
+						type: z.enum(['event_performed', 'event_not_performed', 'identity_property']),
+						event: z.string().optional(),
+						count: z.record(z.string(), z.number()).optional(),
+						timeframe_days: z.number().optional(),
+						key: z.string().optional(),
+						operator: z.string().optional()
+					})
+				)
+				.min(1)
+		})
+		.optional(),
 	sales_channel_id: z.string().nullable().optional()
 })
 
@@ -168,7 +199,4 @@ export const StoreTrackEvent = z.object({
 // Accepts either a single event or a bare array of events (no wrapper object),
 // so existing single-object clients keep working unchanged.
 export type StoreTrackEventBatchType = z.infer<typeof StoreTrackEventBatch>
-export const StoreTrackEventBatch = z.union([
-	StoreTrackEvent,
-	z.array(StoreTrackEvent).min(1).max(100)
-])
+export const StoreTrackEventBatch = z.union([StoreTrackEvent, z.array(StoreTrackEvent).min(1).max(100)])

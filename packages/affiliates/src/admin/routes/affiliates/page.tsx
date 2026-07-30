@@ -104,16 +104,11 @@ const AffiliatesPage = () => {
 			<DataTable instance={table}>
 				<DataTable.Toolbar className="flex items-center justify-between gap-2 px-6 py-4">
 					<Heading>Affiliates</Heading>
-					<div className="flex gap-2 items-center">
+					<div className="flex items-center gap-2">
 						<DataTable.FilterMenu tooltip="Filter" />
 						<DataTable.SortingMenu tooltip="Sort" />
 						<DataTable.Search placeholder="Search…" />
-						<Button
-							size="small"
-							variant="secondary"
-							className="whitespace-nowrap"
-							onClick={() => setCreateOpen(true)}
-						>
+						<Button size="small" variant="secondary" className="whitespace-nowrap" onClick={() => setCreateOpen(true)}>
 							Create
 						</Button>
 					</div>
@@ -121,11 +116,7 @@ const AffiliatesPage = () => {
 				<DataTable.Table />
 				<DataTable.Pagination />
 			</DataTable>
-			<CreateAffiliateModal
-				open={createOpen}
-				onOpenChange={setCreateOpen}
-				onCreated={id => navigate(`/affiliates/${id}`)}
-			/>
+			<CreateAffiliateModal open={createOpen} onOpenChange={setCreateOpen} onCreated={id => navigate(`/affiliates/${id}`)} />
 		</Container>
 	)
 }

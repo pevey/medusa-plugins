@@ -8,10 +8,7 @@ export class OrderNoteService extends MedusaService({ OrderNote }) {
 	protected logger_: Logger
 	protected eventBusService_: IEventBusService
 
-	constructor(
-		{ logger, event_bus }: { logger: Logger; event_bus: IEventBusService },
-		_options?: any
-	) {
+	constructor({ logger, event_bus }: { logger: Logger; event_bus: IEventBusService }, _options?: any) {
 		super(...arguments)
 		this.logger_ = logger
 		this.eventBusService_ = event_bus

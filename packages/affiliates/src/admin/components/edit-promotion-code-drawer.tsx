@@ -46,7 +46,10 @@ export const EditPromotionCodeDrawer = ({ affiliateId, promotion, open, onOpenCh
 			<Drawer.Content>
 				<form onSubmit={submit} className="flex flex-1 flex-col overflow-hidden">
 					<Drawer.Header>
-						<Heading level="h1">Edit promotion code</Heading>
+						<Drawer.Title asChild>
+							<Heading level="h1">Edit promotion code</Heading>
+						</Drawer.Title>
+						<Drawer.Description className="sr-only">Edit this promotion code's discount value and end date.</Drawer.Description>
 					</Drawer.Header>
 					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 						<div className="flex flex-col space-y-2">
@@ -65,11 +68,7 @@ export const EditPromotionCodeDrawer = ({ affiliateId, promotion, open, onOpenCh
 							<Label size="small" weight="plus">
 								End date
 							</Label>
-							<Input
-								type="datetime-local"
-								value={endDate}
-								onChange={e => setEndDate(e.target.value)}
-							/>
+							<Input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} />
 						</div>
 						<Text size="xsmall" className="text-ui-fg-subtle">
 							Discount type cannot be changed after creation.
@@ -82,12 +81,7 @@ export const EditPromotionCodeDrawer = ({ affiliateId, promotion, open, onOpenCh
 									Cancel
 								</Button>
 							</Drawer.Close>
-							<Button
-								size="small"
-								type="submit"
-								disabled={update.isPending}
-								isLoading={update.isPending}
-							>
+							<Button size="small" type="submit" disabled={update.isPending} isLoading={update.isPending}>
 								Save
 							</Button>
 						</div>

@@ -743,6 +743,10 @@
 					"link": "/medusa-plugin-forms/api/operations/postadminformsbyid/"
 				},
 				{
+					"label": "Delete Form",
+					"link": "/medusa-plugin-forms/api/operations/deleteadminformsbyid/"
+				},
+				{
 					"label": "List Fields",
 					"link": "/medusa-plugin-forms/api/operations/getadminformsbyidfields/"
 				},

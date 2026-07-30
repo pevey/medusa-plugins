@@ -34,10 +34,7 @@ export const AdminRenderBarcode = z.object({
 	text: z.string().optional(), // Barcode value
 	gtin: z.string().optional(),
 	serial: z.string().optional(),
-	height: z.preprocess(
-		val => (val === '' || val == null ? undefined : val),
-		z.coerce.number().int().optional()
-	), // Barcode height, in mm
+	height: z.preprocess(val => (val === '' || val == null ? undefined : val), z.coerce.number().int().optional()), // Barcode height, in mm
 	width: z.preprocess(val => {
 		return val && typeof val === 'string' ? parseInt(val) : val
 	}, z.number().optional()), // Barcode width, in mm

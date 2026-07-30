@@ -25,5 +25,5 @@ export const MEDUSA_ENTITIES: MedusaEntity[] = [
 	{ name: 'return', label: 'Return' },
 	{ name: 'shipping_option', label: 'Shipping Option' },
 	{ name: 'stock_location', label: 'Stock Location' },
-	{ name: 'user', label: 'User (Admin)' },
+	{ name: 'user', label: 'User (Admin)' }
 ]

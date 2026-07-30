@@ -1,9 +1,4 @@
-import {
-	createWorkflow,
-	WorkflowResponse,
-	createStep,
-	StepResponse
-} from '@medusajs/framework/workflows-sdk'
+import { createWorkflow, WorkflowResponse, createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import { ConfigModule, CreateNotificationDTO, INotificationModuleService, RemoteQueryFunction } from '@medusajs/framework/types'
 import { sendNotificationsStep } from '@medusajs/medusa/core-flows'
@@ -13,14 +8,7 @@ import { getMedusaAdminUrl, getMedusaStorefrontUrl } from './utils'
 
 const prepareAuthResetPasswordNotificationStep = createStep(
 	'prepare-auth-reset-password-notification',
-	async (
-		{
-			entity_id: email,
-			token,
-			actor_type
-		}: { entity_id: string; token: string; actor_type: string },
-		{ container }
-	) => {
+	async ({ entity_id: email, token, actor_type }: { entity_id: string; token: string; actor_type: string }, { container }) => {
 		const query = container.resolve(ContainerRegistrationKeys.QUERY) as RemoteQueryFunction
 		const {
 			data: [store]
@@ -30,8 +18,7 @@ const prepareAuthResetPasswordNotificationStep = createStep(
 		})
 
 		const config = container.resolve(ContainerRegistrationKeys.CONFIG_MODULE) as ConfigModule
-		let urlBase =
-			actor_type === 'customer' ? getMedusaStorefrontUrl(config) : getMedusaAdminUrl(config)
+		let urlBase = actor_type === 'customer' ? getMedusaStorefrontUrl(config) : getMedusaAdminUrl(config)
 		const resetPasswordUrl = `${urlBase}/reset-password?token=${token}&email=${email}`
 
 		const html = await pretty(

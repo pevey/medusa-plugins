@@ -45,11 +45,7 @@ export class GalleryState {
 		return this.#plugins()
 	}
 
-	setSources(sources: {
-		items: () => NormalizedImage[]
-		opts: () => EmblaOptionsType | undefined
-		plugins: () => EmblaPluginType[] | undefined
-	}) {
+	setSources(sources: { items: () => NormalizedImage[]; opts: () => EmblaOptionsType | undefined; plugins: () => EmblaPluginType[] | undefined }) {
 		this.#items = sources.items
 		this.#opts = sources.opts
 		this.#plugins = sources.plugins

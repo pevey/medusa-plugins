@@ -51,12 +51,7 @@ export type AdminUpdateAffiliateType = z.infer<typeof AdminUpdateAffiliateSchema
 export const AdminListAffiliatesSchema = z
 	.object({
 		q: z.string().optional(),
-		status: z
-			.union([
-				z.enum(['active', 'restricted', 'inactive']),
-				z.array(z.enum(['active', 'restricted', 'inactive']))
-			])
-			.optional(),
+		status: z.union([z.enum(['active', 'restricted', 'inactive']), z.array(z.enum(['active', 'restricted', 'inactive']))]).optional(),
 		offset: z.coerce.number().int().min(0).optional(),
 		limit: z.coerce.number().int().min(1).max(200).optional(),
 		order: z.string().optional()

@@ -1,10 +1,5 @@
 import { MedusaError } from '@medusajs/framework/utils'
-import {
-	createStep,
-	createWorkflow,
-	StepResponse,
-	WorkflowResponse
-} from '@medusajs/framework/workflows-sdk'
+import { createStep, createWorkflow, StepResponse, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
 import { AFFILIATE_MODULE } from '../modules/affiliate'
 import { AffiliateService } from '../modules/affiliate/service'
 
@@ -36,10 +31,7 @@ export const updateAffiliateAddressStep = createStep(
 			affiliate_id: input.affiliate_id
 		})
 		if (!match) {
-			throw new MedusaError(
-				MedusaError.Types.NOT_FOUND,
-				`Address ${input.address_id} not found for affiliate ${input.affiliate_id}`
-			)
+			throw new MedusaError(MedusaError.Types.NOT_FOUND, `Address ${input.address_id} not found for affiliate ${input.affiliate_id}`)
 		}
 		const snapshot: Snapshot = {
 			id: match.id,
@@ -66,10 +58,7 @@ export const updateAffiliateAddressStep = createStep(
 
 export const updateAffiliateAddressWorkflowId = 'update-affiliate-address'
 
-export const updateAffiliateAddressWorkflow = createWorkflow(
-	updateAffiliateAddressWorkflowId,
-	(input: UpdateAffiliateAddressInput) => {
-		const result = updateAffiliateAddressStep(input)
-		return new WorkflowResponse(result)
-	}
-)
+export const updateAffiliateAddressWorkflow = createWorkflow(updateAffiliateAddressWorkflowId, (input: UpdateAffiliateAddressInput) => {
+	const result = updateAffiliateAddressStep(input)
+	return new WorkflowResponse(result)
+})

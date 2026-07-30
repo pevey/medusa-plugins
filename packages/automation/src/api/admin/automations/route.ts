@@ -1,16 +1,11 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { AUTOMATION_MODULE } from '../../../modules/automation'
 import { AutomationService } from '../../../modules/automation/service'
-import {
-	AdminGetAutomationTriggersType,
-	AdminCreateAutomationTriggerType,
-	AdminDeleteAutomationTriggersType
-} from '../../validators'
+import { AdminGetAutomationTriggersType, AdminCreateAutomationTriggerType, AdminDeleteAutomationTriggersType } from '../../validators'
 
 export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
-	const { limit, offset, q, trigger_type, is_active } =
-		req.validatedQuery as AdminGetAutomationTriggersType
+	const { limit, offset, q, trigger_type, is_active } = req.validatedQuery as AdminGetAutomationTriggersType
 
 	const filters: Record<string, unknown> = {}
 	if (trigger_type) filters.trigger_type = trigger_type
@@ -31,10 +26,7 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 	res.json({ triggers: safe, count, limit: limit ?? 20, offset: offset ?? 0 })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateAutomationTriggerType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateAutomationTriggerType>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const body = { ...req.validatedBody }
 	if (body.trigger_signing_key) {
@@ -46,10 +38,7 @@ export const POST = async (
 	res.json({ trigger: { ...safe, has_signing_key: Boolean(trigger_signing_key) } })
 }
 
-export const DELETE = async (
-	req: AuthenticatedMedusaRequest<AdminDeleteAutomationTriggersType>,
-	res: MedusaResponse
-) => {
+export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteAutomationTriggersType>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { ids } = req.validatedBody
 	await automationService.deleteAutomationTriggers(ids)

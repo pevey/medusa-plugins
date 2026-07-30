@@ -4,10 +4,7 @@ import { FORM_MODULE } from '../../../modules/form'
 import { FormService } from '../../../modules/form/service'
 import { AdminDeleteFormSubmissionsType, AdminGetFormSubmissionsType } from '../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetFormSubmissionsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetFormSubmissionsType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { form_id, status } = req.validatedQuery
 
@@ -28,10 +25,7 @@ export const GET = async (
 	})
 }
 
-export const DELETE = async (
-	req: AuthenticatedMedusaRequest<AdminDeleteFormSubmissionsType>,
-	res: MedusaResponse
-) => {
+export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteFormSubmissionsType>, res: MedusaResponse) => {
 	const { ids } = req.validatedBody
 	const formService: FormService = req.scope.resolve(FORM_MODULE)
 	await formService.deleteFormSubmissions(ids)

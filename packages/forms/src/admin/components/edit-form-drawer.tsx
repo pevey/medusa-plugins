@@ -122,9 +122,7 @@ export const EditFormDrawer = ({ form, open, setOpen }: Props) => {
 						<Drawer.Title asChild>
 							<Heading level="h1">Edit Form</Heading>
 						</Drawer.Title>
-						<Drawer.Description className="sr-only">
-							Edit this form's name, handle, settings, and fields.
-						</Drawer.Description>
+						<Drawer.Description className="sr-only">Edit this form's name, handle, settings, and fields.</Drawer.Description>
 					</Drawer.Header>
 					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 						<div className="flex flex-col gap-y-4">
@@ -170,19 +168,16 @@ export const EditFormDrawer = ({ form, open, setOpen }: Props) => {
 
 							<div className="flex flex-col gap-y-1">
 								<Label htmlFor="eft-desc" size="small" weight="plus">
-									Description{' '}
-									<span className="text-ui-fg-subtle font-normal">(optional)</span>
+									Description <span className="text-ui-fg-subtle font-normal">(optional)</span>
 								</Label>
 								<Controller
 									name="description"
 									control={control}
-									render={({ field }) => (
-										<Textarea id="eft-desc" {...field} value={field.value ?? ''} />
-									)}
+									render={({ field }) => <Textarea id="eft-desc" {...field} value={field.value ?? ''} />}
 								/>
 							</div>
 
-							<div className="flex items-center justify-between rounded-lg border border-ui-border-base p-3">
+							<div className="border-ui-border-base flex items-center justify-between rounded-lg border p-3">
 								<div>
 									<Label htmlFor="eft-active" size="small" weight="plus">
 										Active
@@ -194,17 +189,11 @@ export const EditFormDrawer = ({ form, open, setOpen }: Props) => {
 								<Controller
 									name="active"
 									control={control}
-									render={({ field }) => (
-										<Switch
-											id="eft-active"
-											checked={field.value}
-											onCheckedChange={field.onChange}
-										/>
-									)}
+									render={({ field }) => <Switch id="eft-active" checked={field.value} onCheckedChange={field.onChange} />}
 								/>
 							</div>
 
-							<div className="flex items-center justify-between rounded-lg border border-ui-border-base p-3">
+							<div className="border-ui-border-base flex items-center justify-between rounded-lg border p-3">
 								<div>
 									<Label htmlFor="eft-turnstile" size="small" weight="plus">
 										Require Turnstile
@@ -216,13 +205,7 @@ export const EditFormDrawer = ({ form, open, setOpen }: Props) => {
 								<Controller
 									name="turnstile_enabled"
 									control={control}
-									render={({ field }) => (
-										<Switch
-											id="eft-turnstile"
-											checked={field.value}
-											onCheckedChange={field.onChange}
-										/>
-									)}
+									render={({ field }) => <Switch id="eft-turnstile" checked={field.value} onCheckedChange={field.onChange} />}
 								/>
 							</div>
 
@@ -237,13 +220,7 @@ export const EditFormDrawer = ({ form, open, setOpen }: Props) => {
 									name="notification_emails"
 									control={control}
 									render={({ field }) => (
-										<Textarea
-											id="eft-emails"
-											{...field}
-											value={field.value ?? ''}
-											placeholder="admin@example.com, support@example.com"
-											rows={2}
-										/>
+										<Textarea id="eft-emails" {...field} value={field.value ?? ''} placeholder="admin@example.com, support@example.com" rows={2} />
 									)}
 								/>
 							</div>

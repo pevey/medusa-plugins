@@ -1,10 +1,7 @@
 import type { NormalizedAddress } from './types'
 
-export function componentsToAddress(
-	components: google.maps.places.AddressComponent[]
-): NormalizedAddress {
-	const find = (type: string, key: 'longText' | 'shortText' = 'longText') =>
-		components.find(c => c.types.includes(type))?.[key] ?? ''
+export function componentsToAddress(components: google.maps.places.AddressComponent[]): NormalizedAddress {
+	const find = (type: string, key: 'longText' | 'shortText' = 'longText') => components.find(c => c.types.includes(type))?.[key] ?? ''
 	return {
 		address_1: `${find('street_number')} ${find('route')}`.trim(),
 		address_2: find('subpremise'),

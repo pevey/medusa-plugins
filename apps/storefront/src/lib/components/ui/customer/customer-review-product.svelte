@@ -28,6 +28,6 @@
 			{title}
 		</a>
 	{:else}
-		<span class={cn('text-muted-foreground text-sm', className)} data-review-product>{title}</span>
+		<span class={cn('text-sm text-muted-foreground', className)} data-review-product>{title}</span>
 	{/if}
 {/if}

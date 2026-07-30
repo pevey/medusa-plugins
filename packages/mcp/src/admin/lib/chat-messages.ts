@@ -36,8 +36,18 @@ export type ChatMessage = {
 }
 
 // Wire types matching the backend's `ContentBlock` / validators.ts exactly.
-export type WireToolUseBlock = { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> }
-export type WireToolResultBlock = { type: 'tool_result'; tool_use_id: string; content: string; is_error?: boolean }
+export type WireToolUseBlock = {
+	type: 'tool_use'
+	id: string
+	name: string
+	input: Record<string, unknown>
+}
+export type WireToolResultBlock = {
+	type: 'tool_result'
+	tool_use_id: string
+	content: string
+	is_error?: boolean
+}
 export type WireContentBlock = TextBlock | WireToolUseBlock | WireToolResultBlock
 
 export type WireMessage = {
@@ -55,18 +65,14 @@ export type WireMessage = {
  */
 export function foldToolResults(stored: WireMessage[]): ChatMessage[] {
 	const results = new Map<string, { content: string; is_error?: boolean }>()
-	for (const m of stored)
-		for (const b of m.content)
-			if (b.type === 'tool_result') results.set(b.tool_use_id, { content: b.content, is_error: b.is_error })
+	for (const m of stored) for (const b of m.content) if (b.type === 'tool_result') results.set(b.tool_use_id, { content: b.content, is_error: b.is_error })
 
 	const out: ChatMessage[] = []
 	for (const m of stored) {
 		const nonResult = m.content.filter((b): b is TextBlock | WireToolUseBlock => b.type !== 'tool_result')
 		if (nonResult.length === 0) continue
 		const content = nonResult.map((b): ContentBlock =>
-			b.type === 'tool_use'
-				? { ...b, result: results.get(b.id)?.content, is_error: results.get(b.id)?.is_error }
-				: b
+			b.type === 'tool_use' ? { ...b, result: results.get(b.id)?.content, is_error: results.get(b.id)?.is_error } : b
 		)
 		const prev = out[out.length - 1]
 		if (m.role === 'assistant' && prev?.role === 'assistant') {

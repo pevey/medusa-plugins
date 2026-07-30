@@ -1,9 +1,4 @@
-import {
-	windowStart,
-	selectRowsByBasis,
-	bucketByCurrency,
-	AttributionRow
-} from '../stats'
+import { windowStart, selectRowsByBasis, bucketByCurrency, AttributionRow } from '../stats'
 
 const NOW = new Date('2026-06-27T12:00:00Z')
 
@@ -60,10 +55,7 @@ describe('bucketByCurrency', () => {
 	})
 
 	it('computes averages correctly', () => {
-		const rows = [
-			row({ currency_code: 'usd', gross_subtotal: 100, net_subtotal: 80 }),
-			row({ currency_code: 'usd', gross_subtotal: 200, net_subtotal: 160 })
-		]
+		const rows = [row({ currency_code: 'usd', gross_subtotal: 100, net_subtotal: 80 }), row({ currency_code: 'usd', gross_subtotal: 200, net_subtotal: 160 })]
 		const [bucket] = bucketByCurrency(rows, 'usd')
 		expect(bucket.order_count).toBe(2)
 		expect(bucket.gross_total).toBe(300)
@@ -77,12 +69,8 @@ describe('bucketByCurrency', () => {
 	})
 
 	it('alphabetically orders non-primary currencies', () => {
-		const rs = [
-			row({ currency_code: 'gbp' }),
-			row({ currency_code: 'aud' }),
-			row({ currency_code: 'eur' })
-		]
+		const rs = [row({ currency_code: 'gbp' }), row({ currency_code: 'aud' }), row({ currency_code: 'eur' })]
 		const result = bucketByCurrency(rs, null)
-		expect(result.map((b) => b.currency_code)).toEqual(['aud', 'eur', 'gbp'])
+		expect(result.map(b => b.currency_code)).toEqual(['aud', 'eur', 'gbp'])
 	})
 })

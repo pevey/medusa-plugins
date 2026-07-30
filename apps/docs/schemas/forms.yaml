@@ -331,6 +331,31 @@ paths:
             application/json:
               schema:
                 type: object
+    delete:
+      operationId: deleteAdminFormsByid
+      summary: Delete Form
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  deleted:
+                    type: boolean
   /admin/forms/{id}/fields:
     get:
       operationId: getAdminFormsByidFields

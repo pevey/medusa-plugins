@@ -1,19 +1,4 @@
-import {
-	Body,
-	Button,
-	Column,
-	Container,
-	Head,
-	Heading,
-	Hr,
-	Html,
-	Img,
-	Preview,
-	Row,
-	Section,
-	Tailwind,
-	Text
-} from 'react-email'
+import { Body, Button, Column, Container, Head, Heading, Hr, Html, Img, Preview, Row, Section, Tailwind, Text } from 'react-email'
 
 type ShipmentItem = {
 	title: string
@@ -55,19 +40,16 @@ function Template({ order, shipment, storeName }: Props) {
 
 	return (
 		<Tailwind>
-			<Html className="font-sans bg-gray-100">
+			<Html className="bg-gray-100 font-sans">
 				<Head />
 				<Preview>
-					Hi {order.customer.first_name}, your order has shipped! We provided a tracking
-					number to help you review the status of your shipment.
+					Hi {order.customer.first_name}, your order has shipped! We provided a tracking number to help you review the status of your shipment.
 				</Preview>
-				<Body className="bg-white my-10 mx-auto w-full max-w-2xl">
+				<Body className="mx-auto my-10 w-full max-w-2xl bg-white">
 					<Container className="p-6">
-						<Heading className="text-lg font-semibold text-black mb-2 text-center">
-							Your Order Has Shipped
-						</Heading>
+						<Heading className="mb-2 text-center text-lg font-semibold text-black">Your Order Has Shipped</Heading>
 
-						<Text className="text-sm text-black leading-relaxed mb-6 text-center">
+						<Text className="mb-6 text-center text-sm leading-relaxed text-black">
 							Hi {order.customer.first_name}, your order has shipped and is on its way.
 						</Text>
 
@@ -75,10 +57,8 @@ function Template({ order, shipment, storeName }: Props) {
 						<Section className="mb-4">
 							<Row>
 								<Column className="w-1/2 align-top">
-									<Heading className="text-sm font-semibold text-black m-0 mb-2">
-										Shipping Address
-									</Heading>
-									<Text className="text-sm text-black m-0 leading-relaxed">
+									<Heading className="m-0 mb-2 text-sm font-semibold text-black">Shipping Address</Heading>
+									<Text className="m-0 text-sm leading-relaxed text-black">
 										{fullName}
 										<br />
 										{addr.address_1}
@@ -95,10 +75,8 @@ function Template({ order, shipment, storeName }: Props) {
 									</Text>
 								</Column>
 								<Column className="w-1/2 align-top">
-									<Heading className="text-sm font-semibold text-black m-0 mb-2">
-										Order Details
-									</Heading>
-									<Text className="text-sm text-black m-0 leading-relaxed">
+									<Heading className="m-0 mb-2 text-sm font-semibold text-black">Order Details</Heading>
+									<Text className="m-0 text-sm leading-relaxed text-black">
 										Tracking No:{' '}
 										<a href={shipment.tracking_url} className="text-black">
 											{shipment.tracking_number}
@@ -110,24 +88,17 @@ function Template({ order, shipment, storeName }: Props) {
 							</Row>
 						</Section>
 
-						<Hr className="border-gray-200 my-4" />
+						<Hr className="my-4 border-gray-200" />
 
 						{/* Line items */}
 						{shipment.items.map((item, i) => (
 							<Section key={i} className="py-2">
 								<Row>
 									<Column className="w-1/6 align-middle">
-										{item.thumbnail ? (
-											<Img
-												src={item.thumbnail}
-												width="100%"
-												alt={item.title}
-												className="rounded-lg"
-											/>
-										) : null}
+										{item.thumbnail ? <Img src={item.thumbnail} width="100%" alt={item.title} className="rounded-lg" /> : null}
 									</Column>
 									<Column className="pl-4 align-middle">
-										<Text className="text-sm text-black m-0">
+										<Text className="m-0 text-sm text-black">
 											<span className="font-semibold">{item.title}</span>
 											<br />
 											<span className="text-xs">Qty: {item.quantity}</span>
@@ -137,22 +108,19 @@ function Template({ order, shipment, storeName }: Props) {
 							</Section>
 						))}
 
-						<Hr className="border-gray-200 my-4" />
+						<Hr className="my-4 border-gray-200" />
 
 						{/* Track button */}
-						<Section className="text-center my-8">
-							<Button
-								href={shipment.tracking_url}
-								className="bg-black text-white py-3 px-8 inline-block"
-							>
+						<Section className="my-8 text-center">
+							<Button href={shipment.tracking_url} className="inline-block bg-black px-8 py-3 text-white">
 								Track Your Order
 							</Button>
 						</Section>
 					</Container>
 
 					{/* Footer */}
-					<Section className="bg-gray-50 p-6 mt-10">
-						<Text className="text-center text-black text-xs mt-4">
+					<Section className="mt-10 bg-gray-50 p-6">
+						<Text className="mt-4 text-center text-xs text-black">
 							© {new Date().getFullYear()} {storeName}, Inc. All rights reserved.
 						</Text>
 					</Section>

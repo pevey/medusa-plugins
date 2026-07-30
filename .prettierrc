@@ -2,8 +2,35 @@
 	"useTabs": true,
 	"singleQuote": true,
 	"trailingComma": "none",
-	"printWidth": 100,
+	"printWidth": 160,
 	"tabWidth": 3,
 	"semi": false,
-	"arrowParens": "avoid"
+	"arrowParens": "avoid",
+	"plugins": ["prettier-plugin-svelte", "prettier-plugin-tailwindcss"],
+	"overrides": [
+		{
+			"files": "*.svelte",
+			"options": {
+				"parser": "svelte"
+			}
+		},
+		{
+			"files": "apps/storefront/**",
+			"options": {
+				"tailwindStylesheet": "./apps/storefront/src/routes/layout.css"
+			}
+		},
+		{
+			"files": "apps/docs/**",
+			"options": {
+				"tailwindStylesheet": "./apps/docs/src/styles/global.css"
+			}
+		},
+		{
+			"files": "packages/sveltekit-ui/**",
+			"options": {
+				"tailwindStylesheet": "./packages/sveltekit-ui/src/app.css"
+			}
+		}
+	]
 }

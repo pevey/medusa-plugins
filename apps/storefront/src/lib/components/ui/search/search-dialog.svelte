@@ -55,18 +55,11 @@
 {@render trigger?.(() => (open = true))}
 
 <Dialog.Root bind:open>
-	<Dialog.Content
-		class={cn('gap-0 overflow-hidden p-0 sm:max-w-lg', className)}
-		showCloseButton={false}
-	>
+	<Dialog.Content class={cn('gap-0 overflow-hidden p-0 sm:max-w-lg', className)} showCloseButton={false}>
 		<Dialog.Title class="sr-only">Search</Dialog.Title>
 		<Dialog.Description class="sr-only">Search the store. Results update as you type.</Dialog.Description>
 		<Search.Root {minLength} {debounce} {limit}>
-			<Search.Input
-				{placeholder}
-				{icon}
-				class="h-12 rounded-none border-0 border-b shadow-none focus-visible:ring-0"
-			/>
+			<Search.Input {placeholder} {icon} class="h-12 rounded-none border-0 border-b shadow-none focus-visible:ring-0" />
 			<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
 			<div onclick={onResultsClick} class="max-h-[60vh] overflow-y-auto">
 				<Search.Results static combobox {href} />

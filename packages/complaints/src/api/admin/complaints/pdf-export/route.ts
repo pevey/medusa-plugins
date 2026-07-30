@@ -2,10 +2,7 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/
 import { generateComplaintsPdfExportWorkflow } from '../../../../workflows/generate-complaints-pdf-export'
 import { AdminGenerateComplaintsPdfExportType } from '../../../validators'
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminGenerateComplaintsPdfExportType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminGenerateComplaintsPdfExportType>, res: MedusaResponse) => {
 	const { ids } = req.validatedBody
 	const requested_by = req.auth_context?.actor_id ?? null
 

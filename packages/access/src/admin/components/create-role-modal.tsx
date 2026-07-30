@@ -1,16 +1,5 @@
 import * as zod from 'zod'
-import {
-	FocusModal,
-	ProgressTabs,
-	Heading,
-	Text,
-	Button,
-	Input,
-	Textarea,
-	DataTableRowSelectionState,
-	toast,
-	usePrompt
-} from '@medusajs/ui'
+import { FocusModal, ProgressTabs, Heading, Text, Button, Input, Textarea, DataTableRowSelectionState, toast, usePrompt } from '@medusajs/ui'
 import { useEffect, useState } from 'react'
 import { FormProvider, Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -51,10 +40,7 @@ export const CreateRoleModal = ({ open, setOpen }: CreateRoleModalProps) => {
 		}
 	}, [open])
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -118,19 +104,15 @@ export const CreateRoleModal = ({ open, setOpen }: CreateRoleModalProps) => {
 					<form onSubmit={handleSubmit} className="flex h-full flex-col">
 						<ProgressTabs value={tab} onValueChange={value => setTab(value as Tab)}>
 							<FocusModal.Header>
+								<FocusModal.Title className="sr-only">Create Role</FocusModal.Title>
+								<FocusModal.Description className="sr-only">
+									Create a new role: name it, describe it, and assign its permissions.
+								</FocusModal.Description>
 								<ProgressTabs.List>
-									<ProgressTabs.Trigger
-										value="details"
-										status={
-											tab === 'details' ? 'in-progress' : nameFilled ? 'completed' : 'not-started'
-										}
-									>
+									<ProgressTabs.Trigger value="details" status={tab === 'details' ? 'in-progress' : nameFilled ? 'completed' : 'not-started'}>
 										Details
 									</ProgressTabs.Trigger>
-									<ProgressTabs.Trigger
-										value="permissions"
-										status={tab === 'permissions' ? 'in-progress' : 'not-started'}
-									>
+									<ProgressTabs.Trigger value="permissions" status={tab === 'permissions' ? 'in-progress' : 'not-started'}>
 										Permissions
 									</ProgressTabs.Trigger>
 								</ProgressTabs.List>
@@ -162,10 +144,7 @@ export const CreateRoleModal = ({ open, setOpen }: CreateRoleModalProps) => {
 														<Text size="small" weight="plus">
 															Description
 														</Text>
-														<Textarea
-															{...field}
-															placeholder="What can this role do?"
-														/>
+														<Textarea {...field} placeholder="What can this role do?" />
 													</div>
 												)}
 											/>
@@ -177,8 +156,7 @@ export const CreateRoleModal = ({ open, setOpen }: CreateRoleModalProps) => {
 										<div>
 											<Heading>Assign Permissions</Heading>
 											<Text size="small" className="text-ui-fg-subtle">
-												Select the policies this role should grant. You can change these
-												later.
+												Select the policies this role should grant. You can change these later.
 											</Text>
 										</div>
 										<PolicyPicker selection={selection} onSelectionChange={setSelection} />
@@ -186,13 +164,7 @@ export const CreateRoleModal = ({ open, setOpen }: CreateRoleModalProps) => {
 								</ProgressTabs.Content>
 							</FocusModal.Body>
 							<FocusModal.Footer className="flex w-full items-center justify-end gap-x-2">
-								<Button
-									type="button"
-									size="small"
-									variant="secondary"
-									onClick={() => setOpen(false)}
-									disabled={isPending}
-								>
+								<Button type="button" size="small" variant="secondary" onClick={() => setOpen(false)} disabled={isPending}>
 									Cancel
 								</Button>
 								{tab === 'details' ? (
@@ -201,21 +173,10 @@ export const CreateRoleModal = ({ open, setOpen }: CreateRoleModalProps) => {
 									</Button>
 								) : (
 									<>
-										<Button
-											type="button"
-											size="small"
-											variant="secondary"
-											onClick={() => setTab('details')}
-											disabled={isPending}
-										>
+										<Button type="button" size="small" variant="secondary" onClick={() => setTab('details')} disabled={isPending}>
 											Back
 										</Button>
-										<Button
-											type="submit"
-											size="small"
-											isLoading={isPending}
-											disabled={isPending}
-										>
+										<Button type="submit" size="small" isLoading={isPending} disabled={isPending}>
 											Save
 										</Button>
 									</>

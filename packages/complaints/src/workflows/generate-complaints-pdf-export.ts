@@ -1,15 +1,6 @@
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
-import {
-	createStep,
-	createWorkflow,
-	StepResponse,
-	transform
-} from '@medusajs/framework/workflows-sdk'
-import {
-	notifyOnFailureStep,
-	sendNotificationsStep,
-	useQueryGraphStep
-} from '@medusajs/core-flows'
+import { createStep, createWorkflow, StepResponse, transform } from '@medusajs/framework/workflows-sdk'
+import { notifyOnFailureStep, sendNotificationsStep, useQueryGraphStep } from '@medusajs/core-flows'
 import { buildComplaintsPdf } from './generate-complaints-pdf-export/build'
 import { fetchDocumentBytes } from './generate-complaints-pdf-export/fetch-bytes'
 import { loadComplaintsForExport } from './generate-complaints-pdf-export/load'
@@ -30,16 +21,16 @@ const generateComplaintsPdfExportStep = createStep(
 		const result = await locking.execute(
 			'complaint-pdf-export:singleton',
 			async () => {
-				const query   = container.resolve(ContainerRegistrationKeys.QUERY)
+				const query = container.resolve(ContainerRegistrationKeys.QUERY)
 				const fileSvc = container.resolve(Modules.FILE)
 				const provider = (fileSvc as any).getProvider()
 
 				const complaints = await loadComplaintsForExport(query as any, input.complaint_ids)
-				const docBytes   = await fetchDocumentBytes(provider, complaints)
-				const pdfBytes   = await buildComplaintsPdf({ complaints, docBytes })
+				const docBytes = await fetchDocumentBytes(provider, complaints)
+				const pdfBytes = await buildComplaintsPdf({ complaints, docBytes })
 
 				const timestamp = new Date().toISOString().replace(/[:.]/g, '-')
-				const filename  = `complaints-export-${timestamp}.pdf`
+				const filename = `complaints-export-${timestamp}.pdf`
 				const upload = await (fileSvc as any).getUploadStream({
 					filename,
 					mimeType: 'application/pdf',
@@ -63,15 +54,14 @@ const generateComplaintsPdfExportStep = createStep(
 
 export const generateComplaintsPdfExportWorkflowId = 'generate-complaints-pdf-export'
 
-export const generateComplaintsPdfExportWorkflow = createWorkflow(
-	generateComplaintsPdfExportWorkflowId,
-	(input: GenerateComplaintsPdfExportInput) => {
-		const file = generateComplaintsPdfExportStep(input).config({
-			async: true,
-			backgroundExecution: true
-		})
+export const generateComplaintsPdfExportWorkflow = createWorkflow(generateComplaintsPdfExportWorkflowId, (input: GenerateComplaintsPdfExportInput) => {
+	const file = generateComplaintsPdfExportStep(input).config({
+		async: true,
+		backgroundExecution: true
+	})
 
-		const failureNotification = transform({ input }, () => [{
+	const failureNotification = transform({ input }, () => [
+		{
 			to: '',
 			channel: 'feed',
 			template: 'admin-ui',
@@ -79,17 +69,19 @@ export const generateComplaintsPdfExportWorkflow = createWorkflow(
 				title: 'Complaints PDF export',
 				description: 'Failed to generate PDF — please try again.'
 			}
-		}])
-		notifyOnFailureStep(failureNotification)
+		}
+	])
+	notifyOnFailureStep(failureNotification)
 
-		const { data: fileDetails } = useQueryGraphStep({
-			entity: 'file',
-			fields: ['id', 'url'],
-			filters: { id: file.fileKey },
-			options: { isList: false }
-		})
+	const { data: fileDetails } = useQueryGraphStep({
+		entity: 'file',
+		fields: ['id', 'url'],
+		filters: { id: file.fileKey },
+		options: { isList: false }
+	})
 
-		const notifications = transform({ fileDetails, file }, (data) => [{
+	const notifications = transform({ fileDetails, file }, data => [
+		{
 			to: '',
 			channel: 'feed',
 			template: 'admin-ui',
@@ -102,7 +94,7 @@ export const generateComplaintsPdfExportWorkflow = createWorkflow(
 					mimeType: 'application/pdf'
 				}
 			}
-		}])
-		sendNotificationsStep(notifications)
-	}
-)
+		}
+	])
+	sendNotificationsStep(notifications)
+})

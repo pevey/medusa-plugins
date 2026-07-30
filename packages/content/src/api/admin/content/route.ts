@@ -2,16 +2,9 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { CONTENT_MODULE } from '../../../modules/content'
 import { ContentService } from '../../../modules/content/service'
-import {
-	AdminCreateContentCollectionType,
-	AdminDeleteContentCollectionsType,
-	AdminGetContentCollectionsType
-} from '../../validators'
+import { AdminCreateContentCollectionType, AdminDeleteContentCollectionsType, AdminGetContentCollectionsType } from '../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetContentCollectionsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentCollectionsType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { q } = req.validatedQuery
 
@@ -31,19 +24,13 @@ export const GET = async (
 	})
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateContentCollectionType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateContentCollectionType>, res: MedusaResponse) => {
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
 	const content_collection = await contentService.createContentCollections(req.validatedBody)
 	res.json({ content_collection })
 }
 
-export const DELETE = async (
-	req: AuthenticatedMedusaRequest<AdminDeleteContentCollectionsType>,
-	res: MedusaResponse
-) => {
+export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteContentCollectionsType>, res: MedusaResponse) => {
 	const { ids } = req.validatedBody
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
 	await contentService.deleteContentCollections(ids)

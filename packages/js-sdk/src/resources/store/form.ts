@@ -6,15 +6,12 @@ import type { FormSubmitInput, FormSubmitResponse } from '../../types/form'
 
 export function createStoreFormResource(client: Client) {
 	return {
-		submit: async (
-			handle: string,
-			body: FormSubmitInput,
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<FormSubmitResponse>(
-				`/forms/${handle}`,
-				{ method: 'POST', body, headers },
-			)
-		},
+		submit: async (handle: string, body: FormSubmitInput, headers?: ClientHeaders) => {
+			return client.fetch<FormSubmitResponse>(`/forms/${handle}`, {
+				method: 'POST',
+				body,
+				headers
+			})
+		}
 	}
 }

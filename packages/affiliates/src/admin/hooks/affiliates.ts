@@ -25,8 +25,7 @@ export const useAffiliate = (id: string) =>
 			})
 	})
 
-const invalidate = (qc: ReturnType<typeof useQueryClient>) =>
-	qc.invalidateQueries({ queryKey: KEY })
+const invalidate = (qc: ReturnType<typeof useQueryClient>) => qc.invalidateQueries({ queryKey: KEY })
 
 export const useCreateAffiliate = () => {
 	const qc = useQueryClient()
@@ -43,8 +42,7 @@ export const useCreateAffiliate = () => {
 export const useUpdateAffiliate = (id: string) => {
 	const qc = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
-			sdk.client.fetch(`/admin/affiliates/${id}`, { method: 'POST', body: data }),
+		mutationFn: (data: object) => sdk.client.fetch(`/admin/affiliates/${id}`, { method: 'POST', body: data }),
 		onSuccess: () => invalidate(qc)
 	})
 }
@@ -52,8 +50,7 @@ export const useUpdateAffiliate = (id: string) => {
 export const useDeleteAffiliates = () => {
 	const qc = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/affiliates', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/affiliates', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => invalidate(qc)
 	})
 }
@@ -61,8 +58,7 @@ export const useDeleteAffiliates = () => {
 export const useAddAffiliateAddress = (id: string) => {
 	const qc = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
-			sdk.client.fetch(`/admin/affiliates/${id}/addresses`, { method: 'POST', body: data }),
+		mutationFn: (data: object) => sdk.client.fetch(`/admin/affiliates/${id}/addresses`, { method: 'POST', body: data }),
 		onSuccess: () => invalidate(qc)
 	})
 }
@@ -102,8 +98,7 @@ export const useSetPrimaryAffiliateAddress = (id: string) => {
 export const useAddAffiliatePromotion = (id: string) => {
 	const qc = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
-			sdk.client.fetch(`/admin/affiliates/${id}/promotions`, { method: 'POST', body: data }),
+		mutationFn: (data: object) => sdk.client.fetch(`/admin/affiliates/${id}/promotions`, { method: 'POST', body: data }),
 		onSuccess: () => invalidate(qc)
 	})
 }
@@ -149,10 +144,7 @@ export const useDeleteAffiliatePromotion = (id: string) => {
 	})
 }
 
-export const useAffiliateStats = (
-	id: string,
-	params: { basis?: string; window?: string; promotion_id?: string }
-) =>
+export const useAffiliateStats = (id: string, params: { basis?: string; window?: string; promotion_id?: string }) =>
 	useQuery({
 		queryKey: [...KEY, 'stats', id, params],
 		queryFn: () =>

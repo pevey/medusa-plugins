@@ -11,14 +11,12 @@ export function createStoreAnalyticsResource(client: Client) {
 		 * batching client (`createCollector`) and server-side forwarders
 		 * build on this.
 		 */
-		track: async (
-			events: AnalyticsEvent | AnalyticsEvent[],
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<{ tracked: boolean; count: number }>(
-				`/store/ping`,
-				{ method: 'POST', body: events as unknown as Record<string, unknown>, headers },
-			)
-		},
+		track: async (events: AnalyticsEvent | AnalyticsEvent[], headers?: ClientHeaders) => {
+			return client.fetch<{ tracked: boolean; count: number }>(`/store/ping`, {
+				method: 'POST',
+				body: events as unknown as Record<string, unknown>,
+				headers
+			})
+		}
 	}
 }

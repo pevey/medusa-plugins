@@ -1,13 +1,5 @@
 import { useState } from 'react'
-import {
-	Button,
-	FocusModal,
-	Heading,
-	Input,
-	RadioGroup,
-	Text,
-	toast
-} from '@medusajs/ui'
+import { Button, FocusModal, Heading, Input, Label, RadioGroup, Text, toast } from '@medusajs/ui'
 import { useCreateAffiliate } from '../hooks/affiliates'
 
 type Props = {
@@ -116,173 +108,81 @@ export const CreateAffiliateModal = ({ open, onOpenChange, onCreated }: Props) =
 									Cancel
 								</Button>
 							</FocusModal.Close>
-							<Button
-								type="submit"
-								size="small"
-								isLoading={create.isPending}
-								disabled={create.isPending}
-							>
+							<Button type="submit" size="small" isLoading={create.isPending} disabled={create.isPending}>
 								Save
 							</Button>
 						</div>
 					</FocusModal.Header>
 					<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 						<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
-								<div>
+							<div>
+								<FocusModal.Title asChild>
 									<Heading className="capitalize">Create Affiliate</Heading>
-								</div>
+								</FocusModal.Title>
+								<FocusModal.Description className="sr-only">
+									Create a new affiliate: enter their details, primary address, and first promotion code.
+								</FocusModal.Description>
+							</div>
 
+							<div className="grid grid-cols-1 gap-4">
+								{field('Name', <Input value={name} onChange={e => setName(e.target.value)} />)}
+								{field('Email', <Input type="email" value={email} onChange={e => setEmail(e.target.value)} />)}
+								{field('Phone', <Input value={phone} onChange={e => setPhone(e.target.value)} />)}
+								{field('Currency', <Input value={currencyCode} onChange={e => setCurrencyCode(e.target.value.toLowerCase())} placeholder="usd" />)}
+							</div>
+
+							<div className="flex flex-col gap-y-4">
+								<Heading level="h2">Primary address</Heading>
 								<div className="grid grid-cols-1 gap-4">
-									{field(
-										'Name',
-										<Input value={name} onChange={e => setName(e.target.value)} />
-									)}
-									{field(
-										'Email',
-										<Input
-											type="email"
-											value={email}
-											onChange={e => setEmail(e.target.value)}
-										/>
-									)}
-									{field(
-										'Phone',
-										<Input value={phone} onChange={e => setPhone(e.target.value)} />
-									)}
-									{field(
-										'Currency',
-										<Input
-											value={currencyCode}
-											onChange={e => setCurrencyCode(e.target.value.toLowerCase())}
-											placeholder="usd"
-										/>
-									)}
-								</div>
-
-								<div className="flex flex-col gap-y-4">
-									<Heading level="h2">Primary address</Heading>
-									<div className="grid grid-cols-1 gap-4">
-										<div className="grid grid-cols-2 gap-4">
-											{field(
-												'First name',
-												<Input value={first} onChange={e => setFirst(e.target.value)} />
-											)}
-											{field(
-												'Last name',
-												<Input value={last} onChange={e => setLast(e.target.value)} />
-											)}
-										</div>
-										{field(
-											'Company',
-											<Input value={company} onChange={e => setCompany(e.target.value)} />
-										)}
-										{field(
-											'Address 1',
-											<Input value={a1} onChange={e => setA1(e.target.value)} />
-										)}
-										{field(
-											'Address 2',
-											<Input value={a2} onChange={e => setA2(e.target.value)} />
-										)}
-										<div className="grid grid-cols-2 gap-4">
-											{field(
-												'City',
-												<Input value={city} onChange={e => setCity(e.target.value)} />
-											)}
-											{field(
-												'State / Province',
-												<Input
-													value={province}
-													onChange={e => setProvince(e.target.value)}
-												/>
-											)}
-										</div>
-										<div className="grid grid-cols-2 gap-4">
-											{field(
-												'Country code',
-												<Input
-													value={country}
-													onChange={e => setCountry(e.target.value.toLowerCase())}
-													placeholder="us"
-												/>
-											)}
-											{field(
-												'Postal code',
-												<Input value={postal} onChange={e => setPostal(e.target.value)} />
-											)}
-										</div>
-										{field(
-											'Phone',
-											<Input value={aPhone} onChange={e => setAPhone(e.target.value)} />
-										)}
+									<div className="grid grid-cols-2 gap-4">
+										{field('First name', <Input value={first} onChange={e => setFirst(e.target.value)} />)}
+										{field('Last name', <Input value={last} onChange={e => setLast(e.target.value)} />)}
 									</div>
-								</div>
-
-								<div className="flex flex-col gap-y-4">
-									<Heading level="h2">First promotion code</Heading>
-									<div className="grid grid-cols-1 gap-4">
-										<div className="grid grid-cols-2 gap-4">
-											{field(
-												'Code',
-												<Input
-													value={code}
-													onChange={e => setCode(e.target.value)}
-													placeholder="JANE10"
-												/>
-											)}
-											{field(
-												'Discount value',
-												<Input
-													type="number"
-													value={discountValue}
-													onChange={e => setDiscountValue(e.target.value)}
-												/>
-											)}
-										</div>
-										<div className="flex flex-col space-y-2">
-											<Text size="small" weight="plus">
-												Discount type
-											</Text>
-											<RadioGroup
-												value={discountType}
-												onValueChange={v => setDiscountType(v as any)}
-												className="flex flex-row gap-x-6"
-											>
-												<div className="flex items-center gap-x-2">
-													<RadioGroup.Item value="percentage" id="dt-pct" />
-													<Text
-														as="label"
-														htmlFor="dt-pct"
-														size="small"
-														className="cursor-pointer"
-													>
-														Percentage
-													</Text>
-												</div>
-												<div className="flex items-center gap-x-2">
-													<RadioGroup.Item value="fixed" id="dt-fix" />
-													<Text
-														as="label"
-														htmlFor="dt-fix"
-														size="small"
-														className="cursor-pointer"
-													>
-														Fixed amount
-													</Text>
-												</div>
-											</RadioGroup>
-										</div>
-										{field(
-											'End date (optional)',
-											<Input
-												type="datetime-local"
-												value={endDate}
-												onChange={e => setEndDate(e.target.value)}
-											/>
-										)}
+									{field('Company', <Input value={company} onChange={e => setCompany(e.target.value)} />)}
+									{field('Address 1', <Input value={a1} onChange={e => setA1(e.target.value)} />)}
+									{field('Address 2', <Input value={a2} onChange={e => setA2(e.target.value)} />)}
+									<div className="grid grid-cols-2 gap-4">
+										{field('City', <Input value={city} onChange={e => setCity(e.target.value)} />)}
+										{field('State / Province', <Input value={province} onChange={e => setProvince(e.target.value)} />)}
 									</div>
+									<div className="grid grid-cols-2 gap-4">
+										{field('Country code', <Input value={country} onChange={e => setCountry(e.target.value.toLowerCase())} placeholder="us" />)}
+										{field('Postal code', <Input value={postal} onChange={e => setPostal(e.target.value)} />)}
+									</div>
+									{field('Phone', <Input value={aPhone} onChange={e => setAPhone(e.target.value)} />)}
 								</div>
 							</div>
+
+							<div className="flex flex-col gap-y-4">
+								<Heading level="h2">First promotion code</Heading>
+								<div className="grid grid-cols-1 gap-4">
+									<div className="grid grid-cols-2 gap-4">
+										{field('Code', <Input value={code} onChange={e => setCode(e.target.value)} placeholder="JANE10" />)}
+										{field('Discount value', <Input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} />)}
+									</div>
+									<div className="flex flex-col space-y-2">
+										<Text size="small" weight="plus">
+											Discount type
+										</Text>
+										<RadioGroup value={discountType} onValueChange={v => setDiscountType(v as any)} className="flex flex-row gap-x-6">
+											<div className="flex items-center gap-x-2">
+												<RadioGroup.Item value="percentage" id="dt-pct" />
+												<Label htmlFor="dt-pct" size="small" className="cursor-pointer">
+													Percentage
+												</Label>
+											</div>
+											<div className="flex items-center gap-x-2">
+												<RadioGroup.Item value="fixed" id="dt-fix" />
+												<Label htmlFor="dt-fix" size="small" className="cursor-pointer">
+													Fixed amount
+												</Label>
+											</div>
+										</RadioGroup>
+									</div>
+									{field('End date (optional)', <Input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} />)}
+								</div>
+							</div>
+						</div>
 					</FocusModal.Body>
 				</form>
 			</FocusModal.Content>

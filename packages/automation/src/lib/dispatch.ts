@@ -41,10 +41,7 @@ export function setNestedValue(obj: Record<string, unknown>, path: string, value
 	curr[keys[keys.length - 1]] = value
 }
 
-export function applyMappings(
-	source: Record<string, unknown>,
-	mappings: FieldMapping[]
-): Record<string, unknown> {
+export function applyMappings(source: Record<string, unknown>, mappings: FieldMapping[]): Record<string, unknown> {
 	if (!mappings || mappings.length === 0) return source
 	const result: Record<string, unknown> = {}
 	for (const mapping of mappings) {
@@ -54,10 +51,7 @@ export function applyMappings(
 	return result
 }
 
-export function applyMappingsWithCoercion(
-	source: Record<string, unknown>,
-	mappings: FieldMapping[]
-): Record<string, unknown> {
+export function applyMappingsWithCoercion(source: Record<string, unknown>, mappings: FieldMapping[]): Record<string, unknown> {
 	if (!mappings || mappings.length === 0) return source
 	const result: Record<string, unknown> = {}
 	for (const mapping of mappings) {
@@ -73,10 +67,7 @@ export function applyMappingsWithCoercion(
 	return result
 }
 
-export function applyStaticValues(
-	base: Record<string, unknown>,
-	statics: StaticValue[]
-): Record<string, unknown> {
+export function applyStaticValues(base: Record<string, unknown>, statics: StaticValue[]): Record<string, unknown> {
 	if (!statics || statics.length === 0) return base
 	const result = { ...base }
 	for (const s of statics) {
@@ -89,12 +80,7 @@ export function flattenForQueryParams(obj: Record<string, unknown>, prefix = '')
 	const result: Record<string, string> = {}
 	for (const [key, value] of Object.entries(obj)) {
 		const fullKey = prefix ? `${prefix}.${key}` : key
-		if (
-			value !== null &&
-			value !== undefined &&
-			typeof value === 'object' &&
-			!Array.isArray(value)
-		) {
+		if (value !== null && value !== undefined && typeof value === 'object' && !Array.isArray(value)) {
 			Object.assign(result, flattenForQueryParams(value as Record<string, unknown>, fullKey))
 		} else if (value !== null && value !== undefined) {
 			result[fullKey] = String(value)
@@ -105,19 +91,14 @@ export function flattenForQueryParams(obj: Record<string, unknown>, prefix = '')
 
 // ─── Query helpers ────────────────────────────────────────────────────────────
 
-export function resolveEventRefs(
-	filters: unknown,
-	eventData: Record<string, unknown>
-): Record<string, unknown> {
+export function resolveEventRefs(filters: unknown, eventData: Record<string, unknown>): Record<string, unknown> {
 	function resolve(val: unknown): unknown {
 		if (typeof val === 'string' && val.startsWith('$event.')) {
 			return getNestedValue(eventData, val.slice(7)) ?? val
 		}
 		if (Array.isArray(val)) return val.map(resolve)
 		if (val !== null && typeof val === 'object') {
-			return Object.fromEntries(
-				Object.entries(val as Record<string, unknown>).map(([k, v]) => [k, resolve(v)])
-			)
+			return Object.fromEntries(Object.entries(val as Record<string, unknown>).map(([k, v]) => [k, resolve(v)]))
 		}
 		return val
 	}
@@ -182,21 +163,9 @@ export function buildIterationPayload(
 // Headers an admin should never be able to inject into an outgoing request:
 // they enable request smuggling, redirect via Host confusion, leak ambient
 // credentials, or interfere with the dispatcher's own framing decisions.
-const BLOCKED_OUTGOING_HEADERS = new Set([
-	'host',
-	'content-length',
-	'transfer-encoding',
-	'te',
-	'connection',
-	'upgrade',
-	'cookie',
-	'set-cookie'
-])
+const BLOCKED_OUTGOING_HEADERS = new Set(['host', 'content-length', 'transfer-encoding', 'te', 'connection', 'upgrade', 'cookie', 'set-cookie'])
 
-function collectTargetHeaders(
-	rawHeaders: unknown,
-	base: Record<string, string> = {}
-): Record<string, string> {
+function collectTargetHeaders(rawHeaders: unknown, base: Record<string, string> = {}): Record<string, string> {
 	const headers = { ...base }
 	if (!Array.isArray(rawHeaders)) return headers
 	for (const h of rawHeaders as Array<{ key: string; value: string }>) {
@@ -219,19 +188,13 @@ export async function augmentWithQuery(
 ): Promise<Record<string, unknown>> {
 	const sourceData: Record<string, unknown> = { ...eventData }
 
-	const queryConfigs = await automationService.listAutomationQueries(
-		{ action_id: actionId },
-		{ take: 1 }
-	)
+	const queryConfigs = await automationService.listAutomationQueries({ action_id: actionId }, { take: 1 })
 	const queryConfig = queryConfigs[0] ?? null
 
 	if (queryConfig) {
 		try {
 			const medusaQuery = container.resolve(ContainerRegistrationKeys.QUERY)
-			const resolvedFilters = resolveEventRefs(
-				queryConfig.filters as Record<string, unknown>,
-				eventData
-			)
+			const resolvedFilters = resolveEventRefs(queryConfig.filters as Record<string, unknown>, eventData)
 			const { data } = await medusaQuery.graph({
 				entity: queryConfig.entity_name as string,
 				fields: (queryConfig.fields as unknown as string[]) ?? ['*'],
@@ -275,12 +238,8 @@ export async function dispatchAction(
 	opts: DispatchOptions = {}
 ): Promise<DispatchResult> {
 	const automationService = container.resolve(AUTOMATION_MODULE) as AutomationService
-	const mappings: FieldMapping[] = Array.isArray(action.field_mappings)
-		? (action.field_mappings as FieldMapping[])
-		: []
-	const statics: StaticValue[] = Array.isArray(action.static_values)
-		? (action.static_values as StaticValue[])
-		: []
+	const mappings: FieldMapping[] = Array.isArray(action.field_mappings) ? (action.field_mappings as FieldMapping[]) : []
+	const statics: StaticValue[] = Array.isArray(action.static_values) ? (action.static_values as StaticValue[]) : []
 
 	let status = AutomationDeliveryStatus.PENDING
 	let responseStatus: number | null = null
@@ -304,15 +263,10 @@ export async function dispatchAction(
 			})
 
 			if (opts.signOutgoing && action.signing_secret_id) {
-				const [secret] = await automationService.listAutomationSecrets(
-					{ id: action.signing_secret_id },
-					{ take: 1 }
-				)
+				const [secret] = await automationService.listAutomationSecrets({ id: action.signing_secret_id }, { take: 1 })
 				if (secret?.secret) {
 					const signingKey = automationService.decryptSecret(secret.secret)
-					const sig = createHmac('sha256', signingKey)
-						.update(bodyStr)
-						.digest('hex')
+					const sig = createHmac('sha256', signingKey).update(bodyStr).digest('hex')
 					headers['x-webhook-signature'] = sig
 				}
 			}
@@ -330,9 +284,7 @@ export async function dispatchAction(
 			clearTimeout(timeout)
 			responseStatus = response.status
 			responseBody = await response.text().catch(() => null)
-			status = response.ok
-				? AutomationDeliveryStatus.SUCCESS
-				: AutomationDeliveryStatus.FAILED
+			status = response.ok ? AutomationDeliveryStatus.SUCCESS : AutomationDeliveryStatus.FAILED
 			if (!response.ok) {
 				errorMessage = `HTTP ${response.status}: ${responseBody?.slice(0, 200) ?? 'no body'}`
 			}
@@ -374,9 +326,7 @@ export async function dispatchAction(
 			clearTimeout(timeout)
 			responseStatus = response.status
 			responseBody = await response.text().catch(() => null)
-			status = response.ok
-				? AutomationDeliveryStatus.SUCCESS
-				: AutomationDeliveryStatus.FAILED
+			status = response.ok ? AutomationDeliveryStatus.SUCCESS : AutomationDeliveryStatus.FAILED
 			if (!response.ok) {
 				errorMessage = `HTTP ${response.status}: ${responseBody?.slice(0, 200) ?? 'no body'}`
 			}
@@ -385,8 +335,7 @@ export async function dispatchAction(
 
 			if (isBlockedWorkflowName(action.medusa_workflow)) {
 				throw new Error(
-					`Workflow "${action.medusa_workflow}" is blocked: destructive workflows ` +
-					'(name contains "delete") cannot be invoked from automation actions.'
+					`Workflow "${action.medusa_workflow}" is blocked: destructive workflows ` + '(name contains "delete") cannot be invoked from automation actions.'
 				)
 			}
 
@@ -395,20 +344,14 @@ export async function dispatchAction(
 				throw new Error(`Unknown workflow: "${action.medusa_workflow}"`)
 			}
 
-			const run = (
-				workflowFn as (c: unknown) => { run: (o: { input: unknown }) => Promise<unknown> }
-			)(container).run
+			const run = (workflowFn as (c: unknown) => { run: (o: { input: unknown }) => Promise<unknown> })(container).run
 
 			const fanoutMappings = parseFanoutMappings(mappings)
 
 			if (fanoutMappings.length > 0) {
 				const arrayPath = fanoutMappings[0].arrayPath
 				const raw = getNestedValue(sourceData, arrayPath)
-				const items: unknown[] = Array.isArray(raw)
-					? raw
-					: raw !== undefined && raw !== null
-						? [raw]
-						: []
+				const items: unknown[] = Array.isArray(raw) ? raw : raw !== undefined && raw !== null ? [raw] : []
 
 				const maxIter = opts.maxWorkflowIterations
 				const cap = maxIter === 0 ? undefined : (maxIter ?? 50)
@@ -418,12 +361,7 @@ export async function dispatchAction(
 				const iterErrors: string[] = []
 
 				for (const item of cappedItems) {
-					const payload = buildIterationPayload(
-						item,
-						fanoutMappings,
-						directMappings,
-						sourceData
-					)
+					const payload = buildIterationPayload(item, fanoutMappings, directMappings, sourceData)
 					const finalPayload = applyStaticValues(payload, statics)
 					try {
 						await run({ input: finalPayload })

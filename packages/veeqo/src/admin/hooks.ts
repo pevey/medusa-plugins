@@ -36,8 +36,7 @@ export const useVeeqoStockLocations = (params: { limit: number; offset: number }
 		queryFn: () =>
 			sdk.client.fetch('/admin/stock-locations', {
 				query: {
-					fields:
-						'id,name,address.city,address.country_code,veeqo_warehouse.veeqo_warehouse_id',
+					fields: 'id,name,address.city,address.country_code,veeqo_warehouse.veeqo_warehouse_id',
 					...params
 				}
 			}),

@@ -7,4 +7,4 @@
 	const text = $derived(r ? formatReviewDate(r.created_at, locale) : '')
 </script>
 
-{#if text}<time class={cn('text-muted-foreground text-sm', className)}>{text}</time>{/if}
+{#if text}<time class={cn('text-sm text-muted-foreground', className)}>{text}</time>{/if}

@@ -1,11 +1,5 @@
 import { useMemo, useState } from 'react'
-import {
-	createDataTableColumnHelper,
-	DataTable,
-	DataTablePaginationState,
-	DataTableRowSelectionState,
-	useDataTable
-} from '@medusajs/ui'
+import { createDataTableColumnHelper, DataTable, DataTablePaginationState, DataTableRowSelectionState, useDataTable } from '@medusajs/ui'
 import { useAccessPoliciesList } from '../hooks/policies'
 import { AdminAccessPolicy } from '../types'
 

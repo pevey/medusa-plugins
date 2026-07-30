@@ -23,10 +23,7 @@ export class TracingService extends MedusaService({
 	 * "Available" means stocked_quantity > reserved_quantity.
 	 * Ordered by expiry_date ascending (FIFO/FEFO logic).
 	 */
-	async findFirstAvailable(
-		inventoryItemId: string,
-		stockLocationId: string
-	): Promise<StockLotType | null> {
+	async findFirstAvailable(inventoryItemId: string, stockLocationId: string): Promise<StockLotType | null> {
 		const [lots] = await this.listAndCountStockLots(
 			{
 				inventory_item_id: inventoryItemId,
@@ -59,9 +56,7 @@ export class TracingService extends MedusaService({
 			id: lotId,
 			stocked_quantity: lot.stocked_quantity + adjustment
 		})
-		this.logger_.info(
-			`Adjusted lot ${lotId} quantity by ${adjustment}. New stocked quantity: ${(updatedLot as any).stocked_quantity}`
-		)
+		this.logger_.info(`Adjusted lot ${lotId} quantity by ${adjustment}. New stocked quantity: ${(updatedLot as any).stocked_quantity}`)
 		return updatedLot as StockLotType
 	}
 }

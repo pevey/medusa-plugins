@@ -37,9 +37,12 @@ export const AddPromotionCodeModal = ({ affiliateId, open, onOpenChange }: Props
 		<FocusModal open={open} onOpenChange={onOpenChange}>
 			<FocusModal.Content>
 				<FocusModal.Header>
-					<Heading>Add promotion code</Heading>
+					<FocusModal.Title asChild>
+						<Heading>Add promotion code</Heading>
+					</FocusModal.Title>
+					<FocusModal.Description className="sr-only">Add a promotion code: set its code, discount value, and discount type.</FocusModal.Description>
 				</FocusModal.Header>
-				<FocusModal.Body className="p-6 grid grid-cols-2 gap-4">
+				<FocusModal.Body className="grid grid-cols-2 gap-4 p-6">
 					<div>
 						<Label>Code</Label>
 						<Input value={code} onChange={e => setCode(e.target.value)} />
@@ -59,11 +62,7 @@ export const AddPromotionCodeModal = ({ affiliateId, open, onOpenChange }: Props
 					</div>
 					<div className="col-span-2">
 						<Label>End date (optional)</Label>
-						<Input
-							type="datetime-local"
-							value={endDate}
-							onChange={e => setEndDate(e.target.value)}
-						/>
+						<Input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} />
 					</div>
 				</FocusModal.Body>
 				<FocusModal.Footer>

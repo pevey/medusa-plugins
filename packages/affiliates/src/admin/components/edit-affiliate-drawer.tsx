@@ -61,7 +61,10 @@ export const EditAffiliateDrawer = ({ affiliate, open, onOpenChange }: Props) =>
 			<Drawer.Content>
 				<form onSubmit={submit} className="flex flex-1 flex-col overflow-hidden">
 					<Drawer.Header>
-						<Heading level="h1">Edit affiliate</Heading>
+						<Drawer.Title asChild>
+							<Heading level="h1">Edit affiliate</Heading>
+						</Drawer.Title>
+						<Drawer.Description className="sr-only">Edit this affiliate's name, contact details, currency, and status.</Drawer.Description>
 					</Drawer.Header>
 					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 						<div className="flex flex-col space-y-2">
@@ -86,11 +89,7 @@ export const EditAffiliateDrawer = ({ affiliate, open, onOpenChange }: Props) =>
 							<Label size="small" weight="plus">
 								Currency
 							</Label>
-							<Input
-								value={currency}
-								onChange={e => setCurrency(e.target.value.toLowerCase())}
-								placeholder="usd"
-							/>
+							<Input value={currency} onChange={e => setCurrency(e.target.value.toLowerCase())} placeholder="usd" />
 						</div>
 						<div className="flex flex-col space-y-2">
 							<Label size="small" weight="plus">
@@ -115,12 +114,7 @@ export const EditAffiliateDrawer = ({ affiliate, open, onOpenChange }: Props) =>
 									Cancel
 								</Button>
 							</Drawer.Close>
-							<Button
-								size="small"
-								type="submit"
-								disabled={update.isPending}
-								isLoading={update.isPending}
-							>
+							<Button size="small" type="submit" disabled={update.isPending} isLoading={update.isPending}>
 								Save
 							</Button>
 						</div>

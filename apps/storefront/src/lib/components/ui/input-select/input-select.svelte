@@ -18,16 +18,7 @@
 		onchange?: (event: Event) => void
 		[key: string]: unknown
 	}
-	let {
-		field,
-		options,
-		label = '',
-		placeholder = '',
-		description = '',
-		class: className = '',
-		onchange,
-		...rest
-	}: Props = $props()
+	let { field, options, label = '', placeholder = '', description = '', class: className = '', onchange, ...rest }: Props = $props()
 
 	// shadcn-trigger-like native <select> style (appearance-none + pr-8 make room for the chevron).
 	// The OS-rendered options popup won't reliably follow `color-scheme` (esp. GTK/Linux), so we color
@@ -46,19 +37,11 @@
 	<div class="relative">
 		<!-- `.as('select')` binds via a value getter/setter (no event handler), so `onchange` is
 		     additive and does not clobber the form binding. -->
-		<select
-			id={name}
-			{...field.as('select')}
-			{onchange}
-			class={cn(selectClass, className)}
-			{...rest}
-		>
+		<select id={name} {...field.as('select')} {onchange} class={cn(selectClass, className)} {...rest}>
 			{#if placeholder}<option value="" disabled>{placeholder}</option>{/if}
 			{#each options as opt (opt.value)}<option value={opt.value}>{opt.label}</option>{/each}
 		</select>
-		<ChevronDown
-			class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 opacity-50"
-		/>
+		<ChevronDown class="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 opacity-50" />
 	</div>
 	{#if description}<Field.FieldDescription>{description}</Field.FieldDescription>{/if}
 	<Field.FieldError errors={issues} />

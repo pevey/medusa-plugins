@@ -24,8 +24,7 @@ type AutomationQueryConfig = {
 export const useCreateAutomationTrigger = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
-			sdk.client.fetch('/admin/automations', { method: 'POST', body: data }),
+		mutationFn: (data: object) => sdk.client.fetch('/admin/automations', { method: 'POST', body: data }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['automations'] })
 		}
@@ -35,8 +34,7 @@ export const useCreateAutomationTrigger = () => {
 export const useUpdateAutomationTrigger = (triggerId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: object) =>
-			sdk.client.fetch(`/admin/automations/${triggerId}`, { method: 'POST', body: data }),
+		mutationFn: (data: object) => sdk.client.fetch(`/admin/automations/${triggerId}`, { method: 'POST', body: data }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['automations'] })
 			queryClient.invalidateQueries({ queryKey: ['automation', triggerId] })
@@ -46,13 +44,9 @@ export const useUpdateAutomationTrigger = (triggerId: string) => {
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 
-export const useAutomationActions = (
-	triggerId: string,
-	params: { limit: number; offset: number }
-) => {
+export const useAutomationActions = (triggerId: string, params: { limit: number; offset: number }) => {
 	return useQuery<ActionsResponse>({
-		queryFn: () =>
-			sdk.client.fetch(`/admin/automations/${triggerId}/actions`, { query: params }),
+		queryFn: () => sdk.client.fetch(`/admin/automations/${triggerId}/actions`, { query: params }),
 		queryKey: ['automation', triggerId, 'actions', params.limit, params.offset]
 	})
 }
@@ -61,10 +55,10 @@ export const useCreateAutomationAction = (triggerId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: object) =>
-			sdk.client.fetch<{ action: AutomationAction }>(
-				`/admin/automations/${triggerId}/actions`,
-				{ method: 'POST', body: data }
-			),
+			sdk.client.fetch<{ action: AutomationAction }>(`/admin/automations/${triggerId}/actions`, {
+				method: 'POST',
+				body: data
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['automation', triggerId, 'actions'] })
 		}
@@ -104,8 +98,7 @@ export const useDeleteAutomationActions = (triggerId: string) => {
 
 export const useAutomationActionQuery = (triggerId: string, actionId: string, enabled = true) => {
 	return useQuery<{ query: AutomationQueryConfig | null }>({
-		queryFn: () =>
-			sdk.client.fetch(`/admin/automations/${triggerId}/actions/${actionId}/query`),
+		queryFn: () => sdk.client.fetch(`/admin/automations/${triggerId}/actions/${actionId}/query`),
 		queryKey: ['automation-action-query', actionId],
 		enabled
 	})
@@ -182,8 +175,7 @@ export const useAutomationTrigger = (id: string | undefined) => {
 export const useDeleteAutomationTriggers = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/automations', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/automations', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['automations'] })
 		}
@@ -203,8 +195,7 @@ export const useAutomationReceipts = (triggerId: string | undefined, enabled: bo
 
 export const useAutomationAction = (triggerId: string | undefined, actionId: string | undefined) => {
 	return useQuery<{ action: AutomationAction }>({
-		queryFn: () =>
-			sdk.client.fetch(`/admin/automations/${triggerId}/actions/${actionId}`),
+		queryFn: () => sdk.client.fetch(`/admin/automations/${triggerId}/actions/${actionId}`),
 		queryKey: ['automation-action', actionId],
 		enabled: !!triggerId && !!actionId
 	})
@@ -213,10 +204,9 @@ export const useAutomationAction = (triggerId: string | undefined, actionId: str
 export const useAutomationDeliveries = (triggerId: string | undefined, actionId: string | undefined) => {
 	return useQuery<{ deliveries: AutomationDelivery[]; count: number }>({
 		queryFn: () =>
-			sdk.client.fetch(
-				`/admin/automations/${triggerId}/actions/${actionId}/deliveries`,
-				{ query: { limit: 10, offset: 0 } }
-			),
+			sdk.client.fetch(`/admin/automations/${triggerId}/actions/${actionId}/deliveries`, {
+				query: { limit: 10, offset: 0 }
+			}),
 		queryKey: ['automation-action-deliveries', actionId],
 		enabled: !!triggerId && !!actionId
 	})
@@ -226,10 +216,10 @@ export const useRetryAutomationDeliveries = (triggerId: string, actionId: string
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (body: { delivery_ids?: string[]; status?: string; since?: string; until?: string }) =>
-			sdk.client.fetch<{ retried: number; succeeded: number; failed: number }>(
-				`/admin/automations/${triggerId}/actions/${actionId}/deliveries/retry`,
-				{ method: 'POST', body }
-			),
+			sdk.client.fetch<{ retried: number; succeeded: number; failed: number }>(`/admin/automations/${triggerId}/actions/${actionId}/deliveries/retry`, {
+				method: 'POST',
+				body
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['automation-action-deliveries', actionId] })
 		}
@@ -239,8 +229,7 @@ export const useRetryAutomationDeliveries = (triggerId: string, actionId: string
 export const useDeleteAutomationSecret = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (id: string) =>
-			sdk.client.fetch(`/admin/automations/secrets/${id}`, { method: 'DELETE' }),
+		mutationFn: (id: string) => sdk.client.fetch(`/admin/automations/secrets/${id}`, { method: 'DELETE' }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['automation-secrets'] })
 		}

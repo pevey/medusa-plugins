@@ -1,10 +1,5 @@
 import { vi } from 'vitest'
-import {
-	loadRouteContracts,
-	createContractFake,
-	type ContractFake,
-	type Responder
-} from 'admin-test-utils'
+import { loadRouteContracts, createContractFake, type ContractFake, type Responder } from 'admin-test-utils'
 import middlewares from '../../api/middlewares'
 import type { AdminReview } from '../types'
 

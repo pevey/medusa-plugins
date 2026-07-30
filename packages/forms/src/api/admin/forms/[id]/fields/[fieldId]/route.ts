@@ -3,10 +3,7 @@ import { FORM_MODULE } from '../../../../../../modules/form'
 import { FormService } from '../../../../../../modules/form/service'
 import { AdminUpdateFormFieldType } from '../../../../../validators'
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateFormFieldType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateFormFieldType>, res: MedusaResponse) => {
 	const formService: FormService = req.scope.resolve(FORM_MODULE)
 	const { field_options: incomingOptions, ...fieldData } = req.validatedBody
 

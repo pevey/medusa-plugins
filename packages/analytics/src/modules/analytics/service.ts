@@ -117,10 +117,7 @@ export class PrivateAnalyticsService extends MedusaService({
 							...((customerIdentity.properties as Record<string, unknown>) ?? {}),
 							...mergedProperties
 						},
-						anonymous_ids: [...existingAnonIds, anonymous_id] as unknown as Record<
-							string,
-							unknown
-						>,
+						anonymous_ids: [...existingAnonIds, anonymous_id] as unknown as Record<string, unknown>,
 						customer_id: customer_id ?? customerIdentity.customer_id,
 						last_seen_at: new Date()
 					})
@@ -132,10 +129,7 @@ export class PrivateAnalyticsService extends MedusaService({
 						actor_id,
 						customer_id: customer_id ?? null,
 						properties: mergedProperties,
-						anonymous_ids: [...existingAnonIds, anonymous_id] as unknown as Record<
-							string,
-							unknown
-						>,
+						anonymous_ids: [...existingAnonIds, anonymous_id] as unknown as Record<string, unknown>,
 						last_seen_at: new Date()
 					})
 				}
@@ -261,10 +255,7 @@ export class PrivateAnalyticsService extends MedusaService({
 		return results
 	}
 
-	async evaluateSegmentRules(
-		rules: SegmentRules,
-		salesChannelId?: string | null
-	): Promise<string[]> {
+	async evaluateSegmentRules(rules: SegmentRules, salesChannelId?: string | null): Promise<string[]> {
 		const manager = (this as any).__container__?.manager
 		if (!manager) throw new Error('Database manager not available')
 		const knex = manager.getKnex()
@@ -272,9 +263,7 @@ export class PrivateAnalyticsService extends MedusaService({
 		const conditionResults: Set<string>[] = []
 
 		for (const condition of rules.conditions) {
-			const cutoff = condition.timeframe_days
-				? new Date(Date.now() - condition.timeframe_days * 86400000)
-				: null
+			const cutoff = condition.timeframe_days ? new Date(Date.now() - condition.timeframe_days * 86400000) : null
 
 			if (condition.type === 'event_performed' && condition.event) {
 				const query = knex('analytics_event')
@@ -290,49 +279,27 @@ export class PrivateAnalyticsService extends MedusaService({
 
 				if (condition.count) {
 					const [[op, val]] = Object.entries(condition.count)
-					const sqlOp =
-						op === '$gte'
-							? '>='
-							: op === '$gt'
-								? '>'
-								: op === '$lte'
-									? '<='
-									: op === '$lt'
-										? '<'
-										: '='
+					const sqlOp = op === '$gte' ? '>=' : op === '$gt' ? '>' : op === '$lte' ? '<=' : op === '$lt' ? '<' : '='
 					query.having(knex.raw(`count(*) ${sqlOp} ?`, [val]))
 				}
 
 				const rows = await query
 				conditionResults.push(new Set(rows.map((r: any) => r.actor_id)))
 			} else if (condition.type === 'event_not_performed' && condition.event) {
-				const subquery = knex('analytics_event')
-					.select('actor_id')
-					.where('event', condition.event)
-					.whereNotNull('actor_id')
-					.whereNull('deleted_at')
+				const subquery = knex('analytics_event').select('actor_id').where('event', condition.event).whereNotNull('actor_id').whereNull('deleted_at')
 
 				if (cutoff) subquery.where('timestamp', '>=', cutoff)
 				if (salesChannelId) subquery.where('sales_channel_id', salesChannelId)
 
-				const rows = await knex('analytics_identity')
-					.select('actor_id')
-					.whereNull('deleted_at')
-					.whereNotIn('actor_id', subquery)
+				const rows = await knex('analytics_identity').select('actor_id').whereNull('deleted_at').whereNotIn('actor_id', subquery)
 
 				conditionResults.push(new Set(rows.map((r: any) => r.actor_id)))
 			} else if (condition.type === 'identity_property' && condition.key) {
 				let rows
 				if (condition.operator === '$exists') {
-					rows = await knex('analytics_identity')
-						.select('actor_id')
-						.whereNull('deleted_at')
-						.whereRaw(`properties->? IS NOT NULL`, [condition.key])
+					rows = await knex('analytics_identity').select('actor_id').whereNull('deleted_at').whereRaw(`properties->? IS NOT NULL`, [condition.key])
 				} else {
-					rows = await knex('analytics_identity')
-						.select('actor_id')
-						.whereNull('deleted_at')
-						.whereRaw(`properties->>? IS NOT NULL`, [condition.key])
+					rows = await knex('analytics_identity').select('actor_id').whereNull('deleted_at').whereRaw(`properties->>? IS NOT NULL`, [condition.key])
 				}
 				conditionResults.push(new Set(rows.map((r: any) => r.actor_id)))
 			}

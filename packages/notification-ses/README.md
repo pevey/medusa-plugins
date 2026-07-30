@@ -73,10 +73,7 @@ type EventPayloadWithId = { id: string }
 
 type EventPayload = EventPayloadWithId | EventPayloadForWhatever | EventPayloadSomethingElse
 
-export default async function emailDispatchHandler({
-	event: { data, name },
-	container
-}: SubscriberArgs<EventPayload>) {
+export default async function emailDispatchHandler({ event: { data, name }, container }: SubscriberArgs<EventPayload>) {
 	switch (name) {
 		case 'invite.created':
 			await inviteUserWorkflow(container).run({
@@ -95,12 +92,7 @@ export default async function emailDispatchHandler({
 You can use whatever templating flow you want to generate the HTML. This example uses React Email.
 
 ```ts
-import {
-	createWorkflow,
-	WorkflowResponse,
-	createStep,
-	StepResponse
-} from '@medusajs/framework/workflows-sdk'
+import { createWorkflow, WorkflowResponse, createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import { CreateNotificationDTO } from '@medusajs/framework/types'
 import { sendNotificationsStep } from '@medusajs/medusa/core-flows'
@@ -108,61 +100,55 @@ import { render, pretty } from '@react-email/render'
 import getInviteTemplate from '../../templates/invite-user'
 import { getMedusaAdminUrl, getMedusaStorefrontUrl } from '../../utils'
 
-const prepareInviteUserNotificationStep = createStep(
-	'prepare-invite-user-notification',
-	async (id: string, { container }) => {
-		const query = container.resolve(ContainerRegistrationKeys.QUERY)
+const prepareInviteUserNotificationStep = createStep('prepare-invite-user-notification', async (id: string, { container }) => {
+	const query = container.resolve(ContainerRegistrationKeys.QUERY)
 
-		const {
-			data: [store]
-		} = await query.graph({
-			entity: 'store',
-			fields: ['name']
-		})
+	const {
+		data: [store]
+	} = await query.graph({
+		entity: 'store',
+		fields: ['name']
+	})
 
-		const {
-			data: [invite]
-		} = await query.graph({
-			entity: 'invite',
-			fields: ['email', 'token'],
-			filters: {
-				id
-			}
-		})
+	const {
+		data: [invite]
+	} = await query.graph({
+		entity: 'invite',
+		fields: ['email', 'token'],
+		filters: {
+			id
+		}
+	})
 
-		const config = container.resolve(ContainerRegistrationKeys.CONFIG_MODULE)
-		const adminUrl = getMedusaAdminUrl(config)
-		const inviteUrl = `${adminUrl}/invite?token=${invite.token}`
+	const config = container.resolve(ContainerRegistrationKeys.CONFIG_MODULE)
+	const adminUrl = getMedusaAdminUrl(config)
+	const inviteUrl = `${adminUrl}/invite?token=${invite.token}`
 
-		const html = await pretty(
-			await render(
-				getInviteTemplate({
-					inviteUrl,
-					storeName: store.name
-				})
-			)
+	const html = await pretty(
+		await render(
+			getInviteTemplate({
+				inviteUrl,
+				storeName: store.name
+			})
 		)
+	)
 
-		return new StepResponse([
-			{
-				channel: 'email',
-				to: invite.email,
-				content: {
-					html,
-					subject: `You've been invited to join ${store.name}`
-				}
+	return new StepResponse([
+		{
+			channel: 'email',
+			to: invite.email,
+			content: {
+				html,
+				subject: `You've been invited to join ${store.name}`
 			}
-		] as CreateNotificationDTO[])
-	}
-)
+		}
+	] as CreateNotificationDTO[])
+})
 
-export const sendNotificationStep = createStep(
-	'send-invite-admin-notification',
-	async (notification: CreateNotificationDTO, { container }) => {
-		const notificationModule = container.resolve(Modules.NOTIFICATION)
-		await notificationModule.createNotifications(notification)
-	}
-)
+export const sendNotificationStep = createStep('send-invite-admin-notification', async (notification: CreateNotificationDTO, { container }) => {
+	const notificationModule = container.resolve(Modules.NOTIFICATION)
+	await notificationModule.createNotifications(notification)
+})
 
 export const inviteUserWorkflow = createWorkflow('invite-user-workflow', (id: string) => {
 	const notifications = prepareInviteUserNotificationStep(id)

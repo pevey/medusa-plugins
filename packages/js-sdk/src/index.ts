@@ -102,10 +102,7 @@ export function createCollector(config: CollectorConfig = {}): Collector {
 		if (queue.length === 0) return
 		const batch = queue.splice(0)
 		const blob = new Blob([JSON.stringify(batch)], { type: 'application/json' })
-		const sent =
-			typeof navigator !== 'undefined' &&
-			typeof navigator.sendBeacon === 'function' &&
-			navigator.sendBeacon(endpoint, blob)
+		const sent = typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function' && navigator.sendBeacon(endpoint, blob)
 		if (!sent) {
 			// Best effort: requeue and let the next fetch flush pick it up.
 			queue.unshift(...batch)
@@ -141,12 +138,5 @@ export function createCollector(config: CollectorConfig = {}): Collector {
 export { Store } from './store'
 export { Admin } from './admin'
 export { Client, Auth, FetchError } from '@medusajs/js-sdk'
-export type {
-	Config,
-	ClientHeaders,
-	FetchArgs,
-	FetchInput,
-	FetchStreamResponse,
-	Logger
-} from '@medusajs/js-sdk'
+export type { Config, ClientHeaders, FetchArgs, FetchInput, FetchStreamResponse, Logger } from '@medusajs/js-sdk'
 export * from './types'

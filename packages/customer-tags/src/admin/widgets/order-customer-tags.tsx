@@ -10,9 +10,7 @@ export const config = defineWidgetConfig({
 	zone: 'order.details.before'
 })
 
-const OrderCustomerTagsWidget = ({
-	data: order
-}: DetailWidgetProps<AdminOrderWithCustomerTags>) => {
+const OrderCustomerTagsWidget = ({ data: order }: DetailWidgetProps<AdminOrderWithCustomerTags>) => {
 	const queryClient = useQueryClient()
 	const [selectedTagId, setSelectedTagId] = useState<string>('')
 	const [showAddForm, setShowAddForm] = useState(false)
@@ -78,9 +76,7 @@ const OrderCustomerTagsWidget = ({
 	})
 
 	// Filter out tags already associated with the customer
-	const availableTags = allTagsData?.customer_tags?.filter(
-		tag => !associatedTags.some(t => t.id === tag.id)
-	)
+	const availableTags = allTagsData?.customer_tags?.filter(tag => !associatedTags.some(t => t.id === tag.id))
 
 	const isLoading = orderLoading
 
@@ -154,7 +150,7 @@ const OrderCustomerTagsWidget = ({
 								</Badge>
 								<button
 									onClick={() => removeTag(tag.id)}
-									className="text-ui-fg-subtle hover:text-ui-fg-base text-xs ml-1"
+									className="text-ui-fg-subtle hover:text-ui-fg-base ml-1 text-xs"
 									aria-label={`Remove tag ${tag.value}`}
 								>
 									✕

@@ -1,15 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { defineRouteConfig } from '@medusajs/admin-sdk'
-import {
-	Container,
-	createDataTableColumnHelper,
-	DataTable,
-	DataTablePaginationState,
-	DataTableSortingState,
-	Heading,
-	useDataTable
-} from '@medusajs/ui'
+import { Container, createDataTableColumnHelper, DataTable, DataTablePaginationState, DataTableSortingState, Heading, useDataTable } from '@medusajs/ui'
 import { AdminAccessPolicy } from '../../../types'
 import { useAccessPoliciesList } from '../../../hooks/policies'
 

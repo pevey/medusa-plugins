@@ -1,8 +1,6 @@
-import { definePolicies } from "../utils"
-import { generateResourcePolicies } from "../utils"
+import { definePolicies } from '../utils'
+import { generateResourcePolicies } from '../utils'
 
-const pricingResources = ["price_list", "price_preference", "price", "currency"]
+const pricingResources = ['price_list', 'price_preference', 'price', 'currency']
 
-export const pricingPolicies = definePolicies(
-  generateResourcePolicies(pricingResources)
-)
+export const pricingPolicies = definePolicies(generateResourcePolicies(pricingResources))

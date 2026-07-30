@@ -9,16 +9,7 @@ export default Object.assign(Root, { Root, Title, Rating, Author, Date, Body })
 
 export { default as Star } from './star.svelte'
 export { default as Item } from './review-item.svelte'
-export {
-	setReviewItemContext,
-	getReviewItemContextOptional
-} from './reviews-item-ctx.svelte.js'
+export { setReviewItemContext, getReviewItemContextOptional } from './reviews-item-ctx.svelte.js'
 export type { ReviewItemContext } from './reviews-item-ctx.svelte.js'
 export * as logic from './review-logic.js'
-export type {
-	StoreReview,
-	ReviewSummary,
-	ReviewsListResponse,
-	SummaryQuery,
-	ReviewsQuery
-} from './review-types.js'
+export type { StoreReview, ReviewSummary, ReviewsListResponse, SummaryQuery, ReviewsQuery } from './review-types.js'

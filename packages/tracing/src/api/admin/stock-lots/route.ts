@@ -1,17 +1,10 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
-import {
-	AdminCreateStockLotType,
-	AdminDeleteStockLotsType,
-	AdminGetStockLotsType
-} from '../../validators'
+import { AdminCreateStockLotType, AdminDeleteStockLotsType, AdminGetStockLotsType } from '../../validators'
 import { createStockLotWorkflow } from '../../../workflows/tracing/create-stock-lot'
 import { deleteStockLotWorkflow } from '../../../workflows/tracing/delete-stock-lot'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetStockLotsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetStockLotsType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
 	const { inventory_item_id, location_id, enabled, q } = req.validatedQuery as {
@@ -40,20 +33,14 @@ export const GET = async (
 	})
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateStockLotType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateStockLotType>, res: MedusaResponse) => {
 	const { result } = await createStockLotWorkflow(req.scope).run({
 		input: req.validatedBody
 	})
 	res.json({ stock_lot: result })
 }
 
-export const DELETE = async (
-	req: AuthenticatedMedusaRequest<AdminDeleteStockLotsType>,
-	res: MedusaResponse
-) => {
+export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteStockLotsType>, res: MedusaResponse) => {
 	const { ids } = req.validatedBody
 	await Promise.all(
 		ids.map(id =>

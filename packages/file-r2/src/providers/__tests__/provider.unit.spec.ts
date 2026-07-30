@@ -1,11 +1,5 @@
 /// <reference types="jest" />
-import {
-	DeleteObjectCommand,
-	DeleteObjectsCommand,
-	GetObjectCommand,
-	PutObjectCommand,
-	S3Client
-} from '@aws-sdk/client-s3'
+import { DeleteObjectCommand, DeleteObjectsCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { MedusaError } from '@medusajs/framework/utils'
@@ -58,14 +52,10 @@ beforeEach(() => {
 			transformToByteArray: jest.fn().mockResolvedValue(new Uint8Array([72, 101, 108, 108, 111]))
 		}
 	})
-	;(S3Client as jest.MockedClass<typeof S3Client>).mockImplementation(
-		() => ({ send: mockSend, destroy: jest.fn() }) as any
-	)
+	;(S3Client as jest.MockedClass<typeof S3Client>).mockImplementation(() => ({ send: mockSend, destroy: jest.fn() }) as any)
 
 	mockUploadDone = jest.fn().mockResolvedValue({})
-	;(Upload as jest.MockedClass<typeof Upload>).mockImplementation(
-		() => ({ done: mockUploadDone }) as any
-	)
+	;(Upload as jest.MockedClass<typeof Upload>).mockImplementation(() => ({ done: mockUploadDone }) as any)
 	;(getSignedUrl as jest.MockedFunction<typeof getSignedUrl>).mockResolvedValue(SIGNED_URL)
 })
 
@@ -229,9 +219,7 @@ describe('R2FileService — upload() — public', () => {
 			content: 'aGVsbG8=', // base64 "hello"
 			access: 'public'
 		})
-		expect(PutObjectCommand).toHaveBeenCalledWith(
-			expect.objectContaining({ Bucket: 'public-bucket' })
-		)
+		expect(PutObjectCommand).toHaveBeenCalledWith(expect.objectContaining({ Bucket: 'public-bucket' }))
 		expect(mockSend).toHaveBeenCalledTimes(1)
 	})
 
@@ -295,9 +283,7 @@ describe('R2FileService — upload() — public', () => {
 			content: 'aGVsbG8=',
 			access: 'public'
 		})
-		expect(PutObjectCommand).toHaveBeenCalledWith(
-			expect.objectContaining({ ContentType: 'application/pdf' })
-		)
+		expect(PutObjectCommand).toHaveBeenCalledWith(expect.objectContaining({ ContentType: 'application/pdf' }))
 	})
 
 	it('decodes valid base64 content', async () => {
@@ -426,9 +412,7 @@ describe('R2FileService — upload() — public', () => {
 			content: 'aGVsbG8=',
 			access: 'public'
 		})
-		expect(result.url).toBe(
-			'https://cdn.example.com/media/vendor%201/logo-TESTULID0000000000000000.png'
-		)
+		expect(result.url).toBe('https://cdn.example.com/media/vendor%201/logo-TESTULID0000000000000000.png')
 	})
 })
 
@@ -490,9 +474,7 @@ describe('R2FileService — upload() — private', () => {
 			content: 'aGVsbG8=',
 			access: 'private'
 		})
-		expect(PutObjectCommand).toHaveBeenCalledWith(
-			expect.objectContaining({ Bucket: 'private-bucket' })
-		)
+		expect(PutObjectCommand).toHaveBeenCalledWith(expect.objectContaining({ Bucket: 'private-bucket' }))
 	})
 
 	it('returns an empty url for private files', async () => {
@@ -525,9 +507,7 @@ describe('R2FileService — upload() — private', () => {
 describe('R2FileService — upload() — validation', () => {
 	it('throws when filename is missing', async () => {
 		const svc = makeService()
-		await expect(
-			svc.upload({ mimeType: 'image/jpeg', content: 'aGVsbG8=', access: 'public' } as any)
-		).rejects.toThrow(MedusaError)
+		await expect(svc.upload({ mimeType: 'image/jpeg', content: 'aGVsbG8=', access: 'public' } as any)).rejects.toThrow(MedusaError)
 	})
 
 	it('throws when the filename resolves to an empty path after sanitization', async () => {
@@ -563,17 +543,13 @@ describe('R2FileService — delete()', () => {
 	it('sends DeleteObjectCommand for a single public file', async () => {
 		const svc = makeService()
 		await svc.delete({ fileKey: 'photo-TESTULID.jpg', access: 'public' })
-		expect(DeleteObjectCommand).toHaveBeenCalledWith(
-			expect.objectContaining({ Bucket: 'public-bucket', Key: 'photo-TESTULID.jpg' })
-		)
+		expect(DeleteObjectCommand).toHaveBeenCalledWith(expect.objectContaining({ Bucket: 'public-bucket', Key: 'photo-TESTULID.jpg' }))
 	})
 
 	it('sends DeleteObjectCommand for a single private file', async () => {
 		const svc = makeService()
 		await svc.delete({ fileKey: 'secret-TESTULID.pdf', access: 'private' })
-		expect(DeleteObjectCommand).toHaveBeenCalledWith(
-			expect.objectContaining({ Bucket: 'private-bucket', Key: 'secret-TESTULID.pdf' })
-		)
+		expect(DeleteObjectCommand).toHaveBeenCalledWith(expect.objectContaining({ Bucket: 'private-bucket', Key: 'secret-TESTULID.pdf' }))
 	})
 
 	it('sends DeleteObjectsCommand for an array of files', async () => {
@@ -620,33 +596,23 @@ describe('R2FileService — getPresignedDownloadUrl()', () => {
 			fileKey: 'report.pdf',
 			access: 'private'
 		})
-		expect(GetObjectCommand).toHaveBeenCalledWith(
-			expect.objectContaining({ Bucket: 'private-bucket', Key: 'report.pdf' })
-		)
+		expect(GetObjectCommand).toHaveBeenCalledWith(expect.objectContaining({ Bucket: 'private-bucket', Key: 'report.pdf' }))
 	})
 
 	it('uses the configured downloadFileDuration for expiry', async () => {
 		const svc = makeService({ downloadFileDuration: 1800 })
 		await svc.getPresignedDownloadUrl({ fileKey: 'file.pdf', access: 'private' })
-		expect(getSignedUrl).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.anything(),
-			expect.objectContaining({ expiresIn: 1800 })
-		)
+		expect(getSignedUrl).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.objectContaining({ expiresIn: 1800 }))
 	})
 
 	it('throws MedusaError for public files', async () => {
 		const svc = makeService()
-		await expect(
-			svc.getPresignedDownloadUrl({ fileKey: 'photo.jpg', access: 'public' })
-		).rejects.toThrow(MedusaError)
+		await expect(svc.getPresignedDownloadUrl({ fileKey: 'photo.jpg', access: 'public' })).rejects.toThrow(MedusaError)
 	})
 
 	it('throws with INVALID_DATA type for public files', async () => {
 		const svc = makeService()
-		await expect(
-			svc.getPresignedDownloadUrl({ fileKey: 'photo.jpg', access: 'public' })
-		).rejects.toMatchObject({ type: MedusaError.Types.INVALID_DATA })
+		await expect(svc.getPresignedDownloadUrl({ fileKey: 'photo.jpg', access: 'public' })).rejects.toMatchObject({ type: MedusaError.Types.INVALID_DATA })
 	})
 })
 
@@ -681,9 +647,7 @@ describe('R2FileService — getPresignedUploadUrl()', () => {
 			mimeType: 'application/pdf',
 			access: 'private'
 		})
-		expect(PutObjectCommand).toHaveBeenCalledWith(
-			expect.objectContaining({ Bucket: 'private-bucket' })
-		)
+		expect(PutObjectCommand).toHaveBeenCalledWith(expect.objectContaining({ Bucket: 'private-bucket' }))
 	})
 
 	it('uses the provided expiresIn duration', async () => {
@@ -694,11 +658,7 @@ describe('R2FileService — getPresignedUploadUrl()', () => {
 			access: 'private',
 			expiresIn: 300
 		})
-		expect(getSignedUrl).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.anything(),
-			expect.objectContaining({ expiresIn: 300 })
-		)
+		expect(getSignedUrl).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.objectContaining({ expiresIn: 300 }))
 	})
 
 	it('falls back to 3600s when expiresIn is not provided', async () => {
@@ -708,11 +668,7 @@ describe('R2FileService — getPresignedUploadUrl()', () => {
 			mimeType: 'application/pdf',
 			access: 'private'
 		})
-		expect(getSignedUrl).toHaveBeenCalledWith(
-			expect.anything(),
-			expect.anything(),
-			expect.objectContaining({ expiresIn: 3600 })
-		)
+		expect(getSignedUrl).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.objectContaining({ expiresIn: 3600 }))
 	})
 
 	it('throws MedusaError for public files', async () => {
@@ -793,17 +749,13 @@ describe('R2FileService — getDownloadStream()', () => {
 	it('sends GetObjectCommand to public bucket for public files', async () => {
 		const svc = makeService()
 		await svc.getDownloadStream({ fileKey: 'photo.jpg', access: 'public' })
-		expect(GetObjectCommand).toHaveBeenCalledWith(
-			expect.objectContaining({ Bucket: 'public-bucket', Key: 'photo.jpg' })
-		)
+		expect(GetObjectCommand).toHaveBeenCalledWith(expect.objectContaining({ Bucket: 'public-bucket', Key: 'photo.jpg' }))
 	})
 
 	it('sends GetObjectCommand to private bucket for private files', async () => {
 		const svc = makeService()
 		await svc.getDownloadStream({ fileKey: 'report.pdf', access: 'private' })
-		expect(GetObjectCommand).toHaveBeenCalledWith(
-			expect.objectContaining({ Bucket: 'private-bucket', Key: 'report.pdf' })
-		)
+		expect(GetObjectCommand).toHaveBeenCalledWith(expect.objectContaining({ Bucket: 'private-bucket', Key: 'report.pdf' }))
 	})
 
 	it('returns the response Body stream', async () => {
@@ -826,17 +778,13 @@ describe('R2FileService — getAsBuffer()', () => {
 	it('sends GetObjectCommand to public bucket for public files', async () => {
 		const svc = makeService()
 		await svc.getAsBuffer({ fileKey: 'photo.jpg', access: 'public' })
-		expect(GetObjectCommand).toHaveBeenCalledWith(
-			expect.objectContaining({ Bucket: 'public-bucket', Key: 'photo.jpg' })
-		)
+		expect(GetObjectCommand).toHaveBeenCalledWith(expect.objectContaining({ Bucket: 'public-bucket', Key: 'photo.jpg' }))
 	})
 
 	it('sends GetObjectCommand to private bucket for private files', async () => {
 		const svc = makeService()
 		await svc.getAsBuffer({ fileKey: 'report.pdf', access: 'private' })
-		expect(GetObjectCommand).toHaveBeenCalledWith(
-			expect.objectContaining({ Bucket: 'private-bucket', Key: 'report.pdf' })
-		)
+		expect(GetObjectCommand).toHaveBeenCalledWith(expect.objectContaining({ Bucket: 'private-bucket', Key: 'report.pdf' }))
 	})
 
 	it('returns file contents as a Buffer', async () => {
@@ -856,9 +804,7 @@ describe('R2FileService — getAsBuffer()', () => {
 describe('R2FileService — getUploadStream()', () => {
 	it('throws when filename is missing', async () => {
 		const svc = makeService()
-		await expect(
-			svc.getUploadStream({ mimeType: 'image/jpeg', access: 'public' } as any)
-		).rejects.toThrow(MedusaError)
+		await expect(svc.getUploadStream({ mimeType: 'image/jpeg', access: 'public' } as any)).rejects.toThrow(MedusaError)
 	})
 
 	it('throws when the filename resolves to an empty path after sanitization', async () => {
@@ -952,8 +898,6 @@ describe('R2FileService — getUploadStream()', () => {
 			access: 'public'
 		} as any)
 		expect(result.fileKey).toBe('media/vendor 1/clip-TESTULID0000000000000000.mp4')
-		expect(result.url).toBe(
-			'https://cdn.example.com/media/vendor%201/clip-TESTULID0000000000000000.mp4'
-		)
+		expect(result.url).toBe('https://cdn.example.com/media/vendor%201/clip-TESTULID0000000000000000.mp4')
 	})
 })

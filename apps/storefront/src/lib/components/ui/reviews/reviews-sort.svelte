@@ -10,13 +10,14 @@
 		{ value: 'rating', label: 'Lowest rated' }
 	]
 </script>
+
 {#if ctx.count > 0}
 	<label class={cn('inline-flex items-center gap-2 text-sm', className)}>
 		<span>Sort by:</span>
 		<select
-			class="border-input bg-background rounded-md border px-2 py-1"
+			class="rounded-md border border-input bg-background px-2 py-1"
 			value={ctx.order}
-			onchange={(e) => ctx.setOrder((e.currentTarget as HTMLSelectElement).value)}
+			onchange={e => ctx.setOrder((e.currentTarget as HTMLSelectElement).value)}
 		>
 			{#each options as o (o.value)}<option value={o.value}>{o.label}</option>{/each}
 		</select>

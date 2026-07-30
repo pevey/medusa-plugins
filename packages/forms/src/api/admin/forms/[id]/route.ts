@@ -4,27 +4,18 @@ import { FORM_MODULE } from '../../../../modules/form'
 import { FormService } from '../../../../modules/form/service'
 import { AdminGetFormType, AdminUpdateFormType } from '../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetFormType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetFormType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { id } = req.params
 
 	const {
 		data: [form]
-	} = await query.graph(
-		{ entity: 'form', ...req.queryConfig, filters: { id } },
-		{ throwIfKeyNotFound: true }
-	)
+	} = await query.graph({ entity: 'form', ...req.queryConfig, filters: { id } }, { throwIfKeyNotFound: true })
 
 	res.json({ form })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateFormType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateFormType>, res: MedusaResponse) => {
 	const formService: FormService = req.scope.resolve(FORM_MODULE)
 	const { form_fields: incomingFields, ...formData } = req.validatedBody
 

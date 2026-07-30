@@ -2,15 +2,9 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { CONTENT_MODULE } from '../../../../../../../modules/content'
 import { ContentService } from '../../../../../../../modules/content/service'
-import {
-	AdminAddContentTagType,
-	AdminRemoveContentTagsType
-} from '../../../../../../validators'
+import { AdminAddContentTagType, AdminRemoveContentTagsType } from '../../../../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { itemId: item_id } = req.params
 
@@ -28,20 +22,14 @@ export const GET = async (
 	})
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminAddContentTagType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminAddContentTagType>, res: MedusaResponse) => {
 	const { itemId: item_id } = req.params
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
 	const tag = await contentService.createContentTags({ item_id, ...req.validatedBody })
 	res.json({ tag })
 }
 
-export const DELETE = async (
-	req: AuthenticatedMedusaRequest<AdminRemoveContentTagsType>,
-	res: MedusaResponse
-) => {
+export const DELETE = async (req: AuthenticatedMedusaRequest<AdminRemoveContentTagsType>, res: MedusaResponse) => {
 	const { ids } = req.validatedBody
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
 	await contentService.deleteContentTags(ids)

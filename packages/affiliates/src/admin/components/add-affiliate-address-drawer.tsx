@@ -60,9 +60,12 @@ export const AddAffiliateAddressDrawer = ({ affiliateId, open, onOpenChange }: P
 		<Drawer open={open} onOpenChange={onOpenChange}>
 			<Drawer.Content>
 				<Drawer.Header>
-					<Heading>Add address</Heading>
+					<Drawer.Title asChild>
+						<Heading>Add address</Heading>
+					</Drawer.Title>
+					<Drawer.Description className="sr-only">Add an address for this affiliate.</Drawer.Description>
 				</Drawer.Header>
-				<Drawer.Body className="p-6 grid grid-cols-2 gap-4">
+				<Drawer.Body className="grid grid-cols-2 gap-4 p-6">
 					<div>
 						<Label>First name</Label>
 						<Input value={first} onChange={e => setFirst(e.target.value)} />

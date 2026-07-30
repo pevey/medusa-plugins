@@ -7,10 +7,7 @@ import { ActionMenu } from '../../../../components/action-menu'
 import { EditFormDrawer } from '../../../../components/edit-form-drawer'
 import { FormFieldOptionsModal } from '../../../../components/form-field-options-modal'
 import { useForm, useDeleteForm } from '../../../../hooks/forms'
-import {
-	FORM_FIELD_TYPE_OPTIONS,
-	ENUMERABLE_FIELD_TYPES
-} from '../../../../components/form-fields-editor'
+import { FORM_FIELD_TYPE_OPTIONS, ENUMERABLE_FIELD_TYPES } from '../../../../components/form-fields-editor'
 import { AdminFormField } from '../../../../types'
 
 type LoaderData = { form: { id: string; name: string } }
@@ -26,8 +23,7 @@ export const handle = {
 	breadcrumb: ({ data }: UIMatch<LoaderData>) => data?.form?.name || data?.form?.id || 'Form'
 }
 
-const fieldTypeLabel = (type: string) =>
-	FORM_FIELD_TYPE_OPTIONS.find(o => o.value === type)?.label ?? type
+const fieldTypeLabel = (type: string) => FORM_FIELD_TYPE_OPTIONS.find(o => o.value === type)?.label ?? type
 
 const FormDetailPage = () => {
 	const { id } = useParams()
@@ -44,8 +40,7 @@ const FormDetailPage = () => {
 	const handleDelete = async () => {
 		const confirmed = await prompt({
 			title: 'Delete form?',
-			description:
-				'This will also delete all associated fields and submissions. This action cannot be undone.',
+			description: 'This will also delete all associated fields and submissions. This action cannot be undone.',
 			confirmText: 'Delete',
 			cancelText: 'Cancel',
 			variant: 'danger'
@@ -149,9 +144,7 @@ const FormDetailPage = () => {
 						Notification Emails
 					</Text>
 					<Text size="small" leading="compact">
-						{form.notification_emails?.length
-							? form.notification_emails.join(', ')
-							: '—'}
+						{form.notification_emails?.length ? form.notification_emails.join(', ') : '—'}
 					</Text>
 				</div>
 
@@ -192,11 +185,11 @@ const FormDetailPage = () => {
 						return (
 							<div
 								key={field.id}
-								className={`grid grid-cols-[1fr_1fr_120px_60px] gap-x-4 items-center px-6 py-3${isEnumerable ? ' cursor-pointer hover:bg-ui-bg-subtle-hover' : ''}`}
+								className={`grid grid-cols-[1fr_1fr_120px_60px] items-center gap-x-4 px-6 py-3${isEnumerable ? 'hover:bg-ui-bg-subtle-hover cursor-pointer' : ''}`}
 								onClick={isEnumerable ? () => setOptionsField(field) : undefined}
 							>
 								<Text size="small">{field.label}</Text>
-								<Text size="small" className="font-mono text-xs text-ui-fg-subtle">
+								<Text size="small" className="text-ui-fg-subtle font-mono text-xs">
 									{field.name}
 								</Text>
 								<div className="flex items-center gap-x-2">
@@ -222,11 +215,7 @@ const FormDetailPage = () => {
 				<Container className="p-6">
 					<Text className="text-ui-fg-subtle" size="small">
 						No fields defined.{' '}
-						<button
-							type="button"
-							className="text-ui-fg-interactive underline"
-							onClick={() => setEditOpen(true)}
-						>
+						<button type="button" className="text-ui-fg-interactive underline" onClick={() => setEditOpen(true)}>
 							Add fields
 						</button>
 					</Text>

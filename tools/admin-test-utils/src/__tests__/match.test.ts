@@ -1,13 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { matchRoute } from '../contracts/match.js'
 
-const RATINGS = [
-	'/admin/reviews',
-	'/admin/reviews/:id',
-	'/admin/reviews/approve',
-	'/admin/reviews/reject',
-	'/admin/reviews/feature'
-]
+const RATINGS = ['/admin/reviews', '/admin/reviews/:id', '/admin/reviews/approve', '/admin/reviews/reject', '/admin/reviews/feature']
 
 describe('matchRoute', () => {
 	it('matches an exact literal path', () => {
@@ -25,9 +19,7 @@ describe('matchRoute', () => {
 
 	it('matches multi-parameter paths', () => {
 		const forms = ['/admin/forms/:id/fields/:fieldId/options']
-		expect(matchRoute(forms, '/admin/forms/form_1/fields/fld_2/options')).toBe(
-			'/admin/forms/:id/fields/:fieldId/options'
-		)
+		expect(matchRoute(forms, '/admin/forms/form_1/fields/fld_2/options')).toBe('/admin/forms/:id/fields/:fieldId/options')
 	})
 
 	it('does not match a different segment count', () => {

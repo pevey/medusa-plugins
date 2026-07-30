@@ -35,8 +35,7 @@ export function assertContractInvariants(input: ContractInvariantInput): void {
 		const schemaLimit = (parsed.data as { limit?: number } | undefined)?.limit
 		if (schemaLimit !== undefined && schemaLimit !== defaultLimit) {
 			problems.push(
-				`${contract.method} ${contract.matcher}: queryConfig.defaultLimit is ${defaultLimit} ` +
-					`but the schema defaults limit to ${schemaLimit}`
+				`${contract.method} ${contract.matcher}: queryConfig.defaultLimit is ${defaultLimit} ` + `but the schema defaults limit to ${schemaLimit}`
 			)
 		}
 	}

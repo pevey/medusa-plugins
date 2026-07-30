@@ -28,16 +28,14 @@ const ProductVeeqoWidget = ({ data: product }: DetailWidgetProps<AdminProduct>) 
 		queryFn: () =>
 			sdk.client.fetch(`/admin/products/${product.id}`, {
 				query: {
-					fields:
-						'veeqo_product.veeqo_product_id,variants.id,variants.veeqo_sellable.veeqo_sellable_id'
+					fields: 'veeqo_product.veeqo_product_id,variants.id,variants.veeqo_sellable.veeqo_sellable_id'
 				}
 			}),
 		queryKey: ['product', product.id]
 	})
 
 	const syncMutation = useMutation({
-		mutationFn: () =>
-			sdk.client.fetch(`/admin/veeqo/products/${product.id}/sync`, { method: 'POST' }),
+		mutationFn: () => sdk.client.fetch(`/admin/veeqo/products/${product.id}/sync`, { method: 'POST' }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['product', product.id] })
 			toast.success('Product synced successfully')
@@ -45,38 +43,24 @@ const ProductVeeqoWidget = ({ data: product }: DetailWidgetProps<AdminProduct>) 
 	})
 
 	const veeqoProductId = data?.product?.veeqo_product?.veeqo_product_id || 'NOT SYNCED'
-	const defaultVariantId =
-		data?.product?.variants && data.product.variants.length === 1
-			? data.product.variants[0].veeqo_sellable?.veeqo_sellable_id
-			: null
+	const defaultVariantId = data?.product?.variants && data.product.variants.length === 1 ? data.product.variants[0].veeqo_sellable?.veeqo_sellable_id : null
 
 	return (
 		<Container className="divide-y p-0">
 			<div className="flex items-center justify-between px-6 py-4">
 				<Heading level="h2">Veeqo Product</Heading>
-				<Button
-					size="small"
-					variant="secondary"
-					onClick={() => syncMutation.mutate()}
-					disabled={syncMutation.isPending}
-				>
+				<Button size="small" variant="secondary" onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>
 					{syncMutation.isPending ? 'Syncing...' : 'Sync'}
 				</Button>
 			</div>
 
 			<div className="px-6 py-4">
 				{defaultVariantId && (
-					<a
-						href={`https://app.veeqo.com/inventory/variants/${defaultVariantId}`}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
+					<a href={`https://app.veeqo.com/inventory/variants/${defaultVariantId}`} target="_blank" rel="noopener noreferrer">
 						<Text size="small">{isLoading ? 'Loading...' : 'ID: ' + veeqoProductId}</Text>
 					</a>
 				)}
-				{!defaultVariantId && (
-					<Text size="small">{isLoading ? 'Loading...' : 'ID: ' + veeqoProductId}</Text>
-				)}
+				{!defaultVariantId && <Text size="small">{isLoading ? 'Loading...' : 'ID: ' + veeqoProductId}</Text>}
 			</div>
 		</Container>
 	)

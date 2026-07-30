@@ -2,10 +2,7 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import type { AdminGetEventsType } from '../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetEventsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetEventsType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { event, actor_id, source, sales_channel_id, start_date, end_date } = req.validatedQuery
 

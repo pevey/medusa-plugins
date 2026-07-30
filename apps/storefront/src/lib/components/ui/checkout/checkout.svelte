@@ -28,15 +28,7 @@
 		class?: string
 		children: Snippet
 	}
-	let {
-		form,
-		navigate = goto,
-		redirectTo,
-		oncomplete,
-		onerror,
-		class: className = '',
-		children
-	}: Props = $props()
+	let { form, navigate = goto, redirectTo, oncomplete, onerror, class: className = '', children }: Props = $props()
 
 	// Keep the live query object (not awaited) so downstream reads (`cartQuery.current`,
 	// `cartQuery.current?.region`, etc.) stay reactive. The cast restores those members, which this
@@ -44,9 +36,7 @@
 	const cartQuery = getCart() as unknown as CartQuery
 	// Payment providers for the cart's CURRENT region (rides the cart — reactive across region switches,
 	// unlike the cookie-scoped listPaymentProviders). Needs getCart to expand region.payment_providers.id.
-	const availableProviders = $derived(
-		((cartQuery.current?.region?.payment_providers ?? []) as { id: string }[]).map(p => p.id)
-	)
+	const availableProviders = $derived(((cartQuery.current?.region?.payment_providers ?? []) as { id: string }[]).map(p => p.id))
 	let placing = $state(false)
 	let error = $state<unknown>(null)
 	let order = $state<StoreOrder | null>(null)

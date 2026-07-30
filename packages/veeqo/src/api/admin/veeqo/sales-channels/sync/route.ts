@@ -3,10 +3,7 @@ import { syncChannelToVeeqoWorkflow } from '../../../../../workflows/channel'
 import { AdminSyncSalesChannelsToVeeqoType } from '../../../../validators'
 
 // one-way sync of sales channels from medusa to veeqo
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminSyncSalesChannelsToVeeqoType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminSyncSalesChannelsToVeeqoType>, res: MedusaResponse) => {
 	const { sales_channel_ids } = req.validatedBody
 	const results = await Promise.all(
 		sales_channel_ids.map(salesChannelId =>

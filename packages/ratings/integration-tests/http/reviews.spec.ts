@@ -101,37 +101,27 @@ medusaIntegrationTestRunner({
 
 		describe('Validation', () => {
 			it('DELETE /admin/reviews rejects missing ids', async () => {
-				const res = await api
-					.delete('/admin/reviews', { data: {}, headers: auth().headers })
-					.catch((e: any) => e.response)
+				const res = await api.delete('/admin/reviews', { data: {}, headers: auth().headers }).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('DELETE /admin/reviews rejects empty ids array', async () => {
-				const res = await api
-					.delete('/admin/reviews', { data: { ids: [] }, headers: auth().headers })
-					.catch((e: any) => e.response)
+				const res = await api.delete('/admin/reviews', { data: { ids: [] }, headers: auth().headers }).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/reviews/approve rejects missing ids', async () => {
-				const res = await api
-					.post('/admin/reviews/approve', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/reviews/approve', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/reviews/reject rejects missing ids', async () => {
-				const res = await api
-					.post('/admin/reviews/reject', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/reviews/reject', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/reviews/feature rejects missing ids', async () => {
-				const res = await api
-					.post('/admin/reviews/feature', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/reviews/feature', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 		})
@@ -236,11 +226,7 @@ medusaIntegrationTestRunner({
 				const res = await api.get('/admin/reviews?q=Alice', auth())
 				expect(res.status).toBe(200)
 				expect(res.data.reviews.length).toBe(1)
-				expect(
-					res.data.reviews.every((r: any) =>
-						(r.author_name as string).toLowerCase().includes('alice')
-					)
-				).toBe(true)
+				expect(res.data.reviews.every((r: any) => (r.author_name as string).toLowerCase().includes('alice'))).toBe(true)
 			})
 
 			it('returns expected fields on each review', async () => {
@@ -291,9 +277,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('returns 404 for unknown id', async () => {
-				const res = await api
-					.get('/admin/reviews/rev_does_not_exist_xyz', auth())
-					.catch((e: any) => e.response)
+				const res = await api.get('/admin/reviews/rev_does_not_exist_xyz', auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(404)
 			})
 		})
@@ -319,40 +303,26 @@ medusaIntegrationTestRunner({
 			})
 
 			it('updates plain fields', async () => {
-				const res = await api.post(
-					`/admin/reviews/${reviewId}`,
-					{ title: 'My updated title', rating: 4 },
-					auth()
-				)
+				const res = await api.post(`/admin/reviews/${reviewId}`, { title: 'My updated title', rating: 4 }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.review.title).toBe('My updated title')
 				expect(res.data.review.rating).toBe(4)
 			})
 
 			it('approves via status=approved', async () => {
-				const res = await api.post(
-					`/admin/reviews/${reviewId}`,
-					{ status: 'approved' },
-					auth()
-				)
+				const res = await api.post(`/admin/reviews/${reviewId}`, { status: 'approved' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.review.status).toBe('approved')
 			})
 
 			it('rejects via status=rejected', async () => {
-				const res = await api.post(
-					`/admin/reviews/${reviewId}`,
-					{ status: 'rejected' },
-					auth()
-				)
+				const res = await api.post(`/admin/reviews/${reviewId}`, { status: 'rejected' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.review.status).toBe('rejected')
 			})
 
 			it('returns 404 for unknown id', async () => {
-				const res = await api
-					.post('/admin/reviews/rev_does_not_exist_xyz', { status: 'approved' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/reviews/rev_does_not_exist_xyz', { status: 'approved' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(404)
 			})
 		})
@@ -384,10 +354,7 @@ medusaIntegrationTestRunner({
 
 				await api.delete(`/admin/reviews/${review.id}`, auth())
 
-				const listRes = await api.get(
-					'/admin/reviews?product_id=prod_delete_test_single',
-					auth()
-				)
+				const listRes = await api.get('/admin/reviews?product_id=prod_delete_test_single', auth())
 				expect(listRes.data.reviews.some((r: any) => r.id === review.id)).toBe(false)
 			})
 		})
@@ -411,7 +378,10 @@ medusaIntegrationTestRunner({
 					})
 				])
 
-				const res = await api.delete('/admin/reviews', { data: { ids: [r1.id, r2.id] }, headers: auth().headers })
+				const res = await api.delete('/admin/reviews', {
+					data: { ids: [r1.id, r2.id] },
+					headers: auth().headers
+				})
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toEqual(expect.arrayContaining([r1.id, r2.id]))
 			})
@@ -433,10 +403,7 @@ medusaIntegrationTestRunner({
 				expect(res.data.deleted).toContain(r.id)
 				expect(res.data.deleted).not.toContain('rev_does_not_exist_xyz')
 
-				const listRes = await api.get(
-					'/admin/reviews?product_id=prod_delete_test_partial',
-					auth()
-				)
+				const listRes = await api.get('/admin/reviews?product_id=prod_delete_test_partial', auth())
 				expect(listRes.data.reviews.some((rev: any) => rev.id === r.id)).toBe(false)
 			})
 		})
@@ -487,9 +454,7 @@ medusaIntegrationTestRunner({
 				await api.post('/admin/reviews/approve', { ids: reviewIds }, auth())
 				for (const id of reviewIds) {
 					const detailRes = await api.get(`/admin/reviews/${id}`, auth())
-					const approveActivity = detailRes.data.review.activity.find(
-						(a: any) => a.type === 'approve'
-					)
+					const approveActivity = detailRes.data.review.activity.find((a: any) => a.type === 'approve')
 					expect(approveActivity).toMatchObject({
 						type: 'approve',
 						user_id: expect.stringMatching(/^user_/)
@@ -505,11 +470,7 @@ medusaIntegrationTestRunner({
 					status: 'pending'
 				})
 
-				const res = await api.post(
-					'/admin/reviews/approve',
-					{ ids: [r.id, 'rev_does_not_exist_xyz'] },
-					auth()
-				)
+				const res = await api.post('/admin/reviews/approve', { ids: [r.id, 'rev_does_not_exist_xyz'] }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.approved).toEqual([r.id])
 
@@ -564,9 +525,7 @@ medusaIntegrationTestRunner({
 				await api.post('/admin/reviews/reject', { ids: reviewIds }, auth())
 				for (const id of reviewIds) {
 					const detailRes = await api.get(`/admin/reviews/${id}`, auth())
-					const rejectActivity = detailRes.data.review.activity.find(
-						(a: any) => a.type === 'reject'
-					)
+					const rejectActivity = detailRes.data.review.activity.find((a: any) => a.type === 'reject')
 					expect(rejectActivity).toMatchObject({
 						type: 'reject',
 						user_id: expect.stringMatching(/^user_/)
@@ -581,13 +540,25 @@ medusaIntegrationTestRunner({
 			let reviewIds: string[] = []
 			beforeAll(async () => {
 				const [r1, r2] = await Promise.all([
-					reviewService.createReviews({ rating: 5, body: 'Feature me 1', author_name: 'Feature Tester', status: 'approved' }),
-					reviewService.createReviews({ rating: 4, body: 'Feature me 2', author_name: 'Feature Tester', status: 'approved' })
+					reviewService.createReviews({
+						rating: 5,
+						body: 'Feature me 1',
+						author_name: 'Feature Tester',
+						status: 'approved'
+					}),
+					reviewService.createReviews({
+						rating: 4,
+						body: 'Feature me 2',
+						author_name: 'Feature Tester',
+						status: 'approved'
+					})
 				])
 				reviewIds = [r1.id, r2.id]
 				await seedSnapshot()
 			})
-			afterAll(async () => { await reviewService.deleteReviews(reviewIds).catch(() => {}) })
+			afterAll(async () => {
+				await reviewService.deleteReviews(reviewIds).catch(() => {})
+			})
 
 			it('returns 401 without auth', async () => {
 				const res = await api.post('/admin/reviews/feature', { ids: reviewIds }).catch((e: any) => e.response)
@@ -629,11 +600,7 @@ medusaIntegrationTestRunner({
 					status: 'approved'
 				})
 
-				const res = await api.post(
-					'/admin/reviews/feature',
-					{ ids: [r.id, 'rev_does_not_exist_xyz'], featured: true },
-					auth()
-				)
+				const res = await api.post('/admin/reviews/feature', { ids: [r.id, 'rev_does_not_exist_xyz'], featured: true }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.featured).toEqual([r.id])
 
@@ -648,12 +615,17 @@ medusaIntegrationTestRunner({
 			let reviewId: string
 			beforeAll(async () => {
 				const r = await reviewService.createReviews({
-					rating: 5, body: 'Feature field default', author_name: 'Field Tester', status: 'approved'
+					rating: 5,
+					body: 'Feature field default',
+					author_name: 'Field Tester',
+					status: 'approved'
 				})
 				reviewId = r.id
 				await seedSnapshot()
 			})
-			afterAll(async () => { await reviewService.deleteReviews([reviewId]).catch(() => {}) })
+			afterAll(async () => {
+				await reviewService.deleteReviews([reviewId]).catch(() => {})
+			})
 
 			it('defaults featured to false and exposes it on the admin detail', async () => {
 				const res = await api.get(`/admin/reviews/${reviewId}`, auth())
@@ -674,12 +646,17 @@ medusaIntegrationTestRunner({
 			let reviewId: string
 			beforeAll(async () => {
 				const r = await reviewService.createReviews({
-					rating: 4, body: 'Feature me service', author_name: 'Service Tester', status: 'approved'
+					rating: 4,
+					body: 'Feature me service',
+					author_name: 'Service Tester',
+					status: 'approved'
 				})
 				reviewId = r.id
 				await seedSnapshot()
 			})
-			afterAll(async () => { await reviewService.deleteReviews([reviewId]).catch(() => {}) })
+			afterAll(async () => {
+				await reviewService.deleteReviews([reviewId]).catch(() => {})
+			})
 
 			it('sets featured=true and logs a feature activity', async () => {
 				await reviewService.setFeatured(reviewId, 'user_test_service', true)
@@ -712,15 +689,23 @@ medusaIntegrationTestRunner({
 				const scRes = await api.post('/admin/sales-channels', { name: 'Review Test Channel' }, auth())
 				const salesChannelId = scRes.data.sales_channel.id
 
-				const keyRes = await api.post('/admin/api-keys', {
-					title: 'Review Test Key',
-					type: 'publishable'
-				}, auth())
+				const keyRes = await api.post(
+					'/admin/api-keys',
+					{
+						title: 'Review Test Key',
+						type: 'publishable'
+					},
+					auth()
+				)
 				publishableApiKey = keyRes.data.api_key.token
 
-				await api.post(`/admin/api-keys/${keyRes.data.api_key.id}/sales-channels`, {
-					add: [salesChannelId]
-				}, auth())
+				await api.post(
+					`/admin/api-keys/${keyRes.data.api_key.id}/sales-channels`,
+					{
+						add: [salesChannelId]
+					},
+					auth()
+				)
 
 				// Create a customer with auth
 				const authService = container.resolve(Modules.AUTH)
@@ -801,11 +786,15 @@ medusaIntegrationTestRunner({
 
 			it('POST /store/reviews/:productId returns 401 without auth', async () => {
 				const res = await api
-					.post(`/store/reviews/${PRODUCT_ID}`, {
-						rating: 5,
-						body: 'Great!',
-						author_name: 'Anon'
-					}, storeHeaders())
+					.post(
+						`/store/reviews/${PRODUCT_ID}`,
+						{
+							rating: 5,
+							body: 'Great!',
+							author_name: 'Anon'
+						},
+						storeHeaders()
+					)
 					.catch((e: any) => e.response)
 				expect(res.status).toBe(401)
 			})
@@ -849,9 +838,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /store/reviews/:productId rejects missing required fields', async () => {
-				const res = await api
-					.post(`/store/reviews/${PRODUCT_ID}`, { rating: 5 }, customerAuth())
-					.catch((e: any) => e.response)
+				const res = await api.post(`/store/reviews/${PRODUCT_ID}`, { rating: 5 }, customerAuth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
@@ -898,9 +885,7 @@ medusaIntegrationTestRunner({
 				const res = await api.get(`/store/reviews/${PRODUCT_ID}`, customerAuth())
 				expect(res.status).toBe(200)
 
-				const pendingOwn = res.data.reviews.filter(
-					(r: any) => r.status === 'pending' && r.customer_id === customerId
-				)
+				const pendingOwn = res.data.reviews.filter((r: any) => r.status === 'pending' && r.customer_id === customerId)
 				expect(pendingOwn.length).toBeGreaterThanOrEqual(1)
 			})
 
@@ -908,9 +893,7 @@ medusaIntegrationTestRunner({
 				const res = await api.get(`/store/reviews/${PRODUCT_ID}`, customerAuth())
 				expect(res.status).toBe(200)
 
-				const otherPending = res.data.reviews.filter(
-					(r: any) => r.status === 'pending' && r.customer_id !== customerId
-				)
+				const otherPending = res.data.reviews.filter((r: any) => r.status === 'pending' && r.customer_id !== customerId)
 				expect(otherPending).toHaveLength(0)
 			})
 
@@ -978,11 +961,7 @@ medusaIntegrationTestRunner({
 				expect(beforeIds).not.toContain(pendingReview.id)
 
 				// Approve via admin
-				await api.post(
-					`/admin/reviews/${pendingReview.id}`,
-					{ status: 'approved' },
-					auth()
-				)
+				await api.post(`/admin/reviews/${pendingReview.id}`, { status: 'approved' }, auth())
 
 				// Cache should be invalidated — the newly approved review should appear
 				const after = await api.get(`/store/reviews/${PRODUCT_ID}`, storeHeaders())
@@ -998,16 +977,54 @@ medusaIntegrationTestRunner({
 				const SUM_MANY = 'prod_summary_many'
 				beforeAll(async () => {
 					await Promise.all([
-						reviewService.createReviews({ rating: 5, body: 'a', author_name: 'S1', product_id: SUM_PRODUCT, status: 'approved' }),
-						reviewService.createReviews({ rating: 5, body: 'b', author_name: 'S2', product_id: SUM_PRODUCT, status: 'approved' }),
-						reviewService.createReviews({ rating: 4, body: 'c', author_name: 'S3', product_id: SUM_PRODUCT, status: 'approved' }),
-						reviewService.createReviews({ rating: 2, body: 'd', author_name: 'S4', product_id: SUM_PRODUCT, status: 'approved' }),
-						reviewService.createReviews({ rating: 1, body: 'pending ignored', author_name: 'S5', product_id: SUM_PRODUCT, status: 'pending' })
+						reviewService.createReviews({
+							rating: 5,
+							body: 'a',
+							author_name: 'S1',
+							product_id: SUM_PRODUCT,
+							status: 'approved'
+						}),
+						reviewService.createReviews({
+							rating: 5,
+							body: 'b',
+							author_name: 'S2',
+							product_id: SUM_PRODUCT,
+							status: 'approved'
+						}),
+						reviewService.createReviews({
+							rating: 4,
+							body: 'c',
+							author_name: 'S3',
+							product_id: SUM_PRODUCT,
+							status: 'approved'
+						}),
+						reviewService.createReviews({
+							rating: 2,
+							body: 'd',
+							author_name: 'S4',
+							product_id: SUM_PRODUCT,
+							status: 'approved'
+						}),
+						reviewService.createReviews({
+							rating: 1,
+							body: 'pending ignored',
+							author_name: 'S5',
+							product_id: SUM_PRODUCT,
+							status: 'pending'
+						})
 					])
 					// 21 approved to prove the aggregate is not capped at the list default (20)
-					await Promise.all(Array.from({ length: 21 }, (_, i) =>
-						reviewService.createReviews({ rating: 5, body: `many ${i}`, author_name: 'Many', product_id: SUM_MANY, status: 'approved' })
-					))
+					await Promise.all(
+						Array.from({ length: 21 }, (_, i) =>
+							reviewService.createReviews({
+								rating: 5,
+								body: `many ${i}`,
+								author_name: 'Many',
+								product_id: SUM_MANY,
+								status: 'approved'
+							})
+						)
+					)
 					await seedSnapshot()
 				})
 
@@ -1015,14 +1032,24 @@ medusaIntegrationTestRunner({
 					const res = await api.get(`/store/reviews/${SUM_PRODUCT}/summary`, storeHeaders())
 					expect(res.status).toBe(200)
 					expect(res.data.count).toBe(4)
-					expect(res.data.average).toBe(4)          // (5+5+4+2)/4 = 4.0
-					expect(res.data.distribution).toMatchObject({ '1': 0, '2': 1, '3': 0, '4': 1, '5': 2 })
+					expect(res.data.average).toBe(4) // (5+5+4+2)/4 = 4.0
+					expect(res.data.distribution).toMatchObject({
+						'1': 0,
+						'2': 1,
+						'3': 0,
+						'4': 1,
+						'5': 2
+					})
 				})
 
 				it('returns zeros for a product with no approved reviews', async () => {
 					const res = await api.get(`/store/reviews/${SUM_EMPTY}/summary`, storeHeaders())
 					expect(res.status).toBe(200)
-					expect(res.data).toMatchObject({ average: 0, count: 0, distribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 } })
+					expect(res.data).toMatchObject({
+						average: 0,
+						count: 0,
+						distribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 }
+					})
 				})
 
 				it('is not capped at the list page size', async () => {
@@ -1035,7 +1062,11 @@ medusaIntegrationTestRunner({
 				it('is invalidated when a new review is approved', async () => {
 					const before = await api.get(`/store/reviews/${SUM_PRODUCT}/summary`, storeHeaders())
 					const pending = await reviewService.createReviews({
-						rating: 5, body: 'to approve', author_name: 'Approver', product_id: SUM_PRODUCT, status: 'pending'
+						rating: 5,
+						body: 'to approve',
+						author_name: 'Approver',
+						product_id: SUM_PRODUCT,
+						status: 'pending'
 					})
 					await api.post(`/admin/reviews/${pending.id}`, { status: 'approved' }, auth())
 					const after = await api.get(`/store/reviews/${SUM_PRODUCT}/summary`, storeHeaders())
@@ -1045,9 +1076,27 @@ medusaIntegrationTestRunner({
 				it('excludes out-of-range ratings from count, average and distribution', async () => {
 					const SUM_OUT_OF_RANGE = 'prod_summary_out_of_range'
 					await Promise.all([
-						reviewService.createReviews({ rating: 6, body: 'invalid rating', author_name: 'Bad', product_id: SUM_OUT_OF_RANGE, status: 'approved' }),
-						reviewService.createReviews({ rating: 5, body: 'valid 1', author_name: 'Good1', product_id: SUM_OUT_OF_RANGE, status: 'approved' }),
-						reviewService.createReviews({ rating: 3, body: 'valid 2', author_name: 'Good2', product_id: SUM_OUT_OF_RANGE, status: 'approved' })
+						reviewService.createReviews({
+							rating: 6,
+							body: 'invalid rating',
+							author_name: 'Bad',
+							product_id: SUM_OUT_OF_RANGE,
+							status: 'approved'
+						}),
+						reviewService.createReviews({
+							rating: 5,
+							body: 'valid 1',
+							author_name: 'Good1',
+							product_id: SUM_OUT_OF_RANGE,
+							status: 'approved'
+						}),
+						reviewService.createReviews({
+							rating: 3,
+							body: 'valid 2',
+							author_name: 'Good2',
+							product_id: SUM_OUT_OF_RANGE,
+							status: 'approved'
+						})
 					])
 					await seedSnapshot()
 
@@ -1055,8 +1104,7 @@ medusaIntegrationTestRunner({
 					expect(res.status).toBe(200)
 					expect(res.data.count).toBe(2)
 					expect(res.data.average).toBe(4) // (5+3)/2 = 4.0
-					const distributionSum = Object.values(res.data.distribution as Record<string, number>)
-						.reduce((sum: number, n: number) => sum + n, 0)
+					const distributionSum = Object.values(res.data.distribution as Record<string, number>).reduce((sum: number, n: number) => sum + n, 0)
 					expect(distributionSum).toBe(res.data.count)
 					expect(res.data.distribution['6']).toBeUndefined()
 				})
@@ -1080,15 +1128,23 @@ medusaIntegrationTestRunner({
 				const scRes = await api.post('/admin/sales-channels', { name: 'My Reviews Test Channel' }, auth())
 				const salesChannelId = scRes.data.sales_channel.id
 
-				const keyRes = await api.post('/admin/api-keys', {
-					title: 'My Reviews Test Key',
-					type: 'publishable'
-				}, auth())
+				const keyRes = await api.post(
+					'/admin/api-keys',
+					{
+						title: 'My Reviews Test Key',
+						type: 'publishable'
+					},
+					auth()
+				)
 				myPublishableApiKey = keyRes.data.api_key.token
 
-				await api.post(`/admin/api-keys/${keyRes.data.api_key.id}/sales-channels`, {
-					add: [salesChannelId]
-				}, auth())
+				await api.post(
+					`/admin/api-keys/${keyRes.data.api_key.id}/sales-channels`,
+					{
+						add: [salesChannelId]
+					},
+					auth()
+				)
 
 				// Create a customer with auth
 				const authService = container.resolve(Modules.AUTH)
@@ -1149,12 +1205,14 @@ medusaIntegrationTestRunner({
 
 			it('returns 401 without auth', async () => {
 				const res = await api
-					.get('/store/customers/me/reviews', { headers: { 'x-publishable-api-key': myPublishableApiKey } })
+					.get('/store/customers/me/reviews', {
+						headers: { 'x-publishable-api-key': myPublishableApiKey }
+					})
 					.catch((e: any) => e.response)
 				expect(res.status).toBe(401)
 			})
 
-			it('returns all of the authenticated customer\'s reviews across products, regardless of status', async () => {
+			it("returns all of the authenticated customer's reviews across products, regardless of status", async () => {
 				const res = await api.get('/store/customers/me/reviews', myReviewsAuth())
 				expect(res.status).toBe(200)
 				expect(res.data.count).toBe(2)

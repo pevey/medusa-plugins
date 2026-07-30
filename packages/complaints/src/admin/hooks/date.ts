@@ -4,13 +4,7 @@ import { enUS } from 'date-fns/locale'
 export const useDate = () => {
 	const locale = enUS
 
-	const getFullDate = ({
-		date,
-		includeTime = false
-	}: {
-		date: string | Date
-		includeTime?: boolean
-	}) => {
+	const getFullDate = ({ date, includeTime = false }: { date: string | Date; includeTime?: boolean }) => {
 		const ensuredDate = new Date(date)
 
 		if (isNaN(ensuredDate.getTime())) {

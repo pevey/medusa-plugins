@@ -13,5 +13,4 @@ export function subtotal(cart: StoreCart | null | undefined): number | undefined
 	return (cart as { item_subtotal?: number } | null | undefined)?.item_subtotal ?? undefined
 }
 
-export const defaultLineHref: LineHrefFn = (item: CartLine) =>
-	`/product/${item.product_handle}${item.variant_id ? `?variant=${item.variant_id}` : ''}`
+export const defaultLineHref: LineHrefFn = (item: CartLine) => `/product/${item.product_handle}${item.variant_id ? `?variant=${item.variant_id}` : ''}`

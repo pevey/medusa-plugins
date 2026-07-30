@@ -16,22 +16,15 @@ type ReviewLike = {
 }
 
 function variantPrice(v: StoreProductVariant): { amount: number; currency: string } | null {
-	const cp = v.calculated_price as
-		| { calculated_amount?: number | null; currency_code?: string | null }
-		| undefined
+	const cp = v.calculated_price as { calculated_amount?: number | null; currency_code?: string | null } | undefined
 	if (cp?.calculated_amount == null || !cp.currency_code) return null
 	return { amount: cp.calculated_amount, currency: cp.currency_code }
 }
 
-export function productSchema(
-	product: StoreProduct | null,
-	opts: ProductSchemaOpts = {}
-): WithContext<Product> | null {
+export function productSchema(product: StoreProduct | null, opts: ProductSchemaOpts = {}): WithContext<Product> | null {
 	if (!product) return null
 	const variants = product.variants ?? []
-	const prices = variants
-		.map(variantPrice)
-		.filter((p): p is { amount: number; currency: string } => p !== null)
+	const prices = variants.map(variantPrice).filter((p): p is { amount: number; currency: string } => p !== null)
 	const availability = variants.some(v => inStock(v))
 		? 'https://schema.org/InStock'
 		: variants.some(v => isPurchasable(v))
@@ -77,9 +70,7 @@ export function productSchema(
 
 	// Reviews: `review` is a custom relation (not on StoreProduct) — defensive cast; approved only.
 	const rawReviews = (product as { review?: unknown }).review
-	const reviews = (Array.isArray(rawReviews) ? (rawReviews as ReviewLike[]) : []).filter(
-		r => r.status === 'approved' && typeof r.rating === 'number'
-	)
+	const reviews = (Array.isArray(rawReviews) ? (rawReviews as ReviewLike[]) : []).filter(r => r.status === 'approved' && typeof r.rating === 'number')
 	if (reviews.length) {
 		const avg = reviews.reduce((s, r) => s + (r.rating ?? 0), 0) / reviews.length
 		schema.aggregateRating = {

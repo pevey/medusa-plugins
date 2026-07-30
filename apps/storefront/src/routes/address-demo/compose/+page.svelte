@@ -13,7 +13,7 @@
 
 <div class="mx-auto max-w-2xl space-y-4 p-8">
 	<h1 class="text-2xl font-bold">Compose-your-own</h1>
-	<p class="text-muted-foreground text-sm">
+	<p class="text-sm text-muted-foreground">
 		Assemble the <code>Address.*</code> parts directly. Omitting <code>BillingToggle</code>/<code>Billing</code>
 		yields a single-address form (billing mirrors shipping via Root's hidden default).
 		<a class="underline" href="/address-demo">← back to preset</a>
@@ -24,6 +24,6 @@
 				<Email /><FirstName /><LastName /><Autocomplete /><Country /><Province /><PostalCode /><City />
 			</div>
 		</Root>
-		<button class="bg-primary text-primary-foreground mt-4 h-9 rounded-md px-4 text-sm font-medium">Save</button>
+		<button class="mt-4 h-9 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">Save</button>
 	</form>
 </div>

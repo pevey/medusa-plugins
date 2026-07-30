@@ -2,16 +2,9 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { CONTENT_MODULE } from '../../../../../modules/content'
 import { ContentService } from '../../../../../modules/content/service'
-import {
-	AdminCreateContentCreatorActivityType,
-	AdminDeleteContentCreatorActivityType,
-	AdminGetContentCreatorActivityType
-} from '../../../../validators'
+import { AdminCreateContentCreatorActivityType, AdminDeleteContentCreatorActivityType, AdminGetContentCreatorActivityType } from '../../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetContentCreatorActivityType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentCreatorActivityType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { id: creator_id } = req.params
 
@@ -29,10 +22,7 @@ export const GET = async (
 	})
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateContentCreatorActivityType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateContentCreatorActivityType>, res: MedusaResponse) => {
 	const { id: creator_id } = req.params
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
 	const entry = await contentService.createContentCreatorActivities({
@@ -43,10 +33,7 @@ export const POST = async (
 	res.json({ entry })
 }
 
-export const DELETE = async (
-	req: AuthenticatedMedusaRequest<AdminDeleteContentCreatorActivityType>,
-	res: MedusaResponse
-) => {
+export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteContentCreatorActivityType>, res: MedusaResponse) => {
 	const { ids } = req.validatedBody
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
 	await contentService.deleteContentCreatorActivities(ids)

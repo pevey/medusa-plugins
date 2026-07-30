@@ -7,9 +7,7 @@ import starlightLlmsTxt from 'starlight-llms-txt'
 import { plugins } from './docs-packages.mjs'
 
 // Load generated sidebar data (operation links grouped by tag per plugin)
-const apiSidebar = JSON.parse(
-	readFileSync(new URL('./schemas/_sidebar.json', import.meta.url), 'utf-8')
-)
+const apiSidebar = JSON.parse(readFileSync(new URL('./schemas/_sidebar.json', import.meta.url), 'utf-8'))
 
 // Build OpenAPI plugin configs
 const apiPluginConfigs = plugins
@@ -55,9 +53,7 @@ export default defineConfig({
 					]
 				}
 			],
-			social: [
-				{ icon: 'github', label: 'GitHub', href: 'https://github.com/pevey/medusa-plugins' }
-			],
+			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/pevey/medusa-plugins' }],
 			customCss: ['./src/styles/global.css'],
 			favicon: '/favicon.png'
 		})

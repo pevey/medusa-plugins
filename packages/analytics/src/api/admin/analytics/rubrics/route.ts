@@ -2,17 +2,10 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { PRIVATE_ANALYTICS_MODULE } from '../../../../modules/analytics'
 import type { PrivateAnalyticsService } from '../../../../modules/analytics/service'
-import type {
-	AdminGetRubricsType,
-	AdminCreateRubricType,
-	AdminDeleteRubricsType
-} from '../../../validators'
+import type { AdminGetRubricsType, AdminCreateRubricType, AdminDeleteRubricsType } from '../../../validators'
 import { invalidateRubricCache } from '../../../../lib/rubric-gate'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetRubricsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetRubricsType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { q, active } = req.validatedQuery
 
@@ -34,23 +27,15 @@ export const GET = async (
 	})
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateRubricType>,
-	res: MedusaResponse
-) => {
-	const privateAnalyticsService: PrivateAnalyticsService =
-		req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateRubricType>, res: MedusaResponse) => {
+	const privateAnalyticsService: PrivateAnalyticsService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
 	const rubric = await privateAnalyticsService.createAnalyticsRubrics(req.validatedBody)
 	invalidateRubricCache()
 	res.json({ rubric })
 }
 
-export const DELETE = async (
-	req: AuthenticatedMedusaRequest<AdminDeleteRubricsType>,
-	res: MedusaResponse
-) => {
-	const privateAnalyticsService: PrivateAnalyticsService =
-		req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
+export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteRubricsType>, res: MedusaResponse) => {
+	const privateAnalyticsService: PrivateAnalyticsService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
 	await privateAnalyticsService.deleteAnalyticsRubrics(req.validatedBody.ids)
 	invalidateRubricCache()
 	res.json({ deleted: req.validatedBody.ids })

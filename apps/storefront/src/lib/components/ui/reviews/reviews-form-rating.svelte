@@ -18,7 +18,11 @@
 <fieldset class={cn('flex flex-col gap-1', className)} data-review-rating>
 	<div class="flex items-center gap-1" role="radiogroup" aria-label="Rating">
 		{#each [1, 2, 3, 4, 5] as value (value)}
-			<label class="cursor-pointer rounded focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2" onmouseenter={() => (hovered = value)} onmouseleave={() => (hovered = 0)}>
+			<label
+				class="cursor-pointer rounded focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
+				onmouseenter={() => (hovered = value)}
+				onmouseleave={() => (hovered = 0)}
+			>
 				<input
 					class="sr-only"
 					{...field.as('radio', value)}
@@ -31,6 +35,6 @@
 		{/each}
 	</div>
 	{#if issues && issues.length}
-		<p class="text-destructive text-sm">{issues[0].message}</p>
+		<p class="text-sm text-destructive">{issues[0].message}</p>
 	{/if}
 </fieldset>

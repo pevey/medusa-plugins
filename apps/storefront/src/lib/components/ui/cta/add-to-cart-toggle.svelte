@@ -20,15 +20,7 @@
 		onremove?: (cart: StoreCart) => void
 		children?: Snippet<[{ on: boolean; pending: boolean; disabled: boolean; toggle: () => void }]>
 	}
-	let {
-		variantId,
-		quantity = 1,
-		condition,
-		class: className = '',
-		onadd,
-		onremove,
-		children
-	}: Props = $props()
+	let { variantId, quantity = 1, condition, class: className = '', onadd, onremove, children }: Props = $props()
 
 	const ctx = getProductContextOptional()
 	let pending = $state(false)
@@ -63,13 +55,7 @@
 			{@render children({ on, pending, disabled, toggle })}
 		{:else}
 			<label class={cn('flex items-center gap-2', className)}>
-				<input
-					type="checkbox"
-					class="size-4 rounded-sm border-input accent-primary disabled:opacity-50"
-					checked={on}
-					{disabled}
-					onchange={toggle}
-				/>
+				<input type="checkbox" class="size-4 rounded-sm border-input accent-primary disabled:opacity-50" checked={on} {disabled} onchange={toggle} />
 				<span class="text-sm">{on ? 'Added' : 'Add to cart'}</span>
 			</label>
 		{/if}

@@ -29,9 +29,7 @@
 
 	{#if amount > 0}
 		<div class="space-y-2">
-			<p class="text-sm text-muted-foreground">
-				One-tap wallet purchase (Apple / Google Pay / Link):
-			</p>
+			<p class="text-sm text-muted-foreground">One-tap wallet purchase (Apple / Google Pay / Link):</p>
 			<StripeExpressCheckout
 				publishableKey={STRIPE_KEY}
 				{amount}
@@ -55,21 +53,15 @@
 			/>
 		</div>
 	{:else}
-		<p class="text-sm text-destructive">
-			No price for the Test product in the default region — set one in Medusa admin.
-		</p>
+		<p class="text-sm text-destructive">No price for the Test product in the default region — set one in Medusa admin.</p>
 	{/if}
 
 	{#if status === 'paid'}
-		<p
-			class="rounded-md bg-green-100 p-3 text-sm text-green-800 dark:bg-green-900/30 dark:text-green-200"
-		>
+		<p class="rounded-md bg-green-100 p-3 text-sm text-green-800 dark:bg-green-900/30 dark:text-green-200">
 			✅ {message}
 		</p>
 	{:else if status === 'error'}
-		<p
-			class="rounded-md bg-red-100 p-3 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-200"
-		>
+		<p class="rounded-md bg-red-100 p-3 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-200">
 			⚠️ {message}
 		</p>
 	{/if}

@@ -16,15 +16,8 @@
 		"resolveJsonModule": true,
 		"checkJs": false,
 		"strictNullChecks": true,
-		"typeRoots": [
-			"./node_modules/@types",
-			"./node_modules/@medusajs"
-		],
-		"types": [
-			"node",
-			"framework",
-			"jest"
-		]
+		"typeRoots": ["./node_modules/@types", "./node_modules/@medusajs"],
+		"types": ["node", "framework", "jest"]
 	},
 	"ts-node": {
 		"swc": true

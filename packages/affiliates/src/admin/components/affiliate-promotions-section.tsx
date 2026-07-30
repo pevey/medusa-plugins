@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { Badge, Button, Container, Heading, Table, toast, usePrompt } from '@medusajs/ui'
 import { AdminAffiliate, AdminAffiliatePromotion } from '../types'
-import {
-	useRetireAffiliatePromotion,
-	useReactivateAffiliatePromotion,
-	useDeleteAffiliatePromotion
-} from '../hooks/affiliates'
+import { useRetireAffiliatePromotion, useReactivateAffiliatePromotion, useDeleteAffiliatePromotion } from '../hooks/affiliates'
 import { ActionMenu } from './action-menu'
 import { AddPromotionCodeModal } from './add-promotion-code-modal'
 import { EditPromotionCodeDrawer } from './edit-promotion-code-drawer'
@@ -56,7 +52,7 @@ export const AffiliatePromotionsSection = ({ affiliate }: { affiliate: AdminAffi
 
 	return (
 		<Container className="p-6">
-			<div className="flex items-center justify-between mb-4">
+			<div className="mb-4 flex items-center justify-between">
 				<Heading level="h2">Promotion codes</Heading>
 				<Button onClick={() => setAddOpen(true)}>Add code</Button>
 			</div>
@@ -83,15 +79,9 @@ export const AffiliatePromotionsSection = ({ affiliate }: { affiliate: AdminAffi
 							<Table.Cell>
 								<span className="font-mono">{p.code}</span>
 							</Table.Cell>
-							<Table.Cell>
-								{p.application_method?.type === 'percentage' ? '%' : 'Fixed'}
-							</Table.Cell>
+							<Table.Cell>{p.application_method?.type === 'percentage' ? '%' : 'Fixed'}</Table.Cell>
 							<Table.Cell>{p.application_method?.value ?? '—'}</Table.Cell>
-							<Table.Cell>
-								{p.campaign?.ends_at
-									? new Date(p.campaign.ends_at).toLocaleDateString()
-									: '—'}
-							</Table.Cell>
+							<Table.Cell>{p.campaign?.ends_at ? new Date(p.campaign.ends_at).toLocaleDateString() : '—'}</Table.Cell>
 							<Table.Cell>
 								<Badge size="xsmall" color={p.status === 'active' ? 'green' : 'grey'}>
 									{p.status}
@@ -116,11 +106,7 @@ export const AffiliatePromotionsSection = ({ affiliate }: { affiliate: AdminAffi
 					))}
 				</Table.Body>
 			</Table>
-			<AddPromotionCodeModal
-				affiliateId={affiliate.id}
-				open={addOpen}
-				onOpenChange={setAddOpen}
-			/>
+			<AddPromotionCodeModal affiliateId={affiliate.id} open={addOpen} onOpenChange={setAddOpen} />
 			<EditPromotionCodeDrawer
 				affiliateId={affiliate.id}
 				promotion={editPromotion}

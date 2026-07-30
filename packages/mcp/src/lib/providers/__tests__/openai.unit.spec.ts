@@ -45,13 +45,29 @@ describe('OpenAiProvider.chatStream', () => {
 			{
 				choices: [
 					{
-						delta: { tool_calls: [{ index: 0, id: 'call_1', function: { name: 'get_weather', arguments: '' } }] },
+						delta: {
+							tool_calls: [{ index: 0, id: 'call_1', function: { name: 'get_weather', arguments: '' } }]
+						},
 						finish_reason: null
 					}
 				]
 			},
-			{ choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: '{"city":' } }] }, finish_reason: null }] },
-			{ choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: '"NYC"}' } }] }, finish_reason: null }] },
+			{
+				choices: [
+					{
+						delta: { tool_calls: [{ index: 0, function: { arguments: '{"city":' } }] },
+						finish_reason: null
+					}
+				]
+			},
+			{
+				choices: [
+					{
+						delta: { tool_calls: [{ index: 0, function: { arguments: '"NYC"}' } }] },
+						finish_reason: null
+					}
+				]
+			},
 			{ choices: [{ delta: {}, finish_reason: 'tool_calls' }] }
 		]
 		const createImpl = jest.fn().mockResolvedValue(fakeOpenAiStream(chunks))
@@ -69,18 +85,22 @@ describe('OpenAiProvider.chatStream', () => {
 	})
 
 	it('maps finish_reason="stop" to done.stopReason "end" and yields no tool_use events', async () => {
-		const chunks = [
-			{ choices: [{ delta: { content: 'hi there' }, finish_reason: null }] },
-			{ choices: [{ delta: {}, finish_reason: 'stop' }] }
-		]
+		const chunks = [{ choices: [{ delta: { content: 'hi there' }, finish_reason: null }] }, { choices: [{ delta: {}, finish_reason: 'stop' }] }]
 		const createImpl = jest.fn().mockResolvedValue(fakeOpenAiStream(chunks))
 		const provider = createProvider(createImpl)
 
 		const result = await collect(
-			provider.chatStream({ messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }], tools: [], systemPrompt: 'sys' })
+			provider.chatStream({
+				messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }],
+				tools: [],
+				systemPrompt: 'sys'
+			})
 		)
 
-		expect(result).toEqual([{ type: 'text', delta: 'hi there' }, { type: 'done', stopReason: 'end' }])
+		expect(result).toEqual([
+			{ type: 'text', delta: 'hi there' },
+			{ type: 'done', stopReason: 'end' }
+		])
 	})
 
 	it('assembles multiple concurrent tool calls by index, in index order', async () => {
@@ -117,7 +137,11 @@ describe('OpenAiProvider.chatStream', () => {
 		const provider = createProvider(createImpl)
 
 		const result = await collect(
-			provider.chatStream({ messages: [{ role: 'user', content: [{ type: 'text', text: 'go' }] }], tools: [], systemPrompt: 'sys' })
+			provider.chatStream({
+				messages: [{ role: 'user', content: [{ type: 'text', text: 'go' }] }],
+				tools: [],
+				systemPrompt: 'sys'
+			})
 		)
 
 		expect(result).toEqual([
@@ -157,7 +181,11 @@ describe('OpenAiProvider.chatStream', () => {
 				role: 'assistant',
 				content: 'Let me check.',
 				tool_calls: [
-					{ id: 'call_1', type: 'function', function: { name: 'get_weather', arguments: JSON.stringify({ city: 'NYC' }) } }
+					{
+						id: 'call_1',
+						type: 'function',
+						function: { name: 'get_weather', arguments: JSON.stringify({ city: 'NYC' }) }
+					}
 				]
 			},
 			{ role: 'tool', tool_call_id: 'call_1', content: '72F and sunny' }
@@ -178,7 +206,9 @@ describe('OpenAiProvider.chatStream', () => {
 			})
 		)
 
-		expect(createImpl).toHaveBeenCalledWith(expect.objectContaining({ stream: true }), { signal: controller.signal })
+		expect(createImpl).toHaveBeenCalledWith(expect.objectContaining({ stream: true }), {
+			signal: controller.signal
+		})
 	})
 
 	it('omits the tools param when no tools are provided, and includes it when tools are provided', async () => {
@@ -186,16 +216,31 @@ describe('OpenAiProvider.chatStream', () => {
 		const provider = createProvider(createImpl)
 
 		await collect(
-			provider.chatStream({ messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }], tools: [], systemPrompt: 'sys' })
+			provider.chatStream({
+				messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }],
+				tools: [],
+				systemPrompt: 'sys'
+			})
 		)
 		expect(createImpl.mock.calls[0][0].tools).toBeUndefined()
 
 		const tools: ToolDefinition[] = [{ name: 'get_weather', description: 'gets weather', inputSchema: { type: 'object' } }]
 		await collect(
-			provider.chatStream({ messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }], tools, systemPrompt: 'sys' })
+			provider.chatStream({
+				messages: [{ role: 'user', content: [{ type: 'text', text: 'hi' }] }],
+				tools,
+				systemPrompt: 'sys'
+			})
 		)
 		expect(createImpl.mock.calls[1][0].tools).toEqual([
-			{ type: 'function', function: { name: 'get_weather', description: 'gets weather', parameters: { type: 'object' } } }
+			{
+				type: 'function',
+				function: {
+					name: 'get_weather',
+					description: 'gets weather',
+					parameters: { type: 'object' }
+				}
+			}
 		])
 	})
 })

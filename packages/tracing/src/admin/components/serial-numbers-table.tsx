@@ -1,11 +1,4 @@
-import {
-	Container,
-	createDataTableColumnHelper,
-	DataTable,
-	DataTablePaginationState,
-	Heading,
-	useDataTable
-} from '@medusajs/ui'
+import { Container, createDataTableColumnHelper, DataTable, DataTablePaginationState, Heading, useDataTable } from '@medusajs/ui'
 import { useState, useMemo } from 'react'
 import { AdminSerialNumber } from '../types'
 import { useStockLotSerialNumbers } from '../hooks/stock-lots'

@@ -13,10 +13,7 @@ export default async function veeqoOrderSyncJob(container: MedusaContainer) {
 	let totalCount = 0
 
 	do {
-		const [orders, count] = await veeqoService.listAndCountVeeqoOrders(
-			{ status: 'open' },
-			{ take: limit, skip: offset }
-		)
+		const [orders, count] = await veeqoService.listAndCountVeeqoOrders({ status: 'open' }, { take: limit, skip: offset })
 		totalCount = count
 
 		for (const order of orders as any[]) {
@@ -25,9 +22,7 @@ export default async function veeqoOrderSyncJob(container: MedusaContainer) {
 					input: { veeqoOrderDbId: order.id as string }
 				})
 			} catch (err) {
-				logger.error(
-					`veeqo-order-sync: failed for VeeqoOrder ${order.id}: ${(err as Error).message}`
-				)
+				logger.error(`veeqo-order-sync: failed for VeeqoOrder ${order.id}: ${(err as Error).message}`)
 			}
 		}
 

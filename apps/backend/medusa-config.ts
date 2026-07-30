@@ -1,9 +1,4 @@
-import {
-	loadEnv,
-	defineConfig,
-	Modules,
-	ContainerRegistrationKeys
-} from '@medusajs/framework/utils'
+import { loadEnv, defineConfig, Modules, ContainerRegistrationKeys } from '@medusajs/framework/utils'
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
@@ -18,15 +13,7 @@ module.exports = defineConfig({
 			jwtSecret: process.env.JWT_SECRET,
 			cookieSecret: process.env.COOKIE_SECRET,
 			restrictedFields: {
-				store: [
-					'complaint',
-					'complaints',
-					'customer_tag',
-					'customer_tags',
-					'order_note',
-					'order_notes',
-					'inventory_quantity'
-				]
+				store: ['complaint', 'complaints', 'customer_tag', 'customer_tags', 'order_note', 'order_notes', 'inventory_quantity']
 			}
 		},
 		sessionOptions: {
@@ -217,9 +204,7 @@ module.exports = defineConfig({
 						resolve: 'medusa-plugin-braintree',
 						id: 'braintree',
 						options: {
-							environment:
-								process.env.BRAINTREE_ENVIRONMENT ||
-								(process.env.NODE_ENV !== 'production' ? 'sandbox' : 'production'),
+							environment: process.env.BRAINTREE_ENVIRONMENT || (process.env.NODE_ENV !== 'production' ? 'sandbox' : 'production'),
 							merchantId: process.env.BRAINTREE_MERCHANT_ID,
 							publicKey: process.env.BRAINTREE_PUBLIC_KEY,
 							privateKey: process.env.BRAINTREE_PRIVATE_KEY,
@@ -292,17 +277,12 @@ module.exports = defineConfig({
 				secret: process.env.AUTOMATION_SECRET,
 				// Note: webhook payload size is enforced by the bodyParser using
 				// MAX_WEBHOOK_PAYLOAD_SIZE env var directly (see plugin middlewares.ts).
-				maxWorkflowIterations: process.env.MAX_WORKFLOW_ITERATIONS
-					? +process.env.MAX_WORKFLOW_ITERATIONS
-					: 50,
+				maxWorkflowIterations: process.env.MAX_WORKFLOW_ITERATIONS ? +process.env.MAX_WORKFLOW_ITERATIONS : 50,
 				ssrf: {
 					// Defaults are https-only with private/reserved IPs blocked.
 					// Override here for dev (allow http + localhost) or to add
 					// allowedHosts / blockedHosts for stricter prod policy.
-					allowedSchemes: (process.env.AUTOMATION_SSRF_SCHEMES?.split(',') as (
-						| 'http'
-						| 'https'
-					)[]) || ['https'],
+					allowedSchemes: (process.env.AUTOMATION_SSRF_SCHEMES?.split(',') as ('http' | 'https')[]) || ['https'],
 					allowPrivateIps: process.env.AUTOMATION_SSRF_ALLOW_PRIVATE_IPS === 'true',
 					allowedHosts: process.env.AUTOMATION_SSRF_ALLOWED_HOSTS?.split(',').filter(Boolean),
 					blockedHosts: process.env.AUTOMATION_SSRF_BLOCKED_HOSTS?.split(',').filter(Boolean)
@@ -347,12 +327,8 @@ module.exports = defineConfig({
 				baseUrl: process.env.MCP_LLM_BASE_URL || 'http://localhost:11434/v1',
 				systemPrompt: process.env.MCP_SYSTEM_PROMPT,
 				toolPackages: ['medusa-plugin-automation/mcp'],
-				...(process.env.MCP_CHAT_RETENTION_DAYS
-					? { chatRetentionDays: Number(process.env.MCP_CHAT_RETENTION_DAYS) }
-					: {}),
-				...(process.env.MCP_MAX_HISTORY_TURNS
-					? { maxHistoryTurns: Number(process.env.MCP_MAX_HISTORY_TURNS) }
-					: {})
+				...(process.env.MCP_CHAT_RETENTION_DAYS ? { chatRetentionDays: Number(process.env.MCP_CHAT_RETENTION_DAYS) } : {}),
+				...(process.env.MCP_MAX_HISTORY_TURNS ? { maxHistoryTurns: Number(process.env.MCP_MAX_HISTORY_TURNS) } : {})
 			}
 		},
 		{

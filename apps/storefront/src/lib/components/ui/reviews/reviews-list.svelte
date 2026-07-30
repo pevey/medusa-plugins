@@ -7,10 +7,7 @@
 	// `children` is a render-prop: `{ review }` is passed per row so a consumer can either use
 	// `{#snippet children({ review })}…{/snippet}` directly, OR ignore the param and read the
 	// per-item context `Item` sets (subcomponent mode: `<Reviews.List><Review>…</Review></Reviews.List>`).
-	let {
-		class: className = '',
-		children
-	}: { class?: string; children: Snippet<[{ review: StoreReview }]> } = $props()
+	let { class: className = '', children }: { class?: string; children: Snippet<[{ review: StoreReview }]> } = $props()
 	const ctx = getReviewsContext()
 </script>
 

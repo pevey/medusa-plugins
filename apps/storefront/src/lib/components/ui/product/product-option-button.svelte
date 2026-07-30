@@ -6,8 +6,7 @@
 	let { option, class: className = '' }: { option: StoreProductOption; class?: string } = $props()
 	const ctx = getProductContext()
 
-	const base =
-		'inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium transition-colors'
+	const base = 'inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium transition-colors'
 </script>
 
 <div class="flex flex-col gap-3">
@@ -17,12 +16,7 @@
 			{@const selected = ctx.isSelected(value.id)}
 			{@const available = ctx.isAvailable(value.id)}
 			{#if selected}
-				<span
-					data-value
-					data-selected="true"
-					aria-current="true"
-					class={cn(base, 'border-primary text-foreground')}
-				>
+				<span data-value data-selected="true" aria-current="true" class={cn(base, 'border-primary text-foreground')}>
 					{value.value}
 				</span>
 			{:else if available}
@@ -35,12 +29,7 @@
 					{value.value}
 				</a>
 			{:else}
-				<span
-					data-value
-					data-available="false"
-					aria-disabled="true"
-					class={cn(base, 'border-input text-muted-foreground line-through opacity-50')}
-				>
+				<span data-value data-available="false" aria-disabled="true" class={cn(base, 'border-input text-muted-foreground line-through opacity-50')}>
 					{value.value}
 				</span>
 			{/if}

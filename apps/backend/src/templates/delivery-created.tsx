@@ -1,19 +1,4 @@
-import {
-	Body,
-	Button,
-	Column,
-	Container,
-	Head,
-	Heading,
-	Hr,
-	Html,
-	Img,
-	Preview,
-	Row,
-	Section,
-	Tailwind,
-	Text
-} from 'react-email'
+import { Body, Button, Column, Container, Head, Heading, Hr, Html, Img, Preview, Row, Section, Tailwind, Text } from 'react-email'
 
 type DeliveryItem = {
 	title: string
@@ -56,30 +41,23 @@ function Template({ order, delivery, storeName }: Props) {
 
 	return (
 		<Tailwind>
-			<Html className="font-sans bg-gray-100">
+			<Html className="bg-gray-100 font-sans">
 				<Head />
-				<Preview>
-					Hi {order.customer.first_name}, great news — your order is out for delivery!
-				</Preview>
-				<Body className="bg-white my-10 mx-auto w-full max-w-2xl">
+				<Preview>Hi {order.customer.first_name}, great news — your order is out for delivery!</Preview>
+				<Body className="mx-auto my-10 w-full max-w-2xl bg-white">
 					<Container className="p-6">
-						<Heading className="text-lg font-semibold text-black mb-2 text-center">
-							Your Order Is Out for Delivery
-						</Heading>
+						<Heading className="mb-2 text-center text-lg font-semibold text-black">Your Order Is Out for Delivery</Heading>
 
-						<Text className="text-sm text-black leading-relaxed mb-6 text-center">
-							Hi {order.customer.first_name}, great news — your order is on its way and
-							should arrive today.
+						<Text className="mb-6 text-center text-sm leading-relaxed text-black">
+							Hi {order.customer.first_name}, great news — your order is on its way and should arrive today.
 						</Text>
 
 						{/* Shipping address + delivery details */}
 						<Section className="mb-4">
 							<Row>
 								<Column className="w-1/2 align-top">
-									<Heading className="text-sm font-semibold text-black m-0 mb-2">
-										Shipping Address
-									</Heading>
-									<Text className="text-sm text-black m-0 leading-relaxed">
+									<Heading className="m-0 mb-2 text-sm font-semibold text-black">Shipping Address</Heading>
+									<Text className="m-0 text-sm leading-relaxed text-black">
 										{fullName}
 										<br />
 										{addr.address_1}
@@ -96,10 +74,8 @@ function Template({ order, delivery, storeName }: Props) {
 									</Text>
 								</Column>
 								<Column className="w-1/2 align-top">
-									<Heading className="text-sm font-semibold text-black m-0 mb-2">
-										Delivery Details
-									</Heading>
-									<Text className="text-sm text-black m-0 leading-relaxed">
+									<Heading className="m-0 mb-2 text-sm font-semibold text-black">Delivery Details</Heading>
+									<Text className="m-0 text-sm leading-relaxed text-black">
 										Carrier: {delivery.carrier_name}
 										<br />
 										{delivery.tracking_url ? (
@@ -119,24 +95,17 @@ function Template({ order, delivery, storeName }: Props) {
 							</Row>
 						</Section>
 
-						<Hr className="border-gray-200 my-4" />
+						<Hr className="my-4 border-gray-200" />
 
 						{/* Line items */}
 						{delivery.items.map((item, i) => (
 							<Section key={i} className="py-2">
 								<Row>
 									<Column className="w-1/6 align-middle">
-										{item.thumbnail ? (
-											<Img
-												src={item.thumbnail}
-												width="100%"
-												alt={item.title}
-												className="rounded-lg"
-											/>
-										) : null}
+										{item.thumbnail ? <Img src={item.thumbnail} width="100%" alt={item.title} className="rounded-lg" /> : null}
 									</Column>
 									<Column className="pl-4 align-middle">
-										<Text className="text-sm text-black m-0">
+										<Text className="m-0 text-sm text-black">
 											<span className="font-semibold">{item.title}</span>
 											<br />
 											<span className="text-xs">Qty: {item.quantity}</span>
@@ -146,15 +115,12 @@ function Template({ order, delivery, storeName }: Props) {
 							</Section>
 						))}
 
-						<Hr className="border-gray-200 my-4" />
+						<Hr className="my-4 border-gray-200" />
 
 						{/* Track button */}
 						{delivery.tracking_url ? (
-							<Section className="text-center my-8">
-								<Button
-									href={delivery.tracking_url}
-									className="bg-black text-white py-3 px-8 inline-block"
-								>
+							<Section className="my-8 text-center">
+								<Button href={delivery.tracking_url} className="inline-block bg-black px-8 py-3 text-white">
 									Track Your Delivery
 								</Button>
 							</Section>
@@ -162,8 +128,8 @@ function Template({ order, delivery, storeName }: Props) {
 					</Container>
 
 					{/* Footer */}
-					<Section className="bg-gray-50 p-6 mt-10">
-						<Text className="text-center text-black text-xs mt-4">
+					<Section className="mt-10 bg-gray-50 p-6">
+						<Text className="mt-4 text-center text-xs text-black">
 							© {new Date().getFullYear()} {storeName}, Inc. All rights reserved.
 						</Text>
 					</Section>

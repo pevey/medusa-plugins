@@ -17,10 +17,7 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 	res.json({ trigger: { ...safe, has_signing_key: Boolean(trigger_signing_key) } })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateAutomationTriggerType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAutomationTriggerType>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { id } = req.params
 

@@ -57,8 +57,7 @@
 			// A returned string replaces the input value (Google leaves the full formatted address in
 			// it; consumers collapse it to e.g. the street line). Shadow is patched open — reach the input.
 			if (typeof replacement === 'string') {
-				const input = (ref?.shadowRoot?.querySelector("input[part='input']") ??
-					ref?.shadowRoot?.querySelector('input')) as HTMLInputElement | null
+				const input = (ref?.shadowRoot?.querySelector("input[part='input']") ?? ref?.shadowRoot?.querySelector('input')) as HTMLInputElement | null
 				if (input) input.value = replacement
 			}
 		})

@@ -8,11 +8,6 @@
 	const gallery = getGalleryContext()
 </script>
 
-<Carousel.Root
-	opts={gallery.opts}
-	plugins={gallery.plugins}
-	setApi={gallery.registerMain}
-	class={cn('min-w-0 flex-1', className)}
->
+<Carousel.Root opts={gallery.opts} plugins={gallery.plugins} setApi={gallery.registerMain} class={cn('min-w-0 flex-1', className)}>
 	<Carousel.Content>{@render children()}</Carousel.Content>
 </Carousel.Root>

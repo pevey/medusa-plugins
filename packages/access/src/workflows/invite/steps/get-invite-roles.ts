@@ -1,19 +1,19 @@
-import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
-import { StepResponse, createStep } from "@medusajs/framework/workflows-sdk"
+import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
+import { StepResponse, createStep } from '@medusajs/framework/workflows-sdk'
 
 /**
  * @ignore
  * @featureFlag access
  */
 export interface GetInviteRolesStepInput {
-  invite_id: string
+	invite_id: string
 }
 
 /**
  * @ignore
  * @featureFlag access
  */
-export const getInviteRolesStepId = "get-invite-access-roles-step"
+export const getInviteRolesStepId = 'get-invite-access-roles-step'
 /**
  * This step retrieves the roles associated with an invite.
  *
@@ -24,28 +24,20 @@ export const getInviteRolesStepId = "get-invite-access-roles-step"
  * @ignore
  * @featureFlag access
  */
-export const getInviteRolesStep = createStep(
-  getInviteRolesStepId,
-  async (input: GetInviteRolesStepInput, { container }) => {
-    const remoteLink = container.resolve(ContainerRegistrationKeys.LINK)
+export const getInviteRolesStep = createStep(getInviteRolesStepId, async (input: GetInviteRolesStepInput, { container }) => {
+	const remoteLink = container.resolve(ContainerRegistrationKeys.LINK)
 
-    const linkService = remoteLink.getLinkModule(
-      Modules.USER,
-      "invite_id",
-      "access",
-      "access_role_id"
-    )
+	const linkService = remoteLink.getLinkModule(Modules.USER, 'invite_id', 'access', 'access_role_id')
 
-    if (!linkService) {
-      return new StepResponse([])
-    }
+	if (!linkService) {
+		return new StepResponse([])
+	}
 
-    const inviteRoles = await linkService.list({
-      invite_id: input.invite_id,
-    })
+	const inviteRoles = await linkService.list({
+		invite_id: input.invite_id
+	})
 
-    const roleIds = inviteRoles.map((link: any) => link.access_role_id)
+	const roleIds = inviteRoles.map((link: any) => link.access_role_id)
 
-    return new StepResponse(roleIds)
-  }
-)
+	return new StepResponse(roleIds)
+})

@@ -1,11 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sdk } from '../lib/sdk'
-import {
-	AdminAccessRoleResponse,
-	AdminAccessRolesResponse,
-	AdminAccessRolePoliciesResponse,
-	AdminAccessRoleUsersResponse
-} from '../types'
+import { AdminAccessRoleResponse, AdminAccessRolesResponse, AdminAccessRolePoliciesResponse, AdminAccessRoleUsersResponse } from '../types'
 
 // --- Roles CRUD ---------------------------------------------------------------
 
@@ -27,12 +22,7 @@ export const useAccessRole = (id: string | undefined) => {
 export const useCreateAccessRole = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: {
-			name: string
-			description?: string
-			parent_id?: string
-			policy_ids?: string[]
-		}) =>
+		mutationFn: (data: { name: string; description?: string; parent_id?: string; policy_ids?: string[] }) =>
 			sdk.client.fetch<AdminAccessRoleResponse>('/admin/access/roles', {
 				method: 'POST',
 				body: data
@@ -62,10 +52,7 @@ export const useDeleteAccessRoles = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
 		// DELETE is per-id; loop to support single + bulk from the list.
-		mutationFn: (ids: string[]) =>
-			Promise.all(
-				ids.map(id => sdk.client.fetch(`/admin/access/roles/${id}`, { method: 'DELETE' }))
-			),
+		mutationFn: (ids: string[]) => Promise.all(ids.map(id => sdk.client.fetch(`/admin/access/roles/${id}`, { method: 'DELETE' }))),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['access-roles'] })
 		}
@@ -116,8 +103,7 @@ export const useRemoveAccessRolePolicy = (roleId: string | undefined) => {
 
 export const useAccessRoleUsers = (roleId: string | undefined) => {
 	return useQuery<AdminAccessRoleUsersResponse>({
-		queryFn: () =>
-			sdk.client.fetch(`/admin/access/roles/${roleId}/users`, { query: { limit: 200 } }),
+		queryFn: () => sdk.client.fetch(`/admin/access/roles/${roleId}/users`, { query: { limit: 200 } }),
 		queryKey: ['access-role-users', roleId],
 		enabled: !!roleId
 	})

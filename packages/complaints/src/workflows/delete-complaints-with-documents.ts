@@ -1,10 +1,5 @@
 import { Modules } from '@medusajs/framework/utils'
-import {
-	createStep,
-	createWorkflow,
-	StepResponse,
-	WorkflowResponse
-} from '@medusajs/framework/workflows-sdk'
+import { createStep, createWorkflow, StepResponse, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
 import { COMPLAINT_MODULE } from '../modules/complaint'
 import { ComplaintService } from '../modules/complaint/service'
 
@@ -31,21 +26,16 @@ export const deleteComplaintsWithDocumentsStep = createStep(
 
 		// Fetch all documents attached to the complaints being deleted, so we
 		// can purge their R2 objects before the DB cascade drops the rows.
-		const documents = await complaintService.listComplaintDocuments(
-			{ complaint_id: input.ids },
-			{ select: ['id', 'file_key'] }
-		)
+		const documents = await complaintService.listComplaintDocuments({ complaint_id: input.ids }, { select: ['id', 'file_key'] })
 
-		const fileKeys = documents.map((d) => d.file_key).filter(Boolean)
+		const fileKeys = documents.map(d => d.file_key).filter(Boolean)
 
 		if (fileKeys.length) {
-			await provider.delete(
-				fileKeys.map((fileKey) => ({ fileKey, access: 'private' }))
-			)
+			await provider.delete(fileKeys.map(fileKey => ({ fileKey, access: 'private' })))
 		}
 
 		if (documents.length) {
-			await complaintService.deleteComplaintDocuments(documents.map((d) => d.id))
+			await complaintService.deleteComplaintDocuments(documents.map(d => d.id))
 		}
 
 		await complaintService.deleteComplaints(input.ids)
@@ -59,9 +49,6 @@ export const deleteComplaintsWithDocumentsStep = createStep(
 
 export const deleteComplaintsWithDocumentsWorkflowId = 'delete-complaints-with-documents'
 
-export const deleteComplaintsWithDocumentsWorkflow = createWorkflow(
-	deleteComplaintsWithDocumentsWorkflowId,
-	(input: DeleteComplaintsWithDocumentsInput) => {
-		return new WorkflowResponse(deleteComplaintsWithDocumentsStep(input))
-	}
-)
+export const deleteComplaintsWithDocumentsWorkflow = createWorkflow(deleteComplaintsWithDocumentsWorkflowId, (input: DeleteComplaintsWithDocumentsInput) => {
+	return new WorkflowResponse(deleteComplaintsWithDocumentsStep(input))
+})

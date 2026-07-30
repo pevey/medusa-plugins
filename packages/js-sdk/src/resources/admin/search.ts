@@ -9,8 +9,8 @@ export function createAdminSearchResource(client: Client) {
 		reindex: async (headers?: ClientHeaders) => {
 			return client.fetch<AdminSearchReindexResponse>(`/admin/search/reindex`, {
 				method: 'POST',
-				headers,
+				headers
 			})
-		},
+		}
 	}
 }

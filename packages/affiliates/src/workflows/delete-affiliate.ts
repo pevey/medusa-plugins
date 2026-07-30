@@ -1,10 +1,5 @@
 import { ContainerRegistrationKeys, MedusaError, Modules } from '@medusajs/framework/utils'
-import {
-	createStep,
-	createWorkflow,
-	StepResponse,
-	WorkflowResponse
-} from '@medusajs/framework/workflows-sdk'
+import { createStep, createWorkflow, StepResponse, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
 import { AFFILIATE_MODULE } from '../modules/affiliate'
 import { AffiliateService } from '../modules/affiliate/service'
 
@@ -15,10 +10,12 @@ type PromotionSnapshot = {
 	previous_status: 'active' | 'inactive' | 'draft'
 }
 
-type Snapshot = {
-	affiliate_id: string
-	promotions: PromotionSnapshot[]
-} | undefined
+type Snapshot =
+	| {
+			affiliate_id: string
+			promotions: PromotionSnapshot[]
+	  }
+	| undefined
 
 export const deleteAffiliateStep = createStep(
 	'delete-affiliate-step',
@@ -36,10 +33,7 @@ export const deleteAffiliateStep = createStep(
 		})
 		const affiliate = data[0] as any
 		if (!affiliate) {
-			throw new MedusaError(
-				MedusaError.Types.NOT_FOUND,
-				`Affiliate ${input.id} not found`
-			)
+			throw new MedusaError(MedusaError.Types.NOT_FOUND, `Affiliate ${input.id} not found`)
 		}
 		const promotions: PromotionSnapshot[] = (affiliate.promotions ?? [])
 			.filter((p: any) => p?.id)
@@ -58,9 +52,7 @@ export const deleteAffiliateStep = createStep(
 		//    already deliberately retired.
 		const toRetire = promotions.filter(p => p.previous_status === 'active')
 		if (toRetire.length) {
-			await promotionService.updatePromotions(
-				toRetire.map(p => ({ id: p.id, status: 'inactive' as const }))
-			)
+			await promotionService.updatePromotions(toRetire.map(p => ({ id: p.id, status: 'inactive' as const })))
 		}
 
 		// 3) Dismiss the affiliate ↔ promotion links.
@@ -100,19 +92,14 @@ export const deleteAffiliateStep = createStep(
 
 		// 2') Restore each promotion to its previous status.
 		if (snapshot.promotions.length) {
-			await promotionService.updatePromotions(
-				snapshot.promotions.map(p => ({ id: p.id, status: p.previous_status }))
-			)
+			await promotionService.updatePromotions(snapshot.promotions.map(p => ({ id: p.id, status: p.previous_status })))
 		}
 	}
 )
 
 export const deleteAffiliateWorkflowId = 'delete-affiliate'
 
-export const deleteAffiliateWorkflow = createWorkflow(
-	deleteAffiliateWorkflowId,
-	(input: DeleteAffiliateInput) => {
-		const result = deleteAffiliateStep(input)
-		return new WorkflowResponse(result)
-	}
-)
+export const deleteAffiliateWorkflow = createWorkflow(deleteAffiliateWorkflowId, (input: DeleteAffiliateInput) => {
+	const result = deleteAffiliateStep(input)
+	return new WorkflowResponse(result)
+})

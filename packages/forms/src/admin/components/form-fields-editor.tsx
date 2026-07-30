@@ -71,18 +71,23 @@ export const FormFieldsEditor = ({ fields, onChange }: Props) => {
 		<div className="flex flex-col gap-y-2">
 			{fields.length > 0 && (
 				<div className="grid grid-cols-[1fr_1fr_130px_40px_32px] gap-x-2 px-1">
-					<Text size="xsmall" className="text-ui-fg-muted">Label</Text>
-					<Text size="xsmall" className="text-ui-fg-muted">Name</Text>
-					<Text size="xsmall" className="text-ui-fg-muted">Type</Text>
-					<Text size="xsmall" className="text-ui-fg-muted">Req</Text>
+					<Text size="xsmall" className="text-ui-fg-muted">
+						Label
+					</Text>
+					<Text size="xsmall" className="text-ui-fg-muted">
+						Name
+					</Text>
+					<Text size="xsmall" className="text-ui-fg-muted">
+						Type
+					</Text>
+					<Text size="xsmall" className="text-ui-fg-muted">
+						Req
+					</Text>
 					<span />
 				</div>
 			)}
 			{fields.map(field => (
-				<div
-					key={field._key}
-					className="grid grid-cols-[1fr_1fr_130px_40px_32px] gap-x-2 items-center"
-				>
+				<div key={field._key} className="grid grid-cols-[1fr_1fr_130px_40px_32px] items-center gap-x-2">
 					<Input
 						size="small"
 						value={field.label}
@@ -107,10 +112,7 @@ export const FormFieldsEditor = ({ fields, onChange }: Props) => {
 							})
 						}
 					/>
-					<Select
-						value={field.field_type}
-						onValueChange={v => update(field._key, { field_type: v })}
-					>
+					<Select value={field.field_type} onValueChange={v => update(field._key, { field_type: v })}>
 						<Select.Trigger>
 							<Select.Value />
 						</Select.Trigger>
@@ -123,28 +125,14 @@ export const FormFieldsEditor = ({ fields, onChange }: Props) => {
 						</Select.Content>
 					</Select>
 					<div className="flex justify-center">
-						<Switch
-							checked={field.required}
-							onCheckedChange={v => update(field._key, { required: v })}
-						/>
+						<Switch checked={field.required} onCheckedChange={v => update(field._key, { required: v })} />
 					</div>
-					<Button
-						type="button"
-						variant="transparent"
-						size="small"
-						onClick={() => remove(field._key)}
-					>
+					<Button type="button" variant="transparent" size="small" onClick={() => remove(field._key)}>
 						<Trash className="text-ui-fg-subtle" />
 					</Button>
 				</div>
 			))}
-			<Button
-				type="button"
-				variant="secondary"
-				size="small"
-				className="mt-1 w-fit"
-				onClick={add}
-			>
+			<Button type="button" variant="secondary" size="small" className="mt-1 w-fit" onClick={add}>
 				<Plus className="mr-1" />
 				Add Field
 			</Button>

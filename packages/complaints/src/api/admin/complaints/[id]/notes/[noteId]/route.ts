@@ -3,10 +3,7 @@ import { COMPLAINT_MODULE } from '../../../../../../modules/complaint'
 import { ComplaintService } from '../../../../../../modules/complaint/service'
 import { AdminUpdateComplaintNoteType } from '../../../../../validators'
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateComplaintNoteType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateComplaintNoteType>, res: MedusaResponse) => {
 	const { id, noteId } = req.params
 	const { note }: AdminUpdateComplaintNoteType = req.validatedBody
 	const complaintService: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)

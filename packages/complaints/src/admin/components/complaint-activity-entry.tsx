@@ -117,12 +117,7 @@ export const ComplaintActivityEntry = ({ entry, isFirst }: ComplaintActivityEntr
 					)}
 				</div>
 			</div>
-			<ComplaintNoteModal
-				open={editNoteOpen}
-				setOpen={setEditNoteOpen}
-				complaintId={entry.complaint_id}
-				note={entry}
-			/>
+			<ComplaintNoteModal open={editNoteOpen} setOpen={setEditNoteOpen} complaintId={entry.complaint_id} note={entry} />
 		</>
 	)
 }

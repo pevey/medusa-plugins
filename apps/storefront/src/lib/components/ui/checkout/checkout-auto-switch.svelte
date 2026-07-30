@@ -32,9 +32,7 @@
 	const ctx = getCheckoutContext()
 	const resolved = $derived(resolveCheckoutProvider(ctx.availableProviders))
 	// The region offers a provider, but none this checkout supports → render nothing (dev logs which).
-	const unsupported = $derived(
-		!resolved && ctx.availableProviders.length > 0 ? ctx.availableProviders[0] : null
-	)
+	const unsupported = $derived(!resolved && ctx.availableProviders.length > 0 ? ctx.availableProviders[0] : null)
 </script>
 
 {#if resolved?.kind === 'braintree'}
@@ -42,13 +40,7 @@
 {:else if resolved?.kind === 'stripe'}
 	{@const elements = config?.[resolved.id]?.elements ?? true}
 	{#if elements}
-		<StripeBody
-			{form}
-			providerId={resolved.id}
-			publishableKey={publishableKey ?? ''}
-			returnUrl={returnUrl ?? ''}
-			{restrictToCurrentRegion}
-		/>
+		<StripeBody {form} providerId={resolved.id} publishableKey={publishableKey ?? ''} returnUrl={returnUrl ?? ''} {restrictToCurrentRegion} />
 	{:else}
 		<StripeContainer
 			{form}
@@ -61,7 +53,5 @@
 		/>
 	{/if}
 {:else if unsupported}
-	{@const _err =
-		import.meta.env.DEV &&
-		console.error(`[CheckoutAuto] payment provider "${unsupported}" is not yet supported`)}
+	{@const _err = import.meta.env.DEV && console.error(`[CheckoutAuto] payment provider "${unsupported}" is not yet supported`)}
 {/if}

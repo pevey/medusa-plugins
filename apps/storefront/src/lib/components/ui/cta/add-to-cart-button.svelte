@@ -101,12 +101,7 @@
 	const showStatus = $derived(showMessage && !redirectTo && status !== 'idle')
 </script>
 
-<div
-	class={cn(
-		'flex',
-		messagePlacement === 'right' ? 'flex-row items-center gap-3' : 'flex-col gap-2'
-	)}
->
+<div class={cn('flex', messagePlacement === 'right' ? 'flex-row items-center gap-3' : 'flex-col gap-2')}>
 	<Button
 		type="button"
 		class={className}
@@ -122,19 +117,9 @@
 		{@render message({ status, cart: resultCart, error, id: statusId })}
 	{:else if showStatus}
 		{#if status === 'success'}
-			<span
-				id={statusId}
-				role="status"
-				data-status="success"
-				class={cn('text-sm text-muted-foreground', messageClass)}>Added to cart</span
-			>
+			<span id={statusId} role="status" data-status="success" class={cn('text-sm text-muted-foreground', messageClass)}>Added to cart</span>
 		{:else if status === 'error'}
-			<span
-				id={statusId}
-				role="alert"
-				data-status="error"
-				class={cn('text-sm text-destructive', messageClass)}>{errorText}</span
-			>
+			<span id={statusId} role="alert" data-status="error" class={cn('text-sm text-destructive', messageClass)}>{errorText}</span>
 		{/if}
 	{/if}
 </div>

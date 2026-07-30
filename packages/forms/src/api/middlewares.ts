@@ -26,8 +26,17 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetForms, {
 				defaults: [
-					'id', 'name', 'handle', 'description', 'active', 'turnstile_enabled',
-					'notification_emails', 'metadata', 'created_at', 'updated_at', 'form_fields.id'
+					'id',
+					'name',
+					'handle',
+					'description',
+					'active',
+					'turnstile_enabled',
+					'notification_emails',
+					'metadata',
+					'created_at',
+					'updated_at',
+					'form_fields.id'
 				],
 				isList: true,
 				defaultLimit: 15
@@ -50,12 +59,26 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetForm, {
 				defaults: [
-					'id', 'name', 'handle', 'description', 'active', 'turnstile_enabled',
-					'notification_emails', 'metadata', 'created_at', 'updated_at',
-					'form_fields.id', 'form_fields.name', 'form_fields.label',
-					'form_fields.field_type', 'form_fields.required', 'form_fields.sort_order',
-					'form_fields.field_options.id', 'form_fields.field_options.label',
-					'form_fields.field_options.value', 'form_fields.field_options.sort_order'
+					'id',
+					'name',
+					'handle',
+					'description',
+					'active',
+					'turnstile_enabled',
+					'notification_emails',
+					'metadata',
+					'created_at',
+					'updated_at',
+					'form_fields.id',
+					'form_fields.name',
+					'form_fields.label',
+					'form_fields.field_type',
+					'form_fields.required',
+					'form_fields.sort_order',
+					'form_fields.field_options.id',
+					'form_fields.field_options.label',
+					'form_fields.field_options.value',
+					'form_fields.field_options.sort_order'
 				],
 				isList: false
 			})
@@ -76,10 +99,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetFormFields, {
-				defaults: [
-					'id', 'name', 'label', 'field_type', 'required', 'options', 'sort_order',
-					'created_at', 'updated_at'
-				],
+				defaults: ['id', 'name', 'label', 'field_type', 'required', 'options', 'sort_order', 'created_at', 'updated_at'],
 				isList: true,
 				defaultLimit: 50
 			})
@@ -120,10 +140,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetFormSubmissions, {
-				defaults: [
-					'id', 'status', 'data', 'ip_address', 'user_agent', 'created_at', 'updated_at',
-					'form.id', 'form.name', 'form.handle'
-				],
+				defaults: ['id', 'status', 'data', 'ip_address', 'user_agent', 'created_at', 'updated_at', 'form.id', 'form.name', 'form.handle'],
 				isList: true,
 				defaultLimit: 20
 			})
@@ -140,10 +157,20 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetFormSubmission, {
 				defaults: [
-					'id', 'status', 'data', 'ip_address', 'user_agent', 'created_at', 'updated_at',
-					'form.id', 'form.name', 'form.handle',
-					'form.form_fields.id', 'form.form_fields.name',
-					'form.form_fields.label', 'form.form_fields.field_type'
+					'id',
+					'status',
+					'data',
+					'ip_address',
+					'user_agent',
+					'created_at',
+					'updated_at',
+					'form.id',
+					'form.name',
+					'form.handle',
+					'form.form_fields.id',
+					'form.form_fields.name',
+					'form.form_fields.label',
+					'form.form_fields.field_type'
 				],
 				isList: false
 			})

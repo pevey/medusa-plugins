@@ -5,24 +5,15 @@ import type { PrivateAnalyticsService } from '../modules/analytics/service'
 
 export default async function rollupAnalyticsJob(container: MedusaContainer) {
 	const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
-	const privateAnalyticsService: PrivateAnalyticsService =
-		container.resolve(PRIVATE_ANALYTICS_MODULE)
+	const privateAnalyticsService: PrivateAnalyticsService = container.resolve(PRIVATE_ANALYTICS_MODULE)
 
 	try {
 		const now = new Date()
-		const yesterday = new Date(
-			Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1)
-		)
-		const startOfDay = new Date(
-			Date.UTC(yesterday.getUTCFullYear(), yesterday.getUTCMonth(), yesterday.getUTCDate())
-		)
-		const endOfDay = new Date(
-			Date.UTC(yesterday.getUTCFullYear(), yesterday.getUTCMonth(), yesterday.getUTCDate() + 1)
-		)
+		const yesterday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1))
+		const startOfDay = new Date(Date.UTC(yesterday.getUTCFullYear(), yesterday.getUTCMonth(), yesterday.getUTCDate()))
+		const endOfDay = new Date(Date.UTC(yesterday.getUTCFullYear(), yesterday.getUTCMonth(), yesterday.getUTCDate() + 1))
 
-		logger.info(
-			`analytics-rollup: aggregating events for ${startOfDay.toISOString().slice(0, 10)}`
-		)
+		logger.info(`analytics-rollup: aggregating events for ${startOfDay.toISOString().slice(0, 10)}`)
 
 		const manager = (privateAnalyticsService as any).__container__?.manager
 		if (!manager) {
@@ -67,9 +58,7 @@ export default async function rollupAnalyticsJob(container: MedusaContainer) {
 			upserted++
 		}
 
-		logger.info(
-			`analytics-rollup: upserted ${upserted} daily aggregates for ${startOfDay.toISOString().slice(0, 10)}`
-		)
+		logger.info(`analytics-rollup: upserted ${upserted} daily aggregates for ${startOfDay.toISOString().slice(0, 10)}`)
 	} catch (error: any) {
 		logger.error(`analytics-rollup: failed: ${error.message}`)
 	}

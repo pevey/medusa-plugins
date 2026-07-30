@@ -21,9 +21,7 @@ export interface CreateAuthFormOptions<Input extends RemoteFormInput | void> {
  * `<form>` attributes. Call it once from a form component's top-level script (component-init scope,
  * so the context is set correctly).
  */
-export function createAuthForm<Input extends RemoteFormInput | void>(
-	options: () => CreateAuthFormOptions<Input>
-) {
+export function createAuthForm<Input extends RemoteFormInput | void>(options: () => CreateAuthFormOptions<Input>) {
 	let error = $state('')
 
 	setAuthFormContext({

@@ -19,11 +19,7 @@ import {
 	usePrompt
 } from '@medusajs/ui'
 import { AdminComplaint } from '../../types'
-import {
-	useComplaintsList,
-	useDeleteComplaints,
-	useGenerateComplaintsPdfExport
-} from '../../hooks/complaints'
+import { useComplaintsList, useDeleteComplaints, useGenerateComplaintsPdfExport } from '../../hooks/complaints'
 
 export const config = defineRouteConfig({
 	label: 'Complaints',
@@ -100,8 +96,7 @@ const ComplaintsPage = () => {
 				const ids = Object.keys(selection)
 				const confirmed = await prompt({
 					title: `Generate PDF for ${ids.length} complaint${ids.length === 1 ? '' : 's'}?`,
-					description:
-						"A PDF will be generated in the background. You'll get a notification when it's ready to download.",
+					description: "A PDF will be generated in the background. You'll get a notification when it's ready to download.",
 					confirmText: 'Generate',
 					cancelText: 'Cancel',
 					variant: 'confirmation'

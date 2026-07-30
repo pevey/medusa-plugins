@@ -49,8 +49,7 @@ export const useComplaintTag = (id: string | undefined) => {
 export const useDeleteComplaintTags = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/complaint-tags', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/complaint-tags', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['complaint-tags'] })
 		}

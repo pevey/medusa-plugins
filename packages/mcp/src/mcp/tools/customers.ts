@@ -18,21 +18,9 @@ export function registerCustomerTools(server: McpToolRegistry, scope: MedusaCont
 		async ({ q, limit }) => {
 			const { data } = await query.graph({
 				entity: 'customer',
-				fields: [
-					'id',
-					'email',
-					'first_name',
-					'last_name',
-					'phone',
-					'has_account',
-					'created_at'
-				],
+				fields: ['id', 'email', 'first_name', 'last_name', 'phone', 'has_account', 'created_at'],
 				filters: {
-					$or: [
-						{ email: { $ilike: `%${q}%` } },
-						{ first_name: { $ilike: `%${q}%` } },
-						{ last_name: { $ilike: `%${q}%` } }
-					]
+					$or: [{ email: { $ilike: `%${q}%` } }, { first_name: { $ilike: `%${q}%` } }, { last_name: { $ilike: `%${q}%` } }]
 				},
 				pagination: { take: limit }
 			})

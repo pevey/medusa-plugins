@@ -1,15 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-	Badge,
-	Button,
-	Container,
-	createDataTableColumnHelper,
-	DataTable,
-	DataTablePaginationState,
-	Heading,
-	useDataTable
-} from '@medusajs/ui'
+import { Badge, Button, Container, createDataTableColumnHelper, DataTable, DataTablePaginationState, Heading, useDataTable } from '@medusajs/ui'
 import { useRubrics } from '../../../hooks/analytics'
 import type { AdminRubric } from '../../../types/analytics'
 import { CreateRubricModal } from '../../../components/create-rubric-modal'
@@ -74,7 +65,7 @@ const RubricsPage = () => {
 				<DataTable instance={table}>
 					<DataTable.Toolbar className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
 						<Heading>Event Rubrics</Heading>
-						<div className="flex gap-2 justify-between">
+						<div className="flex justify-between gap-2">
 							<Button size="small" variant="secondary" onClick={() => setCreateOpen(true)}>
 								Create
 							</Button>

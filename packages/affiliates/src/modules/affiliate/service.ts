@@ -21,8 +21,7 @@ export class AffiliateService extends MedusaService({
 		}
 		if (!this.options_.payoutBasis) this.options_.payoutBasis = 'completed'
 		if (!this.options_.defaultCommissionBasis) this.options_.defaultCommissionBasis = 'net'
-		if (this.options_.allowStackingWithNonAffiliatePromotions === undefined)
-			this.options_.allowStackingWithNonAffiliatePromotions = true
+		if (this.options_.allowStackingWithNonAffiliatePromotions === undefined) this.options_.allowStackingWithNonAffiliatePromotions = true
 	}
 
 	getOptions(): AffiliateOptions {

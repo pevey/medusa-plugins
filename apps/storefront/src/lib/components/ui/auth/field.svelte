@@ -4,11 +4,7 @@
 	import { cn } from '$lib/utils.js'
 	import { getAuthFormContext, setAuthFieldContext } from './ctx.svelte.js'
 
-	let {
-		name,
-		class: className = '',
-		children
-	}: { name: string; class?: string; children: Snippet } = $props()
+	let { name, class: className = '', children }: { name: string; class?: string; children: Snippet } = $props()
 
 	const form = getAuthFormContext()
 	const field = $derived(form.form.fields[name])

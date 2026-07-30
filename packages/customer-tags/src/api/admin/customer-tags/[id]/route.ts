@@ -4,10 +4,7 @@ import { CUSTOMER_TAG_MODULE } from '../../../../modules/customer-tag'
 import { CustomerTagService } from '../../../../modules/customer-tag/service'
 import { AdminGetCustomerTagType, AdminUpdateCustomerTagType } from '../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetCustomerTagType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetCustomerTagType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { id } = req.params
 
@@ -25,10 +22,7 @@ export const GET = async (
 	res.json({ customer_tag: customerTag })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateCustomerTagType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateCustomerTagType>, res: MedusaResponse) => {
 	const customerTagService: CustomerTagService = req.scope.resolve(CUSTOMER_TAG_MODULE)
 	const { id } = req.params
 	const customerTag = await customerTagService.updateCustomerTags({

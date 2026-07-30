@@ -50,10 +50,7 @@ export const AddRoleUsersModal = ({ roleId, open, setOpen }: AddRoleUsersModalPr
 	const { data: roleUsers } = useAccessRoleUsers(open ? roleId : undefined)
 	const assignUsers = useAssignAccessRoleUsers(roleId)
 
-	const alreadyAssigned = useMemo(
-		() => new Set((roleUsers?.users || []).map(u => u.id)),
-		[roleUsers]
-	)
+	const alreadyAssigned = useMemo(() => new Set((roleUsers?.users || []).map(u => u.id)), [roleUsers])
 
 	const table = useDataTable({
 		columns,
@@ -90,10 +87,14 @@ export const AddRoleUsersModal = ({ roleId, open, setOpen }: AddRoleUsersModalPr
 				<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 					<div className="mx-auto flex w-full max-w-[900px] flex-col gap-y-4 px-2 py-16">
 						<div>
-							<Heading>Add Users to Role</Heading>
-							<Text size="small" className="text-ui-fg-subtle">
-								Users already assigned to this role are skipped.
-							</Text>
+							<FocusModal.Title asChild>
+								<Heading>Add Users to Role</Heading>
+							</FocusModal.Title>
+							<FocusModal.Description asChild>
+								<Text size="small" className="text-ui-fg-subtle">
+									Users already assigned to this role are skipped.
+								</Text>
+							</FocusModal.Description>
 						</div>
 						<DataTable instance={table}>
 							<DataTable.Toolbar className="flex justify-end">
@@ -105,21 +106,10 @@ export const AddRoleUsersModal = ({ roleId, open, setOpen }: AddRoleUsersModalPr
 					</div>
 				</FocusModal.Body>
 				<FocusModal.Footer className="flex w-full items-center justify-end gap-x-2">
-					<Button
-						type="button"
-						size="small"
-						variant="secondary"
-						onClick={() => setOpen(false)}
-						disabled={assignUsers.isPending}
-					>
+					<Button type="button" size="small" variant="secondary" onClick={() => setOpen(false)} disabled={assignUsers.isPending}>
 						Cancel
 					</Button>
-					<Button
-						type="button"
-						size="small"
-						onClick={handleSave}
-						isLoading={assignUsers.isPending}
-					>
+					<Button type="button" size="small" onClick={handleSave} isLoading={assignUsers.isPending}>
 						Save
 					</Button>
 				</FocusModal.Footer>

@@ -10,7 +10,10 @@ import { ContentItemMetadataFields } from './content-item-metadata-fields'
 
 const schema = zod.object({
 	title: zod.string().min(1, 'Title is required'),
-	slug: zod.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, hyphens only')
+	slug: zod
+		.string()
+		.min(1, 'Slug is required')
+		.regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, hyphens only')
 })
 type FormData = zod.infer<typeof schema>
 
@@ -66,9 +69,7 @@ export const CreateContentItemModal = ({ open, onOpenChange, contentCollection }
 	const handleSubmit = form.handleSubmit(async data => {
 		// Validate required metadata fields
 		if (hasMetadataFields) {
-			const missing = metadataFields.filter(
-				f => f.required && (metadata[f.name] == null || metadata[f.name] === '')
-			)
+			const missing = metadataFields.filter(f => f.required && (metadata[f.name] == null || metadata[f.name] === ''))
 			if (missing.length > 0) {
 				toast.error(`Required fields missing: ${missing.map(f => f.label).join(', ')}`)
 				return
@@ -84,10 +85,11 @@ export const CreateContentItemModal = ({ open, onOpenChange, contentCollection }
 			try {
 				const formData = new FormData()
 				formData.append('files', selectedFile)
-				const result = await sdk.client.fetch<{ files: { url: string; key: string }[] }>(
-					`/admin/content/${contentCollection.id}/upload`,
-					{ method: 'POST', body: formData, headers: { 'content-type': null } }
-				)
+				const result = await sdk.client.fetch<{ files: { url: string; key: string }[] }>(`/admin/content/${contentCollection.id}/upload`, {
+					method: 'POST',
+					body: formData,
+					headers: { 'content-type': null }
+				})
 				const url = result.files?.[0]?.url
 				if (!url) throw new Error('Upload returned no URL')
 				createItem(
@@ -141,12 +143,16 @@ export const CreateContentItemModal = ({ open, onOpenChange, contentCollection }
 					<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 						<div className="mx-auto flex w-full max-w-lg flex-col gap-y-8 px-2 py-16">
 							<div>
-								<Heading>{isImg ? 'Upload Image' : `Create ${contentCollection.label}`}</Heading>
-								<Text className="text-ui-fg-subtle mt-1">
-									{isImg
-										? 'Upload an image and give it a title and slug.'
-										: 'Give this item a title and slug. You can edit the body on the next screen.'}
-								</Text>
+								<FocusModal.Title asChild>
+									<Heading>{isImg ? 'Upload Image' : `Create ${contentCollection.label}`}</Heading>
+								</FocusModal.Title>
+								<FocusModal.Description asChild>
+									<Text className="text-ui-fg-subtle mt-1">
+										{isImg
+											? 'Upload an image and give it a title and slug.'
+											: 'Give this item a title and slug. You can edit the body on the next screen.'}
+									</Text>
+								</FocusModal.Description>
 							</div>
 
 							{isImg && (
@@ -173,20 +179,14 @@ export const CreateContentItemModal = ({ open, onOpenChange, contentCollection }
 									>
 										{selectedFile ? (
 											<>
-												<img
-													src={URL.createObjectURL(selectedFile)}
-													alt="Preview"
-													className="mb-3 max-h-48 rounded object-contain"
-												/>
+												<img src={URL.createObjectURL(selectedFile)} alt="Preview" className="mb-3 max-h-48 rounded object-contain" />
 												<Text size="small" className="text-ui-fg-subtle">
 													{selectedFile.name}
 												</Text>
 											</>
 										) : (
 											<>
-												<Text className="text-ui-fg-muted">
-													Drop an image here or click to browse
-												</Text>
+												<Text className="text-ui-fg-muted">Drop an image here or click to browse</Text>
 												<Text size="small" className="text-ui-fg-subtle mt-1">
 													JPG, PNG, GIF, WebP, SVG
 												</Text>
@@ -228,11 +228,7 @@ export const CreateContentItemModal = ({ open, onOpenChange, contentCollection }
 														}
 													}}
 												/>
-												{fieldState.error && (
-													<Text className="text-ui-fg-error text-sm">
-														{fieldState.error.message}
-													</Text>
-												)}
+												{fieldState.error && <Text className="text-ui-fg-error text-sm">{fieldState.error.message}</Text>}
 											</>
 										)}
 									/>
@@ -256,11 +252,7 @@ export const CreateContentItemModal = ({ open, onOpenChange, contentCollection }
 														field.onChange(sanitizeSlug(e.target.value))
 													}}
 												/>
-												{fieldState.error && (
-													<Text className="text-ui-fg-error text-sm">
-														{fieldState.error.message}
-													</Text>
-												)}
+												{fieldState.error && <Text className="text-ui-fg-error text-sm">{fieldState.error.message}</Text>}
 											</>
 										)}
 									/>
@@ -275,11 +267,7 @@ export const CreateContentItemModal = ({ open, onOpenChange, contentCollection }
 											Fill in the fields defined for this content collection.
 										</Text>
 									</div>
-									<ContentItemMetadataFields
-										fields={metadataFields}
-										value={metadata}
-										onChange={setMetadata}
-									/>
+									<ContentItemMetadataFields fields={metadataFields} value={metadata} onChange={setMetadata} />
 								</div>
 							)}
 						</div>

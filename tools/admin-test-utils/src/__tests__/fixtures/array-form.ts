@@ -1,10 +1,5 @@
 import { z } from 'zod'
-import {
-	authenticate,
-	defineMiddlewares,
-	validateAndTransformBody,
-	validateAndTransformQuery
-} from '../../shims/framework-http.js'
+import { authenticate, defineMiddlewares, validateAndTransformBody, validateAndTransformQuery } from '../../shims/framework-http.js'
 
 export const GetThings = z.object({ q: z.string().optional() })
 export const DeleteThings = z.object({ ids: z.array(z.string()).min(1) })

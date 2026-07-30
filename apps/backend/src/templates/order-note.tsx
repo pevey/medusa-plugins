@@ -1,14 +1,4 @@
-import {
-	Body,
-	Container,
-	Head,
-	Heading,
-	Html,
-	Preview,
-	Section,
-	Tailwind,
-	Text
-} from 'react-email'
+import { Body, Container, Head, Heading, Html, Preview, Section, Tailwind, Text } from 'react-email'
 
 type Props = {
 	customerFirstName: string
@@ -20,30 +10,25 @@ type Props = {
 function Template({ customerFirstName, orderDisplayId, note, storeName }: Props) {
 	return (
 		<Tailwind>
-			<Html className="font-sans bg-gray-100">
+			<Html className="bg-gray-100 font-sans">
 				<Head />
 				<Preview>{`A message about your order #${orderDisplayId}`}</Preview>
-				<Body className="bg-white my-10 mx-auto w-full max-w-2xl">
+				<Body className="mx-auto my-10 w-full max-w-2xl bg-white">
 					<Container className="p-6">
-						<Heading className="text-lg font-semibold text-black mb-2 text-center">
-							A Message About Your Order
-						</Heading>
+						<Heading className="mb-2 text-center text-lg font-semibold text-black">A Message About Your Order</Heading>
 
-						<Text className="text-sm text-black leading-relaxed mb-6 text-center">
-							Hi {customerFirstName}, we have a message for you regarding order #
-							{orderDisplayId}.
+						<Text className="mb-6 text-center text-sm leading-relaxed text-black">
+							Hi {customerFirstName}, we have a message for you regarding order #{orderDisplayId}.
 						</Text>
 
-						<Section className="bg-gray-50 rounded-lg px-5 py-4">
-							<Text className="text-sm text-black leading-relaxed m-0">
-								{note}
-							</Text>
+						<Section className="rounded-lg bg-gray-50 px-5 py-4">
+							<Text className="m-0 text-sm leading-relaxed text-black">{note}</Text>
 						</Section>
 					</Container>
 
 					{/* Footer */}
-					<Section className="bg-gray-50 p-6 mt-10">
-						<Text className="text-center text-black text-xs mt-4">
+					<Section className="mt-10 bg-gray-50 p-6">
+						<Text className="mt-4 text-center text-xs text-black">
 							© {new Date().getFullYear()} {storeName}, Inc. All rights reserved.
 						</Text>
 					</Section>

@@ -4,7 +4,11 @@ import type { LlmProvider, ChatMessage, ToolDefinition, StreamEvent } from '../l
 function toOpenAiMessages(m: ChatMessage): OpenAI.ChatCompletionMessageParam[] {
 	if (m.role === 'assistant') {
 		const textParts: string[] = []
-		const toolCalls: Array<{ id: string; type: 'function'; function: { name: string; arguments: string } }> = []
+		const toolCalls: Array<{
+			id: string
+			type: 'function'
+			function: { name: string; arguments: string }
+		}> = []
 
 		for (const block of m.content) {
 			if (block.type === 'text') {
@@ -18,7 +22,10 @@ function toOpenAiMessages(m: ChatMessage): OpenAI.ChatCompletionMessageParam[] {
 			}
 		}
 
-		const message: OpenAI.ChatCompletionAssistantMessageParam = { role: 'assistant', content: textParts.join('') }
+		const message: OpenAI.ChatCompletionAssistantMessageParam = {
+			role: 'assistant',
+			content: textParts.join('')
+		}
 		if (toolCalls.length > 0) message.tool_calls = toolCalls
 		return [message]
 	}
@@ -72,10 +79,7 @@ export class OpenAiProvider implements LlmProvider {
 			type: 'function' as const,
 			function: { name: t.name, description: t.description, parameters: t.inputSchema }
 		}))
-		const oaMessages: OpenAI.ChatCompletionMessageParam[] = [
-			{ role: 'system', content: systemPrompt },
-			...messages.flatMap(toOpenAiMessages)
-		]
+		const oaMessages: OpenAI.ChatCompletionMessageParam[] = [{ role: 'system', content: systemPrompt }, ...messages.flatMap(toOpenAiMessages)]
 
 		const stream = await this.client.chat.completions.create(
 			{
@@ -108,7 +112,12 @@ export class OpenAiProvider implements LlmProvider {
 		}
 
 		for (const [, tc] of [...acc.entries()].sort((a, b) => a[0] - b[0])) {
-			yield { type: 'tool_use', id: tc.id, name: tc.name, input: tc.args ? JSON.parse(tc.args) : {} }
+			yield {
+				type: 'tool_use',
+				id: tc.id,
+				name: tc.name,
+				input: tc.args ? JSON.parse(tc.args) : {}
+			}
 		}
 
 		yield { type: 'done', stopReason: finish === 'tool_calls' ? 'tool_use' : 'end' }

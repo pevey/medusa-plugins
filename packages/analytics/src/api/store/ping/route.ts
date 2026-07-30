@@ -5,10 +5,7 @@ import type { PrivateAnalyticsService } from '../../../modules/analytics/service
 import { getAllowedEventNames } from '../../../lib/rubric-gate'
 import type { StoreTrackEventBatchType } from '../../validators'
 
-export const POST = async (
-	req: MedusaRequest<StoreTrackEventBatchType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: MedusaRequest<StoreTrackEventBatchType>, res: MedusaResponse) => {
 	const analyticsService = req.scope.resolve(Modules.ANALYTICS)
 	const privateService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE) as PrivateAnalyticsService
 
@@ -19,14 +16,11 @@ export const POST = async (
 	// Derive the sales channel from the publishable API key on the request
 	// (server-side, unspoofable). A single-channel key attributes cleanly; a key
 	// linked to multiple channels is ambiguous, so we leave attribution unset.
-	const channelIds: string[] =
-		(req as any).publishable_key_context?.sales_channel_ids ?? []
+	const channelIds: string[] = (req as any).publishable_key_context?.sales_channel_ids ?? []
 	const salesChannelId = channelIds.length === 1 ? channelIds[0] : null
 
 	// Normalize a single event or a batch to one array, then dispatch per event.
-	const events = Array.isArray(req.validatedBody)
-		? req.validatedBody
-		: [req.validatedBody]
+	const events = Array.isArray(req.validatedBody) ? req.validatedBody : [req.validatedBody]
 
 	let accepted = 0
 	for (const { event, actor_id, session_id, properties } of events) {

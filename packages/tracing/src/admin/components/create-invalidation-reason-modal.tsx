@@ -16,10 +16,7 @@ type CreateInvalidationReasonDrawerProps = {
 	setOpen: (open: boolean) => void
 }
 
-export const CreateInvalidationReasonModal = ({
-	open,
-	setOpen
-}: CreateInvalidationReasonDrawerProps) => {
+export const CreateInvalidationReasonModal = ({ open, setOpen }: CreateInvalidationReasonDrawerProps) => {
 	const { mutate: createReason, isPending } = useCreateInvalidationReason()
 	const prompt = usePrompt()
 
@@ -30,10 +27,7 @@ export const CreateInvalidationReasonModal = ({
 		}
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -79,7 +73,12 @@ export const CreateInvalidationReasonModal = ({
 						<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 							<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 								<div>
-									<Heading className="capitalize">Create Invalidation Reason</Heading>
+									<FocusModal.Title asChild>
+										<Heading className="capitalize">Create Invalidation Reason</Heading>
+									</FocusModal.Title>
+									<FocusModal.Description className="sr-only">
+										Create a new invalidation reason: give it a value used when invalidating stock.
+									</FocusModal.Description>
 								</div>
 								<div className="grid grid-cols-1 gap-4">
 									{/* Value */}
@@ -99,13 +98,7 @@ export const CreateInvalidationReasonModal = ({
 							</div>
 						</FocusModal.Body>
 						<FocusModal.Footer className="flex w-full items-center justify-end gap-x-2">
-							<Button
-								type="button"
-								size="small"
-								variant="secondary"
-								onClick={() => setOpen(false)}
-								disabled={isPending}
-							>
+							<Button type="button" size="small" variant="secondary" onClick={() => setOpen(false)} disabled={isPending}>
 								Cancel
 							</Button>
 							<Button type="submit" size="small" isLoading={isPending} disabled={isPending}>

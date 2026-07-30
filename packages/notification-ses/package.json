@@ -53,7 +53,7 @@
 		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests"
 	},
 	"dependencies": {
-		"@aws-sdk/client-sesv2": "^3.1095.0",
+		"@aws-sdk/client-sesv2": "^3.1098.0",
 		"nodemailer": "^9.0.3"
 	},
 	"devDependencies": {
@@ -62,7 +62,7 @@
 		"@medusajs/framework": "2.18.0",
 		"@medusajs/icons": "2.18.0",
 		"@medusajs/ui": "4.2.0",
-		"@swc/core": "1.15.46",
+		"@swc/core": "1.15.47",
 		"@swc/jest": "0.2.39",
 		"@types/jest": "30.0.0",
 		"@types/node": "22.20.1",

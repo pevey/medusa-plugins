@@ -3,10 +3,7 @@ import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import { CUSTOMER_TAG_MODULE } from '../../../../../modules/customer-tag'
 import { AdminAddCustomerTagType } from '../../../../validators'
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminAddCustomerTagType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminAddCustomerTagType>, res: MedusaResponse) => {
 	const { id } = req.params
 	const { tag } = req.validatedBody
 

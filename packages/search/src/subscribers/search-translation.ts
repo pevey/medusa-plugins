@@ -11,10 +11,7 @@ const REFERENCE_TO_TYPE: Record<string, string> = {
 	product_collection: 'collection'
 }
 
-export default async function searchTranslationHandler({
-	event: { name: eventName, data },
-	container
-}: SubscriberArgs<{ id: string }>) {
+export default async function searchTranslationHandler({ event: { name: eventName, data }, container }: SubscriberArgs<{ id: string }>) {
 	const logger = container.resolve('logger')
 	try {
 		const mod = resolveTranslationModule(container)

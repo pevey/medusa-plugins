@@ -13,6 +13,29 @@ paths:
       summary: List Policies
       tags:
         - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: OK
@@ -65,6 +88,29 @@ paths:
       summary: List Assignable
       tags:
         - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: OK
@@ -165,6 +211,28 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
         - name: id
           in: path
           required: true
@@ -183,6 +251,29 @@ paths:
       summary: List Roles
       tags:
         - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: OK
@@ -195,6 +286,14 @@ paths:
       summary: Create Role
       tags:
         - Admin
+      parameters:
+        - name: policies
+          in: query
+          required: false
+          schema:
+            type: array
+            items: &a1
+              type: string
       requestBody:
         required: true
         content:
@@ -235,6 +334,29 @@ paths:
       summary: List Assignable
       tags:
         - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: OK
@@ -249,6 +371,12 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: policies
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a1
         - name: id
           in: path
           required: true
@@ -267,6 +395,12 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: policies
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a1
         - name: id
           in: path
           required: true
@@ -331,6 +465,12 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: policies
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a1
         - name: id
           in: path
           required: true
@@ -349,6 +489,12 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: policies
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a1
         - name: id
           in: path
           required: true
@@ -399,6 +545,28 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
         - name: id
           in: path
           required: true
@@ -491,6 +659,28 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
         - name: id
           in: path
           required: true

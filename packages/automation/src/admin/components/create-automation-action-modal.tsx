@@ -1,18 +1,5 @@
 import * as zod from 'zod'
-import {
-	Badge,
-	Button,
-	FocusModal,
-	Heading,
-	Input,
-	InlineTip,
-	Label,
-	RadioGroup,
-	Select,
-	Text,
-	Textarea,
-	toast
-} from '@medusajs/ui'
+import { Badge, Button, FocusModal, Heading, Input, InlineTip, Label, RadioGroup, Select, Text, Textarea, toast } from '@medusajs/ui'
 import { Plus, Trash } from '@medusajs/icons'
 import { useEffect } from 'react'
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form'
@@ -36,13 +23,7 @@ import { TriggerType, ActionType, RequestMethod, FieldMapping, StaticValue } fro
 
 // ─── StaticValuesEditor ───────────────────────────────────────────────────────
 
-const StaticValuesEditor = ({
-	value,
-	onChange
-}: {
-	value: StaticValue[]
-	onChange: (v: StaticValue[]) => void
-}) => {
+const StaticValuesEditor = ({ value, onChange }: { value: StaticValue[]; onChange: (v: StaticValue[]) => void }) => {
 	const addRow = () => onChange([...value, { key: '', value: '' }])
 	const removeRow = (i: number) => onChange(value.filter((_, idx) => idx !== i))
 	const update = (i: number, field: keyof StaticValue, v: string) => {
@@ -65,17 +46,9 @@ const StaticValuesEditor = ({
 				</div>
 			)}
 			{value.map((row, i) => (
-				<div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
-					<Input
-						placeholder="e.g. source or customer.type"
-						value={row.key}
-						onChange={e => update(i, 'key', e.target.value)}
-					/>
-					<Input
-						placeholder="e.g. my-system"
-						value={row.value}
-						onChange={e => update(i, 'value', e.target.value)}
-					/>
+				<div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
+					<Input placeholder="e.g. source or customer.type" value={row.key} onChange={e => update(i, 'key', e.target.value)} />
+					<Input placeholder="e.g. my-system" value={row.value} onChange={e => update(i, 'value', e.target.value)} />
 					<Button type="button" size="small" variant="secondary" onClick={() => removeRow(i)}>
 						<Trash />
 					</Button>
@@ -90,13 +63,7 @@ const StaticValuesEditor = ({
 
 // ─── FieldsEditor ─────────────────────────────────────────────────────────────
 
-const FieldsEditor = ({
-	value,
-	onChange
-}: {
-	value: string[]
-	onChange: (v: string[]) => void
-}) => {
+const FieldsEditor = ({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) => {
 	const addRow = () => onChange([...value, ''])
 	const removeRow = (i: number) => onChange(value.filter((_, idx) => idx !== i))
 	const update = (i: number, v: string) => {
@@ -108,13 +75,8 @@ const FieldsEditor = ({
 	return (
 		<div className="flex flex-col gap-2">
 			{value.map((field, i) => (
-				<div key={i} className="flex gap-2 items-center">
-					<Input
-						placeholder="e.g. id, total, customer.*, items.*"
-						value={field}
-						onChange={e => update(i, e.target.value)}
-						className="flex-1"
-					/>
+				<div key={i} className="flex items-center gap-2">
+					<Input placeholder="e.g. id, total, customer.*, items.*" value={field} onChange={e => update(i, e.target.value)} className="flex-1" />
 					<Button type="button" size="small" variant="secondary" onClick={() => removeRow(i)}>
 						<Trash />
 					</Button>
@@ -147,9 +109,7 @@ const schema = zod.object({
 	target_url: zod.string().optional(),
 	signing_secret_id: zod.string().nullable().optional(),
 	request_method: zod.enum(['GET', 'POST', 'PUT', 'DELETE'] satisfies [RequestMethod, ...RequestMethod[]]).optional(),
-	target_headers: zod
-		.array(zod.object({ key: zod.string().min(1), value: zod.string() }))
-		.optional(),
+	target_headers: zod.array(zod.object({ key: zod.string().min(1), value: zod.string() })).optional(),
 	medusa_workflow: zod.string().optional(),
 	field_mappings: zod
 		.array(
@@ -159,9 +119,7 @@ const schema = zod.object({
 			})
 		)
 		.optional(),
-	static_values: zod
-		.array(zod.object({ key: zod.string().min(1), value: zod.string() }))
-		.optional(),
+	static_values: zod.array(zod.object({ key: zod.string().min(1), value: zod.string() })).optional(),
 	query: querySchema
 })
 
@@ -218,23 +176,18 @@ const FieldMappingEditor = ({
 	value: FieldMapping[]
 	onChange: (v: FieldMapping[]) => void
 }) => {
-	const eventSourcePaths =
-		triggerType === 'medusa_event' ? getSourcePathsForEvents(triggerEvents) : []
+	const eventSourcePaths = triggerType === 'medusa_event' ? getSourcePathsForEvents(triggerEvents) : []
 
 	const querySourcePaths =
-		triggerType === 'medusa_event' && queryConfig?.entity_name
-			? getQueryResultPaths(queryConfig.entity_name, queryConfig.fields ?? [])
-			: []
+		triggerType === 'medusa_event' && queryConfig?.entity_name ? getQueryResultPaths(queryConfig.entity_name, queryConfig.fields ?? []) : []
 
-	const workflowDef =
-		actionType === 'medusa_workflow' ? MEDUSA_WORKFLOWS_BY_NAME[medusaWorkflow] : null
+	const workflowDef = actionType === 'medusa_workflow' ? MEDUSA_WORKFLOWS_BY_NAME[medusaWorkflow] : null
 	const workflowTargetPaths = workflowDef ? flattenWorkflowInputPaths(workflowDef.inputFields) : []
 
 	const sourceIsDropdown = triggerType === 'medusa_event'
 	const targetIsDropdown = actionType === 'medusa_workflow' && workflowTargetPaths.length > 0
 
-	const sourceLabel =
-		triggerType === 'medusa_event' ? 'Event / Query Field' : 'Incoming Field (dot path)'
+	const sourceLabel = triggerType === 'medusa_event' ? 'Event / Query Field' : 'Incoming Field (dot path)'
 	const targetLabel =
 		actionType === 'medusa_workflow'
 			? 'Workflow Input Field'
@@ -263,7 +216,7 @@ const FieldMappingEditor = ({
 			</div>
 
 			{value.map((row, i) => (
-				<div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+				<div key={i} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
 					{sourceIsDropdown ? (
 						<Select value={row.source_path} onValueChange={v => update(i, 'source_path', v)}>
 							<Select.Trigger>
@@ -293,11 +246,7 @@ const FieldMappingEditor = ({
 							</Select.Content>
 						</Select>
 					) : (
-						<Input
-							placeholder="e.g. data.customer.email"
-							value={row.source_path}
-							onChange={e => update(i, 'source_path', e.target.value)}
-						/>
+						<Input placeholder="e.g. data.customer.email" value={row.source_path} onChange={e => update(i, 'source_path', e.target.value)} />
 					)}
 
 					{targetIsDropdown ? (
@@ -309,9 +258,7 @@ const FieldMappingEditor = ({
 								{workflowDef?.hasAdditionalData && (
 									<Select.Group>
 										<Select.Label>additional_data (custom)</Select.Label>
-										<Select.Item value="additional_data.__custom__">
-											additional_data.… (type key below)
-										</Select.Item>
+										<Select.Item value="additional_data.__custom__">additional_data.… (type key below)</Select.Item>
 									</Select.Group>
 								)}
 								<Select.Group>
@@ -326,11 +273,7 @@ const FieldMappingEditor = ({
 						</Select>
 					) : (
 						<Input
-							placeholder={
-								actionType === 'medusa_workflow'
-									? 'e.g. customersData[].email'
-									: 'e.g. customer_email'
-							}
+							placeholder={actionType === 'medusa_workflow' ? 'e.g. customersData[].email' : 'e.g. customer_email'}
 							value={row.target_key}
 							onChange={e => update(i, 'target_key', e.target.value)}
 						/>
@@ -343,12 +286,10 @@ const FieldMappingEditor = ({
 			))}
 
 			{workflowDef?.hasAdditionalData && (
-				<div className="rounded-lg border border-ui-border-base bg-ui-bg-subtle p-3">
+				<div className="border-ui-border-base bg-ui-bg-subtle rounded-lg border p-3">
 					<Text size="small" className="text-ui-fg-subtle">
-						This workflow accepts <code className="font-mono text-xs">additional_data</code>.
-						Map any field to{' '}
-						<code className="font-mono text-xs">additional_data.your_key</code> to pass custom
-						data through to workflow hooks.
+						This workflow accepts <code className="font-mono text-xs">additional_data</code>. Map any field to{' '}
+						<code className="font-mono text-xs">additional_data.your_key</code> to pass custom data through to workflow hooks.
 					</Text>
 				</div>
 			)}
@@ -364,7 +305,7 @@ const FieldMappingEditor = ({
 
 const StepHeader = ({ step, label }: { step: number; label: string }) => (
 	<div className="flex items-center gap-3">
-		<div className="w-7 h-7 rounded-full border border-ui-border-strong bg-ui-bg-base text-ui-fg-base flex items-center justify-center text-xs font-medium shrink-0">
+		<div className="border-ui-border-strong bg-ui-bg-base text-ui-fg-base flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-medium">
 			{step}
 		</div>
 		<Heading level="h2">{label}</Heading>
@@ -381,13 +322,7 @@ type Props = {
 	setOpen: (open: boolean) => void
 }
 
-export const CreateAutomationActionModal = ({
-	triggerId,
-	triggerType,
-	triggerEvents = [],
-	open,
-	setOpen
-}: Props) => {
+export const CreateAutomationActionModal = ({ triggerId, triggerType, triggerEvents = [], open, setOpen }: Props) => {
 	const { mutateAsync: createAction, isPending } = useCreateAutomationAction(triggerId)
 
 	const form = useForm<FormData>({
@@ -497,13 +432,9 @@ export const CreateAutomationActionModal = ({
 	})
 
 	const isMedusaEvent = triggerType === 'medusa_event'
-	const actionReady =
-		actionType === 'outgoing_webhook' ||
-		actionType === 'outgoing_request' ||
-		actionType === 'medusa_workflow'
+	const actionReady = actionType === 'outgoing_webhook' || actionType === 'outgoing_request' || actionType === 'medusa_workflow'
 	const showMapping = actionReady
-	const showBody =
-		actionType === 'outgoing_request' && (requestMethod === 'POST' || requestMethod === 'PUT')
+	const showBody = actionType === 'outgoing_request' && (requestMethod === 'POST' || requestMethod === 'PUT')
 
 	// Step numbers shift when the Query step is present
 	const queryStepN = 2
@@ -514,26 +445,23 @@ export const CreateAutomationActionModal = ({
 		<FocusModal open={open} onOpenChange={setOpen}>
 			<FocusModal.Content>
 				<FormProvider {...form}>
-					<form onSubmit={onSubmit} className="flex flex-col h-full">
+					<form onSubmit={onSubmit} className="flex h-full flex-col">
 						<FocusModal.Header></FocusModal.Header>
 						<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 							<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 								<div className="flex flex-col gap-y-4">
-									<Heading level="h1">Create Action</Heading>
+									<FocusModal.Title asChild>
+										<Heading level="h1">Create Action</Heading>
+									</FocusModal.Title>
+									<FocusModal.Description className="sr-only">
+										Create a new action: name it and configure what it does when its trigger fires.
+									</FocusModal.Description>
 									<div className="flex flex-col gap-y-4">
 										{/* Trigger Context */}
 										<div className="flex flex-col gap-y-2">
 											<Label size="small" weight="plus" className="leading-compact mb-1">
 												Trigger Context
-												<Input
-													className="mt-1"
-													value={
-														triggerType === 'medusa_event'
-															? 'Medusa Event'
-															: 'Incoming Webhook'
-													}
-													readOnly
-												/>
+												<Input className="mt-1" value={triggerType === 'medusa_event' ? 'Medusa Event' : 'Incoming Webhook'} readOnly />
 											</Label>
 											<Text size="small" className="text-ui-fg-subtle">
 												{triggerType === 'medusa_event'
@@ -578,13 +506,7 @@ export const CreateAutomationActionModal = ({
 											<Controller
 												name="description"
 												control={control}
-												render={({ field }) => (
-													<Textarea
-														id="wa-desc"
-														{...field}
-														placeholder="Optional description…"
-													/>
-												)}
+												render={({ field }) => <Textarea id="wa-desc" {...field} placeholder="Optional description…" />}
 											/>
 										</div>
 									</div>
@@ -592,11 +514,7 @@ export const CreateAutomationActionModal = ({
 									{/* ── Step 1: Action ────────────────────────────── */}
 									<div>
 										<StepHeader step={1} label="Action" />
-										<Text
-											weight="plus"
-											size="small"
-											className="leading-compact mt-2 mb-1"
-										>
+										<Text weight="plus" size="small" className="leading-compact mt-2 mb-1">
 											What should happen when the trigger fires?
 										</Text>
 										<Controller
@@ -608,21 +526,13 @@ export const CreateAutomationActionModal = ({
 														htmlFor="act-webhook"
 														className={`flex cursor-pointer items-start gap-x-3 rounded-lg border p-4 transition-colors ${field.value === 'outgoing_webhook' ? 'border-ui-border-interactive bg-ui-bg-field' : 'border-ui-border-base bg-ui-bg-base'}`}
 													>
-														<RadioGroup.Item
-															value="outgoing_webhook"
-															id="act-webhook"
-														/>
+														<RadioGroup.Item value="outgoing_webhook" id="act-webhook" />
 														<div>
-															<Label
-																htmlFor="act-webhook"
-																size="small"
-																weight="plus"
-															>
+															<Label htmlFor="act-webhook" size="small" weight="plus">
 																Send Outgoing Webhook
 															</Label>
 															<Text size="small" className="text-ui-fg-subtle">
-																POST the signed payload to an external URL with
-																HMAC-SHA256 verification.
+																POST the signed payload to an external URL with HMAC-SHA256 verification.
 															</Text>
 														</div>
 													</label>
@@ -630,21 +540,13 @@ export const CreateAutomationActionModal = ({
 														htmlFor="act-request"
 														className={`flex cursor-pointer items-start gap-x-3 rounded-lg border p-4 transition-colors ${field.value === 'outgoing_request' ? 'border-ui-border-interactive bg-ui-bg-field' : 'border-ui-border-base bg-ui-bg-base'}`}
 													>
-														<RadioGroup.Item
-															value="outgoing_request"
-															id="act-request"
-														/>
+														<RadioGroup.Item value="outgoing_request" id="act-request" />
 														<div>
-															<Label
-																htmlFor="act-request"
-																size="small"
-																weight="plus"
-															>
+															<Label htmlFor="act-request" size="small" weight="plus">
 																Send Outgoing Request
 															</Label>
 															<Text size="small" className="text-ui-fg-subtle">
-																Send a GET, POST, PUT, or DELETE request to an
-																external URL.
+																Send a GET, POST, PUT, or DELETE request to an external URL.
 															</Text>
 														</div>
 													</label>
@@ -652,21 +554,13 @@ export const CreateAutomationActionModal = ({
 														htmlFor="act-workflow"
 														className={`flex cursor-pointer items-start gap-x-3 rounded-lg border p-4 transition-colors ${field.value === 'medusa_workflow' ? 'border-ui-border-interactive bg-ui-bg-field' : 'border-ui-border-base bg-ui-bg-base'}`}
 													>
-														<RadioGroup.Item
-															value="medusa_workflow"
-															id="act-workflow"
-														/>
+														<RadioGroup.Item value="medusa_workflow" id="act-workflow" />
 														<div>
-															<Label
-																htmlFor="act-workflow"
-																size="small"
-																weight="plus"
-															>
+															<Label htmlFor="act-workflow" size="small" weight="plus">
 																Run Medusa Workflow
 															</Label>
 															<Text size="small" className="text-ui-fg-subtle">
-																Execute a core Medusa workflow with the mapped
-																payload as input.
+																Execute a core Medusa workflow with the mapped payload as input.
 															</Text>
 														</div>
 													</label>
@@ -685,14 +579,7 @@ export const CreateAutomationActionModal = ({
 												<Controller
 													name="target_url"
 													control={control}
-													render={({ field }) => (
-														<Input
-															id="wa-url"
-															{...field}
-															type="url"
-															placeholder="https://example.com/webhook"
-														/>
-													)}
+													render={({ field }) => <Input id="wa-url" {...field} type="url" placeholder="https://example.com/webhook" />}
 												/>
 											</div>
 											<div className="flex flex-col gap-y-1">
@@ -700,30 +587,19 @@ export const CreateAutomationActionModal = ({
 													Signing Secret
 												</Label>
 												<Text size="small" className="text-ui-fg-subtle">
-													Signs the outgoing payload with HMAC-SHA256. The recipient
-													can verify the{' '}
-													<code className="font-mono text-xs">
-														x-webhook-signature
-													</code>{' '}
-													header.
+													Signs the outgoing payload with HMAC-SHA256. The recipient can verify the{' '}
+													<code className="font-mono text-xs">x-webhook-signature</code> header.
 												</Text>
 												<Controller
 													name="signing_secret_id"
 													control={control}
 													render={({ field }) => (
-														<Select
-															value={field.value ?? ''}
-															onValueChange={v =>
-																field.onChange(v === '__none__' ? null : v)
-															}
-														>
+														<Select value={field.value ?? ''} onValueChange={v => field.onChange(v === '__none__' ? null : v)}>
 															<Select.Trigger>
 																<Select.Value placeholder="None (unsigned)" />
 															</Select.Trigger>
 															<Select.Content>
-																<Select.Item value="__none__">
-																	None (unsigned)
-																</Select.Item>
+																<Select.Item value="__none__">None (unsigned)</Select.Item>
 																{secrets.map(s => (
 																	<Select.Item key={s.id} value={s.id}>
 																		{s.label}
@@ -739,40 +615,23 @@ export const CreateAutomationActionModal = ({
 													Custom Headers
 												</Text>
 												{headerFields.map((item, i) => (
-													<div
-														key={item.id}
-														className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center"
-													>
+													<div key={item.id} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
 														<Controller
 															name={`target_headers.${i}.key`}
 															control={control}
-															render={({ field }) => (
-																<Input {...field} placeholder="Header name" />
-															)}
+															render={({ field }) => <Input {...field} placeholder="Header name" />}
 														/>
 														<Controller
 															name={`target_headers.${i}.value`}
 															control={control}
-															render={({ field }) => (
-																<Input {...field} placeholder="Header value" />
-															)}
+															render={({ field }) => <Input {...field} placeholder="Header value" />}
 														/>
-														<Button
-															type="button"
-															size="small"
-															variant="secondary"
-															onClick={() => removeHeader(i)}
-														>
+														<Button type="button" size="small" variant="secondary" onClick={() => removeHeader(i)}>
 															<Trash />
 														</Button>
 													</div>
 												))}
-												<Button
-													type="button"
-													size="small"
-													variant="secondary"
-													onClick={() => appendHeader({ key: '', value: '' })}
-												>
+												<Button type="button" size="small" variant="secondary" onClick={() => appendHeader({ key: '', value: '' })}>
 													<Plus /> Add Header
 												</Button>
 											</div>
@@ -783,9 +642,8 @@ export const CreateAutomationActionModal = ({
 									{actionType === 'outgoing_request' && (
 										<div className="flex flex-col gap-y-4">
 											<InlineTip label="Consider using a signed webhook">
-												Outgoing requests are unsigned. Use{' '}
-												<strong>Send Outgoing Webhook</strong> instead when the
-												receiving endpoint supports HMAC-SHA256 signature verification.
+												Outgoing requests are unsigned. Use <strong>Send Outgoing Webhook</strong> instead when the receiving endpoint supports
+												HMAC-SHA256 signature verification.
 											</InlineTip>
 											<div className="flex flex-col gap-y-1">
 												<Label htmlFor="req-url" size="small" weight="plus">
@@ -794,14 +652,7 @@ export const CreateAutomationActionModal = ({
 												<Controller
 													name="target_url"
 													control={control}
-													render={({ field }) => (
-														<Input
-															id="req-url"
-															{...field}
-															type="url"
-															placeholder="https://example.com/api/endpoint"
-														/>
-													)}
+													render={({ field }) => <Input id="req-url" {...field} type="url" placeholder="https://example.com/api/endpoint" />}
 												/>
 											</div>
 											<div className="flex flex-col gap-y-1">
@@ -812,10 +663,7 @@ export const CreateAutomationActionModal = ({
 													name="request_method"
 													control={control}
 													render={({ field }) => (
-														<Select
-															value={field.value ?? 'POST'}
-															onValueChange={field.onChange}
-														>
+														<Select value={field.value ?? 'POST'} onValueChange={field.onChange}>
 															<Select.Trigger className="w-32">
 																<Select.Value />
 															</Select.Trigger>
@@ -839,40 +687,23 @@ export const CreateAutomationActionModal = ({
 													Custom Headers
 												</Text>
 												{headerFields.map((item, i) => (
-													<div
-														key={item.id}
-														className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center"
-													>
+													<div key={item.id} className="grid grid-cols-[1fr_1fr_auto] items-center gap-2">
 														<Controller
 															name={`target_headers.${i}.key`}
 															control={control}
-															render={({ field }) => (
-																<Input {...field} placeholder="Header name" />
-															)}
+															render={({ field }) => <Input {...field} placeholder="Header name" />}
 														/>
 														<Controller
 															name={`target_headers.${i}.value`}
 															control={control}
-															render={({ field }) => (
-																<Input {...field} placeholder="Header value" />
-															)}
+															render={({ field }) => <Input {...field} placeholder="Header value" />}
 														/>
-														<Button
-															type="button"
-															size="small"
-															variant="secondary"
-															onClick={() => removeHeader(i)}
-														>
+														<Button type="button" size="small" variant="secondary" onClick={() => removeHeader(i)}>
 															<Trash />
 														</Button>
 													</div>
 												))}
-												<Button
-													type="button"
-													size="small"
-													variant="secondary"
-													onClick={() => appendHeader({ key: '', value: '' })}
-												>
+												<Button type="button" size="small" variant="secondary" onClick={() => appendHeader({ key: '', value: '' })}>
 													<Plus /> Add Header
 												</Button>
 											</div>
@@ -886,10 +717,7 @@ export const CreateAutomationActionModal = ({
 												name="medusa_workflow"
 												control={control}
 												render={({ field }) => (
-													<Select
-														value={field.value ?? ''}
-														onValueChange={field.onChange}
-													>
+													<Select value={field.value ?? ''} onValueChange={field.onChange}>
 														<Select.Trigger>
 															<Select.Value placeholder="Select workflow…" />
 														</Select.Trigger>
@@ -897,9 +725,7 @@ export const CreateAutomationActionModal = ({
 															{MEDUSA_WORKFLOW_CATEGORIES.map(cat => (
 																<Select.Group key={cat}>
 																	<Select.Label>{cat}</Select.Label>
-																	{MEDUSA_WORKFLOWS.filter(
-																		w => w.category === cat
-																	).map(wf => (
+																	{MEDUSA_WORKFLOWS.filter(w => w.category === cat).map(wf => (
 																		<Select.Item key={wf.name} value={wf.name}>
 																			{wf.label}
 																		</Select.Item>
@@ -911,20 +737,13 @@ export const CreateAutomationActionModal = ({
 												)}
 											/>
 											{workflowDef && (
-												<div className="rounded-lg border border-ui-border-base bg-ui-bg-subtle p-4">
-													<Text
-														size="small"
-														weight="plus"
-														leading="compact"
-														className="text-ui-fg-subtle mb-2"
-													>
+												<div className="border-ui-border-base bg-ui-bg-subtle rounded-lg border p-4">
+													<Text size="small" weight="plus" leading="compact" className="text-ui-fg-subtle mb-2">
 														Expected input shape
 													</Text>
-													<pre className="font-mono text-xs text-ui-fg-subtle whitespace-pre-wrap">
+													<pre className="text-ui-fg-subtle font-mono text-xs whitespace-pre-wrap">
 														{renderWorkflowInputShape(workflowDef.inputFields)}
-														{workflowDef.hasAdditionalData
-															? '\nadditional_data?: { … }'
-															: ''}
+														{workflowDef.hasAdditionalData ? '\nadditional_data?: { … }' : ''}
 													</pre>
 												</div>
 											)}
@@ -937,11 +756,9 @@ export const CreateAutomationActionModal = ({
 									<div className="flex flex-col gap-y-5">
 										<StepHeader step={queryStepN} label="Augment Data with Query" />
 										<Text size="small" className="text-ui-fg-subtle">
-											Optionally fetch additional data from Medusa before mapping. The
-											query result is merged into the available source fields under the
-											entity name (e.g.{' '}
-											<code className="font-mono text-xs">order.total</code>). Leave
-											unconfigured to map only the raw event data.
+											Optionally fetch additional data from Medusa before mapping. The query result is merged into the available source fields under
+											the entity name (e.g. <code className="font-mono text-xs">order.total</code>). Leave unconfigured to map only the raw event
+											data.
 										</Text>
 
 										{/* Enable / clear toggle */}
@@ -962,7 +779,7 @@ export const CreateAutomationActionModal = ({
 												<Plus /> Configure Query
 											</Button>
 										) : (
-											<div className="flex flex-col gap-y-4 rounded-lg border border-ui-border-base p-4">
+											<div className="border-ui-border-base flex flex-col gap-y-4 rounded-lg border p-4">
 												{/* Entity */}
 												<div className="flex flex-col gap-y-1">
 													<Label size="small" weight="plus">
@@ -973,10 +790,7 @@ export const CreateAutomationActionModal = ({
 														control={control}
 														render={({ field, fieldState }) => (
 															<>
-																<Select
-																	value={field.value ?? ''}
-																	onValueChange={field.onChange}
-																>
+																<Select value={field.value ?? ''} onValueChange={field.onChange}>
 																	<Select.Trigger>
 																		<Select.Value placeholder="Select entity…" />
 																	</Select.Trigger>
@@ -1004,45 +818,25 @@ export const CreateAutomationActionModal = ({
 														Fields
 													</Label>
 													<Text size="small" className="text-ui-fg-subtle">
-														Which fields to retrieve. Use dot notation and{' '}
-														<code className="font-mono text-xs">*</code> wildcards
-														(e.g.{' '}
+														Which fields to retrieve. Use dot notation and <code className="font-mono text-xs">*</code> wildcards (e.g.{' '}
 														<code className="font-mono text-xs">customer.*</code>).
 													</Text>
 													<Controller
 														name="query.fields"
 														control={control}
-														render={({ field }) => (
-															<FieldsEditor
-																value={field.value ?? []}
-																onChange={field.onChange}
-															/>
-														)}
+														render={({ field }) => <FieldsEditor value={field.value ?? []} onChange={field.onChange} />}
 													/>
 												</div>
 
 												{/* Filters */}
 												<div className="flex flex-col gap-y-1">
 													<Label size="small" weight="plus">
-														Filters{' '}
-														<span className="text-ui-fg-subtle font-normal">
-															(JSON, optional)
-														</span>
+														Filters <span className="text-ui-fg-subtle font-normal">(JSON, optional)</span>
 													</Label>
 													<Text size="small" className="text-ui-fg-subtle">
-														Use{' '}
-														<code className="font-mono text-xs">
-															"$event.fieldName"
-														</code>{' '}
-														to reference event data (e.g.{' '}
-														<code className="font-mono text-xs">
-															{'{ "id": "$event.id" }'}
-														</code>
-														). Supports operators:{' '}
-														<code className="font-mono text-xs">
-															$eq $in $gt $lt $ne $like
-														</code>
-														.
+														Use <code className="font-mono text-xs">"$event.fieldName"</code> to reference event data (e.g.{' '}
+														<code className="font-mono text-xs">{'{ "id": "$event.id" }'}</code>
+														). Supports operators: <code className="font-mono text-xs">$eq $in $gt $lt $ne $like</code>.
 													</Text>
 													<Controller
 														name="query.filters_json"
@@ -1062,10 +856,7 @@ export const CreateAutomationActionModal = ({
 												{/* Limit */}
 												<div className="flex flex-col gap-y-1">
 													<Label htmlFor="query-limit" size="small" weight="plus">
-														Limit{' '}
-														<span className="text-ui-fg-subtle font-normal">
-															(1–100)
-														</span>
+														Limit <span className="text-ui-fg-subtle font-normal">(1–100)</span>
 													</Label>
 													<Controller
 														name="query.limit"
@@ -1078,21 +869,14 @@ export const CreateAutomationActionModal = ({
 																max={100}
 																{...field}
 																value={field.value ?? 10}
-																onChange={e =>
-																	field.onChange(Number(e.target.value))
-																}
+																onChange={e => field.onChange(Number(e.target.value))}
 																className="w-32"
 															/>
 														)}
 													/>
 												</div>
 
-												<Button
-													type="button"
-													size="small"
-													variant="secondary"
-													onClick={() => setValue('query', null)}
-												>
+												<Button type="button" size="small" variant="secondary" onClick={() => setValue('query', null)}>
 													<Trash /> Remove Query
 												</Button>
 											</div>
@@ -1111,9 +895,7 @@ export const CreateAutomationActionModal = ({
 											{actionType === 'outgoing_webhook' &&
 												triggerType === 'incoming_webhook' &&
 												'Map incoming fields to the outgoing JSON body. Use dot notation for nested paths.'}
-											{actionType === 'outgoing_request' &&
-												!showBody &&
-												'Map fields to query parameter keys. Values will be serialized to strings.'}
+											{actionType === 'outgoing_request' && !showBody && 'Map fields to query parameter keys. Values will be serialized to strings.'}
 											{actionType === 'outgoing_request' &&
 												showBody &&
 												triggerType === 'medusa_event' &&
@@ -1159,31 +941,19 @@ export const CreateAutomationActionModal = ({
 												: actionType === 'outgoing_request' && !showBody
 													? 'query parameters'
 													: 'outgoing payload'}
-											. These are sent with every delivery regardless of the trigger
-											data.
+											. These are sent with every delivery regardless of the trigger data.
 										</Text>
 										<Controller
 											name="static_values"
 											control={control}
-											render={({ field }) => (
-												<StaticValuesEditor
-													value={field.value ?? []}
-													onChange={field.onChange}
-												/>
-											)}
+											render={({ field }) => <StaticValuesEditor value={field.value ?? []} onChange={field.onChange} />}
 										/>
 									</div>
 								)}
 							</div>
 						</FocusModal.Body>
 						<FocusModal.Footer className="flex w-full items-end justify-end gap-x-2">
-							<Button
-								type="button"
-								variant="secondary"
-								size="small"
-								onClick={() => setOpen(false)}
-								disabled={isPending}
-							>
+							<Button type="button" variant="secondary" size="small" onClick={() => setOpen(false)} disabled={isPending}>
 								Cancel
 							</Button>
 							<Button type="submit" size="small" isLoading={isPending} disabled={isPending}>

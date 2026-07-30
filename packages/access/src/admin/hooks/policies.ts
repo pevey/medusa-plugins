@@ -1,10 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { sdk } from '../lib/sdk'
-import {
-	AdminAccessPoliciesResponse,
-	AdminAccessPolicyResponse,
-	AdminAccessPolicyRolesResponse
-} from '../types'
+import { AdminAccessPoliciesResponse, AdminAccessPolicyResponse, AdminAccessPolicyRolesResponse } from '../types'
 
 // Policies are read-only in the UI (they are defined in code and synced to the
 // DB on startup). We only list, view, and show which roles reference them.
@@ -26,8 +22,7 @@ export const useAccessPolicy = (id: string | undefined) => {
 
 export const useAccessPolicyRoles = (policyId: string | undefined) => {
 	return useQuery<AdminAccessPolicyRolesResponse>({
-		queryFn: () =>
-			sdk.client.fetch(`/admin/access/policies/${policyId}/roles`, { query: { limit: 200 } }),
+		queryFn: () => sdk.client.fetch(`/admin/access/policies/${policyId}/roles`, { query: { limit: 200 } }),
 		queryKey: ['access-policy-roles', policyId],
 		enabled: !!policyId
 	})

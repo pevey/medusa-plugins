@@ -8,10 +8,7 @@ type Provider = {
 
 const CONCURRENCY = 4
 
-export async function fetchDocumentBytes(
-	provider: Provider,
-	complaints: ComplaintForExport[]
-): Promise<Record<string, DocumentBytes>> {
+export async function fetchDocumentBytes(provider: Provider, complaints: ComplaintForExport[]): Promise<Record<string, DocumentBytes>> {
 	const tasks: Array<{ id: string; fileKey: string }> = []
 	for (const c of complaints) {
 		for (const d of c.complaint.documents) {

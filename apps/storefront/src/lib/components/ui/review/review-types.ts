@@ -23,5 +23,13 @@ export type ReviewsListResponse = { reviews: StoreReview[]; count: number }
 
 // Cast targets restoring `.current`/`.loading`/`.error`, which svelte-check drops from the
 // SDK remote-query type (runtime is fine) — same approach as cart/types.ts CartQuery.
-export type SummaryQuery = { current: ReviewSummary | null | undefined; loading?: boolean; error?: unknown }
-export type ReviewsQuery = { current: ReviewsListResponse | null | undefined; loading?: boolean; error?: unknown }
+export type SummaryQuery = {
+	current: ReviewSummary | null | undefined
+	loading?: boolean
+	error?: unknown
+}
+export type ReviewsQuery = {
+	current: ReviewsListResponse | null | undefined
+	loading?: boolean
+	error?: unknown
+}

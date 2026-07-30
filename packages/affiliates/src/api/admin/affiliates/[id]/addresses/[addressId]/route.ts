@@ -3,10 +3,7 @@ import { updateAffiliateAddressWorkflow } from '../../../../../../workflows/upda
 import { deleteAffiliateAddressWorkflow } from '../../../../../../workflows/delete-affiliate-address'
 import { AdminUpdateAddressType } from '../../../../../validators'
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateAddressType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAddressType>, res: MedusaResponse) => {
 	const { result } = await updateAffiliateAddressWorkflow(req.scope).run({
 		input: {
 			affiliate_id: req.params.id,

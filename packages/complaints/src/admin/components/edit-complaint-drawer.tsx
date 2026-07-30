@@ -1,18 +1,5 @@
 import * as zod from 'zod'
-import {
-	Badge,
-	Drawer,
-	Heading,
-	Label,
-	Input,
-	Button,
-	Select,
-	Switch,
-	Text,
-	Textarea,
-	toast,
-	usePrompt
-} from '@medusajs/ui'
+import { Badge, Drawer, Heading, Label, Input, Button, Select, Switch, Text, Textarea, toast, usePrompt } from '@medusajs/ui'
 import { useEffect, useState } from 'react'
 import { useForm, Controller, FormProvider, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -43,7 +30,7 @@ const schema = zod
 		metadata: zod.record(zod.string(), zod.unknown()).nullable().optional(),
 		tag_ids: zod.array(zod.string()).optional()
 	})
-	.refine((data) => !data.product_id || !!data.order_id, {
+	.refine(data => !data.product_id || !!data.order_id, {
 		message: 'Order is required when a product is selected',
 		path: ['order_id']
 	})
@@ -80,22 +67,16 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 	const handleFilesSelected = (files: File[]) => {
 		for (const file of files) {
 			const tempId = `${Date.now()}-${Math.random().toString(36).slice(2)}`
-			setInFlight((prev) => [...prev, { id: tempId, filename: file.name, percent: 0 }])
+			setInFlight(prev => [...prev, { id: tempId, filename: file.name, percent: 0 }])
 			uploadDocument(complaint.id, file, (p: UploadProgress) => {
-				setInFlight((prev) =>
-					prev.map((u) => (u.id === tempId ? { ...u, percent: p.percent } : u))
-				)
+				setInFlight(prev => prev.map(u => (u.id === tempId ? { ...u, percent: p.percent } : u)))
 			})
 				.then(() => {
-					setInFlight((prev) => prev.filter((u) => u.id !== tempId))
+					setInFlight(prev => prev.filter(u => u.id !== tempId))
 					setDocumentsChanged(true)
 				})
 				.catch((err: Error) => {
-					setInFlight((prev) =>
-						prev.map((u) =>
-							u.id === tempId ? { ...u, percent: 100, error: err.message } : u
-						)
-					)
+					setInFlight(prev => prev.map(u => (u.id === tempId ? { ...u, percent: 100, error: err.message } : u)))
 					toast.error(`Upload failed for ${file.name}: ${err.message}`)
 				})
 		}
@@ -120,10 +101,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 	}
 
 	const handleDownloadDocument = (docId: string) => {
-		downloadDocumentMutation.mutate(
-			{ complaintId: complaint.id, docId },
-			{ onError: (err: Error) => toast.error(`Failed to open document: ${err.message}`) }
-		)
+		downloadDocumentMutation.mutate({ complaintId: complaint.id, docId }, { onError: (err: Error) => toast.error(`Failed to open document: ${err.message}`) })
 	}
 
 	const form = useForm<EditComplaintFormData>({
@@ -151,25 +129,19 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 
 	// Deduplicate products from order line items
 	const orderProducts = Object.values(
-		(orderData?.order?.items ?? []).reduce(
-			(acc: Record<string, { id: string; title: string }>, item) => {
-				if (item.product_id && !acc[item.product_id]) {
-					acc[item.product_id] = { id: item.product_id, title: item.product_title ?? '' }
-				}
-				return acc
-			},
-			{}
-		)
+		(orderData?.order?.items ?? []).reduce((acc: Record<string, { id: string; title: string }>, item) => {
+			if (item.product_id && !acc[item.product_id]) {
+				acc[item.product_id] = { id: item.product_id, title: item.product_title ?? '' }
+			}
+			return acc
+		}, {})
 	)
 
 	const { data: tagsData } = useComplaintTags()
 	const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
 	const [tagSelectValue, setTagSelectValue] = useState<string>('')
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -240,7 +212,12 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 				<FormProvider {...form}>
 					<form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
 						<Drawer.Header>
-							<Heading level="h1">Edit Complaint</Heading>
+							<Drawer.Title asChild>
+								<Heading level="h1">Edit Complaint</Heading>
+							</Drawer.Title>
+							<Drawer.Description className="sr-only">
+								Edit this complaint's status, linked order or product, description, tags, and documents.
+							</Drawer.Description>
 						</Drawer.Header>
 						<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 							{/* Customer ID — pre-populated, read-only */}
@@ -304,7 +281,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 											Product
 										</Label>
 										{orderLoading ? (
-											<span className="text-sm text-ui-fg-subtle">Loading...</span>
+											<span className="text-ui-fg-subtle text-sm">Loading...</span>
 										) : (
 											<Select value={field.value ?? ''} onValueChange={field.onChange}>
 												<Select.Trigger>
@@ -370,7 +347,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 								</Label>
 								{/* Selected tags displayed as removable badges */}
 								{selectedTagIds.length > 0 && (
-									<div className="flex flex-wrap gap-2 mb-2">
+									<div className="mb-2 flex flex-wrap gap-2">
 										{selectedTagIds.map(tagId => {
 											const tag = tagsData?.complaint_tags?.find(t => t.id === tagId)
 											return (
@@ -380,11 +357,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 													</Badge>
 													<button
 														type="button"
-														onClick={() =>
-															setSelectedTagIds(prev =>
-																prev.filter(id => id !== tagId)
-															)
-														}
+														onClick={() => setSelectedTagIds(prev => prev.filter(id => id !== tagId))}
 														className="text-ui-fg-subtle hover:text-ui-fg-base text-xs"
 														aria-label={`Remove tag ${tag?.value}`}
 													>
@@ -436,7 +409,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 								)}
 							/>
 							{/* Actionable */}
-							<div className="flex items-center justify-between rounded-lg border border-ui-border-base p-3">
+							<div className="border-ui-border-base flex items-center justify-between rounded-lg border p-3">
 								<div>
 									<Label htmlFor="ecd-actionable" size="small" weight="plus">
 										Actionable
@@ -448,17 +421,11 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 								<Controller
 									control={form.control}
 									name="actionable"
-									render={({ field }) => (
-										<Switch
-											id="ecd-actionable"
-											checked={field.value}
-											onCheckedChange={field.onChange}
-										/>
-									)}
+									render={({ field }) => <Switch id="ecd-actionable" checked={field.value} onCheckedChange={field.onChange} />}
 								/>
 							</div>
 							{/* Reportable */}
-							<div className="flex items-center justify-between rounded-lg border border-ui-border-base p-3">
+							<div className="border-ui-border-base flex items-center justify-between rounded-lg border p-3">
 								<div>
 									<Label htmlFor="ecd-reportable" size="small" weight="plus">
 										Reportable
@@ -470,13 +437,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 								<Controller
 									control={form.control}
 									name="reportable"
-									render={({ field }) => (
-										<Switch
-											id="ecd-reportable"
-											checked={field.value}
-											onCheckedChange={field.onChange}
-										/>
-									)}
+									render={({ field }) => <Switch id="ecd-reportable" checked={field.value} onCheckedChange={field.onChange} />}
 								/>
 							</div>
 							{/* Documents */}
@@ -486,12 +447,9 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 								</Label>
 								<DocumentDropZone onFilesSelected={handleFilesSelected} />
 								{(documents.length > 0 || inFlight.length > 0) && (
-									<div className="mt-2 flex flex-col divide-y rounded-lg border border-ui-border-base">
-										{documents.map((doc) => (
-											<div
-												key={doc.id}
-												className="flex items-center justify-between gap-x-2 px-3 py-2"
-											>
+									<div className="border-ui-border-base mt-2 flex flex-col divide-y rounded-lg border">
+										{documents.map(doc => (
+											<div key={doc.id} className="flex items-center justify-between gap-x-2 px-3 py-2">
 												<button
 													type="button"
 													onClick={() => handleDownloadDocument(doc.id)}
@@ -514,7 +472,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 												</button>
 											</div>
 										))}
-										{inFlight.map((u) => (
+										{inFlight.map(u => (
 											<div key={u.id} className="flex flex-col gap-y-1 px-3 py-2">
 												<div className="flex items-center justify-between gap-x-2">
 													<Text size="small" weight="plus" className="truncate">
@@ -524,11 +482,9 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 														{u.error ? 'Failed' : `${u.percent}%`}
 													</Text>
 												</div>
-												<div className="h-1 w-full overflow-hidden rounded bg-ui-bg-subtle">
+												<div className="bg-ui-bg-subtle h-1 w-full overflow-hidden rounded">
 													<div
-														className={`h-full transition-all ${
-															u.error ? 'bg-ui-tag-red-icon' : 'bg-ui-fg-interactive'
-														}`}
+														className={`h-full transition-all ${u.error ? 'bg-ui-tag-red-icon' : 'bg-ui-fg-interactive'}`}
 														style={{ width: `${u.percent}%` }}
 													/>
 												</div>
@@ -550,12 +506,7 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 										Cancel
 									</Button>
 								</Drawer.Close>
-								<Button
-									size="small"
-									type="submit"
-									disabled={!form.formState.isDirty && !documentsChanged}
-									isLoading={updateMutation.isPending}
-								>
+								<Button size="small" type="submit" disabled={!form.formState.isDirty && !documentsChanged} isLoading={updateMutation.isPending}>
 									Save
 								</Button>
 							</div>

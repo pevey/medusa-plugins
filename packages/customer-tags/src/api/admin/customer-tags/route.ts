@@ -1,17 +1,10 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
-import {
-	AdminCreateCustomerTagType,
-	AdminGetCustomerTagsType,
-	AdminDeleteCustomerTagsType
-} from '../../validators'
+import { AdminCreateCustomerTagType, AdminGetCustomerTagsType, AdminDeleteCustomerTagsType } from '../../validators'
 import { CUSTOMER_TAG_MODULE } from '../../../modules/customer-tag'
 import { CustomerTagService } from '../../../modules/customer-tag/service'
 
-export async function GET(
-	req: AuthenticatedMedusaRequest<AdminGetCustomerTagsType>,
-	res: MedusaResponse
-) {
+export async function GET(req: AuthenticatedMedusaRequest<AdminGetCustomerTagsType>, res: MedusaResponse) {
 	const { q } = req.validatedQuery
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { data: customerTags, metadata } = await query.graph({
@@ -29,19 +22,13 @@ export async function GET(
 	})
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateCustomerTagType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateCustomerTagType>, res: MedusaResponse) => {
 	const customerTagService: CustomerTagService = req.scope.resolve(CUSTOMER_TAG_MODULE)
 	const customerTag = await customerTagService.createCustomerTags(req.validatedBody)
 	res.json({ customer_tag: customerTag })
 }
 
-export async function DELETE(
-	req: AuthenticatedMedusaRequest<AdminDeleteCustomerTagsType>,
-	res: MedusaResponse
-) {
+export async function DELETE(req: AuthenticatedMedusaRequest<AdminDeleteCustomerTagsType>, res: MedusaResponse) {
 	const { ids } = req.validatedBody
 	const customerTagService: CustomerTagService = req.scope.resolve(CUSTOMER_TAG_MODULE)
 	await customerTagService.deleteCustomerTags(ids)

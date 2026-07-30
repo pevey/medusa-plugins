@@ -1,10 +1,5 @@
 import { Modules } from '@medusajs/framework/utils'
-import {
-	createStep,
-	createWorkflow,
-	StepResponse,
-	WorkflowResponse
-} from '@medusajs/framework/workflows-sdk'
+import { createStep, createWorkflow, StepResponse, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
 import { COMPLAINT_MODULE } from '../modules/complaint'
 import { ComplaintService } from '../modules/complaint/service'
 
@@ -30,19 +25,14 @@ export const deleteComplaintDocumentsStep = createStep(
 		const complaintService: ComplaintService = container.resolve(COMPLAINT_MODULE)
 
 		// Look up file keys before deleting the rows.
-		const documents = await complaintService.listComplaintDocuments(
-			{ id: input.ids },
-			{ select: ['id', 'file_key'] }
-		)
+		const documents = await complaintService.listComplaintDocuments({ id: input.ids }, { select: ['id', 'file_key'] })
 
-		const fileKeys = documents.map((d) => d.file_key).filter(Boolean)
+		const fileKeys = documents.map(d => d.file_key).filter(Boolean)
 
 		// Delete R2 objects first. If this throws, the DB rows are left intact
 		// so we still know what to clean up on a retry.
 		if (fileKeys.length) {
-			await provider.delete(
-				fileKeys.map((fileKey) => ({ fileKey, access: 'private' }))
-			)
+			await provider.delete(fileKeys.map(fileKey => ({ fileKey, access: 'private' })))
 		}
 
 		await complaintService.deleteComplaintDocuments(input.ids)
@@ -58,9 +48,6 @@ export const deleteComplaintDocumentsStep = createStep(
 
 export const deleteComplaintDocumentsWorkflowId = 'delete-complaint-documents'
 
-export const deleteComplaintDocumentsWorkflow = createWorkflow(
-	deleteComplaintDocumentsWorkflowId,
-	(input: DeleteComplaintDocumentsInput) => {
-		return new WorkflowResponse(deleteComplaintDocumentsStep(input))
-	}
-)
+export const deleteComplaintDocumentsWorkflow = createWorkflow(deleteComplaintDocumentsWorkflowId, (input: DeleteComplaintDocumentsInput) => {
+	return new WorkflowResponse(deleteComplaintDocumentsStep(input))
+})

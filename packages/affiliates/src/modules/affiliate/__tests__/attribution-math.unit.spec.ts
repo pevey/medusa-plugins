@@ -1,9 +1,5 @@
 /// <reference types="jest" />
-import {
-	computeSubtotals,
-	extractStateTimestamps,
-	findAffiliatePromotionId
-} from '../attribution-math'
+import { computeSubtotals, extractStateTimestamps, findAffiliatePromotionId } from '../attribution-math'
 
 describe('attribution-math', () => {
 	describe('computeSubtotals', () => {
@@ -77,18 +73,12 @@ describe('attribution-math', () => {
 
 	describe('findAffiliatePromotionId', () => {
 		it('returns the id of the first applied promotion in the affiliate lookup set', () => {
-			const id = findAffiliatePromotionId(
-				{ applied_promotions: [{ id: 'p1' }, { id: 'p2' }] } as any,
-				new Set(['p2'])
-			)
+			const id = findAffiliatePromotionId({ applied_promotions: [{ id: 'p1' }, { id: 'p2' }] } as any, new Set(['p2']))
 			expect(id).toBe('p2')
 		})
 
 		it('returns null when no applied promotion is in the lookup set', () => {
-			const id = findAffiliatePromotionId(
-				{ applied_promotions: [{ id: 'p1' }] } as any,
-				new Set(['pX'])
-			)
+			const id = findAffiliatePromotionId({ applied_promotions: [{ id: 'p1' }] } as any, new Set(['pX']))
 			expect(id).toBeNull()
 		})
 	})

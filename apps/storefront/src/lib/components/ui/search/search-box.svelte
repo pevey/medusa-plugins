@@ -52,12 +52,7 @@
 </div>
 
 <!-- Collapsed: icon-only link to the full search page. -->
-<a
-	data-search-collapsed
-	href={searchUrl}
-	aria-label="Search"
-	class={cn(COLLAPSED[breakpoint], 'text-foreground inline-flex items-center p-2')}
->
+<a data-search-collapsed href={searchUrl} aria-label="Search" class={cn(COLLAPSED[breakpoint], 'inline-flex items-center p-2 text-foreground')}>
 	{#if icon}
 		<Search.Icon>{@render icon()}</Search.Icon>
 	{:else}

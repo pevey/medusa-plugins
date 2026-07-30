@@ -1,8 +1,4 @@
-import {
-	defineMiddlewares,
-	validateAndTransformBody,
-	validateAndTransformQuery
-} from '@medusajs/framework/http'
+import { defineMiddlewares, validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework/http'
 import {
 	AdminCreateAffiliateSchema,
 	AdminUpdateAffiliateSchema,
@@ -22,16 +18,7 @@ export default defineMiddlewares({
 			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminListAffiliatesSchema, {
-					defaults: [
-						'id',
-						'name',
-						'email',
-						'phone',
-						'status',
-						'currency_code',
-						'created_at',
-						'*addresses'
-					],
+					defaults: ['id', 'name', 'email', 'phone', 'status', 'currency_code', 'created_at', '*addresses'],
 					defaultLimit: 20,
 					isList: true
 				})
@@ -52,18 +39,7 @@ export default defineMiddlewares({
 			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminListAffiliatesSchema.partial(), {
-					defaults: [
-						'id',
-						'name',
-						'email',
-						'phone',
-						'status',
-						'currency_code',
-						'primary_address_id',
-						'created_at',
-						'*addresses',
-						'promotions.*'
-					],
+					defaults: ['id', 'name', 'email', 'phone', 'status', 'currency_code', 'primary_address_id', 'created_at', '*addresses', 'promotions.*'],
 					isList: false
 				})
 			]

@@ -2,10 +2,7 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { AdminGetLowStockType } from '../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetLowStockType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetLowStockType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const logger = req.scope.resolve(ContainerRegistrationKeys.LOGGER)
 	const { threshold } = req.validatedQuery as AdminGetLowStockType
@@ -21,12 +18,7 @@ export const GET = async (
 		// Get all inventory items with location levels
 		const { data: items } = await query.graph({
 			entity: 'inventory_item',
-			fields: [
-				'id', 'sku', 'title',
-				'location_levels.id',
-				'location_levels.stocked_quantity',
-				'location_levels.location_id'
-			],
+			fields: ['id', 'sku', 'title', 'location_levels.id', 'location_levels.stocked_quantity', 'location_levels.location_id'],
 			pagination: { take: 200 }
 		})
 

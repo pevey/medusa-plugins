@@ -12,5 +12,5 @@
 {#if fieldCtx}
 	<Field.FieldError errors={issues} class={cn('', className)} />
 {:else if formError}
-	<p role="alert" class={cn('text-destructive text-sm', className)}>{formError}</p>
+	<p role="alert" class={cn('text-sm text-destructive', className)}>{formError}</p>
 {/if}

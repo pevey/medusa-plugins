@@ -12,17 +12,11 @@ function isOrder(result: unknown): result is StoreOrder {
 	// The SDK's completeCart unwraps Medusa's `{type:'order',order}` / `{type:'cart',cart}` to the
 	// order-or-cart payload. Medusa prefixes ids by entity type, so a completed order is `order_…`
 	// and a failed-completion cart is `cart_…` — a reliable discriminant on the unwrapped payload.
-	return (
-		!!result &&
-		typeof (result as { id?: unknown }).id === 'string' &&
-		(result as { id: string }).id.startsWith('order_')
-	)
+	return !!result && typeof (result as { id?: unknown }).id === 'string' && (result as { id: string }).id.startsWith('order_')
 }
 
 /** Ordered place-order sequence with guards. Pure: all IO is injected. */
-export async function runPlaceOrder(
-	steps: PlaceOrderSteps
-): Promise<{ order: StoreOrder } | { error: unknown }> {
+export async function runPlaceOrder(steps: PlaceOrderSteps): Promise<{ order: StoreOrder } | { error: unknown }> {
 	try {
 		if (steps.updateAddress) await steps.updateAddress()
 		if (!steps.hasShipping()) return { error: new Error('No delivery method selected') }
@@ -32,8 +26,7 @@ export async function runPlaceOrder(
 		}
 		const result = await steps.completeCart()
 		if (!result) return { error: new Error('Failed to complete the order') }
-		if (!isOrder(result))
-			return { error: (result as any).errors ?? new Error('Cart could not be completed') }
+		if (!isOrder(result)) return { error: (result as any).errors ?? new Error('Cart could not be completed') }
 		return { order: result as StoreOrder }
 	} catch (e) {
 		return { error: e }
@@ -59,9 +52,7 @@ export function classifyProvider(id: string): CheckoutProviderKind | null {
 }
 
 /** First available provider this checkout can render, with the body that renders it. */
-export function resolveCheckoutProvider(
-	available: string[]
-): { id: string; kind: CheckoutProviderKind } | null {
+export function resolveCheckoutProvider(available: string[]): { id: string; kind: CheckoutProviderKind } | null {
 	for (const id of available) {
 		const kind = classifyProvider(id)
 		if (kind) return { id, kind }
@@ -69,10 +60,7 @@ export function resolveCheckoutProvider(
 	return null
 }
 
-export function resolveRedirect(
-	redirectTo: string | ((order: StoreOrder) => string) | undefined,
-	order: StoreOrder
-): string | undefined {
+export function resolveRedirect(redirectTo: string | ((order: StoreOrder) => string) | undefined, order: StoreOrder): string | undefined {
 	if (!redirectTo) return undefined
 	return typeof redirectTo === 'function' ? redirectTo(order) : redirectTo
 }
@@ -145,9 +133,7 @@ export function cartBillingDetails(cart: any): {
 }
 
 /** Map Medusa shipping options to the Stripe Express Checkout shipping-rate shape. */
-export function medusaShippingToStripeRates(
-	options: any[]
-): { id: string; displayName: string; amount: number }[] {
+export function medusaShippingToStripeRates(options: any[]): { id: string; displayName: string; amount: number }[] {
 	return (options ?? []).map(o => ({ id: o.id, displayName: o.name, amount: o.amount ?? 0 }))
 }
 
@@ -175,10 +161,7 @@ export function walletAddressToMedusa(
 	}
 	return {
 		email: billing?.email || undefined,
-		shipping_address: toAddr(
-			shipping?.name ?? billing?.name,
-			shipping?.address ?? billing?.address
-		),
+		shipping_address: toAddr(shipping?.name ?? billing?.name, shipping?.address ?? billing?.address),
 		billing_address: toAddr(billing?.name, billing?.address)
 	}
 }

@@ -23,13 +23,14 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 	res.json({ review })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateReviewType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateReviewType>, res: MedusaResponse) => {
 	const reviewService: ReviewService = req.scope.resolve(REVIEW_MODULE)
 	let caching: ICachingModuleService | null = null
-	try { caching = req.scope.resolve(Modules.CACHING) ?? null } catch { /* noop */ }
+	try {
+		caching = req.scope.resolve(Modules.CACHING) ?? null
+	} catch {
+		/* noop */
+	}
 	const { id } = req.params
 	const { status, ...rest } = req.validatedBody
 
@@ -52,7 +53,11 @@ export const POST = async (
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const reviewService: ReviewService = req.scope.resolve(REVIEW_MODULE)
 	let caching: ICachingModuleService | null = null
-	try { caching = req.scope.resolve(Modules.CACHING) ?? null } catch { /* noop */ }
+	try {
+		caching = req.scope.resolve(Modules.CACHING) ?? null
+	} catch {
+		/* noop */
+	}
 
 	// Collect the product_id before deletion so we know which cache to clear
 	// (unknown id → retrieveReview throws → 404, intentionally not caught here)

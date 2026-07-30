@@ -7,13 +7,7 @@ import { ActionMenu } from '../../../../components/action-menu'
 import { EditRoleDrawer } from '../../../../components/edit-role-drawer'
 import { ManageRolePermissionsDrawer } from '../../../../components/manage-role-permissions-drawer'
 import { AddRoleUsersModal } from '../../../../components/add-role-users-modal'
-import {
-	useAccessRole,
-	useAccessRolePolicies,
-	useAccessRoleUsers,
-	useDeleteAccessRoles,
-	useRemoveAccessRoleUsers
-} from '../../../../hooks/roles'
+import { useAccessRole, useAccessRolePolicies, useAccessRoleUsers, useDeleteAccessRoles, useRemoveAccessRoleUsers } from '../../../../hooks/roles'
 
 type RoleLoaderData = { role: { id: string; name: string } }
 
@@ -104,7 +98,11 @@ const RoleDetailPage = () => {
 						groups={[
 							{
 								actions: [
-									{ label: 'Edit', icon: <PencilSquare />, onClick: () => setEditOpen(true) },
+									{
+										label: 'Edit',
+										icon: <PencilSquare />,
+										onClick: () => setEditOpen(true)
+									},
 									{ label: 'Delete', icon: <Trash />, onClick: handleDelete }
 								]
 							}
@@ -168,10 +166,7 @@ const RoleDetailPage = () => {
 				</div>
 				{users.length ? (
 					users.map(u => (
-						<div
-							key={u.id}
-							className="flex items-center justify-between px-6 py-4"
-						>
+						<div key={u.id} className="flex items-center justify-between px-6 py-4">
 							<div className="flex flex-col">
 								<Text size="small" weight="plus" leading="compact">
 									{[u.first_name, u.last_name].filter(Boolean).join(' ') || u.email}
@@ -180,11 +175,7 @@ const RoleDetailPage = () => {
 									{u.email}
 								</Text>
 							</div>
-							<Button
-								size="small"
-								variant="transparent"
-								onClick={() => handleRemoveUser(u.id, u.email)}
-							>
+							<Button size="small" variant="transparent" onClick={() => handleRemoveUser(u.id, u.email)}>
 								Remove
 							</Button>
 						</div>

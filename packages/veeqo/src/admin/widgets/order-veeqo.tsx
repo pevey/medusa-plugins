@@ -30,8 +30,7 @@ const OrderVeeqoWidget = ({ data: order }: DetailWidgetProps<AdminOrder>) => {
 	})
 
 	const syncMutation = useMutation({
-		mutationFn: () =>
-			sdk.client.fetch(`/admin/veeqo/orders/${order.id}/sync`, { method: 'POST' }),
+		mutationFn: () => sdk.client.fetch(`/admin/veeqo/orders/${order.id}/sync`, { method: 'POST' }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['order', order.id] })
 			toast.success('Order synced successfully')
@@ -44,12 +43,7 @@ const OrderVeeqoWidget = ({ data: order }: DetailWidgetProps<AdminOrder>) => {
 		<Container className="divide-y p-0">
 			<div className="flex items-center justify-between px-6 py-4">
 				<Heading level="h2">Veeqo Order</Heading>
-				<Button
-					size="small"
-					variant="secondary"
-					onClick={() => syncMutation.mutate()}
-					disabled={syncMutation.isPending}
-				>
+				<Button size="small" variant="secondary" onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>
 					{syncMutation.isPending ? 'Syncing...' : 'Sync'}
 				</Button>
 			</div>
@@ -58,11 +52,7 @@ const OrderVeeqoWidget = ({ data: order }: DetailWidgetProps<AdminOrder>) => {
 				{isLoading ? (
 					'Loading...'
 				) : veeqoOrderId ? (
-					<a
-						href={`https://app.veeqo.com/orders/${veeqoOrderId}`}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
+					<a href={`https://app.veeqo.com/orders/${veeqoOrderId}`} target="_blank" rel="noopener noreferrer">
 						<Text size="small">ID: {veeqoOrderId}</Text>
 					</a>
 				) : (

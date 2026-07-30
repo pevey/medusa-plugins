@@ -74,26 +74,26 @@ export class SearchState {
 	// by GROUP_ORDER, then unknown types in first-seen order. Each item carries its
 	// flat index so rendering order and keyboard-nav order share one source.
 	sections: SearchSection[] = $derived.by(() => {
-		const products = this.hits.filter((h) => h.type === 'product')
-		const nonProduct = this.hits.filter((h) => h.type !== 'product')
+		const products = this.hits.filter(h => h.type === 'product')
+		const nonProduct = this.hits.filter(h => h.type !== 'product')
 		const types: string[] = []
-		for (const t of GROUP_ORDER) if (nonProduct.some((h) => h.type === t)) types.push(t)
+		for (const t of GROUP_ORDER) if (nonProduct.some(h => h.type === t)) types.push(t)
 		for (const h of nonProduct) if (!types.includes(h.type)) types.push(h.type)
 
 		const sections: SearchSection[] = []
 		let index = 0
 		if (products.length) {
-			sections.push({ label: null, items: products.map((hit) => ({ hit, index: index++ })) })
+			sections.push({ label: null, items: products.map(hit => ({ hit, index: index++ })) })
 		}
 		for (const t of types) {
-			const items = nonProduct.filter((h) => h.type === t).map((hit) => ({ hit, index: index++ }))
+			const items = nonProduct.filter(h => h.type === t).map(hit => ({ hit, index: index++ }))
 			sections.push({ label: GROUP_LABELS[t] ?? titleCase(t), items })
 		}
 		return sections
 	})
 
 	// Flat hit list in the same visual order — indexed by activeIndex.
-	orderedHits: SearchHit[] = $derived(this.sections.flatMap((s) => s.items.map((i) => i.hit)))
+	orderedHits: SearchHit[] = $derived(this.sections.flatMap(s => s.items.map(i => i.hit)))
 
 	get listboxId() {
 		return `${this.baseId}-listbox`
@@ -102,14 +102,10 @@ export class SearchState {
 		return `${this.baseId}-opt-${index}`
 	}
 	get activeOptionId() {
-		return this.activeIndex >= 0 && this.activeIndex < this.orderedHits.length
-			? this.optionId(this.activeIndex)
-			: undefined
+		return this.activeIndex >= 0 && this.activeIndex < this.orderedHits.length ? this.optionId(this.activeIndex) : undefined
 	}
 	get activeHit() {
-		return this.activeIndex >= 0 && this.activeIndex < this.orderedHits.length
-			? this.orderedHits[this.activeIndex]
-			: undefined
+		return this.activeIndex >= 0 && this.activeIndex < this.orderedHits.length ? this.orderedHits[this.activeIndex] : undefined
 	}
 
 	// Move the highlight by delta, wrapping. Opens the dropdown. From "none" (-1),
@@ -118,12 +114,7 @@ export class SearchState {
 		const n = this.orderedHits.length
 		if (n === 0) return
 		this.open = true
-		this.activeIndex =
-			this.activeIndex === -1
-				? delta > 0
-					? 0
-					: n - 1
-				: (this.activeIndex + delta + n) % n
+		this.activeIndex = this.activeIndex === -1 ? (delta > 0 ? 0 : n - 1) : (this.activeIndex + delta + n) % n
 	}
 
 	resetActive() {

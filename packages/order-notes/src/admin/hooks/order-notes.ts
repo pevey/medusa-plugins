@@ -16,8 +16,7 @@ export const useOrderNotes = (orderId: string) => {
 export const useCreateOrderNote = (orderId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (body: { order_id: string; note: string; sent: boolean }) =>
-			sdk.client.fetch('/admin/order-notes', { method: 'POST', body }),
+		mutationFn: (body: { order_id: string; note: string; sent: boolean }) => sdk.client.fetch('/admin/order-notes', { method: 'POST', body }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['order-notes', orderId] })
 			queryClient.invalidateQueries({ queryKey: ['orders'] })
@@ -29,8 +28,7 @@ export const useCreateOrderNote = (orderId: string) => {
 export const useDeleteOrderNote = (orderId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (id: string) =>
-			sdk.client.fetch(`/admin/order-notes/${id}`, { method: 'DELETE' }),
+		mutationFn: (id: string) => sdk.client.fetch(`/admin/order-notes/${id}`, { method: 'DELETE' }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['order-notes', orderId] })
 		}

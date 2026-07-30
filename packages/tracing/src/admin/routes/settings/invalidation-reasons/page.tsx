@@ -16,10 +16,7 @@ import {
 } from '@medusajs/ui'
 import { CreateInvalidationReasonModal } from '../../../components/create-invalidation-reason-modal'
 import { AdminInvalidationReason } from '../../../types'
-import {
-	useInvalidationReasonsList,
-	useDeleteInvalidationReasons
-} from '../../../hooks/invalidation-reasons'
+import { useInvalidationReasonsList, useDeleteInvalidationReasons } from '../../../hooks/invalidation-reasons'
 
 export const config = defineRouteConfig({ label: 'Invalidation Reasons', rank: 3 })
 export const handle = { breadcrumb: () => 'Invalidation Reasons' }

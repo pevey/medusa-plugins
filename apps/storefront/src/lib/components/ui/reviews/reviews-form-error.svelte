@@ -6,5 +6,5 @@
 </script>
 
 {#if ctx.error}
-	<p role="alert" class={cn('text-destructive text-sm', className)}>{ctx.error}</p>
+	<p role="alert" class={cn('text-sm text-destructive', className)}>{ctx.error}</p>
 {/if}

@@ -19,11 +19,7 @@
  */
 
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
-import {
-	createSalesChannelsWorkflow,
-	createApiKeysWorkflow,
-	linkSalesChannelsToApiKeyWorkflow
-} from '@medusajs/medusa/core-flows'
+import { createSalesChannelsWorkflow, createApiKeysWorkflow, linkSalesChannelsToApiKeyWorkflow } from '@medusajs/medusa/core-flows'
 import { PRIVATE_ANALYTICS_MODULE } from '../../src/modules/analytics'
 
 jest.setTimeout(120 * 1000)
@@ -100,19 +96,13 @@ medusaIntegrationTestRunner({
 			})
 
 			it('gates out events without an active rubric', async () => {
-				const res = await api.post(
-					'/store/ping',
-					[{ event: 'page_view' }, { event: 'not_a_rubric_xyz' }],
-					pk()
-				)
+				const res = await api.post('/store/ping', [{ event: 'page_view' }, { event: 'not_a_rubric_xyz' }], pk())
 				expect(res.status).toBe(202)
 				expect(res.data).toEqual({ tracked: true, count: 1 })
 			})
 
 			it('rejects an empty array at validation', async () => {
-				const res = await api
-					.post('/store/ping', [], pk())
-					.catch((e: any) => e.response)
+				const res = await api.post('/store/ping', [], pk()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 		})

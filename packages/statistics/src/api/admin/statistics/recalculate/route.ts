@@ -14,9 +14,7 @@ async function recalculateAll(req: AuthenticatedMedusaRequest) {
 	const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
 
 	// Default to 30 days back if no existing stats
-	let startDate = new Date(
-		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 30)
-	)
+	let startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 30))
 	if (allStats.length > 0) {
 		const earliest = new Date((allStats[0] as any).date)
 		if (earliest < startDate) {
@@ -32,10 +30,7 @@ async function recalculateAll(req: AuthenticatedMedusaRequest) {
 	}
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminRecalculateStatisticsType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminRecalculateStatisticsType>, res: MedusaResponse) => {
 	await recalculateAll(req)
 	res.json({ success: true })
 }

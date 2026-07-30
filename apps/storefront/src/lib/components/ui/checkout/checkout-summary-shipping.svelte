@@ -13,6 +13,7 @@
 
 {#if formatted}
 	<div data-checkout-summary-shipping class={cn('flex justify-between', className)}>
-		<dt>{label}</dt><dd>{formatted}</dd>
+		<dt>{label}</dt>
+		<dd>{formatted}</dd>
 	</div>
 {/if}

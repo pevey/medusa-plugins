@@ -1,15 +1,5 @@
 import * as zod from 'zod'
-import {
-	Button,
-	FocusModal,
-	Heading,
-	Input,
-	Label,
-	Switch,
-	Text,
-	Textarea,
-	toast
-} from '@medusajs/ui'
+import { Button, FocusModal, Heading, Input, Label, Switch, Text, Textarea, toast } from '@medusajs/ui'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useBlocker } from 'react-router-dom'
@@ -119,19 +109,15 @@ export const CreateFormModal = ({ open, setOpen }: Props) => {
 	return (
 		<FocusModal open={open} onOpenChange={setOpen}>
 			<FocusModal.Content>
-				<form onSubmit={onSubmit} className="flex flex-col h-full">
+				<form onSubmit={onSubmit} className="flex h-full flex-col">
 					<FocusModal.Header />
 					<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 						<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
-							{/* `asChild` makes the visible heading double as the dialog's accessible name:
-							    Radix requires a Title on every DialogContent (it errors without one) and
-							    this keeps the markup and layout exactly as they were. */}
+							{/* `asChild` makes the visible heading double as the dialog's accessible name */}
 							<FocusModal.Title asChild>
 								<Heading level="h1">Create Form</Heading>
 							</FocusModal.Title>
-							<FocusModal.Description className="sr-only">
-								Create a new form: name it, choose its handle, and add its fields.
-							</FocusModal.Description>
+							<FocusModal.Description className="sr-only">Create a new form: name it, choose its handle, and add its fields.</FocusModal.Description>
 
 							<div className="flex flex-col gap-y-4">
 								<div className="flex flex-col gap-y-1">
@@ -163,12 +149,7 @@ export const CreateFormModal = ({ open, setOpen }: Props) => {
 										control={control}
 										render={({ field, fieldState }) => (
 											<>
-												<Input
-													id="ft-handle"
-													{...field}
-													placeholder="contact-us"
-													className="font-mono"
-												/>
+												<Input id="ft-handle" {...field} placeholder="contact-us" className="font-mono" />
 												{fieldState.error && (
 													<Text size="small" className="text-ui-fg-error">
 														{fieldState.error.message}
@@ -184,23 +165,16 @@ export const CreateFormModal = ({ open, setOpen }: Props) => {
 
 								<div className="flex flex-col gap-y-1">
 									<Label htmlFor="ft-desc" size="small" weight="plus">
-										Description{' '}
-										<span className="text-ui-fg-subtle font-normal">(optional)</span>
+										Description <span className="text-ui-fg-subtle font-normal">(optional)</span>
 									</Label>
 									<Controller
 										name="description"
 										control={control}
-										render={({ field }) => (
-											<Textarea
-												id="ft-desc"
-												{...field}
-												placeholder="Optional description…"
-											/>
-										)}
+										render={({ field }) => <Textarea id="ft-desc" {...field} placeholder="Optional description…" />}
 									/>
 								</div>
 
-								<div className="flex items-center justify-between rounded-lg border border-ui-border-base p-4">
+								<div className="border-ui-border-base flex items-center justify-between rounded-lg border p-4">
 									<div>
 										<Label htmlFor="ft-active" size="small" weight="plus">
 											Active
@@ -212,17 +186,11 @@ export const CreateFormModal = ({ open, setOpen }: Props) => {
 									<Controller
 										name="active"
 										control={control}
-										render={({ field }) => (
-											<Switch
-												id="ft-active"
-												checked={field.value}
-												onCheckedChange={field.onChange}
-											/>
-										)}
+										render={({ field }) => <Switch id="ft-active" checked={field.value} onCheckedChange={field.onChange} />}
 									/>
 								</div>
 
-								<div className="flex items-center justify-between rounded-lg border border-ui-border-base p-4">
+								<div className="border-ui-border-base flex items-center justify-between rounded-lg border p-4">
 									<div>
 										<Label htmlFor="ft-turnstile" size="small" weight="plus">
 											Require Turnstile
@@ -234,21 +202,14 @@ export const CreateFormModal = ({ open, setOpen }: Props) => {
 									<Controller
 										name="turnstile_enabled"
 										control={control}
-										render={({ field }) => (
-											<Switch
-												id="ft-turnstile"
-												checked={field.value}
-												onCheckedChange={field.onChange}
-											/>
-										)}
+										render={({ field }) => <Switch id="ft-turnstile" checked={field.value} onCheckedChange={field.onChange} />}
 									/>
 								</div>
 							</div>
 
 							<div className="flex flex-col gap-y-1">
 								<Label htmlFor="ft-emails" size="small" weight="plus">
-									Notification Emails{' '}
-									<span className="text-ui-fg-subtle font-normal">(optional)</span>
+									Notification Emails <span className="text-ui-fg-subtle font-normal">(optional)</span>
 								</Label>
 								<Text size="xsmall" className="text-ui-fg-subtle">
 									Comma-separated email addresses to notify on new submissions.
@@ -257,13 +218,7 @@ export const CreateFormModal = ({ open, setOpen }: Props) => {
 									name="notification_emails"
 									control={control}
 									render={({ field }) => (
-										<Textarea
-											id="ft-emails"
-											{...field}
-											value={field.value ?? ''}
-											placeholder="admin@example.com, support@example.com"
-											rows={2}
-										/>
+										<Textarea id="ft-emails" {...field} value={field.value ?? ''} placeholder="admin@example.com, support@example.com" rows={2} />
 									)}
 								/>
 							</div>
@@ -280,13 +235,7 @@ export const CreateFormModal = ({ open, setOpen }: Props) => {
 						</div>
 					</FocusModal.Body>
 					<FocusModal.Footer className="flex w-full items-end justify-end gap-x-2">
-						<Button
-							type="button"
-							variant="secondary"
-							size="small"
-							onClick={() => setOpen(false)}
-							disabled={isPending}
-						>
+						<Button type="button" variant="secondary" size="small" onClick={() => setOpen(false)} disabled={isPending}>
 							Cancel
 						</Button>
 						<Button type="submit" size="small" isLoading={isPending} disabled={isPending}>

@@ -1,15 +1,9 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { COMPLAINT_MODULE } from '../../../../../../modules/complaint'
 import { ComplaintService } from '../../../../../../modules/complaint/service'
-import {
-	AdminUpdateComplaintActivityType,
-	AdminGetComplaintActivityType
-} from '../../../../../validators'
+import { AdminUpdateComplaintActivityType, AdminGetComplaintActivityType } from '../../../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetComplaintActivityType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetComplaintActivityType>, res: MedusaResponse) => {
 	const query = req.scope.resolve('query')
 	const { entryId } = req.params
 
@@ -26,10 +20,7 @@ export const GET = async (
 	res.json({ activity })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateComplaintActivityType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateComplaintActivityType>, res: MedusaResponse) => {
 	const { id: complaintId, entryId } = req.params
 	const complaintService: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)
 	const activity = await complaintService.updateComplaintActivities({

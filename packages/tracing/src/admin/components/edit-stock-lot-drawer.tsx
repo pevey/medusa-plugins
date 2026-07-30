@@ -1,15 +1,5 @@
 import * as zod from 'zod'
-import {
-	Drawer,
-	Heading,
-	Label,
-	Input,
-	Button,
-	Switch,
-	Select,
-	toast,
-	usePrompt
-} from '@medusajs/ui'
+import { Drawer, Heading, Label, Input, Button, Switch, Select, toast, usePrompt } from '@medusajs/ui'
 import { useEffect } from 'react'
 import { useForm, Controller, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -51,10 +41,7 @@ export const EditStockLotDrawer = ({ stockLot, open, setOpen }: EditStockLotDraw
 		}
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -110,7 +97,12 @@ export const EditStockLotDrawer = ({ stockLot, open, setOpen }: EditStockLotDraw
 				<FormProvider {...form}>
 					<form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
 						<Drawer.Header>
-							<Heading level="h1">Edit Stock Lot</Heading>
+							<Drawer.Title asChild>
+								<Heading level="h1">Edit Stock Lot</Heading>
+							</Drawer.Title>
+							<Drawer.Description className="sr-only">
+								Edit this stock lot's lot number, stocked quantity, stock location, and description.
+							</Drawer.Description>
 						</Drawer.Header>
 						<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 							{/* Inventory Item */}
@@ -124,7 +116,7 @@ export const EditStockLotDrawer = ({ stockLot, open, setOpen }: EditStockLotDraw
 											Inventory Item
 										</Label>
 										{inventoryLoading ? (
-											<span className="text-sm text-ui-fg-subtle">Loading...</span>
+											<span className="text-ui-fg-subtle text-sm">Loading...</span>
 										) : (
 											<Select value={field.value} onValueChange={field.onChange}>
 												<Select.Trigger>
@@ -154,7 +146,7 @@ export const EditStockLotDrawer = ({ stockLot, open, setOpen }: EditStockLotDraw
 											Stock Location
 										</Label>
 										{locationsLoading ? (
-											<span className="text-sm text-ui-fg-subtle">Loading...</span>
+											<span className="text-ui-fg-subtle text-sm">Loading...</span>
 										) : (
 											<Select value={field.value} onValueChange={field.onChange}>
 												<Select.Trigger>
@@ -197,11 +189,7 @@ export const EditStockLotDrawer = ({ stockLot, open, setOpen }: EditStockLotDraw
 										<Label size="small" weight="plus">
 											Description
 										</Label>
-										<Input
-											{...field}
-											value={field.value ?? ''}
-											placeholder="Optional description"
-										/>
+										<Input {...field} value={field.value ?? ''} placeholder="Optional description" />
 									</div>
 								)}
 							/>
@@ -215,12 +203,7 @@ export const EditStockLotDrawer = ({ stockLot, open, setOpen }: EditStockLotDraw
 										<Label size="small" weight="plus">
 											Stocked Quantity
 										</Label>
-										<Input
-											type="number"
-											min={0}
-											value={field.value}
-											onChange={e => field.onChange(Number(e.target.value))}
-										/>
+										<Input type="number" min={0} value={field.value} onChange={e => field.onChange(Number(e.target.value))} />
 									</div>
 								)}
 							/>
@@ -231,12 +214,8 @@ export const EditStockLotDrawer = ({ stockLot, open, setOpen }: EditStockLotDraw
 								name="enabled"
 								render={({ field }) => (
 									<div className="flex items-center gap-3">
-										<Switch
-											id="enabled-toggle"
-											checked={field.value}
-											onCheckedChange={field.onChange}
-										/>
-										<label htmlFor="enabled-toggle" className="text-sm cursor-pointer">
+										<Switch id="enabled-toggle" checked={field.value} onCheckedChange={field.onChange} />
+										<label htmlFor="enabled-toggle" className="cursor-pointer text-sm">
 											Enabled
 										</label>
 									</div>
@@ -250,12 +229,7 @@ export const EditStockLotDrawer = ({ stockLot, open, setOpen }: EditStockLotDraw
 										Cancel
 									</Button>
 								</Drawer.Close>
-								<Button
-									size="small"
-									type="submit"
-									disabled={!form.formState.isDirty}
-									isLoading={updateMutation.isPending}
-								>
+								<Button size="small" type="submit" disabled={!form.formState.isDirty} isLoading={updateMutation.isPending}>
 									Save
 								</Button>
 							</div>

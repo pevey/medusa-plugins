@@ -34,7 +34,9 @@ export default async function analyticsHandler({
 		switch (name) {
 			// ── Orders ──────────────────────────────────────────────────────
 			case 'order.placed': {
-				const { data: [order] } = await query.graph({
+				const {
+					data: [order]
+				} = await query.graph({
 					entity: 'order',
 					fields: ['id', 'customer.id', 'cart_id', 'sales_channel_id', 'items.variant_id', 'items.product_id', 'items.quantity', 'total'],
 					filters: { id }
@@ -70,7 +72,9 @@ export default async function analyticsHandler({
 				break
 			}
 			case 'order.canceled': {
-				const { data: [order] } = await query.graph({
+				const {
+					data: [order]
+				} = await query.graph({
 					entity: 'order',
 					fields: ['id', 'customer.id', 'total', 'sales_channel_id'],
 					filters: { id }
@@ -86,7 +90,9 @@ export default async function analyticsHandler({
 				break
 			}
 			case 'order.completed': {
-				const { data: [order] } = await query.graph({
+				const {
+					data: [order]
+				} = await query.graph({
 					entity: 'order',
 					fields: ['id', 'customer.id', 'total', 'sales_channel_id'],
 					filters: { id }
@@ -102,7 +108,9 @@ export default async function analyticsHandler({
 				break
 			}
 			case 'order.shipment_created': {
-				const { data: [order] } = await query.graph({
+				const {
+					data: [order]
+				} = await query.graph({
 					entity: 'order',
 					fields: ['id', 'customer.id', 'sales_channel_id'],
 					filters: { id }
@@ -118,7 +126,9 @@ export default async function analyticsHandler({
 				break
 			}
 			case 'order.transfer_requested': {
-				const { data: [order] } = await query.graph({
+				const {
+					data: [order]
+				} = await query.graph({
 					entity: 'order',
 					fields: ['id', 'customer.id'],
 					filters: { id }
@@ -132,7 +142,9 @@ export default async function analyticsHandler({
 
 			// ── Carts ───────────────────────────────────────────────────────
 			case 'cart.created': {
-				const { data: [cart] } = await query.graph({
+				const {
+					data: [cart]
+				} = await query.graph({
 					entity: 'cart',
 					fields: ['id', 'sales_channel_id'],
 					filters: { id }
@@ -148,7 +160,9 @@ export default async function analyticsHandler({
 				break
 			}
 			case 'cart.updated': {
-				const { data: [cart] } = await query.graph({
+				const {
+					data: [cart]
+				} = await query.graph({
 					entity: 'cart',
 					fields: ['id', 'sales_channel_id'],
 					filters: { id }
@@ -164,7 +178,9 @@ export default async function analyticsHandler({
 				break
 			}
 			case 'cart.customer_transferred': {
-				const { data: [cart] } = await query.graph({
+				const {
+					data: [cart]
+				} = await query.graph({
 					entity: 'cart',
 					fields: ['id', 'customer.id'],
 					filters: { id }
@@ -183,7 +199,9 @@ export default async function analyticsHandler({
 
 			// ── Customers ───────────────────────────────────────────────────
 			case 'customer.created': {
-				const { data: [customer] } = await query.graph({
+				const {
+					data: [customer]
+				} = await query.graph({
 					entity: 'customer',
 					fields: ['id', 'email', 'first_name', 'last_name'],
 					filters: { id }
@@ -209,7 +227,9 @@ export default async function analyticsHandler({
 				break
 			}
 			case 'customer.updated': {
-				const { data: [customer] } = await query.graph({
+				const {
+					data: [customer]
+				} = await query.graph({
 					entity: 'customer',
 					fields: ['id', 'email', 'first_name', 'last_name'],
 					filters: { id }

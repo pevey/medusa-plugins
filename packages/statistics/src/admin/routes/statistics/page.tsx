@@ -4,12 +4,7 @@ import { ChartBar } from '@medusajs/icons'
 import { Button, Container, Heading, Text, toast } from '@medusajs/ui'
 import { ResponsiveGridLayout, verticalCompactor, useContainerWidth, type Layout, type LayoutItem } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
-import {
-	useStatistics,
-	useStatisticsLayout,
-	useSaveStatisticsLayout,
-	useRecalculateStatistics
-} from '../../hooks/statistics'
+import { useStatistics, useStatisticsLayout, useSaveStatisticsLayout, useRecalculateStatistics } from '../../hooks/statistics'
 import { WIDGETS, StatisticsWidget } from './widgets'
 
 export const config = defineRouteConfig({
@@ -59,7 +54,11 @@ const StatisticsPage = () => {
 	const [period, setPeriod] = useState<Period>('week')
 	const [editMode, setEditMode] = useState(false)
 	const [layouts, setLayouts] = useState<BreakpointLayouts>(buildDefaultLayouts)
-	const { width: gridWidth, containerRef: gridRef, mounted: gridMounted } = useContainerWidth({
+	const {
+		width: gridWidth,
+		containerRef: gridRef,
+		mounted: gridMounted
+	} = useContainerWidth({
 		measureBeforeMount: true
 	})
 
@@ -79,9 +78,7 @@ const StatisticsPage = () => {
 			if (!editMode) return
 			setLayouts(prev => ({
 				...prev,
-				...Object.fromEntries(
-					Object.entries(allLayouts).map(([bp, l]) => [bp, [...l!]])
-				)
+				...Object.fromEntries(Object.entries(allLayouts).map(([bp, l]) => [bp, [...l!]]))
 			}))
 		},
 		[editMode]
@@ -105,10 +102,7 @@ const StatisticsPage = () => {
 		})
 	}
 
-	const widgetMap = useMemo(
-		() => new Map(WIDGETS.map(w => [w.id, w])),
-		[]
-	)
+	const widgetMap = useMemo(() => new Map(WIDGETS.map(w => [w.id, w])), [])
 
 	const statistics = statsData?.statistics ?? []
 	const totals = statsData?.totals ?? {
@@ -127,15 +121,13 @@ const StatisticsPage = () => {
 				<div className="flex flex-col gap-2 px-6 py-4 md:flex-row md:items-center md:justify-between">
 					<Heading level="h1">Statistics</Heading>
 					<div className="flex items-center gap-2">
-						<div className="flex rounded-lg border border-ui-border-base overflow-hidden">
+						<div className="border-ui-border-base flex overflow-hidden rounded-lg border">
 							{(Object.keys(PERIOD_LABELS) as Period[]).map(p => (
 								<button
 									key={p}
 									onClick={() => setPeriod(p)}
 									className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-										period === p
-											? 'bg-ui-bg-base-pressed text-ui-fg-base'
-											: 'text-ui-fg-subtle hover:bg-ui-bg-base-hover'
+										period === p ? 'bg-ui-bg-base-pressed text-ui-fg-base' : 'text-ui-fg-subtle hover:bg-ui-bg-base-hover'
 									}`}
 								>
 									{PERIOD_LABELS[p]}
@@ -145,10 +137,12 @@ const StatisticsPage = () => {
 						<Button
 							size="small"
 							variant="secondary"
-							onClick={() => recalculate(undefined, {
-								onSuccess: () => toast.success('Statistics recalculated'),
-								onError: () => toast.error('Recalculation failed')
-							})}
+							onClick={() =>
+								recalculate(undefined, {
+									onSuccess: () => toast.success('Statistics recalculated'),
+									onError: () => toast.error('Recalculation failed')
+								})
+							}
 							isLoading={recalculating}
 						>
 							Recalculate
@@ -171,43 +165,46 @@ const StatisticsPage = () => {
 				</div>
 			</Container>
 
-			<div ref={gridRef as React.RefObject<HTMLDivElement>} className={editMode ? 'ring-2 ring-ui-border-interactive ring-offset-2 rounded-lg' : ''}>
+			<div ref={gridRef as React.RefObject<HTMLDivElement>} className={editMode ? 'ring-ui-border-interactive rounded-lg ring-2 ring-offset-2' : ''}>
 				{isLoading ? (
 					<Container className="p-6">
 						<Text className="text-ui-fg-muted">Loading statistics...</Text>
 					</Container>
-				) : gridMounted && (
-					<ResponsiveGridLayout
-						width={gridWidth}
-						layouts={layouts}
-						breakpoints={{ lg: 1200, md: 768, sm: 480 }}
-						cols={{ lg: 12, md: 8, sm: 4 }}
-						rowHeight={80}
-						dragConfig={{ enabled: editMode, handle: '.drag-handle' }}
-						resizeConfig={{ enabled: editMode }}
-						onLayoutChange={handleLayoutChange}
-						containerPadding={[0, 0]}
-						compactor={verticalCompactor}
-					>
-						{layouts.lg.map(l => {
-							const widget = widgetMap.get(l.i)
-							if (!widget) return null
-							const Component = widget.component
-							return (
-								<div key={l.i} className="relative h-full">
-									{editMode && (
-										<div className="drag-handle absolute top-0 left-0 right-0 h-6 bg-ui-bg-subtle-hover cursor-move rounded-t-lg flex items-center justify-center">
-											<Text size="xsmall" className="text-ui-fg-muted">Drag to move</Text>
-										</div>
-									)}
-									<Component statistics={statistics} totals={totals} period={period} />
-								</div>
-							)
-						})}
-					</ResponsiveGridLayout>
+				) : (
+					gridMounted && (
+						<ResponsiveGridLayout
+							width={gridWidth}
+							layouts={layouts}
+							breakpoints={{ lg: 1200, md: 768, sm: 480 }}
+							cols={{ lg: 12, md: 8, sm: 4 }}
+							rowHeight={80}
+							dragConfig={{ enabled: editMode, handle: '.drag-handle' }}
+							resizeConfig={{ enabled: editMode }}
+							onLayoutChange={handleLayoutChange}
+							containerPadding={[0, 0]}
+							compactor={verticalCompactor}
+						>
+							{layouts.lg.map(l => {
+								const widget = widgetMap.get(l.i)
+								if (!widget) return null
+								const Component = widget.component
+								return (
+									<div key={l.i} className="relative h-full">
+										{editMode && (
+											<div className="drag-handle bg-ui-bg-subtle-hover absolute top-0 right-0 left-0 flex h-6 cursor-move items-center justify-center rounded-t-lg">
+												<Text size="xsmall" className="text-ui-fg-muted">
+													Drag to move
+												</Text>
+											</div>
+										)}
+										<Component statistics={statistics} totals={totals} period={period} />
+									</div>
+								)
+							})}
+						</ResponsiveGridLayout>
+					)
 				)}
 			</div>
-
 		</div>
 	)
 }

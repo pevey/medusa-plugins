@@ -3,10 +3,7 @@ import { updateAffiliatePromotionWorkflow } from '../../../../../../workflows/up
 import { deleteAffiliatePromotionWorkflow } from '../../../../../../workflows/delete-affiliate-promotion'
 import { AdminUpdateAffiliatePromotionType } from '../../../../../validators'
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateAffiliatePromotionType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAffiliatePromotionType>, res: MedusaResponse) => {
 	const { result } = await updateAffiliatePromotionWorkflow(req.scope).run({
 		input: {
 			affiliate_id: req.params.id,

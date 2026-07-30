@@ -3,17 +3,12 @@ import { MedusaError } from '@medusajs/framework/utils'
 import { AUTOMATION_MODULE } from '../../../../../modules/automation'
 import { AutomationService } from '../../../../../modules/automation/service'
 import { isBlockedWorkflowName } from '../../../../../lib/workflow-guard'
-import {
-	AdminGetAutomationActionsType,
-	AdminCreateAutomationActionType,
-	AdminDeleteAutomationActionsType
-} from '../../../../validators'
+import { AdminGetAutomationActionsType, AdminCreateAutomationActionType, AdminDeleteAutomationActionsType } from '../../../../validators'
 
 export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { id: trigger_id } = req.params
-	const { limit, offset, action_type, is_active } =
-		req.validatedQuery as AdminGetAutomationActionsType
+	const { limit, offset, action_type, is_active } = req.validatedQuery as AdminGetAutomationActionsType
 
 	const filters: Record<string, unknown> = { trigger_id }
 	if (action_type) filters.action_type = action_type
@@ -28,19 +23,13 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 	res.json({ actions, count, limit: limit ?? 20, offset: offset ?? 0 })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateAutomationActionType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateAutomationActionType>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { id: trigger_id } = req.params
 
 	const [trigger] = await automationService.listAutomationTriggers({ id: trigger_id }, { take: 1 })
 	if (!trigger) {
-		throw new MedusaError(
-			MedusaError.Types.NOT_FOUND,
-			`AutomationTrigger with id ${trigger_id} not found`
-		)
+		throw new MedusaError(MedusaError.Types.NOT_FOUND, `AutomationTrigger with id ${trigger_id} not found`)
 	}
 
 	// SSRF save-time check — scheme + host patterns only (DNS check happens at delivery).
@@ -67,10 +56,7 @@ export const POST = async (
 	res.json({ action })
 }
 
-export const DELETE = async (
-	req: AuthenticatedMedusaRequest<AdminDeleteAutomationActionsType>,
-	res: MedusaResponse
-) => {
+export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteAutomationActionsType>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { ids } = req.validatedBody
 	await automationService.deleteAutomationActions(ids)

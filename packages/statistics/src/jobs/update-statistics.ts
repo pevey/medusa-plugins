@@ -26,11 +26,7 @@ export async function computeStatsForDay(container: MedusaContainer, day: Date) 
 	do {
 		const { data: orders, metadata } = await query.graph({
 			entity: 'order',
-			fields: [
-				'id', 'total', 'status',
-				'customer.id',
-				'items.*'
-			],
+			fields: ['id', 'total', 'status', 'customer.id', 'items.*'],
 			filters: {
 				created_at: { $gte: startOfDay, $lt: endOfDay }
 			} as any,
@@ -96,7 +92,9 @@ export async function computeStatsForDay(container: MedusaContainer, day: Date) 
 	// Returning = customers who placed orders in period but were created before it
 	let returningCustomerCount = 0
 	for (const customerId of customerIdsInPeriod) {
-		const { data: [customer] } = await query.graph({
+		const {
+			data: [customer]
+		} = await query.graph({
 			entity: 'customer',
 			fields: ['id', 'created_at'],
 			filters: { id: customerId }
@@ -140,10 +138,9 @@ export async function computeStatsForDay(container: MedusaContainer, day: Date) 
 	const lowStockCount = lowStockMeta?.count || 0
 
 	// ── Upsert ──────────────────────────────────────────────────────────
-	const [existing] = await statisticsService.listStatisticsDailies(
-		{ date: day } as any,
-		{ take: 1 }
-	)
+	const [existing] = await statisticsService.listStatisticsDailies({ date: day } as any, {
+		take: 1
+	})
 
 	const statData = {
 		date: day,
@@ -165,9 +162,9 @@ export async function computeStatsForDay(container: MedusaContainer, day: Date) 
 
 	logger.info(
 		`statistics: ${startOfDay.slice(0, 10)} — ` +
-		`revenue: ${revenueTotal}, orders: ${orderCount}, AOV: ${averageOrderValue.toFixed(2)}, ` +
-		`new customers: ${newCustomerCount}, returning: ${returningCustomerCount}, ` +
-		`pending fulfillment: ${pendingFulfillmentCount}, low stock: ${lowStockCount}`
+			`revenue: ${revenueTotal}, orders: ${orderCount}, AOV: ${averageOrderValue.toFixed(2)}, ` +
+			`new customers: ${newCustomerCount}, returning: ${returningCustomerCount}, ` +
+			`pending fulfillment: ${pendingFulfillmentCount}, low stock: ${lowStockCount}`
 	)
 }
 

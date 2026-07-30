@@ -32,12 +32,16 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminPostChatType>, r
 
 	if (!options?.provider) {
 		setSseHeaders()
-		send('error', { message: 'MCP plugin options not configured. Set provider, model, and apiKey in medusa-config.ts.' })
+		send('error', {
+			message: 'MCP plugin options not configured. Set provider, model, and apiKey in medusa-config.ts.'
+		})
 		return res.end()
 	}
 	if (!options.model || !options.apiKey) {
 		setSseHeaders()
-		send('error', { message: `Model and API key required for ${options.provider} provider. Set the model and apiKey provider options in medusa-config.ts.` })
+		send('error', {
+			message: `Model and API key required for ${options.provider} provider. Set the model and apiKey provider options in medusa-config.ts.`
+		})
 		return res.end()
 	}
 
@@ -53,7 +57,11 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminPostChatType>, r
 		const actor = { id: req.auth_context?.actor_id, type: req.auth_context?.actor_type }
 		const tools = await resolveMcpTools(req.scope, options, actor)
 		for (const tool of tools) {
-			toolDefs.push({ name: tool.name, description: tool.description, inputSchema: zodToJsonSchema(z.object(tool.inputSchema) as any) as Record<string, unknown> })
+			toolDefs.push({
+				name: tool.name,
+				description: tool.description,
+				inputSchema: zodToJsonSchema(z.object(tool.inputSchema) as any) as Record<string, unknown>
+			})
 			toolHandlers.set(tool.name, tool.handler)
 		}
 		systemPrompt = options.systemPrompt ? `${DEFAULT_SYSTEM_PROMPT}\n\n${options.systemPrompt}` : DEFAULT_SYSTEM_PROMPT
@@ -76,7 +84,11 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminPostChatType>, r
 				.map((m: any) => ({ role: m.role, content: m.content as ContentBlock[] }))
 		} else {
 			title = deriveTitle(req.body.text)
-			const session = await svc.createChatSessions({ user_id: userId, title, last_message_at: new Date() })
+			const session = await svc.createChatSessions({
+				user_id: userId,
+				title,
+				last_message_at: new Date()
+			})
 			sessionId = session.id
 		}
 	} catch (err) {
@@ -90,9 +102,16 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminPostChatType>, r
 	req.on('close', () => ac.abort())
 
 	// Persist the user message immediately + touch the session.
-	const userMessage: ChatMessage = { role: 'user', content: [{ type: 'text', text: req.body.text }] }
+	const userMessage: ChatMessage = {
+		role: 'user',
+		content: [{ type: 'text', text: req.body.text }]
+	}
 	const persist = async (m: ChatMessage) => {
-		await svc.createChatMessages({ session_id: sessionId, role: m.role, content: m.content as unknown as Record<string, unknown> })
+		await svc.createChatMessages({
+			session_id: sessionId,
+			role: m.role,
+			content: m.content as unknown as Record<string, unknown>
+		})
 		await svc.updateChatSessions({ id: sessionId, last_message_at: new Date() })
 	}
 	try {
@@ -112,11 +131,23 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminPostChatType>, r
 			const toolUses: { id: string; name: string; input: Record<string, unknown> }[] = []
 			let text = ''
 
-			for await (const ev of provider.chatStream({ messages, tools: toolDefs, systemPrompt, signal: ac.signal })) {
-				if (ev.type === 'text') { text += ev.delta; send('text', { delta: ev.delta }) }
-				else if (ev.type === 'tool_use') { toolUses.push(ev); send('tool_call', { id: ev.id, name: ev.name, args: ev.input }) }
-				else if (ev.type === 'done' && ev.stopReason === 'end' && toolUses.length === 0) {
-					if (text) { const m: ChatMessage = { role: 'assistant', content: [{ type: 'text', text }] }; await persist(m) }
+			for await (const ev of provider.chatStream({
+				messages,
+				tools: toolDefs,
+				systemPrompt,
+				signal: ac.signal
+			})) {
+				if (ev.type === 'text') {
+					text += ev.delta
+					send('text', { delta: ev.delta })
+				} else if (ev.type === 'tool_use') {
+					toolUses.push(ev)
+					send('tool_call', { id: ev.id, name: ev.name, args: ev.input })
+				} else if (ev.type === 'done' && ev.stopReason === 'end' && toolUses.length === 0) {
+					if (text) {
+						const m: ChatMessage = { role: 'assistant', content: [{ type: 'text', text }] }
+						await persist(m)
+					}
 					send('done', {})
 					return res.end()
 				}
@@ -139,14 +170,25 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminPostChatType>, r
 
 			const resultBlocks: ContentBlock[] = []
 			for (const tu of toolUses) {
-				let result: string; let is_error = false
+				let result: string
+				let is_error = false
 				try {
 					const handler = toolHandlers.get(tu.name)
 					const out = await handler?.(tu.input)
-					result = out?.content?.map((c: any) => c.text ?? JSON.stringify(c)).join('\n') ?? (toolHandlers.has(tu.name) ? 'No result' : `Unknown tool: ${tu.name}`)
-				} catch (e) { is_error = true; result = `Error: ${e instanceof Error ? e.message : String(e)}` }
+					result =
+						out?.content?.map((c: any) => c.text ?? JSON.stringify(c)).join('\n') ??
+						(toolHandlers.has(tu.name) ? 'No result' : `Unknown tool: ${tu.name}`)
+				} catch (e) {
+					is_error = true
+					result = `Error: ${e instanceof Error ? e.message : String(e)}`
+				}
 				send('tool_result', { id: tu.id, result, is_error })
-				resultBlocks.push({ type: 'tool_result', tool_use_id: tu.id, content: result, is_error })
+				resultBlocks.push({
+					type: 'tool_result',
+					tool_use_id: tu.id,
+					content: result,
+					is_error
+				})
 			}
 			const toolResultMsg: ChatMessage = { role: 'user', content: resultBlocks }
 			messages.push(toolResultMsg)

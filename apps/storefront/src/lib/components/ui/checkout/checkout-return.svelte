@@ -22,14 +22,7 @@
 		onerror?: (err: unknown) => void
 		class?: string
 	}
-	let {
-		publishableKey,
-		navigate = goto,
-		redirectTo,
-		oncomplete,
-		onerror,
-		class: className = ''
-	}: Props = $props()
+	let { publishableKey, navigate = goto, redirectTo, oncomplete, onerror, class: className = '' }: Props = $props()
 
 	type Phase = 'checking' | 'success' | 'processing' | 'failed'
 	let phase = $state<Phase>('checking')

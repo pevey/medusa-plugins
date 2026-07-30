@@ -19,13 +19,7 @@
 		class?: string
 		children: Snippet
 	}
-	let {
-		product,
-		variantParam = 'v',
-		quantityParam = 'quantity',
-		class: className = '',
-		children
-	}: Props = $props()
+	let { product, variantParam = 'v', quantityParam = 'quantity', class: className = '', children }: Props = $props()
 
 	// Everything is `$derived` (no `$effect`) so it works during SSR. Selection lives in the
 	// URL (`?v=`), which is the reactive source of truth via `$app/state`.
@@ -37,9 +31,7 @@
 		if (v && resolvedProduct?.variants?.some(variant => variant.id === v)) return v
 		return logic.defaultVariantId(resolvedProduct)
 	})
-	const selectedVariant = $derived(
-		resolvedProduct?.variants?.find(v => v.id === selectedVariantId) ?? null
-	)
+	const selectedVariant = $derived(resolvedProduct?.variants?.find(v => v.id === selectedVariantId) ?? null)
 
 	// Quantity lives in the URL exactly like variant selection (SSR-safe, shareable). Stock-clamped
 	// on read so a stale ?quantity= against a low-stock variant reads correctly everywhere.
@@ -78,8 +70,7 @@
 		},
 		isSelected: valueId => logic.isSelected(selectedVariant, valueId),
 		isAvailable: valueId => logic.isAvailable(resolvedProduct, selectedVariant, valueId),
-		resolveVariant: (optionId, valueId) =>
-			logic.resolveVariant(resolvedProduct, selectedVariant, optionId, valueId),
+		resolveVariant: (optionId, valueId) => logic.resolveVariant(resolvedProduct, selectedVariant, optionId, valueId),
 		buildHref,
 		get quantity() {
 			return quantity

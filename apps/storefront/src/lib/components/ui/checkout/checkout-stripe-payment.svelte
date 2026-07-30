@@ -18,8 +18,7 @@
 
 	async function authorizePayment() {
 		try {
-			if (!stripe.stripe || !stripe.elements)
-				return { ok: false, error: new Error('Payment not ready') }
+			if (!stripe.stripe || !stripe.elements) return { ok: false, error: new Error('Payment not ready') }
 			// clientSecret is bound to the Elements instance (created with it), so confirmPayment infers
 			// it from `elements`. `redirect: 'if_required'` keeps the card path inline (no redirect page).
 			const { error } = await stripe.stripe.confirmPayment({

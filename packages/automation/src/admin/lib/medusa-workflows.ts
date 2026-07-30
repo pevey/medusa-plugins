@@ -17,8 +17,8 @@ export type WorkflowInputField = {
 }
 
 export type MedusaWorkflow = {
-	name: string       // exact export name from @medusajs/medusa/core-flows
-	label: string      // human-readable
+	name: string // exact export name from @medusajs/medusa/core-flows
+	label: string // human-readable
 	category: string
 	// Top-level keys of the workflow input object.
 	inputFields: WorkflowInputField[]
@@ -210,9 +210,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		category: 'Order',
 		hasAdditionalData: false,
 		// takes orderIds (plural array), NOT singular order_id
-		inputFields: [
-			{ key: 'orderIds', type: 'array' }
-		]
+		inputFields: [{ key: 'orderIds', type: 'array' }]
 	},
 	{
 		name: 'completeOrderWorkflow',
@@ -220,9 +218,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 		category: 'Order',
 		hasAdditionalData: true,
 		// takes orderIds (plural array), NOT singular order_id
-		inputFields: [
-			{ key: 'orderIds', type: 'array' }
-		]
+		inputFields: [{ key: 'orderIds', type: 'array' }]
 	},
 	{
 		name: 'createOrderFulfillmentWorkflow',
@@ -464,9 +460,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 			{
 				key: 'product_tags',
 				type: 'array',
-				fields: [
-					{ key: 'value', type: 'string' }
-				]
+				fields: [{ key: 'value', type: 'string' }]
 			}
 		]
 	},
@@ -1047,7 +1041,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 				]
 			}
 		]
-	},
+	}
 	/*
 	{
 		name: 'deleteApiKeysWorkflow',
@@ -1059,9 +1053,7 @@ export const MEDUSA_WORKFLOWS: MedusaWorkflow[] = [
 	*/
 ]
 
-export const MEDUSA_WORKFLOWS_BY_NAME = Object.fromEntries(
-	MEDUSA_WORKFLOWS.map(w => [w.name, w])
-)
+export const MEDUSA_WORKFLOWS_BY_NAME = Object.fromEntries(MEDUSA_WORKFLOWS.map(w => [w.name, w]))
 
 export const MEDUSA_WORKFLOW_CATEGORIES = [...new Set(MEDUSA_WORKFLOWS.map(w => w.category))]
 
@@ -1069,10 +1061,7 @@ export const MEDUSA_WORKFLOW_CATEGORIES = [...new Set(MEDUSA_WORKFLOWS.map(w => 
  *  e.g. product_variants[].product_id, product_variants[].title, …
  *  Arrays are represented with a [] suffix on the parent key.
  */
-export function flattenWorkflowInputPaths(
-	fields: WorkflowInputField[],
-	prefix = ''
-): string[] {
+export function flattenWorkflowInputPaths(fields: WorkflowInputField[], prefix = ''): string[] {
 	const paths: string[] = []
 	for (const field of fields) {
 		const key = prefix ? `${prefix}.${field.key}` : field.key

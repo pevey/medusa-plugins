@@ -134,8 +134,7 @@ If you're writing a plugin that should work whether or not `medusa-plugin-access
 
 ```ts
 try {
-	const { definePolicies, generateResourcePolicies, requirePolicies } =
-		require('medusa-plugin-access') as typeof import('medusa-plugin-access')
+	const { definePolicies, generateResourcePolicies, requirePolicies } = require('medusa-plugin-access') as typeof import('medusa-plugin-access')
 
 	definePolicies(generateResourcePolicies(['complaint']))
 	requirePolicies({
@@ -161,8 +160,7 @@ import { useQuery } from '@tanstack/react-query'
 
 const { data } = useQuery({
 	queryKey: ['access-me-permissions'],
-	queryFn: async (): Promise<{ permissions: string[] }> =>
-		(await fetch('/admin/access/me/permissions', { credentials: 'include' })).json()
+	queryFn: async (): Promise<{ permissions: string[] }> => (await fetch('/admin/access/me/permissions', { credentials: 'include' })).json()
 })
 
 if (!data?.permissions?.includes('content:read')) {

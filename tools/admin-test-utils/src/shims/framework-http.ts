@@ -15,7 +15,11 @@ export type QueryConfig = {
 }
 
 export type TaggedBodyValidator = { __kind: 'body'; __schema: unknown }
-export type TaggedQueryValidator = { __kind: 'query'; __schema: unknown; __queryConfig: QueryConfig }
+export type TaggedQueryValidator = {
+	__kind: 'query'
+	__schema: unknown
+	__queryConfig: QueryConfig
+}
 
 export type TaggedRoute = {
 	matcher: string
@@ -45,8 +49,7 @@ export function defineMiddlewares(config: MiddlewaresConfig): {
 		errorHandler,
 		routes: routes.map(route => {
 			const { middlewares, method, methods, ...rest } = route
-			const resolvedMethods =
-				methods ?? (Array.isArray(method) ? method : method ? [method] : undefined)
+			const resolvedMethods = methods ?? (Array.isArray(method) ? method : method ? [method] : undefined)
 			return {
 				...rest,
 				methods: resolvedMethods,

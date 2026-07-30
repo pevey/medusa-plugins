@@ -32,10 +32,7 @@ type Props = {
 }
 
 export const EditContentItemDrawer = ({ item, open, onOpenChange }: Props) => {
-	const { mutate: updateItem, isPending } = useUpdateContentItem(
-		item.content_collection_id,
-		item.id
-	)
+	const { mutate: updateItem, isPending } = useUpdateContentItem(item.content_collection_id, item.id)
 	const prompt = usePrompt()
 	const [metadata, setMetadata] = useState<Record<string, unknown>>({})
 	const [publishedAt, setPublishedAt] = useState<Date | undefined>(undefined)
@@ -48,10 +45,7 @@ export const EditContentItemDrawer = ({ item, open, onOpenChange }: Props) => {
 		defaultValues: { title: '', slug: '' }
 	})
 
-	const blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			open && form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	const blocker = useBlocker(({ currentLocation, nextLocation }) => open && form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	useEffect(() => {
 		if (blocker.state === 'blocked') {
@@ -103,7 +97,10 @@ export const EditContentItemDrawer = ({ item, open, onOpenChange }: Props) => {
 			<Drawer.Content>
 				<form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
 					<Drawer.Header>
-						<Heading level="h1">Edit Item</Heading>
+						<Drawer.Title asChild>
+							<Heading level="h1">Edit Item</Heading>
+						</Drawer.Title>
+						<Drawer.Description className="sr-only">Edit this content item's title, slug, publish date, and fields.</Drawer.Description>
 					</Drawer.Header>
 					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 						<Controller
@@ -116,11 +113,7 @@ export const EditContentItemDrawer = ({ item, open, onOpenChange }: Props) => {
 										Title <span className="text-ui-fg-error">*</span>
 									</Label>
 									<Input {...field} placeholder="Item title" />
-									{fieldState.error && (
-										<span className="text-ui-fg-error text-sm">
-											{fieldState.error.message}
-										</span>
-									)}
+									{fieldState.error && <span className="text-ui-fg-error text-sm">{fieldState.error.message}</span>}
 								</div>
 							)}
 						/>
@@ -133,16 +126,8 @@ export const EditContentItemDrawer = ({ item, open, onOpenChange }: Props) => {
 									<Label size="small" weight="plus">
 										Slug <span className="text-ui-fg-error">*</span>
 									</Label>
-									<Input
-										{...field}
-										placeholder="item-slug"
-										onChange={e => field.onChange(sanitizeSlug(e.target.value))}
-									/>
-									{fieldState.error && (
-										<span className="text-ui-fg-error text-sm">
-											{fieldState.error.message}
-										</span>
-									)}
+									<Input {...field} placeholder="item-slug" onChange={e => field.onChange(sanitizeSlug(e.target.value))} />
+									{fieldState.error && <span className="text-ui-fg-error text-sm">{fieldState.error.message}</span>}
 								</div>
 							)}
 						/>
@@ -151,20 +136,13 @@ export const EditContentItemDrawer = ({ item, open, onOpenChange }: Props) => {
 							<Label size="small" weight="plus">
 								Published At
 							</Label>
-							<DatePicker
-								value={publishedAt}
-								onChange={v => setPublishedAt(v ?? undefined)}
-							/>
+							<DatePicker value={publishedAt} onChange={v => setPublishedAt(v ?? undefined)} />
 						</div>
 
 						{hasMetadataFields && (
 							<div className="flex flex-col gap-y-3">
 								{/* <Heading level="h2">Fields</Heading> */}
-								<ContentItemMetadataFields
-									fields={metadataFields}
-									value={metadata}
-									onChange={setMetadata}
-								/>
+								<ContentItemMetadataFields fields={metadataFields} value={metadata} onChange={setMetadata} />
 							</div>
 						)}
 					</Drawer.Body>

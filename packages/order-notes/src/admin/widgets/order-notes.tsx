@@ -40,18 +40,9 @@ const OrderNotesWidget = ({ data: order }: DetailWidgetProps<AdminOrder>) => {
 
 			{showForm && (
 				<div className="flex flex-col gap-3 px-6 py-4">
-					<Textarea
-						placeholder="Write a note..."
-						value={noteText}
-						onChange={e => setNoteText(e.target.value)}
-						rows={3}
-					/>
+					<Textarea placeholder="Write a note..." value={noteText} onChange={e => setNoteText(e.target.value)} rows={3} />
 					<div className="flex items-center gap-2">
-						<Checkbox
-							id="send-to-customer"
-							checked={sendToCustomer}
-							onCheckedChange={checked => setSendToCustomer(checked === true)}
-						/>
+						<Checkbox id="send-to-customer" checked={sendToCustomer} onCheckedChange={checked => setSendToCustomer(checked === true)} />
 						<Label htmlFor="send-to-customer" className="cursor-pointer">
 							Send to customer
 						</Label>
@@ -62,19 +53,19 @@ const OrderNotesWidget = ({ data: order }: DetailWidgetProps<AdminOrder>) => {
 							disabled={!noteText.trim() || createMutation.isPending}
 							isLoading={createMutation.isPending}
 							onClick={() =>
-						createMutation.mutate(
-							{ order_id: order.id, note: noteText, sent: sendToCustomer },
-							{
-								onSuccess: () => {
-									setNoteText('')
-									setSendToCustomer(false)
-									setShowForm(false)
-									toast.success(sendToCustomer ? 'Note added and sent to customer' : 'Note added')
-								},
-								onError: () => toast.error('Failed to add note')
+								createMutation.mutate(
+									{ order_id: order.id, note: noteText, sent: sendToCustomer },
+									{
+										onSuccess: () => {
+											setNoteText('')
+											setSendToCustomer(false)
+											setShowForm(false)
+											toast.success(sendToCustomer ? 'Note added and sent to customer' : 'Note added')
+										},
+										onError: () => toast.error('Failed to add note')
+									}
+								)
 							}
-						)
-					}
 						>
 							Save
 						</Button>
@@ -84,20 +75,24 @@ const OrderNotesWidget = ({ data: order }: DetailWidgetProps<AdminOrder>) => {
 
 			{isLoading ? (
 				<div className="px-6 py-4">
-					<Text size="small" className="text-ui-fg-muted">Loading...</Text>
+					<Text size="small" className="text-ui-fg-muted">
+						Loading...
+					</Text>
 				</div>
 			) : notes.length === 0 ? (
 				<div className="px-6 py-4">
-					<Text size="small" className="text-ui-fg-subtle">No notes for this order.</Text>
+					<Text size="small" className="text-ui-fg-subtle">
+						No notes for this order.
+					</Text>
 				</div>
 			) : (
 				notes.map(note => (
 					<div key={note.id} className="flex items-start justify-between gap-4 px-6 py-4">
-						<div className="flex flex-col gap-1 flex-1 min-w-0">
-							<Text size="small" className="whitespace-pre-wrap break-words">
+						<div className="flex min-w-0 flex-1 flex-col gap-1">
+							<Text size="small" className="break-words whitespace-pre-wrap">
 								{note.note}
 							</Text>
-							<div className="flex items-center gap-2 mt-1">
+							<div className="mt-1 flex items-center gap-2">
 								<Text size="xsmall" className="text-ui-fg-muted">
 									{new Date(note.created_at).toLocaleString()}
 								</Text>
@@ -109,7 +104,7 @@ const OrderNotesWidget = ({ data: order }: DetailWidgetProps<AdminOrder>) => {
 							</div>
 						</div>
 						<button
-							className="text-ui-fg-muted hover:text-ui-fg-base flex-shrink-0 mt-0.5"
+							className="text-ui-fg-muted hover:text-ui-fg-base mt-0.5 flex-shrink-0"
 							onClick={() =>
 								deleteMutation.mutate(note.id, {
 									onSuccess: () => toast.success('Note deleted'),

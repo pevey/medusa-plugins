@@ -16,11 +16,7 @@ export type McpActor = { id?: string; type?: string }
  * additional tools come from packages listed in `options.toolPackages` (each must export
  * `registerMcpTools(registry, scope)`); write tools are gated (see below).
  */
-export async function resolveMcpTools(
-	scope: MedusaContainer,
-	options: McpPluginOptions,
-	actor?: McpActor
-): Promise<McpToolDef[]> {
+export async function resolveMcpTools(scope: MedusaContainer, options: McpPluginOptions, actor?: McpActor): Promise<McpToolDef[]> {
 	const registry = createToolRegistry()
 
 	// Built-in read-only tools (Medusa query API only).
@@ -46,17 +42,13 @@ export async function resolveMcpTools(
 	// Write-tool gating (#8): OFF by default. When enabled and medusa-plugin-access is installed,
 	// each write call additionally requires the caller to hold the `mcp:write` policy.
 	if (!options.allowWriteTools) {
-		return tools.filter((t) => !t.write)
+		return tools.filter(t => !t.write)
 	}
 	return gateWriteTools(tools, scope, actor)
 }
 
-function gateWriteTools(
-	tools: McpToolDef[],
-	scope: MedusaContainer,
-	actor?: McpActor
-): McpToolDef[] {
-	if (!tools.some((t) => t.write)) return tools
+function gateWriteTools(tools: McpToolDef[], scope: MedusaContainer, actor?: McpActor): McpToolDef[] {
+	if (!tools.some(t => t.write)) return tools
 
 	let access: any
 	try {
@@ -67,7 +59,7 @@ function gateWriteTools(
 	}
 	if (typeof access?.hasPermission !== 'function') return tools
 
-	return tools.map((tool) => {
+	return tools.map(tool => {
 		if (!tool.write) return tool
 		return {
 			...tool,
@@ -88,11 +80,7 @@ function gateWriteTools(
 	})
 }
 
-async function callerHasMcpWrite(
-	access: any,
-	scope: MedusaContainer,
-	actor?: McpActor
-): Promise<boolean> {
+async function callerHasMcpWrite(access: any, scope: MedusaContainer, actor?: McpActor): Promise<boolean> {
 	if (!actor?.id) return false
 	try {
 		const query = scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -101,9 +89,7 @@ async function callerHasMcpWrite(
 			fields: ['access_roles.id'],
 			filters: { id: actor.id }
 		})
-		const roleIds = ((data?.[0] as any)?.access_roles ?? [])
-			.map((r: any) => r.id)
-			.filter(Boolean)
+		const roleIds = ((data?.[0] as any)?.access_roles ?? []).map((r: any) => r.id).filter(Boolean)
 		return await access.hasPermission({
 			roles: roleIds,
 			actions: [{ resource: 'mcp', operation: 'write' }],

@@ -5,10 +5,7 @@ import { AutomationService } from '../../../../modules/automation/service'
 import { AdminCreateAutomationSecretType, AdminGetAutomationSecretsType } from '../../../validators'
 
 // GET /admin/automations/secrets — list all secrets (label + id only, never the secret value)
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetAutomationSecretsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetAutomationSecretsType>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const [secrets, count] = await automationService.listAndCountAutomationSecrets(
 		{},
@@ -26,10 +23,7 @@ export const GET = async (
 }
 
 // POST /admin/automations/secrets — create a new secret, return the secret value once
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateAutomationSecretType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateAutomationSecretType>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { label } = req.validatedBody
 	const secret = randomBytes(32).toString('hex')

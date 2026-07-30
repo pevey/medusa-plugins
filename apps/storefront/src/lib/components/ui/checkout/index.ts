@@ -29,13 +29,7 @@ export { default as CheckoutError } from './checkout-error.svelte'
 export { default as CheckoutBraintree } from './checkout-braintree.svelte'
 export { default as CheckoutStripe } from './checkout-stripe.svelte'
 export { default as CheckoutAuto } from './checkout-auto.svelte'
-export {
-	setCheckoutContext,
-	getCheckoutContext,
-	getCheckoutContextOptional,
-	setCheckoutLineContext,
-	getCheckoutLineContext
-} from './ctx.svelte.js'
+export { setCheckoutContext, getCheckoutContext, getCheckoutContextOptional, setCheckoutLineContext, getCheckoutLineContext } from './ctx.svelte.js'
 export {
 	runPlaceOrder,
 	resolveRedirect,
@@ -51,12 +45,5 @@ export {
 } from './checkout-logic.js'
 export { buildStripeAppearance } from './stripe-appearance.js'
 export { formatPrice } from './format-price.js'
-export type {
-	CheckoutLine,
-	UpdateAddress,
-	AuthorizePayment,
-	CartQuery,
-	CheckoutContext,
-	CheckoutLineContext
-} from './types.js'
+export type { CheckoutLine, UpdateAddress, AuthorizePayment, CartQuery, CheckoutContext, CheckoutLineContext } from './types.js'
 export type { PlaceOrderSteps } from './checkout-logic.js'

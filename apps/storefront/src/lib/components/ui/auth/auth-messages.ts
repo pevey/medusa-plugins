@@ -19,7 +19,5 @@ export const resetMessages: AuthMessages = {
 	unknown: 'Something went wrong. Please try again.'
 }
 export function resolveMessage(messages: AuthMessages, code: string | undefined): string {
-	return (
-		messages[code ?? 'unknown'] ?? messages.unknown ?? 'Something went wrong. Please try again.'
-	)
+	return messages[code ?? 'unknown'] ?? messages.unknown ?? 'Something went wrong. Please try again.'
 }

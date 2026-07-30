@@ -15,15 +15,7 @@
 		onchange?: (event: Event) => void
 		[key: string]: unknown
 	}
-	let {
-		field,
-		countries,
-		label = '',
-		placeholder = '',
-		class: className = '',
-		onchange,
-		...rest
-	}: Props = $props()
+	let { field, countries, label = '', placeholder = '', class: className = '', onchange, ...rest }: Props = $props()
 
 	const options = $derived(countries.map(c => ({ value: c.code, label: c.name })))
 </script>

@@ -7,7 +7,11 @@ import { buildSummaryCacheKey } from '../../cache'
 const TTL = 300
 
 function resolveCaching(req: MedusaRequest): ICachingModuleService | null {
-	try { return req.scope.resolve(Modules.CACHING) ?? null } catch { return null }
+	try {
+		return req.scope.resolve(Modules.CACHING) ?? null
+	} catch {
+		return null
+	}
 }
 
 type Summary = { average: number; count: number; distribution: Record<1 | 2 | 3 | 4 | 5, number> }
@@ -17,8 +21,11 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
 	const caching = resolveCaching(req)
 	const cacheKey = buildSummaryCacheKey(productId)
 
-	const cached = caching ? (await caching.get({ key: cacheKey })) as Summary | null : null
-	if (cached) { res.json(cached); return }
+	const cached = caching ? ((await caching.get({ key: cacheKey })) as Summary | null) : null
+	if (cached) {
+		res.json(cached)
+		return
+	}
 
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	// No pagination key → query.graph returns ALL matching rows.

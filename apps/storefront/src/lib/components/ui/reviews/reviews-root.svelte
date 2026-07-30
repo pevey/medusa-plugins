@@ -24,9 +24,7 @@
 		rating?: number
 		pageSize?: number
 		class?: string
-		children: Snippet<
-			[{ reviews: StoreReview[]; summary: ReviewSummary | null | undefined; count: number; page: number; pageCount: number }]
-		>
+		children: Snippet<[{ reviews: StoreReview[]; summary: ReviewSummary | null | undefined; count: number; page: number; pageCount: number }]>
 	} = $props()
 
 	// Headless when a `reviews` array is supplied directly; otherwise this Root fetches
@@ -43,7 +41,7 @@
 	let submitted = $state<StoreReview[]>([])
 
 	// --- Headless: client-side filter → sort → paginate over the supplied array ---
-	const filtered = $derived(headless ? (rating ? reviews!.filter((r) => r.rating === rating) : reviews!) : [])
+	const filtered = $derived(headless ? (rating ? reviews!.filter(r => r.rating === rating) : reviews!) : [])
 	const sorted = $derived(
 		headless
 			? [...filtered].sort((a, b) => {
@@ -65,9 +63,7 @@
 	const paged = $derived(sorted.slice(page * pageSize, page * pageSize + pageSize))
 
 	// --- Fetch: SDK-backed for a product, combined with optimistic `submitted` pushes ---
-	const summaryQ = $derived(
-		!headless && id ? (getReviewSummary({ productId: id }) as unknown as SummaryQuery) : null
-	)
+	const summaryQ = $derived(!headless && id ? (getReviewSummary({ productId: id }) as unknown as SummaryQuery) : null)
 	const listQ = $derived(
 		!headless && id
 			? (getReviews({
@@ -83,8 +79,8 @@
 	const fetchedReviews = $derived.by(() => {
 		const list = listQ?.current?.reviews ?? []
 		if (!submitted.length) return list
-		const seen = new Set(submitted.map((r) => r.id))
-		return [...submitted, ...list.filter((r) => !seen.has(r.id))]
+		const seen = new Set(submitted.map(r => r.id))
+		return [...submitted, ...list.filter(r => !seen.has(r.id))]
 	})
 
 	const visible = $derived(headless ? paged : fetchedReviews)
@@ -127,19 +123,19 @@
 		get pageSize() {
 			return pageSize
 		},
-		setRating: (n) => {
+		setRating: n => {
 			rating = rating === n ? null : n
 			page = 0
 		},
-		setOrder: (s) => {
+		setOrder: s => {
 			order = s
 			page = 0
 		},
-		setPage: (n) => {
+		setPage: n => {
 			page = n
 		},
-		pushReview: (review) => {
-			submitted = [review, ...submitted.filter((r) => r.id !== review.id)]
+		pushReview: review => {
+			submitted = [review, ...submitted.filter(r => r.id !== review.id)]
 		}
 	})
 </script>

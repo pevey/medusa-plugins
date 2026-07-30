@@ -1,12 +1,7 @@
 import { z } from '@medusajs/framework/zod'
 import { createFindParams } from '@medusajs/medusa/api/utils/validators'
 
-const handleSchema = z
-	.string()
-	.regex(
-		/^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-		'Handle must use only lowercase letters, numbers, and hyphens'
-	)
+const handleSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Handle must use only lowercase letters, numbers, and hyphens')
 
 const fieldInputSchema = z.object({
 	name: z.string(),

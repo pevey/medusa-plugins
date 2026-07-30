@@ -11,9 +11,7 @@ updateCartPromotionsWorkflow.hooks.validate(async ({ input, cart }, { container 
 
 	const action: 'add' | 'remove' | 'replace' = (input as any).action ?? 'add'
 	const incomingCodes: string[] = ((input as any).promo_codes ?? []) as string[]
-	const currentCodes: string[] = ((cart as any).promotions ?? [])
-		.map((p: any) => p?.code)
-		.filter((c: any): c is string => typeof c === 'string')
+	const currentCodes: string[] = ((cart as any).promotions ?? []).map((p: any) => p?.code).filter((c: any): c is string => typeof c === 'string')
 
 	const allCodes = Array.from(new Set([...incomingCodes, ...currentCodes]))
 	if (allCodes.length === 0) return
@@ -37,19 +35,11 @@ updateCartPromotionsWorkflow.hooks.validate(async ({ input, cart }, { container 
 	})
 
 	if (!decision.accept) {
-		throw new MedusaError(
-			MedusaError.Types.NOT_ALLOWED,
-			decision.reason ?? 'Promotion not allowed.'
-		)
+		throw new MedusaError(MedusaError.Types.NOT_ALLOWED, decision.reason ?? 'Promotion not allowed.')
 	}
 
 	if (decision.codesToRemove.length) {
-		;(input as any).promo_codes = Array.from(
-			new Set([
-				...currentCodes.filter(c => !decision.codesToRemove.includes(c)),
-				...incomingCodes
-			])
-		)
+		;(input as any).promo_codes = Array.from(new Set([...currentCodes.filter(c => !decision.codesToRemove.includes(c)), ...incomingCodes]))
 		;(input as any).action = 'replace'
 	}
 })

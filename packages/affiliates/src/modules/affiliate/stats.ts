@@ -34,25 +34,17 @@ export function windowStart(window: StatsWindow, now: Date): Date | null {
 	return new Date(now.getTime() - WINDOW_DAYS[window] * DAY_MS)
 }
 
-export function selectRowsByBasis(
-	rows: AttributionRow[],
-	basis: StatsBasis,
-	cutoff: Date | null
-): AttributionRow[] {
+export function selectRowsByBasis(rows: AttributionRow[], basis: StatsBasis, cutoff: Date | null): AttributionRow[] {
 	return rows.filter(r => {
 		if (r.voided_at) return false
-		const ts =
-			basis === 'placed' ? r.placed_at : basis === 'captured' ? r.captured_at : r.completed_at
+		const ts = basis === 'placed' ? r.placed_at : basis === 'captured' ? r.captured_at : r.completed_at
 		if (!ts) return false
 		if (cutoff && ts < cutoff) return false
 		return true
 	})
 }
 
-export function bucketByCurrency(
-	rows: AttributionRow[],
-	primaryCurrency: string | null
-): StatsBucket[] {
+export function bucketByCurrency(rows: AttributionRow[], primaryCurrency: string | null): StatsBucket[] {
 	const map = new Map<string, StatsBucket>()
 	for (const r of rows) {
 		const c = r.currency_code || 'unknown'

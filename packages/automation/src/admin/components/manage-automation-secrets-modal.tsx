@@ -1,14 +1,4 @@
-import {
-	Badge,
-	Button,
-	Copy,
-	Drawer,
-	Heading,
-	Input,
-	Label,
-	Text,
-	toast
-} from '@medusajs/ui'
+import { Badge, Button, Copy, Drawer, Heading, Input, Label, Text, toast } from '@medusajs/ui'
 import { Plus, Trash } from '@medusajs/icons'
 import { useState } from 'react'
 import { CreatedSecret } from '../types'
@@ -59,40 +49,38 @@ export const ManageAutomationSecretsModal = ({ open, setOpen }: Props) => {
 		<Drawer open={open} onOpenChange={handleClose}>
 			<Drawer.Content>
 				<Drawer.Header>
-					<Heading level="h2">Signing Secrets</Heading>
+					<Drawer.Title asChild>
+						<Heading level="h2">Signing Secrets</Heading>
+					</Drawer.Title>
 				</Drawer.Header>
 
 				<Drawer.Body className="flex flex-col gap-y-6 overflow-y-auto p-6">
-					<Text size="small" className="text-ui-fg-subtle">
-						Shared secrets used to sign outgoing webhook payloads with HMAC-SHA256. The secret
-						value is shown only once at creation — store it securely.
-					</Text>
+					<Drawer.Description asChild>
+						<Text size="small" className="text-ui-fg-subtle">
+							Shared secrets used to sign outgoing webhook payloads with HMAC-SHA256. The secret value is shown only once at creation — store it
+							securely.
+						</Text>
+					</Drawer.Description>
 
 					{/* One-time secret reveal */}
 					{revealedSecret && (
-						<div className="rounded-lg border border-ui-border-interactive bg-ui-bg-field p-4 flex flex-col gap-y-2">
+						<div className="border-ui-border-interactive bg-ui-bg-field flex flex-col gap-y-2 rounded-lg border p-4">
 							<div className="flex items-center justify-between">
 								<Text size="small" weight="plus" leading="compact">
 									{revealedSecret.label}
 								</Text>
-								<Badge size="xsmall" color="green">New — copy now</Badge>
+								<Badge size="xsmall" color="green">
+									New — copy now
+								</Badge>
 							</div>
 							<Text size="small" className="text-ui-fg-subtle">
 								This secret will not be shown again.
 							</Text>
-							<div className="flex items-center gap-x-2 rounded-md border border-ui-border-base bg-ui-bg-subtle px-3 py-2">
-								<code className="font-mono text-xs text-ui-fg-base flex-1 break-all select-all">
-									{revealedSecret.secret}
-								</code>
-								<Copy content={revealedSecret.secret} className="shrink-0 text-ui-fg-muted hover:text-ui-fg-base cursor-pointer" />
+							<div className="border-ui-border-base bg-ui-bg-subtle flex items-center gap-x-2 rounded-md border px-3 py-2">
+								<code className="text-ui-fg-base flex-1 font-mono text-xs break-all select-all">{revealedSecret.secret}</code>
+								<Copy content={revealedSecret.secret} className="text-ui-fg-muted hover:text-ui-fg-base shrink-0 cursor-pointer" />
 							</div>
-							<Button
-								type="button"
-								size="small"
-								variant="secondary"
-								onClick={() => setRevealedSecret(null)}
-								className="self-end"
-							>
+							<Button type="button" size="small" variant="secondary" onClick={() => setRevealedSecret(null)} className="self-end">
 								Done
 							</Button>
 						</div>
@@ -100,7 +88,9 @@ export const ManageAutomationSecretsModal = ({ open, setOpen }: Props) => {
 
 					{/* Existing secrets list */}
 					{isLoading ? (
-						<Text size="small" className="text-ui-fg-subtle">Loading…</Text>
+						<Text size="small" className="text-ui-fg-subtle">
+							Loading…
+						</Text>
 					) : (data?.secrets ?? []).length === 0 && !revealedSecret ? (
 						<Text size="small" className="text-ui-fg-subtle">
 							No secrets yet. Create one below.
@@ -108,22 +98,16 @@ export const ManageAutomationSecretsModal = ({ open, setOpen }: Props) => {
 					) : (
 						<div className="flex flex-col gap-y-2">
 							{(data?.secrets ?? []).map(s => (
-								<div
-									key={s.id}
-									className="flex items-center justify-between rounded-lg border border-ui-border-base bg-ui-bg-base px-4 py-3"
-								>
+								<div key={s.id} className="border-ui-border-base bg-ui-bg-base flex items-center justify-between rounded-lg border px-4 py-3">
 									<div className="flex flex-col gap-y-0.5">
-										<Text size="small" weight="plus" leading="compact">{s.label}</Text>
+										<Text size="small" weight="plus" leading="compact">
+											{s.label}
+										</Text>
 										<Text size="xsmall" className="text-ui-fg-muted font-mono">
 											{s.id}
 										</Text>
 									</div>
-									<Button
-										type="button"
-										size="small"
-										variant="secondary"
-										onClick={() => handleDelete(s.id, s.label)}
-									>
+									<Button type="button" size="small" variant="secondary" onClick={() => handleDelete(s.id, s.label)}>
 										<Trash />
 									</Button>
 								</div>
@@ -132,10 +116,14 @@ export const ManageAutomationSecretsModal = ({ open, setOpen }: Props) => {
 					)}
 
 					{/* Create new secret */}
-					<div className="flex flex-col gap-y-2 rounded-lg border border-ui-border-base p-4">
-						<Heading level="h3" className="text-sm font-medium">Create New Secret</Heading>
+					<div className="border-ui-border-base flex flex-col gap-y-2 rounded-lg border p-4">
+						<Heading level="h3" className="text-sm font-medium">
+							Create New Secret
+						</Heading>
 						<div className="flex flex-col gap-y-1">
-							<Label htmlFor="secret-label" size="small" weight="plus">Label</Label>
+							<Label htmlFor="secret-label" size="small" weight="plus">
+								Label
+							</Label>
 							<Text size="small" className="text-ui-fg-subtle">
 								A human-readable name to identify this secret (e.g. "Shopify", "Slack").
 							</Text>
@@ -148,13 +136,7 @@ export const ManageAutomationSecretsModal = ({ open, setOpen }: Props) => {
 									onKeyDown={e => e.key === 'Enter' && handleCreate()}
 									className="flex-1"
 								/>
-								<Button
-									type="button"
-									size="small"
-									onClick={handleCreate}
-									isLoading={isCreating}
-									disabled={!newLabel.trim() || isCreating}
-								>
+								<Button type="button" size="small" onClick={handleCreate} isLoading={isCreating} disabled={!newLabel.trim() || isCreating}>
 									<Plus /> Generate
 								</Button>
 							</div>

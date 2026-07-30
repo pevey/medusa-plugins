@@ -1,4 +1,4 @@
-const { MetadataStorage } = require("@medusajs/framework/mikro-orm/core")
+const { MetadataStorage } = require('@medusajs/framework/mikro-orm/core')
 
 MetadataStorage.clear()
 

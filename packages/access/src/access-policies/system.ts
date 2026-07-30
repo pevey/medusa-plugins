@@ -1,14 +1,6 @@
-import { definePolicies } from "../utils"
-import { generateResourcePolicies } from "../utils"
+import { definePolicies } from '../utils'
+import { generateResourcePolicies } from '../utils'
 
-const systemResources = [
-  "file",
-  "notification",
-  "workflow_execution",
-  "store",
-  "store_locale",
-]
+const systemResources = ['file', 'notification', 'workflow_execution', 'store', 'store_locale']
 
-export const systemPolicies = definePolicies(
-  generateResourcePolicies(systemResources)
-)
+export const systemPolicies = definePolicies(generateResourcePolicies(systemResources))

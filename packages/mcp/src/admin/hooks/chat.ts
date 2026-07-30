@@ -45,10 +45,7 @@ export const useChat = () => {
 		controllerRef.current?.abort()
 	}, [])
 
-	const send = useCallback(async (
-		{ session_id, text }: { session_id: string | null; text: string },
-		callbacks: ChatCallbacks
-	) => {
+	const send = useCallback(async ({ session_id, text }: { session_id: string | null; text: string }, callbacks: ChatCallbacks) => {
 		const controller = new AbortController()
 		controllerRef.current = controller
 		setStreaming(true)
@@ -104,10 +101,18 @@ export const useChat = () => {
 							callbacks.onText(data.delta ?? '')
 							break
 						case 'tool_call':
-							callbacks.onToolCall({ id: data.id, name: data.name, args: data.args ?? {} })
+							callbacks.onToolCall({
+								id: data.id,
+								name: data.name,
+								args: data.args ?? {}
+							})
 							break
 						case 'tool_result':
-							callbacks.onToolResult({ id: data.id, result: data.result, is_error: !!data.is_error })
+							callbacks.onToolResult({
+								id: data.id,
+								result: data.result,
+								is_error: !!data.is_error
+							})
 							break
 						case 'done':
 							callbacks.onDone()

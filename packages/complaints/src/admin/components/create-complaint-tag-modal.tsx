@@ -27,10 +27,7 @@ export const CreateComplaintTagModal = ({ open, setOpen }: CreateComplaintTagFor
 		}
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -78,7 +75,12 @@ export const CreateComplaintTagModal = ({ open, setOpen }: CreateComplaintTagFor
 						<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 							<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 								<div>
-									<Heading className="capitalize">Create Complaint Tag</Heading>
+									<FocusModal.Title asChild>
+										<Heading className="capitalize">Create Complaint Tag</Heading>
+									</FocusModal.Title>
+									<FocusModal.Description className="sr-only">
+										Create a new complaint tag: give it a value used to categorize complaints.
+									</FocusModal.Description>
 								</div>
 								<div className="grid grid-cols-1 gap-4">
 									{/* Value */}
@@ -98,13 +100,7 @@ export const CreateComplaintTagModal = ({ open, setOpen }: CreateComplaintTagFor
 							</div>
 						</FocusModal.Body>
 						<FocusModal.Footer className="flex w-full items-center justify-end gap-x-2">
-							<Button
-								type="button"
-								size="small"
-								variant="secondary"
-								onClick={() => setOpen(false)}
-								disabled={isPending}
-							>
+							<Button type="button" size="small" variant="secondary" onClick={() => setOpen(false)} disabled={isPending}>
 								Cancel
 							</Button>
 							<Button type="submit" size="small" isLoading={isPending} disabled={isPending}>

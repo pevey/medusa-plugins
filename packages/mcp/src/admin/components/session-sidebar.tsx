@@ -51,8 +51,8 @@ const SessionRow = ({
 			disabled ? 'cursor-not-allowed' : 'cursor-pointer'
 		} ${active ? 'bg-ui-bg-base-pressed' : disabled ? '' : 'hover:bg-ui-bg-base-hover'}`}
 	>
-		<div className="flex-1 min-w-0">
-			<Text size="small" leading="compact" className="truncate text-ui-fg-base">
+		<div className="min-w-0 flex-1">
+			<Text size="small" leading="compact" className="text-ui-fg-base truncate">
 				{session.title || 'Untitled chat'}
 			</Text>
 			<Text size="xsmall" leading="compact" className="text-ui-fg-muted">
@@ -64,7 +64,7 @@ const SessionRow = ({
 			variant="transparent"
 			className="opacity-0 group-hover:opacity-100"
 			disabled={disabled}
-			onClick={(e) => {
+			onClick={e => {
 				e.stopPropagation()
 				if (disabled) return
 				onDelete(session.id)
@@ -80,9 +80,7 @@ export const SessionSidebar = ({ activeId, onNew, onSelect, disabled }: SessionS
 	const deleteSession = useDeleteSession()
 	const prompt = usePrompt()
 
-	const sessions = [...(data?.sessions ?? [])].sort(
-		(a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
-	)
+	const sessions = [...(data?.sessions ?? [])].sort((a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime())
 
 	const handleDelete = async (id: string) => {
 		if (disabled) return
@@ -100,14 +98,14 @@ export const SessionSidebar = ({ activeId, onNew, onSelect, disabled }: SessionS
 	}
 
 	return (
-		<div className="flex flex-col h-full w-64 shrink-0 border-r border-ui-border-base">
-			<div className="px-3 py-3 border-b border-ui-border-base">
+		<div className="border-ui-border-base flex h-full w-64 shrink-0 flex-col border-r">
+			<div className="border-ui-border-base border-b px-3 py-3">
 				<Button size="small" variant="secondary" className="w-full" onClick={onNew} disabled={disabled}>
 					<Plus />
 					New chat
 				</Button>
 			</div>
-			<div className="flex-1 overflow-y-auto px-2 py-2 flex flex-col gap-0.5">
+			<div className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 py-2">
 				{sessions.length === 0 && (
 					<div className="px-1 py-2">
 						<Text size="small" className="text-ui-fg-muted">
@@ -115,7 +113,7 @@ export const SessionSidebar = ({ activeId, onNew, onSelect, disabled }: SessionS
 						</Text>
 					</div>
 				)}
-				{sessions.map((session) => (
+				{sessions.map(session => (
 					<SessionRow
 						key={session.id}
 						session={session}

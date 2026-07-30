@@ -9,12 +9,7 @@
 		'aria-label'?: string
 		field?: RemoteFormField<any>
 	}
-	let {
-		size = 'default',
-		class: className = '',
-		'aria-label': ariaLabel = 'Theme',
-		field
-	}: Props = $props()
+	let { size = 'default', class: className = '', 'aria-label': ariaLabel = 'Theme', field }: Props = $props()
 
 	const OPTIONS = [
 		{ value: 'light', label: 'Light' },

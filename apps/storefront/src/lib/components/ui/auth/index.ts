@@ -19,10 +19,4 @@ export {
 	getAuthFieldContext,
 	getAuthFieldContextOptional
 } from './ctx.svelte.js'
-export type {
-	AuthFormContext,
-	AuthFieldContext,
-	AuthResult,
-	AuthMessages,
-	AuthForm
-} from './types.js'
+export type { AuthFormContext, AuthFieldContext, AuthResult, AuthMessages, AuthForm } from './types.js'

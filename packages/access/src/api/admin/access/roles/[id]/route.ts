@@ -1,105 +1,81 @@
-import {
-  deleteAccessRolesWorkflow,
-  updateAccessRolesWorkflow,
-} from "medusa-plugin-access/workflows"
-import {
-  AuthenticatedMedusaRequest,
-  MedusaResponse,
-} from "@medusajs/framework/http"
-import {
-  ContainerRegistrationKeys,
-  MedusaError,
-} from "@medusajs/framework/utils"
+import { deleteAccessRolesWorkflow, updateAccessRolesWorkflow } from 'medusa-plugin-access/workflows'
+import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
+import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils'
 
-import { AdminUpdateAccessRoleType } from "../validators"
+import { AdminUpdateAccessRoleType } from '../validators'
 
 /**
  * @ignore
  * @featureFlag rbac
  */
-export const GET = async (
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-) => {
-  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-  const { data: roles } = await query.graph({
-    entity: "access_role",
-    filters: { id: req.params.id },
-    fields: req.queryConfig.fields,
-  })
+export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+	const { data: roles } = await query.graph({
+		entity: 'access_role',
+		filters: { id: req.params.id },
+		fields: req.queryConfig.fields
+	})
 
-  const role = roles[0]
+	const role = roles[0]
 
-  if (!role) {
-    throw new MedusaError(
-      MedusaError.Types.NOT_FOUND,
-      `Role with id: ${req.params.id} not found`
-    )
-  }
+	if (!role) {
+		throw new MedusaError(MedusaError.Types.NOT_FOUND, `Role with id: ${req.params.id} not found`)
+	}
 
-  res.status(200).json({ role })
+	res.status(200).json({ role })
 }
 
 /**
  * @ignore
  * @featureFlag rbac
  */
-export const POST = async (
-  req: AuthenticatedMedusaRequest<AdminUpdateAccessRoleType>,
-  res: MedusaResponse
-) => {
-  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-  const { data: existing } = await query.graph({
-    entity: "access_role",
-    filters: { id: req.params.id },
-    fields: ["id"],
-  })
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAccessRoleType>, res: MedusaResponse) => {
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+	const { data: existing } = await query.graph({
+		entity: 'access_role',
+		filters: { id: req.params.id },
+		fields: ['id']
+	})
 
-  const existingRole = existing[0]
-  if (!existingRole) {
-    throw new MedusaError(
-      MedusaError.Types.NOT_FOUND,
-      `Role with id "${req.params.id}" not found`
-    )
-  }
+	const existingRole = existing[0]
+	if (!existingRole) {
+		throw new MedusaError(MedusaError.Types.NOT_FOUND, `Role with id "${req.params.id}" not found`)
+	}
 
-  const { result } = await updateAccessRolesWorkflow(req.scope).run({
-    input: {
-      actor_id: req.auth_context.actor_id,
-      actor: req.auth_context.actor_type,
-      selector: { id: req.params.id },
-      update: req.validatedBody,
-    },
-  })
+	const { result } = await updateAccessRolesWorkflow(req.scope).run({
+		input: {
+			actor_id: req.auth_context.actor_id,
+			actor: req.auth_context.actor_type,
+			selector: { id: req.params.id },
+			update: req.validatedBody
+		}
+	})
 
-  const { data: roles } = await query.graph({
-    entity: "access_role",
-    filters: { id: result[0].id },
-    fields: req.queryConfig.fields,
-  })
+	const { data: roles } = await query.graph({
+		entity: 'access_role',
+		filters: { id: result[0].id },
+		fields: req.queryConfig.fields
+	})
 
-  const role = roles[0]
+	const role = roles[0]
 
-  res.status(200).json({ role })
+	res.status(200).json({ role })
 }
 
 /**
  * @ignore
  * @featureFlag rbac
  */
-export const DELETE = async (
-  req: AuthenticatedMedusaRequest,
-  res: MedusaResponse
-) => {
-  const id = req.params.id
+export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
+	const id = req.params.id
 
-  await deleteAccessRolesWorkflow(req.scope).run({
-    input: { ids: [id] },
-  })
+	await deleteAccessRolesWorkflow(req.scope).run({
+		input: { ids: [id] }
+	})
 
-  res.status(200).json({
-    id,
-    object: "access_role",
-    deleted: true,
-  })
+	res.status(200).json({
+		id,
+		object: 'access_role',
+		deleted: true
+	})
 }

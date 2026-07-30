@@ -4,10 +4,7 @@ import { AdminGetStockLotType, AdminUpdateStockLotType } from '../../../validato
 import { updateStockLotWorkflow } from '../../../../workflows/tracing/update-stock-lot'
 import { deleteStockLotWorkflow } from '../../../../workflows/tracing/delete-stock-lot'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetStockLotType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetStockLotType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { id } = req.params
 
@@ -25,10 +22,7 @@ export const GET = async (
 	res.json({ stock_lot: stockLot })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminUpdateStockLotType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateStockLotType>, res: MedusaResponse) => {
 	const { id } = req.params
 
 	const { result } = await updateStockLotWorkflow(req.scope).run({

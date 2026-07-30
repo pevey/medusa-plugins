@@ -49,11 +49,9 @@ class SearchModuleService extends MedusaService({
 			return
 		}
 
-		eventBus
-			.emit({ name: 'search.seed-empty-index', data: {} })
-			.catch((error: Error) => {
-				logger.error(`[search] failed to emit initial-seed event: ${error.message}`)
-			})
+		eventBus.emit({ name: 'search.seed-empty-index', data: {} }).catch((error: Error) => {
+			logger.error(`[search] failed to emit initial-seed event: ${error.message}`)
+		})
 	}
 
 	// Validate the configured base text-search config against pg_ts_config once. An unknown
@@ -82,10 +80,12 @@ class SearchModuleService extends MedusaService({
 	protected async writeBaseTsv(id: string, body_text: string | null | undefined, weight: number): Promise<void> {
 		const cfg = await this.resolveBaseConfig()
 		const knex = (this as any).__container__.manager.getKnex()
-		await knex.raw(
-			`UPDATE search_document SET body_tsv = to_tsvector(?::regconfig, coalesce(?, '')), weight = ?::numeric WHERE id = ?`,
-			[cfg, body_text ?? '', weight, id]
-		)
+		await knex.raw(`UPDATE search_document SET body_tsv = to_tsvector(?::regconfig, coalesce(?, '')), weight = ?::numeric WHERE id = ?`, [
+			cfg,
+			body_text ?? '',
+			weight,
+			id
+		])
 	}
 
 	getSource(type: string): SearchSource | undefined {
@@ -178,7 +178,13 @@ class SearchModuleService extends MedusaService({
 	// Monolingual hybrid query: pg_trgm word-similarity on primary_text + tsvector ts_rank on the
 	// body (flag 32 normalizes to (0,1) so it is comparable to word_similarity). Better lane wins.
 	protected async searchBaseOnly(
-		knex: any, term: string, channelIds: string[], cfg: string, bw: number, threshold: number, limit: number
+		knex: any,
+		term: string,
+		channelIds: string[],
+		cfg: string,
+		bw: number,
+		threshold: number,
+		limit: number
 	): Promise<SearchHit[]> {
 		const sql = `
 			WITH q AS (SELECT ?::text AS term, ?::text[] AS channel_ids, ?::regconfig AS cfg, ?::float AS bw)
@@ -202,7 +208,10 @@ class SearchModuleService extends MedusaService({
 	}
 
 	async upsertDocument(input: SearchDocumentInput): Promise<void> {
-		const existing = await this.listSearchDocuments({ type: input.type, entity_id: input.entity_id })
+		const existing = await this.listSearchDocuments({
+			type: input.type,
+			entity_id: input.entity_id
+		})
 		if (existing.length > 0) {
 			await this.updateSearchDocuments({ id: existing[0].id, ...input })
 			await this.writeBaseTsv(existing[0].id, input.body_text, input.weight)
@@ -214,7 +223,10 @@ class SearchModuleService extends MedusaService({
 		} catch (error) {
 			// Race: a concurrent upsert (e.g. a subscriber) created the row between our list and
 			// create — the unique (type, entity_id) index rejects the duplicate, so update instead.
-			const again = await this.listSearchDocuments({ type: input.type, entity_id: input.entity_id })
+			const again = await this.listSearchDocuments({
+				type: input.type,
+				entity_id: input.entity_id
+			})
 			if (again.length > 0) {
 				await this.updateSearchDocuments({ id: again[0].id, ...input })
 				await this.writeBaseTsv(again[0].id, input.body_text, input.weight)
@@ -227,7 +239,7 @@ class SearchModuleService extends MedusaService({
 	async deleteDocumentByEntity(type: string, entityId: string): Promise<void> {
 		const existing = await this.listSearchDocuments({ type, entity_id: entityId })
 		if (existing.length > 0) {
-			await this.deleteSearchDocuments(existing.map((d) => d.id))
+			await this.deleteSearchDocuments(existing.map(d => d.id))
 		}
 	}
 
@@ -253,15 +265,18 @@ class SearchModuleService extends MedusaService({
 		}
 		const cfg = configForLocale(input.locale, this.options_.localeTextSearchConfig)
 		const knex = (this as any).__container__.manager.getKnex()
-		await knex.raw(
-			`UPDATE search_document_translation SET body_tsv = to_tsvector(?::regconfig, coalesce(?, '')) WHERE id = ?`,
-			[cfg, input.body_text ?? '', id]
-		)
+		await knex.raw(`UPDATE search_document_translation SET body_tsv = to_tsvector(?::regconfig, coalesce(?, '')) WHERE id = ?`, [
+			cfg,
+			input.body_text ?? '',
+			id
+		])
 	}
 
 	// Drop locale rows that no longer have a real translation (handles un-translation).
 	async pruneTranslations(searchDocumentId: string, keepLocales: string[]): Promise<void> {
-		const rows = await this.listSearchDocumentTranslations({ search_document_id: searchDocumentId })
+		const rows = await this.listSearchDocumentTranslations({
+			search_document_id: searchDocumentId
+		})
 		const stale = rows.filter((r: any) => !keepLocales.includes(r.locale)).map((r: any) => r.id)
 		if (stale.length > 0) await this.deleteSearchDocumentTranslations(stale)
 	}

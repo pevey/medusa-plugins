@@ -8,12 +8,7 @@
 // interior doubles like `/admin/reviews//` still produce a real empty segment for the
 // `:param` guard below to reject — a greedy strip would collapse it to the same 2-segment
 // shape as `/admin/reviews` and match the list route by accident.
-const segments = (value: string) =>
-	value
-		.replace(/\?.*$/, '')
-		.replace(/^\/+/, '')
-		.replace(/\/$/, '')
-		.split('/')
+const segments = (value: string) => value.replace(/\?.*$/, '').replace(/^\/+/, '').replace(/\/$/, '').split('/')
 
 type Candidate = { matcher: string; literalCount: number }
 

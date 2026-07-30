@@ -17,14 +17,11 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 		}
 	}
 
-	const [deliveries, count] = await automationService.listAndCountAutomationDeliveries(
-		filters,
-		{
-			skip: offset ?? 0,
-			take: limit ?? 20,
-			order: { created_at: 'DESC' }
-		}
-	)
+	const [deliveries, count] = await automationService.listAndCountAutomationDeliveries(filters, {
+		skip: offset ?? 0,
+		take: limit ?? 20,
+		order: { created_at: 'DESC' }
+	})
 
 	res.json({ deliveries, count, limit: limit ?? 20, offset: offset ?? 0 })
 }

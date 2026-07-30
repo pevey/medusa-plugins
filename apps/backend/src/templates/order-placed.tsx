@@ -1,18 +1,5 @@
 import { CustomerDTO, OrderDTO } from '@medusajs/framework/types'
-import {
-	Body,
-	Column,
-	Container,
-	Head,
-	Heading,
-	Html,
-	Img,
-	Preview,
-	Row,
-	Section,
-	Tailwind,
-	Text
-} from 'react-email'
+import { Body, Column, Container, Head, Heading, Html, Img, Preview, Row, Section, Tailwind, Text } from 'react-email'
 
 type OrderPlacedEmailProps = {
 	order: {
@@ -55,21 +42,19 @@ function Template({ order, storeName }: OrderPlacedEmailProps) {
 		const itemTotal = item.unit_price * item.quantity
 
 		return (
-			<Section key={item.id} className="border-b border-gray-200 py-4 px-0">
+			<Section key={item.id} className="border-b border-gray-200 px-0 py-4">
 				<Row className="px-0">
 					<Column className="w-1/6">
 						<Img src={item.thumbnail ?? ''} alt={''} className="rounded-lg" width="100%" />
 					</Column>
 					<Column className="w-7/8 pl-4">
-						<Text className="text-sm text-black my-2">{item.title}</Text>
-						<Text className="text-xs text-black my-2">
+						<Text className="my-2 text-sm text-black">{item.title}</Text>
+						<Text className="my-2 text-xs text-black">
 							<span className="font-semibold">
 								{item.quantity} x {getLocaleAmount(item.unit_price)}
 							</span>
 						</Text>
-						<Text className="text-xs text-black font-bold my-2">
-							{getLocaleAmount(itemTotal)}
-						</Text>
+						<Text className="my-2 text-xs font-bold text-black">{getLocaleAmount(itemTotal)}</Text>
 					</Column>
 				</Row>
 			</Section>
@@ -78,25 +63,21 @@ function Template({ order, storeName }: OrderPlacedEmailProps) {
 
 	return (
 		<Tailwind>
-			<Html className="font-sans bg-gray-100">
+			<Html className="bg-gray-100 font-sans">
 				<Head />
 				<Preview>Thank you for your order from {storeName}</Preview>
-				<Body className="bg-white my-10 mx-auto w-full max-w-2xl">
+				<Body className="mx-auto my-10 w-full max-w-2xl bg-white">
 					{/* Greeting and Order Confirmation */}
 					<Container className="p-6">
-						<Heading className="text-lg font-normal text-black mb-6">
-							Dear {order.customer?.first_name || order.shipping_address?.first_name},
-						</Heading>
+						<Heading className="mb-6 text-lg font-normal text-black">Dear {order.customer?.first_name || order.shipping_address?.first_name},</Heading>
 
-						<Text className="text-sm text-black leading-relaxed mb-6">
-							Thank you for your order. Below you will find the details for your purchase.
-						</Text>
+						<Text className="mb-6 text-sm leading-relaxed text-black">Thank you for your order. Below you will find the details for your purchase.</Text>
 
 						<div className="mb-6">
-							<Text className="text-sm text-black m-0 mb-1">
+							<Text className="m-0 mb-1 text-sm text-black">
 								Order number: <span className="font-semibold">{order.display_id}</span>
 							</Text>
-							<Text className="text-sm text-black m-0">
+							<Text className="m-0 text-sm text-black">
 								Order date:{' '}
 								<span className="font-semibold">
 									{new Date(order.created_at).toLocaleDateString('en-GB', {
@@ -109,15 +90,15 @@ function Template({ order, storeName }: OrderPlacedEmailProps) {
 							</Text>
 						</div>
 
-						<Text className="text-sm text-black leading-relaxed">
-							We're getting your order ready to be shipped. We will notify you when it has
-							been sent. If you have any questions, please don't hesitate to contact us.
+						<Text className="text-sm leading-relaxed text-black">
+							We're getting your order ready to be shipped. We will notify you when it has been sent. If you have any questions, please don't hesitate to
+							contact us.
 						</Text>
 					</Container>
 
 					{/* Order Items */}
 					<Container className="px-6">
-						<Heading className="text-base font-semibold text-black mb-2">Your Items</Heading>
+						<Heading className="mb-2 text-base font-semibold text-black">Your Items</Heading>
 
 						{items}
 
@@ -125,89 +106,67 @@ function Template({ order, storeName }: OrderPlacedEmailProps) {
 						<Section className="mt-8 border-t border-gray-200 pt-6">
 							<Row className="text-black">
 								<Column className="w-1/2">
-									<Text className="text-sm m-0 mb-2">Subtotal (incl. VAT)</Text>
+									<Text className="m-0 mb-2 text-sm">Subtotal (incl. VAT)</Text>
 								</Column>
 								<Column className="w-1/2 text-right">
-									<Text className="text-sm m-0 mb-2">
-										{getLocaleAmount(order.subtotal as number)}
-									</Text>
+									<Text className="m-0 mb-2 text-sm">{getLocaleAmount(order.subtotal as number)}</Text>
 								</Column>
 							</Row>
 							<Row className="text-black">
 								<Column className="w-1/2">
-									<Text className="text-sm m-0 mb-2">Shipping Total</Text>
+									<Text className="m-0 mb-2 text-sm">Shipping Total</Text>
 								</Column>
 								<Column className="w-1/2 text-right">
-									<Text className="text-sm m-0 mb-2">
-										{getLocaleAmount(order.shipping_total as number)}
-									</Text>
+									<Text className="m-0 mb-2 text-sm">{getLocaleAmount(order.shipping_total as number)}</Text>
 								</Column>
 							</Row>
 							{Number(order.discount_total) > 0 ? (
 								<Row className="text-black">
 									<Column className="w-1/2">
-										<Text className="text-sm m-0 mb-2">Discount</Text>
+										<Text className="m-0 mb-2 text-sm">Discount</Text>
 									</Column>
 									<Column className="w-1/2 text-right">
-										<Text className="text-sm m-0 mb-2">
-											-{getLocaleAmount(order.discount_total as number)}
-										</Text>
+										<Text className="m-0 mb-2 text-sm">-{getLocaleAmount(order.discount_total as number)}</Text>
 									</Column>
 								</Row>
 							) : null}
-							<Row className="text-black font-bold">
+							<Row className="font-bold text-black">
 								<Column className="w-1/2">
-									<Text className="text-sm m-0 mb-2">Total</Text>
+									<Text className="m-0 mb-2 text-sm">Total</Text>
 								</Column>
 								<Column className="w-1/2 text-right">
-									<Text className="text-sm m-0 mb-2">
-										{getLocaleAmount(order.total as number)}
-									</Text>
+									<Text className="m-0 mb-2 text-sm">{getLocaleAmount(order.total as number)}</Text>
 								</Column>
 							</Row>
 							<Row className="text-black">
 								<Column className="w-1/2">
-									<Text className="text-sm m-0 italic">VAT Amount</Text>
+									<Text className="m-0 text-sm italic">VAT Amount</Text>
 								</Column>
 								<Column className="w-1/2 text-right">
-									<Text className="text-sm m-0 italic">
-										{getLocaleAmount(order.tax_total as number)}
-									</Text>
+									<Text className="m-0 text-sm italic">{getLocaleAmount(order.tax_total as number)}</Text>
 								</Column>
 							</Row>
 						</Section>
 
 						{/* Shipping Address */}
 						<Section className="mt-8 mb-8">
-							<Heading className="text-base font-semibold text-black mb-2">
-								Shipping Address
-							</Heading>
-							<Text className="text-sm text-black m-0 mb-1">
+							<Heading className="mb-2 text-base font-semibold text-black">Shipping Address</Heading>
+							<Text className="m-0 mb-1 text-sm text-black">
 								{order.shipping_address?.first_name} {order.shipping_address?.last_name}
 							</Text>
-							<Text className="text-sm text-black m-0 mb-1">
-								{order.shipping_address?.address_1}
-							</Text>
-							{order.shipping_address?.address_2 && (
-								<Text className="text-sm text-black m-0 mb-1">
-									{order.shipping_address?.address_2}
-								</Text>
-							)}
-							<Text className="text-sm text-black m-0 mb-1">
+							<Text className="m-0 mb-1 text-sm text-black">{order.shipping_address?.address_1}</Text>
+							{order.shipping_address?.address_2 && <Text className="m-0 mb-1 text-sm text-black">{order.shipping_address?.address_2}</Text>}
+							<Text className="m-0 mb-1 text-sm text-black">
 								{order.shipping_address?.postal_code} {order.shipping_address?.city}
 							</Text>
-							<Text className="text-sm text-black m-0">
-								{order.shipping_address?.country_code?.toUpperCase()}
-							</Text>
+							<Text className="m-0 text-sm text-black">{order.shipping_address?.country_code?.toUpperCase()}</Text>
 						</Section>
 					</Container>
 
 					{/* Footer */}
-					<Section className="bg-gray-50 p-6 mt-10">
-						<Text className="text-center text-black text-sm">
-							Order ID: {order.display_id}
-						</Text>
-						<Text className="text-center text-black text-xs mt-4">
+					<Section className="mt-10 bg-gray-50 p-6">
+						<Text className="text-center text-sm text-black">Order ID: {order.display_id}</Text>
+						<Text className="mt-4 text-center text-xs text-black">
 							© {new Date().getFullYear()} {storeName}, Inc. All rights reserved.
 						</Text>
 					</Section>

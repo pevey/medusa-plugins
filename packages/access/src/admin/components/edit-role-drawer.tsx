@@ -28,10 +28,7 @@ export const EditRoleDrawer = ({ role, open, setOpen }: EditRoleDrawerProps) => 
 		defaultValues: { name: '', description: '' }
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -82,7 +79,10 @@ export const EditRoleDrawer = ({ role, open, setOpen }: EditRoleDrawerProps) => 
 				<FormProvider {...form}>
 					<form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
 						<Drawer.Header>
-							<Heading level="h1">Edit Role</Heading>
+							<Drawer.Title asChild>
+								<Heading level="h1">Edit Role</Heading>
+							</Drawer.Title>
+							<Drawer.Description className="sr-only">Edit this role's name and description.</Drawer.Description>
 						</Drawer.Header>
 						<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 							<Controller
@@ -117,12 +117,7 @@ export const EditRoleDrawer = ({ role, open, setOpen }: EditRoleDrawerProps) => 
 										Cancel
 									</Button>
 								</Drawer.Close>
-								<Button
-									size="small"
-									type="submit"
-									disabled={!form.formState.isDirty}
-									isLoading={updateMutation.isPending}
-								>
+								<Button size="small" type="submit" disabled={!form.formState.isDirty} isLoading={updateMutation.isPending}>
 									Save
 								</Button>
 							</div>

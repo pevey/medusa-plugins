@@ -5,8 +5,7 @@ import type { PrivateAnalyticsService } from '../modules/analytics/service'
 
 export default async function refreshSegmentsJob(container: MedusaContainer) {
 	const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
-	const privateAnalyticsService: PrivateAnalyticsService =
-		container.resolve(PRIVATE_ANALYTICS_MODULE)
+	const privateAnalyticsService: PrivateAnalyticsService = container.resolve(PRIVATE_ANALYTICS_MODULE)
 
 	try {
 		const segments = await privateAnalyticsService.listAnalyticsSegments({} as any)
@@ -24,9 +23,7 @@ export default async function refreshSegmentsJob(container: MedusaContainer) {
 				segment_id: segment.id
 			} as any)
 			if (existing.length > 0) {
-				await privateAnalyticsService.deleteAnalyticsSegmentMemberships(
-					existing.map((m: any) => m.id)
-				)
+				await privateAnalyticsService.deleteAnalyticsSegmentMemberships(existing.map((m: any) => m.id))
 			}
 
 			// Insert new memberships in batches
@@ -38,9 +35,7 @@ export default async function refreshSegmentsJob(container: MedusaContainer) {
 					evaluated_at: now
 				}))
 				for (let i = 0; i < memberships.length; i += 100) {
-					await privateAnalyticsService.createAnalyticsSegmentMemberships(
-						memberships.slice(i, i + 100) as any
-					)
+					await privateAnalyticsService.createAnalyticsSegmentMemberships(memberships.slice(i, i + 100) as any)
 				}
 			}
 

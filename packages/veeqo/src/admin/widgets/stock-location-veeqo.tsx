@@ -16,9 +16,7 @@ export type AdminStockLocationWithVeeqo = {
 	}
 }
 
-const StockLocationVeeqoWidget = ({
-	data: stock_location
-}: DetailWidgetProps<AdminStockLocation>) => {
+const StockLocationVeeqoWidget = ({ data: stock_location }: DetailWidgetProps<AdminStockLocation>) => {
 	const queryClient = useQueryClient()
 
 	const { data, isLoading } = useQuery<AdminStockLocationWithVeeqo>({
@@ -42,31 +40,19 @@ const StockLocationVeeqoWidget = ({
 		}
 	})
 
-	const veeqoStockLocationId =
-		data?.stock_location?.veeqo_warehouse?.veeqo_warehouse_id || 'NOT SYNCED'
+	const veeqoStockLocationId = data?.stock_location?.veeqo_warehouse?.veeqo_warehouse_id || 'NOT SYNCED'
 
 	return (
 		<Container className="divide-y p-0">
 			<div className="flex items-center justify-between px-6 py-4">
 				<Heading level="h2">Veeqo Stock Location</Heading>
-				<Button
-					size="small"
-					variant="secondary"
-					onClick={() => syncMutation.mutate()}
-					disabled={syncMutation.isPending}
-				>
+				<Button size="small" variant="secondary" onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>
 					{syncMutation.isPending ? 'Syncing...' : 'Sync'}
 				</Button>
 			</div>
 
 			<div className="px-6 py-4">
-				{isLoading ? (
-					'Loading...'
-				) : veeqoStockLocationId ? (
-					<Text size="small">ID: {veeqoStockLocationId}</Text>
-				) : (
-					<Text size="small">NOT SYNCED</Text>
-				)}
+				{isLoading ? 'Loading...' : veeqoStockLocationId ? <Text size="small">ID: {veeqoStockLocationId}</Text> : <Text size="small">NOT SYNCED</Text>}
 			</div>
 		</Container>
 	)

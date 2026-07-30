@@ -27,23 +27,14 @@ const OrderComplaintsWidget = ({ data: order }: DetailWidgetProps<AdminOrder>) =
 
 	const complaints = data?.complaints ?? []
 
-	const truncate = (text: string, maxLength = 100) =>
-		text.length > maxLength ? `${text.slice(0, maxLength)}...` : text
+	const truncate = (text: string, maxLength = 100) => (text.length > maxLength ? `${text.slice(0, maxLength)}...` : text)
 
 	return (
 		<>
 			<Container className="divide-y p-0">
 				<div className="flex items-center justify-between px-6 py-4">
 					<Heading level="h2">Complaints</Heading>
-					<Button
-						size="small"
-						variant="secondary"
-						onClick={() =>
-							navigate(
-								`/complaints/create?order_id=${order.id}&customer_id=${order.customer_id}`
-							)
-						}
-					>
+					<Button size="small" variant="secondary" onClick={() => navigate(`/complaints/create?order_id=${order.id}&customer_id=${order.customer_id}`)}>
 						Create Complaint
 					</Button>
 				</div>
@@ -56,7 +47,7 @@ const OrderComplaintsWidget = ({ data: order }: DetailWidgetProps<AdminOrder>) =
 					complaints.map(complaint => (
 						<div
 							key={complaint.id}
-							className="flex items-start justify-between gap-4 px-6 py-4 cursor-pointer hover:bg-ui-bg-subtle"
+							className="hover:bg-ui-bg-subtle flex cursor-pointer items-start justify-between gap-4 px-6 py-4"
 							onClick={() => navigate(`/complaints/${complaint.id}`)}
 						>
 							<div className="flex flex-col gap-1">

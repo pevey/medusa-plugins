@@ -2,13 +2,7 @@
 	// elements:false CARD payment: split card fields (CardNumber/CardExpiry/CardCvc) + confirmCardPayment
 	// (inline, no redirect). Renders only inside <StripeElements>. Registers the place-order payment step.
 	import { onMount } from 'svelte'
-	import {
-		CardNumber,
-		CardExpiry,
-		CardCvc,
-		getStripeContext,
-		confirmCardPayment
-	} from 'sveltekit-stripe'
+	import { CardNumber, CardExpiry, CardCvc, getStripeContext, confirmCardPayment } from 'sveltekit-stripe'
 	import { cn } from '$lib/utils.js'
 	import { getCheckoutContextOptional } from './ctx.svelte.js'
 	import { getStripeClientSecretContext } from './stripe-cs-context.js'
@@ -21,16 +15,10 @@
 
 	async function authorizePayment() {
 		try {
-			if (!stripe.stripe || !stripe.elements || !cs.clientSecret)
-				return { ok: false, error: new Error('Payment not ready') }
-			const { error } = await confirmCardPayment(
-				stripe.stripe,
-				stripe.elements,
-				cs.clientSecret,
-				{
-					payment_method: { billing_details: cartBillingDetails(ctx?.cart) as any }
-				}
-			)
+			if (!stripe.stripe || !stripe.elements || !cs.clientSecret) return { ok: false, error: new Error('Payment not ready') }
+			const { error } = await confirmCardPayment(stripe.stripe, stripe.elements, cs.clientSecret, {
+				payment_method: { billing_details: cartBillingDetails(ctx?.cart) as any }
+			})
 			if (error) return { ok: false, error }
 			return { ok: true }
 		} catch (e) {
@@ -40,8 +28,7 @@
 	onMount(() => ctx?.registerPayment(authorizePayment))
 
 	// Braintree-style bordered container; the Stripe card iframe fills it (themed by buildStripeAppearance).
-	const box =
-		'flex h-9 items-center rounded-md border border-input bg-transparent px-3 shadow-xs [&>div]:w-full'
+	const box = 'flex h-9 items-center rounded-md border border-input bg-transparent px-3 shadow-xs [&>div]:w-full'
 </script>
 
 <section data-checkout-stripe-card class={cn('grid grid-cols-2 gap-3', className)}>

@@ -36,10 +36,7 @@
 <img
 	src={src || ''}
 	alt={alt || ''}
-	class={cn(
-		'cursor-zoom-in transition-transform duration-200 hover:scale-[1.01] hover:brightness-90',
-		className
-	)}
+	class={cn('cursor-zoom-in transition-transform duration-200 hover:scale-[1.01] hover:brightness-90', className)}
 	onclick={handleOpenZoom}
 	{...rest}
 />

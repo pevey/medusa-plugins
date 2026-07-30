@@ -12,11 +12,8 @@
 
 	// The cart's CURRENT country (reactive): a committed shipping country, else the current region's
 	// first country. Used to detect a *user* country change (and to avoid a spurious switch on mount).
-	const regionCountry = (): string =>
-		(addr.regions ?? []).find(r => r.id === addr.cart?.region_id)?.countries?.[0]?.iso_2 ?? ''
-	const currentCountry = $derived(
-		String(addr.cart?.shipping_address?.country_code ?? regionCountry()).toLowerCase()
-	)
+	const regionCountry = (): string => (addr.regions ?? []).find(r => r.id === addr.cart?.region_id)?.countries?.[0]?.iso_2 ?? ''
+	const currentCountry = $derived(String(addr.cart?.shipping_address?.country_code ?? regionCountry()).toLowerCase())
 
 	// Options are captured ONCE (untrack) so the AddressElement is created a single time — recomputing
 	// them on every cart update would recreate the element and drop in-progress input. Hydrated from the

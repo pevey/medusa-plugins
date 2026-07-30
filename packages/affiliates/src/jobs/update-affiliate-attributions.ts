@@ -2,11 +2,7 @@ import { MedusaContainer } from '@medusajs/framework/types'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { AFFILIATE_MODULE } from '../modules/affiliate'
 import { AffiliateService } from '../modules/affiliate/service'
-import {
-	computeSubtotals,
-	extractStateTimestamps,
-	findAffiliatePromotionId
-} from '../modules/affiliate/attribution-math'
+import { computeSubtotals, extractStateTimestamps, findAffiliatePromotionId } from '../modules/affiliate/attribution-math'
 
 type ReconcileInput = {
 	order: any
@@ -21,10 +17,7 @@ type ReconcileInput = {
 	} | null
 }
 
-export type ReconcileResult =
-	| { kind: 'skip' }
-	| { kind: 'insert'; row: Record<string, unknown> }
-	| { kind: 'update'; patch: Record<string, unknown> }
+export type ReconcileResult = { kind: 'skip' } | { kind: 'insert'; row: Record<string, unknown> } | { kind: 'update'; patch: Record<string, unknown> }
 
 export function reconcileOrder(input: ReconcileInput): ReconcileResult {
 	const promotionId = findAffiliatePromotionId(input.order, input.affiliatePromotionIds)

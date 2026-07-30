@@ -15,11 +15,7 @@
 	import { updateCart, completeCart, getRegions, getShippingOptions } from 'sveltekit-medusa-sdk'
 	import { getCheckoutContext } from './ctx.svelte.js'
 	import { getStripeClientSecretContext } from './stripe-cs-context.js'
-	import {
-		medusaShippingToStripeRates,
-		walletAddressToMedusa,
-		resolveRedirect
-	} from './checkout-logic.js'
+	import { medusaShippingToStripeRates, walletAddressToMedusa, resolveRedirect } from './checkout-logic.js'
 
 	let {
 		returnUrl,
@@ -44,18 +40,14 @@
 	// none until an address is entered, so seed a placeholder; shippingaddresschange swaps in real rates.
 	const shippingRates = $derived.by(() => {
 		const rates = medusaShippingToStripeRates(ctx.shippingOptions ?? [])
-		return rates.length
-			? rates
-			: [{ id: '__pending_rate', displayName: 'Standard shipping', amount: 0 }]
+		return rates.length ? rates : [{ id: '__pending_rate', displayName: 'Standard shipping', amount: 0 }]
 	})
 
 	onMount(async () => {
 		try {
 			const regions = await getRegions()
 			const region = (regions ?? []).find((r: any) => r.id === ctx.cart?.region_id)
-			allowedShippingCountries = (region?.countries ?? []).map((c: any) =>
-				String(c.iso_2).toUpperCase()
-			)
+			allowedShippingCountries = (region?.countries ?? []).map((c: any) => String(c.iso_2).toUpperCase())
 		} catch {
 			// non-fatal — the element still works, just without the region country restriction
 		}
@@ -85,8 +77,7 @@
 		}
 	}
 	async function onShippingRateChange(e: any) {
-		if (e.shippingRate?.id && e.shippingRate.id !== '__pending_rate')
-			await ctx.selectShipping(e.shippingRate.id)
+		if (e.shippingRate?.id && e.shippingRate.id !== '__pending_rate') await ctx.selectShipping(e.shippingRate.id)
 		e.resolve({}) // Stripe re-reads the amount from the updated PaymentIntent
 	}
 	async function onConfirm(e: any) {

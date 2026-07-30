@@ -14,7 +14,7 @@ export class McpService extends MedusaService({ ChatSession, ChatMessage }) {
 		this.options_ = {
 			chatRetentionDays: DEFAULT_RETENTION_DAYS,
 			maxHistoryTurns: DEFAULT_MAX_HISTORY_TURNS,
-			...options,
+			...options
 		}
 	}
 
@@ -24,10 +24,7 @@ export class McpService extends MedusaService({ ChatSession, ChatMessage }) {
 
 	/** Hard-delete sessions (and, via cascade, their messages) idle since before `cutoff`. */
 	async purgeSessionsOlderThan(cutoff: Date): Promise<number> {
-		const stale = await this.listChatSessions(
-			{ last_message_at: { $lt: cutoff } },
-			{ select: ['id'] }
-		)
+		const stale = await this.listChatSessions({ last_message_at: { $lt: cutoff } }, { select: ['id'] })
 		if (!stale.length) return 0
 		const ids = stale.map((s: { id: string }) => s.id)
 		await this.deleteChatSessions(ids) // cascade removes messages

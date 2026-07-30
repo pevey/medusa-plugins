@@ -19,6 +19,6 @@
 {#if summary && summary.count > 0}
 	<div class={cn('flex items-center gap-1', className)} data-product-rating>
 		{#each fills as fill, i (i)}<Star {fill} />{/each}
-		<span class="text-muted-foreground ml-1 text-sm">({summary.count})</span>
+		<span class="ml-1 text-sm text-muted-foreground">({summary.count})</span>
 	</div>
 {/if}

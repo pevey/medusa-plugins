@@ -1,15 +1,5 @@
 import * as zod from 'zod'
-import {
-	Drawer,
-	Heading,
-	Label,
-	Input,
-	Button,
-	Switch,
-	Textarea,
-	toast,
-	usePrompt
-} from '@medusajs/ui'
+import { Drawer, Heading, Label, Input, Button, Switch, Textarea, toast, usePrompt } from '@medusajs/ui'
 import { useEffect } from 'react'
 import { useForm, Controller, FormProvider } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -18,7 +8,11 @@ import type { AdminRubric } from '../types/analytics'
 import { useUpdateRubric } from '../hooks/analytics'
 
 const schema = zod.object({
-	name: zod.string().min(1, 'Required').regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case').optional(),
+	name: zod
+		.string()
+		.min(1, 'Required')
+		.regex(/^[a-z][a-z0-9_]*$/, 'Must be snake_case')
+		.optional(),
 	label: zod.string().min(1, 'Required').optional(),
 	description: zod.string().nullable().optional(),
 	active: zod.boolean().optional()
@@ -45,10 +39,7 @@ export const EditRubricDrawer = ({ rubric, open, setOpen }: EditRubricDrawerProp
 		}
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -102,7 +93,10 @@ export const EditRubricDrawer = ({ rubric, open, setOpen }: EditRubricDrawerProp
 				<FormProvider {...form}>
 					<form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
 						<Drawer.Header>
-							<Heading level="h1">Edit Rubric</Heading>
+							<Drawer.Title asChild>
+								<Heading level="h1">Edit Rubric</Heading>
+							</Drawer.Title>
+							<Drawer.Description className="sr-only">Edit this event rubric's name, label, and description.</Drawer.Description>
 						</Drawer.Header>
 						<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 							{/* Name */}
@@ -115,9 +109,7 @@ export const EditRubricDrawer = ({ rubric, open, setOpen }: EditRubricDrawerProp
 											Name
 										</Label>
 										<Input {...field} value={field.value ?? ''} placeholder="product_viewed" />
-										{fieldState.error && (
-											<span className="text-sm text-ui-fg-error">{fieldState.error.message}</span>
-										)}
+										{fieldState.error && <span className="text-ui-fg-error text-sm">{fieldState.error.message}</span>}
 									</div>
 								)}
 							/>
@@ -132,9 +124,7 @@ export const EditRubricDrawer = ({ rubric, open, setOpen }: EditRubricDrawerProp
 											Label
 										</Label>
 										<Input {...field} value={field.value ?? ''} placeholder="Product Viewed" />
-										{fieldState.error && (
-											<span className="text-sm text-ui-fg-error">{fieldState.error.message}</span>
-										)}
+										{fieldState.error && <span className="text-ui-fg-error text-sm">{fieldState.error.message}</span>}
 									</div>
 								)}
 							/>
@@ -148,11 +138,7 @@ export const EditRubricDrawer = ({ rubric, open, setOpen }: EditRubricDrawerProp
 										<Label size="small" weight="plus">
 											Description
 										</Label>
-										<Textarea
-											{...field}
-											value={field.value ?? ''}
-											placeholder="What triggers this event?"
-										/>
+										<Textarea {...field} value={field.value ?? ''} placeholder="What triggers this event?" />
 									</div>
 								)}
 							/>
@@ -163,12 +149,8 @@ export const EditRubricDrawer = ({ rubric, open, setOpen }: EditRubricDrawerProp
 								name="active"
 								render={({ field }) => (
 									<div className="flex items-center gap-3">
-										<Switch
-											id="active-toggle"
-											checked={field.value}
-											onCheckedChange={field.onChange}
-										/>
-										<label htmlFor="active-toggle" className="text-sm cursor-pointer">
+										<Switch id="active-toggle" checked={field.value} onCheckedChange={field.onChange} />
+										<label htmlFor="active-toggle" className="cursor-pointer text-sm">
 											Active
 										</label>
 									</div>
@@ -182,12 +164,7 @@ export const EditRubricDrawer = ({ rubric, open, setOpen }: EditRubricDrawerProp
 										Cancel
 									</Button>
 								</Drawer.Close>
-								<Button
-									size="small"
-									type="submit"
-									disabled={!form.formState.isDirty}
-									isLoading={updateMutation.isPending}
-								>
+								<Button size="small" type="submit" disabled={!form.formState.isDirty} isLoading={updateMutation.isPending}>
 									Save
 								</Button>
 							</div>

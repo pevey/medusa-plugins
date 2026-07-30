@@ -54,7 +54,7 @@ export const ContentMarkdownEditor = ({ value, onChange, onSave, isSaving }: Pro
 	return (
 		<>
 			<div
-				className="border-ui-border-base shadow-elevation-card-rest rounded-lg overflow-hidden isolate"
+				className="border-ui-border-base shadow-elevation-card-rest isolate overflow-hidden rounded-lg"
 				onKeyDown={e => {
 					if ((e.ctrlKey || e.metaKey) && e.key === 's') {
 						e.preventDefault()
@@ -86,21 +86,11 @@ export const ContentMarkdownEditor = ({ value, onChange, onSave, isSaving }: Pro
 									<InsertTable />
 									<InsertCodeBlock />
 									<Separator />
-									<Button
-										size="small"
-										variant="secondary"
-										onClick={() => setGalleryOpen(true)}
-										className="shrink-0 mr-1"
-									>
+									<Button size="small" variant="secondary" onClick={() => setGalleryOpen(true)} className="mr-1 shrink-0">
 										<span className="whitespace-nowrap">Insert Image</span>
 									</Button>
 									<div className="flex flex-grow">
-										<Button
-											size="small"
-											onClick={onSave}
-											isLoading={isSaving}
-											className="ml-auto"
-										>
+										<Button size="small" onClick={onSave} isLoading={isSaving} className="ml-auto">
 											Save
 										</Button>
 									</div>
@@ -143,11 +133,7 @@ export const ContentMarkdownEditor = ({ value, onChange, onSave, isSaving }: Pro
 					contentEditableClassName="min-h-[50vh] px-4 py-3 prose prose-sm max-w-none focus:outline-none"
 				/>
 			</div>
-			<InsertImageModal
-				open={galleryOpen}
-				onOpenChange={setGalleryOpen}
-				onSelect={handleInsertImage}
-			/>
+			<InsertImageModal open={galleryOpen} onOpenChange={setGalleryOpen} onSelect={handleInsertImage} />
 		</>
 	)
 }

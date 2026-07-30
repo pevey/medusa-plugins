@@ -1,16 +1,6 @@
 import type { CartAddress, UpdateCartArgs, Country } from './types'
 
-export const ADDRESS_KEYS = [
-	'first_name',
-	'last_name',
-	'address_1',
-	'address_2',
-	'city',
-	'province',
-	'postal_code',
-	'country_code',
-	'phone'
-] as const
+export const ADDRESS_KEYS = ['first_name', 'last_name', 'address_1', 'address_2', 'city', 'province', 'postal_code', 'country_code', 'phone'] as const
 
 export type FieldGetter = (name: string) => string
 

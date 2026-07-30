@@ -23,8 +23,7 @@ const SHIKI_THEMES = { light: 'github-light', dark: 'github-dark' } as const
 // NATIVE dynamic import: its body is an opaque string, so neither the plugin's CJS
 // build (swc) nor the integration harness (@swc/jest) can rewrite it to require() —
 // the real ESM modules load in both production and tests.
-const esmImport: (specifier: string) => Promise<any> =
-	new Function('s', 'return import(s)') as (specifier: string) => Promise<any>
+const esmImport: (specifier: string) => Promise<any> = new Function('s', 'return import(s)') as (specifier: string) => Promise<any>
 
 type Processor = { process: (input: string) => Promise<{ toString(): string }> }
 let processorPromise: Promise<Processor> | null = null

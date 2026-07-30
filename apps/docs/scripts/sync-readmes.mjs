@@ -4,8 +4,8 @@ import { dirname, resolve } from 'node:path'
 import { plugins, otherReadmePackages } from '../docs-packages.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url)) // apps/docs/scripts
-const docsRoot = resolve(here, '..')                 // apps/docs
-const repoRoot = resolve(here, '../../..')           // repo root
+const docsRoot = resolve(here, '..') // apps/docs
+const repoRoot = resolve(here, '../../..') // repo root
 
 // Every docs package that declares a `dir` has its Overview page generated from
 // that package's README.md (the single source of truth). See docs-packages.mjs.
@@ -19,12 +19,7 @@ const targets = [...plugins, ...otherReadmePackages].filter(p => p.dir)
 function cleanReadmeBody(md) {
 	return md
 		.split('\n')
-		.filter(
-			line =>
-				!/^#\s+/.test(line) &&
-				!/^\[Documentation\]/.test(line) &&
-				!line.includes('not familiar with Medusa')
-		)
+		.filter(line => !/^#\s+/.test(line) && !/^\[Documentation\]/.test(line) && !line.includes('not familiar with Medusa'))
 		.join('\n')
 		.replace(/^\n+/, '')
 		.replace(/\n{3,}/g, '\n\n')
@@ -56,22 +51,12 @@ for (const { dir, slug, label } of targets) {
 	// and fall back to a description-only page so the build still succeeds and the
 	// page auto-expands once the README is written.
 	if (body.trim() === '') {
-		console.warn(
-			`[sync-readmes] warning: packages/${dir}/README.md is empty — ` +
-				`generating a description-only page for "${slug}" until it is written.`
-		)
+		console.warn(`[sync-readmes] warning: packages/${dir}/README.md is empty — ` + `generating a description-only page for "${slug}" until it is written.`)
 		body = `${pkg.description || 'Documentation coming soon.'}\n`
 	}
 
 	const title = label || slug
-	const frontmatter = [
-		'---',
-		`title: ${yamlQuote(title)}`,
-		`description: ${yamlQuote(pkg.description || title)}`,
-		'prev: false',
-		'---',
-		''
-	].join('\n')
+	const frontmatter = ['---', `title: ${yamlQuote(title)}`, `description: ${yamlQuote(pkg.description || title)}`, 'prev: false', '---', ''].join('\n')
 
 	const outDir = resolve(docsRoot, 'src/content/docs', slug)
 	mkdirSync(outDir, { recursive: true })

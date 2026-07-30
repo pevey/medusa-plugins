@@ -27,10 +27,7 @@ export const CreateCustomerTagModal = ({ open, setOpen }: CreateCustomerTagDrawe
 		}
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -76,7 +73,12 @@ export const CreateCustomerTagModal = ({ open, setOpen }: CreateCustomerTagDrawe
 						<FocusModal.Body className="flex flex-1 flex-col items-center overflow-y-auto">
 							<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 								<div>
-									<Heading className="capitalize">Create Customer Tag</Heading>
+									<FocusModal.Title asChild>
+										<Heading className="capitalize">Create Customer Tag</Heading>
+									</FocusModal.Title>
+									<FocusModal.Description className="sr-only">
+										Create a new customer tag: give it a value used to group customers.
+									</FocusModal.Description>
 								</div>
 								<div className="grid grid-cols-1 gap-4">
 									{/* Value */}
@@ -96,13 +98,7 @@ export const CreateCustomerTagModal = ({ open, setOpen }: CreateCustomerTagDrawe
 							</div>
 						</FocusModal.Body>
 						<FocusModal.Footer className="flex w-full items-center justify-end gap-x-2">
-							<Button
-								type="button"
-								size="small"
-								variant="secondary"
-								onClick={() => setOpen(false)}
-								disabled={isPending}
-							>
+							<Button type="button" size="small" variant="secondary" onClick={() => setOpen(false)} disabled={isPending}>
 								Cancel
 							</Button>
 							<Button type="submit" size="small" isLoading={isPending} disabled={isPending}>

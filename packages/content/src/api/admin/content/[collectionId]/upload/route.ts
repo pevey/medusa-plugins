@@ -10,10 +10,7 @@ interface MulterFile {
 	buffer: Buffer
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const files = req.files as MulterFile[] | undefined
 	if (!files?.length) {
 		throw new MedusaError(MedusaError.Types.INVALID_DATA, 'No files were uploaded')

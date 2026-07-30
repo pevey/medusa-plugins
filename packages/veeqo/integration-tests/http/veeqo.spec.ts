@@ -110,58 +110,42 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/veeqo/products/sync rejects empty product_ids array', async () => {
-				const res = await api
-					.post('/admin/veeqo/products/sync', { product_ids: [] }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/veeqo/products/sync', { product_ids: [] }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/veeqo/customers/sync rejects empty customer_ids array', async () => {
-				const res = await api
-					.post('/admin/veeqo/customers/sync', { customer_ids: [] }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/veeqo/customers/sync', { customer_ids: [] }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/veeqo/orders/sync rejects empty order_ids array', async () => {
-				const res = await api
-					.post('/admin/veeqo/orders/sync', { order_ids: [] }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/veeqo/orders/sync', { order_ids: [] }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/veeqo/sales-channels/sync rejects empty array', async () => {
-				const res = await api
-					.post('/admin/veeqo/sales-channels/sync', { sales_channel_ids: [] }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/veeqo/sales-channels/sync', { sales_channel_ids: [] }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/veeqo/shipping-options/sync rejects empty array', async () => {
-				const res = await api
-					.post('/admin/veeqo/shipping-options/sync', { shipping_option_ids: [] }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/veeqo/shipping-options/sync', { shipping_option_ids: [] }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/veeqo/stock-locations/sync rejects empty array', async () => {
-				const res = await api
-					.post('/admin/veeqo/stock-locations/sync', { stock_location_ids: [] }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/veeqo/stock-locations/sync', { stock_location_ids: [] }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('GET /admin/veeqo/shipments/:id/tracking-events rejects non-numeric id', async () => {
-				const res = await api
-					.get('/admin/veeqo/shipments/not-a-number/tracking-events', auth())
-					.catch((e: any) => e.response)
+				const res = await api.get('/admin/veeqo/shipments/not-a-number/tracking-events', auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('GET /admin/veeqo/shipments/:id/tracking-events rejects negative id', async () => {
-				const res = await api
-					.get('/admin/veeqo/shipments/-1/tracking-events', auth())
-					.catch((e: any) => e.response)
+				const res = await api.get('/admin/veeqo/shipments/-1/tracking-events', auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 		})
@@ -170,37 +154,27 @@ medusaIntegrationTestRunner({
 
 		describe('Not-found propagation', () => {
 			it('POST /admin/veeqo/products/:id/sync returns 404 for non-existent product', async () => {
-				const res = await api
-					.post('/admin/veeqo/products/prod_01ZZZZZZZZZZZZZZZZZZZZZZZZ/sync', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/veeqo/products/prod_01ZZZZZZZZZZZZZZZZZZZZZZZZ/sync', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(404)
 			})
 
 			it('POST /admin/veeqo/customers/:id/sync returns 404 for non-existent customer', async () => {
-				const res = await api
-					.post('/admin/veeqo/customers/cus_01ZZZZZZZZZZZZZZZZZZZZZZZZ/sync', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/veeqo/customers/cus_01ZZZZZZZZZZZZZZZZZZZZZZZZ/sync', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(404)
 			})
 
 			it('POST /admin/veeqo/orders/:id/sync returns 404 for non-existent order', async () => {
-				const res = await api
-					.post('/admin/veeqo/orders/order_01ZZZZZZZZZZZZZZZZZZZZZZZZ/sync', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/veeqo/orders/order_01ZZZZZZZZZZZZZZZZZZZZZZZZ/sync', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(404)
 			})
 
 			it('POST /admin/veeqo/sales-channels/:id/sync returns 400 for non-existent channel', async () => {
-				const res = await api
-					.post('/admin/veeqo/sales-channels/sc_01ZZZZZZZZZZZZZZZZZZZZZZZZ/sync', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/veeqo/sales-channels/sc_01ZZZZZZZZZZZZZZZZZZZZZZZZ/sync', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/veeqo/stock-locations/:id/sync returns 404 for non-existent location', async () => {
-				const res = await api
-					.post('/admin/veeqo/stock-locations/sloc_01ZZZZZZZZZZZZZZZZZZZZZZZZ/sync', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/veeqo/stock-locations/sloc_01ZZZZZZZZZZZZZZZZZZZZZZZZ/sync', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(404)
 			})
 		})
@@ -228,31 +202,19 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/veeqo/sales-channels/:id/sync syncs a single channel', async () => {
-				const res = await api.post(
-					`/admin/veeqo/sales-channels/${salesChannelId}/sync`,
-					{},
-					auth()
-				)
+				const res = await api.post(`/admin/veeqo/sales-channels/${salesChannelId}/sync`, {}, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.veeqo_channel).toMatchObject({ id: expect.any(Number) })
 			})
 
 			it('POST /admin/veeqo/sales-channels/:id/sync is idempotent (updates on second call)', async () => {
-				const res = await api.post(
-					`/admin/veeqo/sales-channels/${salesChannelId}/sync`,
-					{},
-					auth()
-				)
+				const res = await api.post(`/admin/veeqo/sales-channels/${salesChannelId}/sync`, {}, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.veeqo_channel).toMatchObject({ id: expect.any(Number) })
 			})
 
 			it('POST /admin/veeqo/sales-channels/sync syncs a batch', async () => {
-				const res = await api.post(
-					'/admin/veeqo/sales-channels/sync',
-					{ sales_channel_ids: [salesChannelId2] },
-					auth()
-				)
+				const res = await api.post('/admin/veeqo/sales-channels/sync', { sales_channel_ids: [salesChannelId2] }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.synced_sales_channel_ids.length).toBeGreaterThanOrEqual(1)
 				expect(res.data.synced_sales_channel_ids.every((id: any) => typeof id === 'number')).toBe(true)
@@ -308,21 +270,13 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/veeqo/stock-locations/:id/sync syncs a single location', async () => {
-				const res = await api.post(
-					`/admin/veeqo/stock-locations/${stockLocationId}/sync`,
-					{},
-					auth()
-				)
+				const res = await api.post(`/admin/veeqo/stock-locations/${stockLocationId}/sync`, {}, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.veeqo_warehouse).toMatchObject({ id: expect.any(Number) })
 			})
 
 			it('POST /admin/veeqo/stock-locations/sync syncs a batch', async () => {
-				const res = await api.post(
-					'/admin/veeqo/stock-locations/sync',
-					{ stock_location_ids: [stockLocationId2] },
-					auth()
-				)
+				const res = await api.post('/admin/veeqo/stock-locations/sync', { stock_location_ids: [stockLocationId2] }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.synced_warehouse_ids.length).toBeGreaterThanOrEqual(1)
 				expect(res.data.synced_warehouse_ids.every((id: any) => typeof id === 'number')).toBe(true)
@@ -340,12 +294,20 @@ medusaIntegrationTestRunner({
 				const [r1, r2] = await Promise.all([
 					api.post(
 						'/admin/customers',
-						{ email: `veeqo-customer-${ts}@example.com`, first_name: 'Veeqo', last_name: 'Customer' },
+						{
+							email: `veeqo-customer-${ts}@example.com`,
+							first_name: 'Veeqo',
+							last_name: 'Customer'
+						},
 						auth()
 					),
 					api.post(
 						'/admin/customers',
-						{ email: `veeqo-batch-${ts}@example.com`, first_name: 'Batch', last_name: 'Customer' },
+						{
+							email: `veeqo-batch-${ts}@example.com`,
+							first_name: 'Batch',
+							last_name: 'Customer'
+						},
 						auth()
 					)
 				])
@@ -374,11 +336,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/veeqo/customers/sync syncs a batch', async () => {
-				const res = await api.post(
-					'/admin/veeqo/customers/sync',
-					{ customer_ids: [customerId2] },
-					auth()
-				)
+				const res = await api.post('/admin/veeqo/customers/sync', { customer_ids: [customerId2] }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.synced_customer_ids.length).toBeGreaterThanOrEqual(1)
 				expect(res.data.synced_customer_ids.every((id: any) => typeof id === 'number')).toBe(true)
@@ -405,19 +363,11 @@ medusaIntegrationTestRunner({
 				const ts = Date.now()
 
 				// Region
-				const regionRes = await api.post(
-					'/admin/regions',
-					{ name: `Veeqo Order Region ${ts}`, currency_code: 'usd', countries: ['us'] },
-					auth()
-				)
+				const regionRes = await api.post('/admin/regions', { name: `Veeqo Order Region ${ts}`, currency_code: 'usd', countries: ['us'] }, auth())
 				const regionId = regionRes.data.region.id
 
 				// Sales channel → sync to Veeqo
-				const scRes = await api.post(
-					'/admin/sales-channels',
-					{ name: `Veeqo Order Channel ${ts}` },
-					auth()
-				)
+				const scRes = await api.post('/admin/sales-channels', { name: `Veeqo Order Channel ${ts}` }, auth())
 				salesChannelId = scRes.data.sales_channel.id
 				await api.post(`/admin/veeqo/sales-channels/${salesChannelId}/sync`, {}, auth())
 
@@ -441,33 +391,18 @@ medusaIntegrationTestRunner({
 
 				// Associate the sales channel with this stock location so draft
 				// orders know where to fulfill variants from.
-				await api.post(
-					`/admin/stock-locations/${stockLocationId}/sales-channels`,
-					{ add: [salesChannelId] },
-					auth()
-				)
+				await api.post(`/admin/stock-locations/${stockLocationId}/sales-channels`, { add: [salesChannelId] }, auth())
 
 				// Link the manual fulfillment provider to this stock location.
 				// In Medusa v2 the provider ID is "{identifier}_{configured_id}" = "manual_manual".
 				const manualProviderId = 'manual_manual'
-				await api.post(
-					`/admin/stock-locations/${stockLocationId}/fulfillment-providers`,
-					{ add: [manualProviderId] },
-					auth()
-				)
+				await api.post(`/admin/stock-locations/${stockLocationId}/fulfillment-providers`, { add: [manualProviderId] }, auth())
 
 				// Fulfillment set → service zone (needed to create a shipping option).
 				// The POST endpoint returns the stock location using the default field set
 				// which excludes fulfillment_sets, so we fetch the ID via a separate GET.
-				await api.post(
-					`/admin/stock-locations/${stockLocationId}/fulfillment-sets`,
-					{ name: `Veeqo Order FulfillmentSet ${ts}`, type: 'shipping' },
-					auth()
-				)
-				const slDetail = await api.get(
-					`/admin/stock-locations/${stockLocationId}?fields=fulfillment_sets.id`,
-					auth()
-				)
+				await api.post(`/admin/stock-locations/${stockLocationId}/fulfillment-sets`, { name: `Veeqo Order FulfillmentSet ${ts}`, type: 'shipping' }, auth())
+				const slDetail = await api.get(`/admin/stock-locations/${stockLocationId}?fields=fulfillment_sets.id`, auth())
 				const fulfillmentSetId = slDetail.data.stock_location.fulfillment_sets[0].id
 
 				const szRes = await api.post(
@@ -481,11 +416,7 @@ medusaIntegrationTestRunner({
 				const serviceZoneId = szRes.data.fulfillment_set.service_zones[0].id
 
 				// Shipping profile
-				const spRes = await api.post(
-					'/admin/shipping-profiles',
-					{ name: `Veeqo Order Profile ${ts}`, type: 'default' },
-					auth()
-				)
+				const spRes = await api.post('/admin/shipping-profiles', { name: `Veeqo Order Profile ${ts}`, type: 'default' }, auth())
 				const shippingProfileId = spRes.data.shipping_profile.id
 
 				// Shipping option → sync to Veeqo as a delivery method
@@ -530,17 +461,10 @@ medusaIntegrationTestRunner({
 				// Medusa v2 requires a variant's inventory item to be linked to a stock
 				// location associated with the sales channel before a draft order can be
 				// created. Find the auto-created inventory item (by SKU) and add a level.
-				const invRes = await api.get(
-					`/admin/inventory-items?sku=VEEQO-ORDER-${ts}`,
-					auth()
-				)
+				const invRes = await api.get(`/admin/inventory-items?sku=VEEQO-ORDER-${ts}`, auth())
 				const inventoryItemId = invRes.data.inventory_items[0]?.id
 				if (inventoryItemId) {
-					await api.post(
-						`/admin/inventory-items/${inventoryItemId}/location-levels`,
-						{ location_id: stockLocationId, stocked_quantity: 100 },
-						auth()
-					)
+					await api.post(`/admin/inventory-items/${inventoryItemId}/location-levels`, { location_id: stockLocationId, stocked_quantity: 100 }, auth())
 				}
 
 				// Customer → sync to Veeqo
@@ -620,11 +544,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/veeqo/orders/sync syncs a batch of orders', async () => {
-				const res = await api.post(
-					'/admin/veeqo/orders/sync',
-					{ order_ids: [orderId2] },
-					auth()
-				)
+				const res = await api.post('/admin/veeqo/orders/sync', { order_ids: [orderId2] }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.synced_order_ids.length).toBeGreaterThanOrEqual(1)
 				expect(res.data.synced_order_ids.every((id: any) => typeof id === 'number')).toBe(true)
@@ -667,17 +587,9 @@ medusaIntegrationTestRunner({
 				const ts = Date.now()
 
 				// Sales channel + Veeqo channel
-				const scRes = await api.post(
-					'/admin/sales-channels',
-					{ name: `Veeqo Replacement Contract Channel ${ts}` },
-					auth()
-				)
+				const scRes = await api.post('/admin/sales-channels', { name: `Veeqo Replacement Contract Channel ${ts}` }, auth())
 				const salesChannelId = scRes.data.sales_channel.id
-				const channelSyncRes = await api.post(
-					`/admin/veeqo/sales-channels/${salesChannelId}/sync`,
-					{},
-					auth()
-				)
+				const channelSyncRes = await api.post(`/admin/veeqo/sales-channels/${salesChannelId}/sync`, {}, auth())
 				// Sync workflows return the Veeqo DTO with `.id` being the Veeqo numeric ID.
 				veeqoChannelId = Number(channelSyncRes.data.veeqo_channel.id)
 
@@ -698,27 +610,12 @@ medusaIntegrationTestRunner({
 				)
 				const stockLocationId = slRes.data.stock_location.id
 				await api.post(`/admin/veeqo/stock-locations/${stockLocationId}/sync`, {}, auth())
-				await api.post(
-					`/admin/stock-locations/${stockLocationId}/sales-channels`,
-					{ add: [salesChannelId] },
-					auth()
-				)
-				await api.post(
-					`/admin/stock-locations/${stockLocationId}/fulfillment-providers`,
-					{ add: ['manual_manual'] },
-					auth()
-				)
+				await api.post(`/admin/stock-locations/${stockLocationId}/sales-channels`, { add: [salesChannelId] }, auth())
+				await api.post(`/admin/stock-locations/${stockLocationId}/fulfillment-providers`, { add: ['manual_manual'] }, auth())
 
 				// Fulfillment set + service zone + shipping option (for delivery method)
-				await api.post(
-					`/admin/stock-locations/${stockLocationId}/fulfillment-sets`,
-					{ name: `Replacement Contract Set ${ts}`, type: 'shipping' },
-					auth()
-				)
-				const slDetail = await api.get(
-					`/admin/stock-locations/${stockLocationId}?fields=fulfillment_sets.id`,
-					auth()
-				)
+				await api.post(`/admin/stock-locations/${stockLocationId}/fulfillment-sets`, { name: `Replacement Contract Set ${ts}`, type: 'shipping' }, auth())
+				const slDetail = await api.get(`/admin/stock-locations/${stockLocationId}?fields=fulfillment_sets.id`, auth())
 				const fulfillmentSetId = slDetail.data.stock_location.fulfillment_sets[0].id
 				const szRes = await api.post(
 					`/admin/fulfillment-sets/${fulfillmentSetId}/service-zones`,
@@ -729,11 +626,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				const serviceZoneId = szRes.data.fulfillment_set.service_zones[0].id
-				const spRes = await api.post(
-					'/admin/shipping-profiles',
-					{ name: `Replacement Contract Profile ${ts}`, type: 'default' },
-					auth()
-				)
+				const spRes = await api.post('/admin/shipping-profiles', { name: `Replacement Contract Profile ${ts}`, type: 'default' }, auth())
 				const soRes = await api.post(
 					'/admin/shipping-options',
 					{
@@ -748,11 +641,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				const shippingOptionId = soRes.data.shipping_option.id
-				const shippingSyncRes = await api.post(
-					`/admin/veeqo/shipping-options/${shippingOptionId}/sync`,
-					{},
-					auth()
-				)
+				const shippingSyncRes = await api.post(`/admin/veeqo/shipping-options/${shippingOptionId}/sync`, {}, auth())
 				veeqoDeliveryMethodId = Number(shippingSyncRes.data.veeqo_delivery_method.id)
 
 				// Product + variant
@@ -774,11 +663,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				const productId = productRes.data.product.id
-				const productSyncRes = await api.post(
-					`/admin/veeqo/products/${productId}/sync`,
-					{},
-					auth()
-				)
+				const productSyncRes = await api.post(`/admin/veeqo/products/${productId}/sync`, {}, auth())
 				// veeqo_product.sellables[0].id is the Veeqo sellable id (numeric)
 				veeqoSellableId = Number(productSyncRes.data.veeqo_product.sellables[0].id)
 
@@ -792,11 +677,7 @@ medusaIntegrationTestRunner({
 					},
 					auth()
 				)
-				const customerSyncRes = await api.post(
-					`/admin/veeqo/customers/${customerRes.data.customer.id}/sync`,
-					{},
-					auth()
-				)
+				const customerSyncRes = await api.post(`/admin/veeqo/customers/${customerRes.data.customer.id}/sync`, {}, auth())
 				veeqoCustomerId = Number(customerSyncRes.data.veeqo_customer.id)
 				await seedSnapshot()
 			})
@@ -809,14 +690,10 @@ medusaIntegrationTestRunner({
 					const toCancel = createdVeeqoOrderIds.slice(0, -1)
 					const kept = createdVeeqoOrderIds[createdVeeqoOrderIds.length - 1]
 					for (const id of toCancel) {
-						await (veeqoService as any)
-							.cancelOrder?.(id, 'Test cleanup')
-							.catch(() => {})
+						await (veeqoService as any).cancelOrder?.(id, 'Test cleanup').catch(() => {})
 					}
 					// eslint-disable-next-line no-console
-					console.log(
-						`[Replacements] Left Veeqo order #${kept} alive for manual UI inspection`
-					)
+					console.log(`[Replacements] Left Veeqo order #${kept} alive for manual UI inspection`)
 				}
 			})
 
@@ -828,8 +705,7 @@ medusaIntegrationTestRunner({
 				const number = `${fakeOrderId}#claim-${fakeClaimId}`
 				expect(number.length).toBeGreaterThanOrEqual(60) // confirm we're testing realistic length
 
-				const noteText =
-					`Replacement for Veeqo order #99999. Medusa claim: ${fakeClaimId}.`
+				const noteText = `Replacement for Veeqo order #99999. Medusa claim: ${fakeClaimId}.`
 
 				const veeqoOrder: any = await veeqoService.addOrder({
 					veeqo_input: {
@@ -860,7 +736,6 @@ medusaIntegrationTestRunner({
 							payment_type: 'manual',
 							reference_number: number
 						},
-						tags: ['replacement', 'claim'],
 						employee_notes_attributes: [{ text: noteText }]
 					}
 				})
@@ -878,19 +753,14 @@ medusaIntegrationTestRunner({
 
 				// Diagnostic logging for the other two open questions. We log rather than assert
 				// because Veeqo's GET response can omit/transform some fields it accepted on create.
-				// Future reader: read these logs to confirm tags and employee_notes shape.
+				// Future reader: read these logs to confirm the employee_notes shape.
 
 				// eslint-disable-next-line no-console
 				console.log('=== Veeqo round-trip diagnostics ===')
 				// eslint-disable-next-line no-console
 				console.log('number:', fetched.number, '(length:', fetched.number?.length, ')')
 				// eslint-disable-next-line no-console
-				console.log('tags (raw):', JSON.stringify(fetched.tags))
-				// eslint-disable-next-line no-console
-				console.log(
-					'employee_notes (raw):',
-					JSON.stringify(fetched.employee_notes)
-				)
+				console.log('employee_notes (raw):', JSON.stringify(fetched.employee_notes))
 				// eslint-disable-next-line no-console
 				console.log(
 					'top-level fields containing "note":',
@@ -899,22 +769,12 @@ medusaIntegrationTestRunner({
 				// eslint-disable-next-line no-console
 				console.log('=====================================')
 
-				// SECONDARY: tags round-trip. If Veeqo's GET response surfaces tags the way
-				// we expect, this passes. If not, we still have the create-success above.
-				const tagValues = (fetched.tags ?? []).map((t: any) =>
-					typeof t === 'string' ? t : (t?.name ?? t?.value ?? t)
-				)
-				if (tagValues.length > 0) {
-					expect(tagValues).toEqual(expect.arrayContaining(['replacement', 'claim']))
-				}
-				// (else: tags are not in the basic GET response — non-fatal; the create accepted them)
-
-				// SECONDARY: employee_notes_attributes round-trip. Same fail-soft pattern.
+				// SECONDARY: employee_notes_attributes round-trip. Fail-soft pattern — assert only
+				// if Veeqo's GET response surfaces the field; the create-success above stands either way.
 				const employeeNotes = fetched.employee_notes ?? []
 				if (employeeNotes.length > 0) {
 					const note = employeeNotes[0]
-					const returnedNoteText =
-						note?.text ?? note?.body ?? note?.content ?? note?.note
+					const returnedNoteText = note?.text ?? note?.body ?? note?.content ?? note?.note
 					expect(returnedNoteText).toBe(noteText)
 				}
 				// (else: employee_notes are not in the basic GET response — log above shows shape)
@@ -944,9 +804,7 @@ medusaIntegrationTestRunner({
 						number,
 						send_notification_email: false,
 						total_discounts: 0,
-						line_items_attributes: [
-							{ sellable_id: veeqoSellableId, price_per_unit: 1999, quantity: 1 }
-						],
+						line_items_attributes: [{ sellable_id: veeqoSellableId, price_per_unit: 1999, quantity: 1 }],
 						payment_attributes: { payment_type: 'manual', reference_number: number },
 						employee_notes_attributes: [{ text: noteText }]
 					}
@@ -1001,12 +859,12 @@ medusaIntegrationTestRunner({
 						number,
 						send_notification_email: false,
 						total_discounts: 0,
-						line_items_attributes: [
-							{ sellable_id: veeqoSellableId, price_per_unit: 1999, quantity: 1 }
-						],
+						line_items_attributes: [{ sellable_id: veeqoSellableId, price_per_unit: 1999, quantity: 1 }],
 						payment_attributes: { payment_type: 'manual', reference_number: number },
 						employee_notes_attributes: [
-							{ text: `findOrderByNumber probe — Veeqo order to be looked up by number ${number}` }
+							{
+								text: `findOrderByNumber probe — Veeqo order to be looked up by number ${number}`
+							}
 						]
 					}
 				})
@@ -1038,9 +896,7 @@ medusaIntegrationTestRunner({
 				const rawBody = await rawResp.json().catch(() => null)
 				const totalResults = Array.isArray(rawBody) ? rawBody.length : -1
 				// eslint-disable-next-line no-console
-				console.log(
-					`[findOrderByNumber probe] free-text query returned ${totalResults} result(s); we exact-match-filtered to find the one we wanted`
-				)
+				console.log(`[findOrderByNumber probe] free-text query returned ${totalResults} result(s); we exact-match-filtered to find the one we wanted`)
 
 				// Primary assertion: the lookup found our exact order.
 				expect(found).not.toBeNull()
@@ -1048,9 +904,7 @@ medusaIntegrationTestRunner({
 				expect(found.number).toBe(number)
 
 				// Secondary: searching for a number that doesn't exist returns null.
-				const missing = await veeqoService.findOrderByNumber(
-					`order_01HDOESNOTEXIST${ts}#claim-x`
-				)
+				const missing = await veeqoService.findOrderByNumber(`order_01HDOESNOTEXIST${ts}#claim-x`)
 				expect(missing).toBeNull()
 			}, 60000)
 
@@ -1089,9 +943,7 @@ medusaIntegrationTestRunner({
 						number,
 						send_notification_email: false,
 						total_discounts: 0,
-						line_items_attributes: [
-							{ sellable_id: veeqoSellableId, price_per_unit: 1999, quantity: 1 }
-						],
+						line_items_attributes: [{ sellable_id: veeqoSellableId, price_per_unit: 1999, quantity: 1 }],
 						payment_attributes: { payment_type: 'manual', reference_number: number },
 						employee_notes_attributes: [{ text: EMPLOYEE_NOTES_LABEL }],
 						// Undocumented fields for this experiment — TS doesn't know about them
@@ -1120,11 +972,7 @@ medusaIntegrationTestRunner({
 					Object.keys(fetched).filter(k => k.toLowerCase().includes('note'))
 				)
 				// eslint-disable-next-line no-console
-				console.log(
-					'>>> Inspect Veeqo order #' +
-						created.id +
-						' in the UI to map labels to UI sections <<<'
-				)
+				console.log('>>> Inspect Veeqo order #' + created.id + ' in the UI to map labels to UI sections <<<')
 				// eslint-disable-next-line no-console
 				console.log('==========================================================')
 
@@ -1133,7 +981,6 @@ medusaIntegrationTestRunner({
 				expect(fetched.employee_notes?.[0]?.text).toBe(EMPLOYEE_NOTES_LABEL)
 			}, 60000)
 		})
-
 
 		// ── Products ──────────────────────────────────────────────────────────────
 
@@ -1203,11 +1050,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/veeqo/products/sync syncs a batch', async () => {
-				const res = await api.post(
-					'/admin/veeqo/products/sync',
-					{ product_ids: [productId2] },
-					auth()
-				)
+				const res = await api.post('/admin/veeqo/products/sync', { product_ids: [productId2] }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.synced_product_ids.length).toBeGreaterThanOrEqual(1)
 				expect(res.data.synced_product_ids.every((id: any) => typeof id === 'number')).toBe(true)

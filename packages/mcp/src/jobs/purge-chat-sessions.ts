@@ -24,5 +24,5 @@ export default async function purgeChatSessionsJob(container: MedusaContainer) {
 
 export const config = {
 	name: 'mcp-chat-purge',
-	schedule: '0 3 * * *',
+	schedule: '0 3 * * *'
 }

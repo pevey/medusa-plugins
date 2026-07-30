@@ -2,21 +2,11 @@
 	import { onMount, type Snippet } from 'svelte'
 	import type { RemoteForm } from '@sveltejs/kit'
 	import type { StoreCart } from '@medusajs/types'
-	import {
-		getCart,
-		getRegions,
-		updateCart,
-		regionForCountry,
-		countriesFromRegions
-	} from 'sveltekit-medusa-sdk'
+	import { getCart, getRegions, updateCart, regionForCountry, countriesFromRegions } from 'sveltekit-medusa-sdk'
 	import { cn } from '$lib/utils.js'
 	import { setAddressContext, getAddressHostOptional } from './ctx.svelte.js'
 	import { buildUpdatePayload, resolveCountryValue, ADDRESS_KEYS } from './address-logic.js'
-	import {
-		defaultProvinceConfig,
-		resolveProvinceValue,
-		type ProvinceConfig
-	} from '../input-province/provinces'
+	import { defaultProvinceConfig, resolveProvinceValue, type ProvinceConfig } from '../input-province/provinces'
 	import type { CartQuery, RegionsResource, UpdateCartArgs } from './types.js'
 	import type { NormalizedAddress } from '../google-places-autocomplete/types'
 
@@ -89,15 +79,7 @@
 	}
 
 	// Fields whose fill (autofill/manual) reveals the collapsed structured block.
-	const STRUCTURED = [
-		'address_1',
-		'address_2',
-		'city',
-		'province',
-		'postal_code',
-		'country_code',
-		'phone'
-	]
+	const STRUCTURED = ['address_1', 'address_2', 'city', 'province', 'postal_code', 'country_code', 'phone']
 	const isStructured = (name: string) => STRUCTURED.includes(name.replace(/^billing_/, ''))
 
 	// ---- hand-rolled cancelable/awaitable debounce (replaces p-debounce so updateAddress() can flush) ----
@@ -139,22 +121,16 @@
 			// display name), so a raw autofill value like "United States" must be normalized before use.
 			const resolvedCountry = country ? resolveCountryValue(list, country) : country
 			if (country) form.fields[`${prefix}country_code`]?.set(resolvedCountry)
-			if (prov)
-				form.fields[`${prefix}province`]?.set(
-					resolveProvinceValue(provinceConfig, resolvedCountry, prov)
-				)
+			if (prov) form.fields[`${prefix}province`]?.set(resolveProvinceValue(provinceConfig, resolvedCountry, prov))
 		}
 	}
 
 	// ---- read live DOM values within Root's subtree into the form fields (catches silent fills) ----
 	function reconcileFromDom() {
 		if (rootEl) {
-			const controls = rootEl.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
-				'input[name], select[name]'
-			)
+			const controls = rootEl.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input[name], select[name]')
 			for (const el of controls) {
-				if (el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio'))
-					continue
+				if (el instanceof HTMLInputElement && (el.type === 'checkbox' || el.type === 'radio')) continue
 				const f = form.fields[el.name]
 				if (f && f.value() !== el.value) f.set(el.value)
 			}
@@ -356,10 +332,7 @@
 	onMount(() => {
 		addressHost?.registerUpdateAddress?.(updateAddress)
 		// Expand by default when the user asked to skip motion/choreography (a11y).
-		if (
-			typeof window !== 'undefined' &&
-			window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-		) {
+		if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
 			expanded = true
 		}
 		// The FORM is the SINGLE source of truth for the address; data flows only OUTWARD from it
@@ -378,12 +351,7 @@
 
 <div bind:this={rootEl} class={cn('', className)} oninput={ondelegatedinput}>
 	{#if form.fields?.hideBilling}
-		<input
-			class="hidden"
-			aria-hidden="true"
-			tabindex="-1"
-			{...form.fields.hideBilling.as('checkbox', true)}
-		/>
+		<input class="hidden" aria-hidden="true" tabindex="-1" {...form.fields.hideBilling.as('checkbox', true)} />
 	{/if}
 	{@render children()}
 </div>

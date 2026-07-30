@@ -18,11 +18,7 @@ type EditComplaintTagDrawerProps = {
 	setOpen: (open: boolean) => void
 }
 
-export const EditComplaintTagDrawer = ({
-	complaintTag,
-	open,
-	setOpen
-}: EditComplaintTagDrawerProps) => {
+export const EditComplaintTagDrawer = ({ complaintTag, open, setOpen }: EditComplaintTagDrawerProps) => {
 	const updateMutation = useUpdateComplaintTag(complaintTag?.id)
 	const prompt = usePrompt()
 
@@ -33,10 +29,7 @@ export const EditComplaintTagDrawer = ({
 		}
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -70,7 +63,6 @@ export const EditComplaintTagDrawer = ({
 		}
 	}, [complaintTag, open, form])
 
-
 	const handleSubmit = form.handleSubmit(data => {
 		updateMutation.mutate(data, {
 			onSuccess: () => {
@@ -88,7 +80,10 @@ export const EditComplaintTagDrawer = ({
 				<FormProvider {...form}>
 					<form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
 						<Drawer.Header>
-							<Heading level="h1">Edit Complaint Tag</Heading>
+							<Drawer.Title asChild>
+								<Heading level="h1">Edit Complaint Tag</Heading>
+							</Drawer.Title>
+							<Drawer.Description className="sr-only">Edit this complaint tag's value.</Drawer.Description>
 						</Drawer.Header>
 						<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 							{/* Value */}
@@ -113,12 +108,7 @@ export const EditComplaintTagDrawer = ({
 										Cancel
 									</Button>
 								</Drawer.Close>
-								<Button
-									size="small"
-									type="submit"
-									disabled={!form.formState.isDirty}
-									isLoading={updateMutation.isPending}
-								>
+								<Button size="small" type="submit" disabled={!form.formState.isDirty} isLoading={updateMutation.isPending}>
 									Save
 								</Button>
 							</div>

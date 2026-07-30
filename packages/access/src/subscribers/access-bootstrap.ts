@@ -1,8 +1,5 @@
 import type { SubscriberArgs, SubscriberConfig } from '@medusajs/framework'
-import {
-	BOOTSTRAP_SUPER_ADMIN_EVENT,
-	bootstrapSuperAdminWorkflow
-} from '../workflows/access/workflows/bootstrap-super-admin'
+import { BOOTSTRAP_SUPER_ADMIN_EVENT, bootstrapSuperAdminWorkflow } from '../workflows/access/workflows/bootstrap-super-admin'
 
 /**
  * First-load bootstrap of the seeded super-admin role. The access module's
@@ -11,9 +8,7 @@ import {
  * `query`/`link`) and runs the workflow, which is idempotent — it grants
  * super-admin to every existing user only when no user↔role link exists yet.
  */
-export default async function accessBootstrapHandler({
-	container
-}: SubscriberArgs<Record<string, never>>) {
+export default async function accessBootstrapHandler({ container }: SubscriberArgs<Record<string, never>>) {
 	const logger = container.resolve('logger')
 
 	try {

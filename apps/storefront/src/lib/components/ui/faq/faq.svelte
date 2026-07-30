@@ -9,13 +9,7 @@
 		children: Snippet
 		[key: string]: unknown
 	}
-	let {
-		type = 'single',
-		value = $bindable(),
-		class: className = '',
-		children,
-		...rest
-	}: Props = $props()
+	let { type = 'single', value = $bindable(), class: className = '', children, ...rest }: Props = $props()
 </script>
 
 <Accordion.Root {type} bind:value={value as never} data-slot="faq" class={className} {...rest}>

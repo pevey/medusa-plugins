@@ -3,10 +3,7 @@ import { STATISTICS_MODULE } from '../../../modules/statistics'
 import { StatisticsService } from '../../../modules/statistics/service'
 import { AdminGetStatisticsType } from '../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetStatisticsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetStatisticsType>, res: MedusaResponse) => {
 	const statisticsService: StatisticsService = req.scope.resolve(STATISTICS_MODULE)
 	const { period, start_date, end_date } = req.validatedQuery as AdminGetStatisticsType
 

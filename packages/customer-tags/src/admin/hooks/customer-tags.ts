@@ -49,8 +49,7 @@ export const useCustomerTag = (id: string | undefined) => {
 export const useDeleteCustomerTags = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/customer-tags', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/customer-tags', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['customer-tags'] })
 		}

@@ -9,10 +9,7 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 
 	const document = await complaintService.retrieveComplaintDocument(docId)
 	if (document.complaint_id !== id) {
-		throw new MedusaError(
-			MedusaError.Types.NOT_FOUND,
-			`Document ${docId} does not belong to complaint ${id}`
-		)
+		throw new MedusaError(MedusaError.Types.NOT_FOUND, `Document ${docId} does not belong to complaint ${id}`)
 	}
 
 	const fileService = req.scope.resolve(Modules.FILE)

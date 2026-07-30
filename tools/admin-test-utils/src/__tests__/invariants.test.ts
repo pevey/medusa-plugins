@@ -79,14 +79,12 @@ const pagedContracts = (options: { limit?: number }, defaultLimit: number) =>
 
 describe('assertContractInvariants defaultLimit agreement', () => {
 	it('passes when queryConfig.defaultLimit matches the schema default', () => {
-		expect(() =>
-			assertContractInvariants({ contracts: pagedContracts({ limit: 20 }, 20), validators: {} })
-		).not.toThrow()
+		expect(() => assertContractInvariants({ contracts: pagedContracts({ limit: 20 }, 20), validators: {} })).not.toThrow()
 	})
 
 	it('fails when queryConfig.defaultLimit disagrees with the schema default', () => {
-		expect(() =>
-			assertContractInvariants({ contracts: pagedContracts({ limit: 15 }, 20), validators: {} })
-		).toThrow(/defaultLimit is 20 but the schema defaults limit to 15/)
+		expect(() => assertContractInvariants({ contracts: pagedContracts({ limit: 15 }, 20), validators: {} })).toThrow(
+			/defaultLimit is 20 but the schema defaults limit to 15/
+		)
 	})
 })

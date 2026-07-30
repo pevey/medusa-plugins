@@ -55,9 +55,7 @@ describe('forms list view', () => {
 		// inside the `try` block, after `createForm(...)` has actually resolved, so waiting for it
 		// to close is what proves acceptance, the same way the sibling ratings suite gates on a
 		// validator-accepted value instead of the call log alone (see reviews-list.test.tsx).
-		await expect
-			.element(page.getByRole('heading', { name: 'Create Form' }))
-			.not.toBeInTheDocument()
+		await expect.element(page.getByRole('heading', { name: 'Create Form' })).not.toBeInTheDocument()
 
 		const create = fake.calls.find(call => call.method === 'POST' && call.path === '/admin/forms')
 		expect(create).toBeDefined()
@@ -83,8 +81,6 @@ describe('forms list view', () => {
 		// The client zod allows 'a--b'; the server's handleSchema does not. The contract fake
 		// surfaces that as a rejected request, and the modal reports the failure.
 		await expect.element(page.getByText('Failed to create form')).toBeInTheDocument()
-		expect(fake.calls.some(call => call.method === 'POST' && call.path === '/admin/forms')).toBe(
-			true
-		)
+		expect(fake.calls.some(call => call.method === 'POST' && call.path === '/admin/forms')).toBe(true)
 	})
 })

@@ -25,7 +25,7 @@ export async function getAllowedEventNames(service: RubricLister): Promise<Set<s
 	}
 
 	const rubrics = await service.listAnalyticsRubrics({ active: true })
-	const names = new Set<string>([...SYSTEM_RUBRICS, ...rubrics.map((r) => r.name)])
+	const names = new Set<string>([...SYSTEM_RUBRICS, ...rubrics.map(r => r.name)])
 	cache = { names, expiry: now + TTL_MS }
 	return names
 }

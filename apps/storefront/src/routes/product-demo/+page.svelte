@@ -33,11 +33,7 @@
 
 <div class="mx-auto max-w-2xl space-y-8 p-8" data-testid="product-demo">
 	<ThemeButton />
-	<CartDrawer
-		onupdate={c => console.log('cart updated', c)}
-		onremove={c => console.log('item removed', c)}
-		onerror={e => console.error('cart error', e)}
-	/>
+	<CartDrawer onupdate={c => console.log('cart updated', c)} onremove={c => console.log('item removed', c)} onerror={e => console.error('cart error', e)} />
 
 	<!-- 1. In-context flow: options + quantity + add all read from Product context.
 	     URL carries ?v= (variant) and ?quantity=; refresh/share reproduces the selection. -->
@@ -109,9 +105,7 @@
 						<Review.Rating />
 						<Review.Title />
 					</div>
-					<span class="text-muted-foreground text-sm"
-						>by <Review.Author /> · <Review.Date /></span
-					>
+					<span class="text-sm text-muted-foreground">by <Review.Author /> · <Review.Date /></span>
 					<Review.Body />
 				</Review>
 			</Reviews.List>
@@ -159,11 +153,7 @@
 	</section>
 
 	<nav class="flex flex-col gap-2 border-t pt-6">
-		<a href="/checkout-auto" class="text-primary text-lg font-medium underline"
-			>→ Checkout (auto)</a
-		>
-		<a href="/express-demo" class="text-primary text-lg font-medium underline"
-			>→ Express Checkout (wallet buy)</a
-		>
+		<a href="/checkout-auto" class="text-lg font-medium text-primary underline">→ Checkout (auto)</a>
+		<a href="/express-demo" class="text-lg font-medium text-primary underline">→ Express Checkout (wallet buy)</a>
 	</nav>
 </div>

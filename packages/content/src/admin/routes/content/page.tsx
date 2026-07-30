@@ -82,19 +82,13 @@ const ContentCollectionsPage = () => {
 		}),
 		columnHelper.accessor('slug', {
 			header: 'Slug',
-			cell: ({ getValue }) => (
-				<span className="text-ui-fg-muted font-mono text-sm">{getValue()}</span>
-			)
+			cell: ({ getValue }) => <span className="text-ui-fg-muted font-mono text-sm">{getValue()}</span>
 		}),
 		columnHelper.accessor('prefix', {
 			header: 'Prefix',
 			cell: ({ getValue }) => {
 				const v = getValue()
-				return v ? (
-					<span className="text-ui-fg-muted font-mono text-sm">{v}</span>
-				) : (
-					<span className="text-ui-fg-muted">—</span>
-				)
+				return v ? <span className="text-ui-fg-muted font-mono text-sm">{v}</span> : <span className="text-ui-fg-muted">—</span>
 			}
 		})
 	]
@@ -107,8 +101,7 @@ const ContentCollectionsPage = () => {
 				const ids = Object.keys(selection)
 				const confirmed = await prompt({
 					title: `Delete ${ids.length} content collection${ids.length > 1 ? 's' : ''}?`,
-					description:
-						'This will permanently delete the selected content collections and all their items.',
+					description: 'This will permanently delete the selected content collections and all their items.',
 					confirmText: 'Delete',
 					cancelText: 'Cancel'
 				})
@@ -140,7 +133,7 @@ const ContentCollectionsPage = () => {
 				<DataTable instance={table}>
 					<DataTable.Toolbar className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
 						<Heading>Content Collections</Heading>
-						<div className="flex gap-2 justify-between">
+						<div className="flex justify-between gap-2">
 							<DataTable.Search placeholder="Search..." />
 							<Button size="small" variant="secondary" onClick={() => setCreateOpen(true)}>
 								Create

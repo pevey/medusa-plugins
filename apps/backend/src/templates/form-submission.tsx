@@ -1,14 +1,4 @@
-import {
-	Body,
-	Container,
-	Head,
-	Heading,
-	Html,
-	Preview,
-	Section,
-	Tailwind,
-	Text
-} from 'react-email'
+import { Body, Container, Head, Heading, Html, Preview, Section, Tailwind, Text } from 'react-email'
 
 type FieldEntry = { label: string; value: string }
 
@@ -22,47 +12,35 @@ type Props = {
 function Template({ formName, submittedAt, fields, storeName }: Props) {
 	return (
 		<Tailwind>
-			<Html className="font-sans bg-gray-100">
+			<Html className="bg-gray-100 font-sans">
 				<Head />
 				<Preview>New submission: {formName}</Preview>
-				<Body className="bg-white my-10 mx-auto w-full max-w-2xl">
+				<Body className="mx-auto my-10 w-full max-w-2xl bg-white">
 					<Container className="p-6">
-						<Heading className="text-lg font-semibold text-black mb-2 text-center">
-							New Form Submission
-						</Heading>
+						<Heading className="mb-2 text-center text-lg font-semibold text-black">New Form Submission</Heading>
 
-						<Text className="text-sm text-black leading-relaxed mb-1 text-center">
+						<Text className="mb-1 text-center text-sm leading-relaxed text-black">
 							A new submission was received for <span className="font-semibold">{formName}</span>.
 						</Text>
-						<Text className="text-xs text-gray-500 text-center mb-6">
-							{submittedAt}
-						</Text>
+						<Text className="mb-6 text-center text-xs text-gray-500">{submittedAt}</Text>
 
 						{/* Fields */}
 						{fields.map((field, i) => (
 							<Section
 								key={i}
 								className={`bg-gray-50 px-4 py-3 ${
-									i === 0
-										? 'rounded-t-lg'
-										: i === fields.length - 1
-											? 'rounded-b-lg'
-											: ''
+									i === 0 ? 'rounded-t-lg' : i === fields.length - 1 ? 'rounded-b-lg' : ''
 								} ${i < fields.length - 1 ? 'border-b border-gray-200' : ''}`}
 							>
-								<Text className="text-xs font-medium text-gray-500 uppercase tracking-wide m-0 mb-1">
-									{field.label}
-								</Text>
-								<Text className="text-sm text-black leading-relaxed m-0">
-									{field.value || '—'}
-								</Text>
+								<Text className="m-0 mb-1 text-xs font-medium tracking-wide text-gray-500 uppercase">{field.label}</Text>
+								<Text className="m-0 text-sm leading-relaxed text-black">{field.value || '—'}</Text>
 							</Section>
 						))}
 					</Container>
 
 					{/* Footer */}
-					<Section className="bg-gray-50 p-6 mt-10">
-						<Text className="text-center text-black text-xs mt-4">
+					<Section className="mt-10 bg-gray-50 p-6">
+						<Text className="mt-4 text-center text-xs text-black">
 							© {new Date().getFullYear()} {storeName}, Inc. All rights reserved.
 						</Text>
 					</Section>

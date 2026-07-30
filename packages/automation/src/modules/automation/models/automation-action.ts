@@ -41,11 +41,11 @@ export const AutomationAction = model
 		action_type: model.enum(AutomationActionType),
 		target_url: model.text().nullable(),
 		signing_secret_id: model.text().nullable(), // FK to automation_secret — outgoing_webhook only
-		request_method: model.text().nullable(),    // AutomationRequestMethod — outgoing_request only
-		target_headers: model.json().nullable(),  // TargetHeader[]
-		medusa_workflow: model.text().nullable(),  // core-flows workflow name
-		field_mappings: model.json().nullable(),   // FieldMapping[]
-		static_values: model.json().nullable(),    // StaticValue[]
+		request_method: model.text().nullable(), // AutomationRequestMethod — outgoing_request only
+		target_headers: model.json().nullable(), // TargetHeader[]
+		medusa_workflow: model.text().nullable(), // core-flows workflow name
+		field_mappings: model.json().nullable(), // FieldMapping[]
+		static_values: model.json().nullable(), // StaticValue[]
 		metadata: model.json().nullable(),
 		deliveries: model.hasMany(() => AutomationDelivery, { mappedBy: 'action' }),
 		query: model.hasOne(() => AutomationQuery, { mappedBy: 'action' })

@@ -43,21 +43,12 @@ export const ContentItemMetadataFields = ({ fields, value, onChange }: Props) =>
 							<Input
 								type="number"
 								value={current != null ? String(current) : ''}
-								onChange={e =>
-									set(field.name, e.target.value !== '' ? Number(e.target.value) : null)
-								}
+								onChange={e => set(field.name, e.target.value !== '' ? Number(e.target.value) : null)}
 							/>
 						) : field.field_type === 'date' ? (
-							<Input
-								type="date"
-								value={current != null ? String(current) : ''}
-								onChange={e => set(field.name, e.target.value || null)}
-							/>
+							<Input type="date" value={current != null ? String(current) : ''} onChange={e => set(field.name, e.target.value || null)} />
 						) : field.field_type === 'select' && selectOptions ? (
-							<Select
-								value={current != null ? String(current) : ''}
-								onValueChange={v => set(field.name, v)}
-							>
+							<Select value={current != null ? String(current) : ''} onValueChange={v => set(field.name, v)}>
 								<Select.Trigger>
 									<Select.Value placeholder="Select..." />
 								</Select.Trigger>
@@ -70,11 +61,7 @@ export const ContentItemMetadataFields = ({ fields, value, onChange }: Props) =>
 								</Select.Content>
 							</Select>
 						) : field.field_type === 'rich_text' ? (
-							<Textarea
-								rows={4}
-								value={current != null ? String(current) : ''}
-								onChange={e => set(field.name, e.target.value || null)}
-							/>
+							<Textarea rows={4} value={current != null ? String(current) : ''} onChange={e => set(field.name, e.target.value || null)} />
 						) : (
 							<Input
 								value={current != null ? String(current) : ''}

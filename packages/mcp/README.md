@@ -58,17 +58,17 @@ The plugin does not read any environment variables itself — map your own env v
 
 ### Options
 
-| Option | Type | Required | Description |
-| --- | --- | --- | --- |
-| `provider` | `'anthropic' \| 'openai'` | **yes** | Which LLM backend to use. |
-| `model` | `string` | **yes** | A model id for the chosen provider. |
-| `apiKey` | `string` | **yes** | API key for the provider. For a local OpenAI-compatible server any non-empty value works. |
-| `baseUrl` | `string` | no | Custom API base URL. Point at a local OpenAI-compatible server (e.g. Ollama, LM Studio, vLLM, llama.cpp) to use a self-hosted model. |
-| `systemPrompt` | `string` | no | Appended to the plugin's built-in system prompt. |
-| `allowWriteTools` | `boolean` | no | Allow tools that perform write/dispatch actions. **Defaults to `false`.** See [Security](#security). |
-| `toolPackages` | `string[]` | no | Import specifiers of packages that contribute tools via `registerMcpTools` (e.g. `'medusa-plugin-automation/mcp'`). |
-| `chatRetentionDays` | `number` | no | Sessions idle for more than this many days are auto-deleted by a daily job. **Defaults to `30`.** Set to `0` or negative to disable purging (keep sessions forever). |
-| `maxHistoryTurns` | `number` | no | Max recent user turns sent to the LLM per request (bounds context size and cost). Limits what is sent to the model, not what is stored or displayed. **Defaults to `10`.** Set to `0` or negative for unlimited. |
+| Option              | Type                      | Required | Description                                                                                                                                                                                                      |
+| ------------------- | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `provider`          | `'anthropic' \| 'openai'` | **yes**  | Which LLM backend to use.                                                                                                                                                                                        |
+| `model`             | `string`                  | **yes**  | A model id for the chosen provider.                                                                                                                                                                              |
+| `apiKey`            | `string`                  | **yes**  | API key for the provider. For a local OpenAI-compatible server any non-empty value works.                                                                                                                        |
+| `baseUrl`           | `string`                  | no       | Custom API base URL. Point at a local OpenAI-compatible server (e.g. Ollama, LM Studio, vLLM, llama.cpp) to use a self-hosted model.                                                                             |
+| `systemPrompt`      | `string`                  | no       | Appended to the plugin's built-in system prompt.                                                                                                                                                                 |
+| `allowWriteTools`   | `boolean`                 | no       | Allow tools that perform write/dispatch actions. **Defaults to `false`.** See [Security](#security).                                                                                                             |
+| `toolPackages`      | `string[]`                | no       | Import specifiers of packages that contribute tools via `registerMcpTools` (e.g. `'medusa-plugin-automation/mcp'`).                                                                                              |
+| `chatRetentionDays` | `number`                  | no       | Sessions idle for more than this many days are auto-deleted by a daily job. **Defaults to `30`.** Set to `0` or negative to disable purging (keep sessions forever).                                             |
+| `maxHistoryTurns`   | `number`                  | no       | Max recent user turns sent to the LLM per request (bounds context size and cost). Limits what is sent to the model, not what is stored or displayed. **Defaults to `10`.** Set to `0` or negative for unlimited. |
 
 Without `provider`, `model`, and `apiKey`, the chat endpoint returns an error.
 

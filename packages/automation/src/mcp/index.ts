@@ -54,19 +54,13 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 			}
 		},
 		async ({ trigger_id }) => {
-			const [trigger] = await automationService.listAutomationTriggers(
-				{ id: trigger_id },
-				{ take: 1 }
-			)
+			const [trigger] = await automationService.listAutomationTriggers({ id: trigger_id }, { take: 1 })
 
 			if (!trigger) {
 				return { content: [{ type: 'text' as const, text: 'Trigger not found.' }] }
 			}
 
-			const [actions] = await automationService.listAndCountAutomationActions(
-				{ trigger_id: trigger.id },
-				{ take: 100 }
-			)
+			const [actions] = await automationService.listAndCountAutomationActions({ trigger_id: trigger.id }, { take: 100 })
 
 			return {
 				content: [
@@ -82,14 +76,10 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 	registry.registerTool(
 		'list_automation_deliveries',
 		{
-			description:
-				'View delivery history for an automation action. Filter by status and date range.',
+			description: 'View delivery history for an automation action. Filter by status and date range.',
 			inputSchema: {
 				action_id: z.string().describe('The automation action ID'),
-				status: z
-					.enum(['pending', 'success', 'failed'])
-					.optional()
-					.describe('Filter by delivery status'),
+				status: z.enum(['pending', 'success', 'failed']).optional().describe('Filter by delivery status'),
 				since: z.string().optional().describe('Only include deliveries after this ISO date'),
 				until: z.string().optional().describe('Only include deliveries before this ISO date'),
 				limit: z.coerce.number().int().min(1).max(100).optional().default(20)
@@ -105,10 +95,7 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 				}
 			}
 
-			const [deliveries, count] = await automationService.listAndCountAutomationDeliveries(
-				filters,
-				{ take: limit, order: { created_at: 'DESC' } }
-			)
+			const [deliveries, count] = await automationService.listAndCountAutomationDeliveries(filters, { take: limit, order: { created_at: 'DESC' } })
 
 			return {
 				content: [
@@ -124,32 +111,21 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 	registry.registerTool(
 		'trigger_automation',
 		{
-			description:
-				'Manually fire all active actions on an automation trigger with a given payload.',
+			description: 'Manually fire all active actions on an automation trigger with a given payload.',
 			write: true,
 			inputSchema: {
 				trigger_id: z.string().describe('The automation trigger ID'),
-				payload: z
-					.record(z.string(), z.unknown())
-					.optional()
-					.default({})
-					.describe('The payload to dispatch')
+				payload: z.record(z.string(), z.unknown()).optional().default({}).describe('The payload to dispatch')
 			}
 		},
 		async ({ trigger_id, payload }) => {
-			const [trigger] = await automationService.listAutomationTriggers(
-				{ id: trigger_id },
-				{ take: 1 }
-			)
+			const [trigger] = await automationService.listAutomationTriggers({ id: trigger_id }, { take: 1 })
 
 			if (!trigger) {
 				return { content: [{ type: 'text' as const, text: 'Trigger not found.' }] }
 			}
 
-			const [actions] = await automationService.listAndCountAutomationActions(
-				{ trigger_id: trigger.id, is_active: true },
-				{ take: 100 }
-			)
+			const [actions] = await automationService.listAndCountAutomationActions({ trigger_id: trigger.id, is_active: true }, { take: 100 })
 
 			if (actions.length === 0) {
 				return {
@@ -166,9 +142,7 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 				)
 			)
 
-			const succeeded = results.filter(
-				r => r.status === 'fulfilled' && r.value.status === 'success'
-			).length
+			const succeeded = results.filter(r => r.status === 'fulfilled' && r.value.status === 'success').length
 			const failed = results.length - succeeded
 
 			return {
@@ -198,14 +172,8 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 			write: true,
 			inputSchema: {
 				delivery_ids: z.array(z.string()).optional().describe('Specific delivery IDs to retry'),
-				action_id: z
-					.string()
-					.optional()
-					.describe('Filter by action ID (required when not using delivery_ids)'),
-				status: z
-					.enum(['pending', 'success', 'failed'])
-					.optional()
-					.describe('Filter by delivery status'),
+				action_id: z.string().optional().describe('Filter by action ID (required when not using delivery_ids)'),
+				status: z.enum(['pending', 'success', 'failed']).optional().describe('Filter by delivery status'),
 				since: z.string().optional().describe('Only retry deliveries after this ISO date'),
 				until: z.string().optional().describe('Only retry deliveries before this ISO date')
 			}
@@ -214,10 +182,7 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 			let deliveries: any[]
 
 			if (delivery_ids && delivery_ids.length > 0) {
-				;[deliveries] = await automationService.listAndCountAutomationDeliveries(
-					{ id: delivery_ids },
-					{ take: delivery_ids.length }
-				)
+				;[deliveries] = await automationService.listAndCountAutomationDeliveries({ id: delivery_ids }, { take: delivery_ids.length })
 			} else if (action_id) {
 				const filters: Record<string, unknown> = { action_id }
 				if (status) filters.status = status
@@ -265,16 +230,10 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 				}
 
 				const payload = (delivery.request_payload as Record<string, unknown>) ?? {}
-				const result = await dispatchAndRecord(
-					scope,
-					action,
-					payload,
-					`retry:${delivery.event_name ?? 'unknown'}`,
-					{
-						signOutgoing: true,
-						maxWorkflowIterations: automationService.getOptions?.()?.maxWorkflowIterations
-					}
-				)
+				const result = await dispatchAndRecord(scope, action, payload, `retry:${delivery.event_name ?? 'unknown'}`, {
+					signOutgoing: true,
+					maxWorkflowIterations: automationService.getOptions?.()?.maxWorkflowIterations
+				})
 
 				if (result.status === 'success') succeeded++
 				else failed++

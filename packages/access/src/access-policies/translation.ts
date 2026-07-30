@@ -1,8 +1,6 @@
-import { definePolicies } from "../utils"
-import { generateResourcePolicies } from "../utils"
+import { definePolicies } from '../utils'
+import { generateResourcePolicies } from '../utils'
 
-const translationResources = ["translation", "translation_setting"]
+const translationResources = ['translation', 'translation_setting']
 
-export const translationPolicies = definePolicies(
-  generateResourcePolicies(translationResources)
-)
+export const translationPolicies = definePolicies(generateResourcePolicies(translationResources))

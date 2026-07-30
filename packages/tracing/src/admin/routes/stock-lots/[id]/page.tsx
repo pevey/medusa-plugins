@@ -12,12 +12,13 @@ type StockLotLoaderData = { stock_lot: { id: string; lot_number: string } }
 
 export async function loader({ params }: LoaderFunctionArgs) {
 	const { id } = params
-	return sdk.client.fetch<StockLotLoaderData>(`/admin/stock-lots/${id}`, { query: { fields: 'id,lot_number' } })
+	return sdk.client.fetch<StockLotLoaderData>(`/admin/stock-lots/${id}`, {
+		query: { fields: 'id,lot_number' }
+	})
 }
 
 export const handle = {
-	breadcrumb: ({ data }: UIMatch<StockLotLoaderData>) =>
-		data?.stock_lot?.lot_number || data?.stock_lot?.id || 'Stock Lot'
+	breadcrumb: ({ data }: UIMatch<StockLotLoaderData>) => data?.stock_lot?.lot_number || data?.stock_lot?.id || 'Stock Lot'
 }
 
 const StockLotDetailPage = () => {
@@ -31,48 +32,104 @@ const StockLotDetailPage = () => {
 	const stockLot = data?.stock_lot
 
 	const handleDelete = async () => {
-		const confirmed = await prompt({ title: 'Delete stock lot?', description: 'This action cannot be undone.', confirmText: 'Delete', cancelText: 'Cancel', variant: 'danger' })
+		const confirmed = await prompt({
+			title: 'Delete stock lot?',
+			description: 'This action cannot be undone.',
+			confirmText: 'Delete',
+			cancelText: 'Cancel',
+			variant: 'danger'
+		})
 		if (confirmed) {
 			deleteStockLots([stockLot!.id], {
-				onSuccess: () => { toast.success('Stock lot deleted successfully'); navigate('/stock-lots') },
+				onSuccess: () => {
+					toast.success('Stock lot deleted successfully')
+					navigate('/stock-lots')
+				},
 				onError: () => toast.error('Failed to delete stock lot')
 			})
 		}
 	}
 
-	if (isLoading) return <Container className="p-6"><Text>Loading...</Text></Container>
-	if (!stockLot) return <Container className="p-6"><Text>Stock lot not found.</Text></Container>
+	if (isLoading)
+		return (
+			<Container className="p-6">
+				<Text>Loading...</Text>
+			</Container>
+		)
+	if (!stockLot)
+		return (
+			<Container className="p-6">
+				<Text>Stock lot not found.</Text>
+			</Container>
+		)
 
 	return (
 		<div className="flex flex-col gap-4 p-4">
 			<Container className="divide-y p-0">
 				<div className="flex items-center justify-between px-6 py-4">
 					<Heading level="h1">Stock Lot Details</Heading>
-					<ActionMenu groups={[{ actions: [{ label: 'Edit', icon: <PencilSquare />, onClick: () => setEditOpen(true) }, { label: 'Delete', icon: <Trash />, onClick: handleDelete }] }]} />
+					<ActionMenu
+						groups={[
+							{
+								actions: [
+									{
+										label: 'Edit',
+										icon: <PencilSquare />,
+										onClick: () => setEditOpen(true)
+									},
+									{ label: 'Delete', icon: <Trash />, onClick: handleDelete }
+								]
+							}
+						]}
+					/>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
-					<Text size="small" weight="plus" leading="compact">Lot Number</Text>
-					<Text size="small" leading="compact">{stockLot.lot_number ?? '-'}</Text>
+					<Text size="small" weight="plus" leading="compact">
+						Lot Number
+					</Text>
+					<Text size="small" leading="compact">
+						{stockLot.lot_number ?? '-'}
+					</Text>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
-					<Text size="small" weight="plus" leading="compact">Description</Text>
-					<Text size="small" leading="compact">{stockLot.description ?? '-'}</Text>
+					<Text size="small" weight="plus" leading="compact">
+						Description
+					</Text>
+					<Text size="small" leading="compact">
+						{stockLot.description ?? '-'}
+					</Text>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
-					<Text size="small" weight="plus" leading="compact">Stocked Quantity</Text>
-					<Text size="small" leading="compact">{stockLot.stocked_quantity ?? '-'}</Text>
+					<Text size="small" weight="plus" leading="compact">
+						Stocked Quantity
+					</Text>
+					<Text size="small" leading="compact">
+						{stockLot.stocked_quantity ?? '-'}
+					</Text>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
-					<Text size="small" weight="plus" leading="compact">Status</Text>
-					<Badge color={stockLot.enabled ? 'green' : 'grey'} size="xsmall">{stockLot.enabled ? 'Enabled' : 'Disabled'}</Badge>
+					<Text size="small" weight="plus" leading="compact">
+						Status
+					</Text>
+					<Badge color={stockLot.enabled ? 'green' : 'grey'} size="xsmall">
+						{stockLot.enabled ? 'Enabled' : 'Disabled'}
+					</Badge>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
-					<Text size="small" weight="plus" leading="compact">Inventory Item</Text>
-					<Text size="small" leading="compact">{stockLot.inventory_item?.title ?? stockLot.inventory_item_id ?? '-'}</Text>
+					<Text size="small" weight="plus" leading="compact">
+						Inventory Item
+					</Text>
+					<Text size="small" leading="compact">
+						{stockLot.inventory_item?.title ?? stockLot.inventory_item_id ?? '-'}
+					</Text>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">
-					<Text size="small" weight="plus" leading="compact">Stock Location</Text>
-					<Text size="small" leading="compact">{stockLot.stock_location?.name ?? stockLot.stock_location_id ?? '-'}</Text>
+					<Text size="small" weight="plus" leading="compact">
+						Stock Location
+					</Text>
+					<Text size="small" leading="compact">
+						{stockLot.stock_location?.name ?? stockLot.stock_location_id ?? '-'}
+					</Text>
 				</div>
 			</Container>
 			<SerialNumbersTable stockLotId={id!} />

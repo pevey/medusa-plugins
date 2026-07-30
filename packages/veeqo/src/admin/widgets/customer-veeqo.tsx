@@ -30,8 +30,7 @@ const CustomerVeeqoWidget = ({ data: customer }: DetailWidgetProps<AdminCustomer
 	})
 
 	const syncMutation = useMutation({
-		mutationFn: () =>
-			sdk.client.fetch(`/admin/veeqo/customers/${customer.id}/sync`, { method: 'POST' }),
+		mutationFn: () => sdk.client.fetch(`/admin/veeqo/customers/${customer.id}/sync`, { method: 'POST' }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['customer', customer.id] })
 			toast.success('Customer synced successfully')
@@ -44,12 +43,7 @@ const CustomerVeeqoWidget = ({ data: customer }: DetailWidgetProps<AdminCustomer
 		<Container className="divide-y p-0">
 			<div className="flex items-center justify-between px-6 py-4">
 				<Heading level="h2">Veeqo Customer</Heading>
-				<Button
-					size="small"
-					variant="secondary"
-					onClick={() => syncMutation.mutate()}
-					disabled={syncMutation.isPending}
-				>
+				<Button size="small" variant="secondary" onClick={() => syncMutation.mutate()} disabled={syncMutation.isPending}>
 					{syncMutation.isPending ? 'Syncing...' : 'Sync'}
 				</Button>
 			</div>

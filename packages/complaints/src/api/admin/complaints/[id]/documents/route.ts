@@ -3,10 +3,7 @@ import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/util
 import { uploadComplaintDocumentsWorkflow } from '../../../../../workflows/upload-complaint-documents'
 import { AdminGetComplaintDocumentsType } from '../../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetComplaintDocumentsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetComplaintDocumentsType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { id } = req.params
 

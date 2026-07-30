@@ -18,8 +18,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
 }
 
 export const handle = {
-	breadcrumb: ({ data }: UIMatch<ContentCollectionLoaderData>) =>
-		data?.content_collection?.label || data?.content_collection?.id || 'Collection'
+	breadcrumb: ({ data }: UIMatch<ContentCollectionLoaderData>) => data?.content_collection?.label || data?.content_collection?.id || 'Collection'
 }
 
 const FORMAT_LABELS: Record<ContentFormat, string> = {
@@ -90,10 +89,7 @@ const ContentCollectionDetailPage = () => {
 	}
 
 	const fmt = contentCollection.format as ContentFormat
-	const allRelationships = [
-		...(contentCollection.source_relationships ?? []),
-		...(contentCollection.target_relationships ?? [])
-	]
+	const allRelationships = [...(contentCollection.source_relationships ?? []), ...(contentCollection.target_relationships ?? [])]
 
 	return (
 		<div className="flex flex-col gap-y-4">
@@ -207,27 +203,18 @@ const ContentCollectionDetailPage = () => {
 									<Badge size="xsmall" color="grey">
 										{RELATIONSHIP_TYPE_LABELS[rel.relationship_type]}
 									</Badge>
-									<Link
-										to={`/content/${other.id}`}
-										className="text-ui-fg-interactive hover:text-ui-fg-interactive-hover text-sm"
-									>
+									<Link to={`/content/${other.id}`} className="text-ui-fg-interactive hover:text-ui-fg-interactive-hover text-sm">
 										{other.label}
 									</Link>
 								</div>
-								<Text className="text-ui-fg-muted text-sm">
-									{isSource ? 'outgoing' : 'incoming'}
-								</Text>
+								<Text className="text-ui-fg-muted text-sm">{isSource ? 'outgoing' : 'incoming'}</Text>
 							</div>
 						)
 					})}
 				</Container>
 			)}
 
-			<EditContentCollectionDrawer
-				contentCollection={contentCollection}
-				open={editOpen}
-				onOpenChange={setEditOpen}
-			/>
+			<EditContentCollectionDrawer contentCollection={contentCollection} open={editOpen} onOpenChange={setEditOpen} />
 		</div>
 	)
 }

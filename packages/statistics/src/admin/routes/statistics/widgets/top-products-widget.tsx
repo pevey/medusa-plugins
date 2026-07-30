@@ -26,25 +26,24 @@ export const TopProductsWidget = ({ statistics }: WidgetProps) => {
 	}))
 
 	return (
-		<Container className="h-full p-4 flex flex-col">
-			<Heading level="h3" className="mb-2">Top Products</Heading>
-			<div className="flex-1 min-h-0">
+		<Container className="flex h-full flex-col p-4">
+			<Heading level="h3" className="mb-2">
+				Top Products
+			</Heading>
+			<div className="min-h-0 flex-1">
 				{chartData.length > 0 ? (
 					<ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
 						<BarChart data={chartData} layout="vertical">
 							<XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
-							<YAxis
-								type="category"
-								dataKey="name"
-								tick={{ fontSize: 11 }}
-								width={120}
-							/>
+							<YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={120} />
 							<Tooltip />
 							<Bar dataKey="sold" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
 						</BarChart>
 					</ResponsiveContainer>
 				) : (
-					<Text size="small" className="text-ui-fg-muted">No data yet.</Text>
+					<Text size="small" className="text-ui-fg-muted">
+						No data yet.
+					</Text>
 				)}
 			</div>
 		</Container>

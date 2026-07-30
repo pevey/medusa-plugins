@@ -77,10 +77,7 @@ const ProductComplaintsWidget = ({ data: product }: DetailWidgetProps<AdminProdu
 
 			{/* Link to filtered complaints list */}
 			<div className="px-6 py-4">
-				<Link
-					to={`/complaints?product_id=${product.id}`}
-					className="text-ui-fg-interactive text-sm hover:underline"
-				>
+				<Link to={`/complaints?product_id=${product.id}`} className="text-ui-fg-interactive text-sm hover:underline">
 					View all complaints for this product →
 				</Link>
 			</div>

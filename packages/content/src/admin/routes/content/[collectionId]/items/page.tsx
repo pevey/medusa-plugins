@@ -16,11 +16,7 @@ import {
 } from '@medusajs/ui'
 import { Plus, Trash } from '@medusajs/icons'
 import { AdminContentItem, ContentFormat } from '../../../../types'
-import {
-	useContentCollection,
-	useContentItems,
-	useDeleteContentItems
-} from '../../../../hooks/content'
+import { useContentCollection, useContentItems, useDeleteContentItems } from '../../../../hooks/content'
 import { CreateContentItemModal } from '../../../../components/create-content-item-modal'
 
 export const handle = { breadcrumb: () => 'Items' }
@@ -55,11 +51,7 @@ const GalleryView = ({
 	}
 
 	if (items.length === 0) {
-		return (
-			<Text className="text-ui-fg-muted px-6 py-8 text-center">
-				No images yet. Upload one to get started.
-			</Text>
-		)
+		return <Text className="text-ui-fg-muted px-6 py-8 text-center">No images yet. Upload one to get started.</Text>
 	}
 
 	return (
@@ -67,17 +59,17 @@ const GalleryView = ({
 			{items.map(item => (
 				<div
 					key={item.id}
-					className="group relative flex-none flex flex-col overflow-hidden rounded-lg border border-ui-border-base bg-ui-bg-subtle cursor-pointer"
+					className="group border-ui-border-base bg-ui-bg-subtle relative flex flex-none cursor-pointer flex-col overflow-hidden rounded-lg border"
 					onClick={() => navigate(`/content/${collectionId}/items/${item.id}`)}
 				>
 					{item.body ? (
 						<img
 							src={item.body}
 							alt={item.title}
-							className="block h-40 w-auto object-contain bg-ui-bg-component transition-transform group-hover:scale-105"
+							className="bg-ui-bg-component block h-40 w-auto object-contain transition-transform group-hover:scale-105"
 						/>
 					) : (
-						<div className="flex h-40 w-32 items-center justify-center bg-ui-bg-component">
+						<div className="bg-ui-bg-component flex h-40 w-32 items-center justify-center">
 							<Text className="text-ui-fg-muted text-sm">No image</Text>
 						</div>
 					)}
@@ -85,16 +77,12 @@ const GalleryView = ({
 						<Text size="small" weight="plus" className="truncate">
 							{item.title}
 						</Text>
-						<Badge
-							size="xsmall"
-							color={STATUS_COLORS[item.status] ?? 'grey'}
-							className="mt-1"
-						>
+						<Badge size="xsmall" color={STATUS_COLORS[item.status] ?? 'grey'} className="mt-1">
 							{item.status}
 						</Badge>
 					</div>
 					<button
-						className="absolute right-1 top-1 hidden rounded bg-black/50 p-1 text-white group-hover:flex items-center"
+						className="absolute top-1 right-1 hidden items-center rounded bg-black/50 p-1 text-white group-hover:flex"
 						onClick={async e => {
 							e.stopPropagation()
 							const confirmed = await prompt({
@@ -158,18 +146,12 @@ const ContentItemsPage = () => {
 			header: 'Published',
 			cell: ({ getValue }) => {
 				const v = getValue()
-				return v ? (
-					<Text size="small">{new Date(v).toLocaleDateString()}</Text>
-				) : (
-					<span className="text-ui-fg-muted">—</span>
-				)
+				return v ? <Text size="small">{new Date(v).toLocaleDateString()}</Text> : <span className="text-ui-fg-muted">—</span>
 			}
 		}),
 		columnHelper.accessor('slug', {
 			header: 'Slug',
-			cell: ({ getValue }) => (
-				<span className="text-ui-fg-muted font-mono text-sm">{getValue()}</span>
-			)
+			cell: ({ getValue }) => <span className="text-ui-fg-muted font-mono text-sm">{getValue()}</span>
 		})
 	]
 
@@ -228,25 +210,20 @@ const ContentItemsPage = () => {
 					<>
 						<div className="flex flex-col items-start justify-between gap-2 px-6 py-4 md:flex-row md:items-center">
 							<Heading>{contentCollection.label}</Heading>
-							<div className="flex gap-2 justify-between">
+							<div className="flex justify-between gap-2">
 								<Button size="small" variant="secondary" onClick={() => setCreateOpen(true)}>
 									<Plus className="mr-1" />
 									Upload
 								</Button>
 							</div>
 						</div>
-						<GalleryView
-							collectionId={collectionId!}
-							items={data?.content_items ?? []}
-							isLoading={isLoading}
-							onDelete={ids => deleteItems(ids)}
-						/>
+						<GalleryView collectionId={collectionId!} items={data?.content_items ?? []} isLoading={isLoading} onDelete={ids => deleteItems(ids)} />
 					</>
 				) : (
 					<DataTable instance={table}>
 						<DataTable.Toolbar className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
 							<Heading>{contentCollection.label}</Heading>
-							<div className="flex gap-2 justify-between">
+							<div className="flex justify-between gap-2">
 								<DataTable.Search placeholder="Search..." />
 								<Button size="small" variant="secondary" onClick={() => setCreateOpen(true)}>
 									<Plus className="mr-1" />
@@ -261,13 +238,7 @@ const ContentItemsPage = () => {
 				)}
 			</Container>
 
-			{collectionId && (
-				<CreateContentItemModal
-					open={createOpen}
-					onOpenChange={setCreateOpen}
-					contentCollection={contentCollection}
-				/>
-			)}
+			{collectionId && <CreateContentItemModal open={createOpen} onOpenChange={setCreateOpen} contentCollection={contentCollection} />}
 		</>
 	)
 }

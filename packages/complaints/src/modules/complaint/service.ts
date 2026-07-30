@@ -65,16 +65,13 @@ export class ComplaintService extends MedusaService({
 	}
 
 	async calculateComplaintRates(orderCountsByProduct: Record<string, number>): Promise<void> {
-		this.logger_.info(
-			`Calculating complaint rates for ${Object.keys(orderCountsByProduct).length} products`
-		)
+		this.logger_.info(`Calculating complaint rates for ${Object.keys(orderCountsByProduct).length} products`)
 		const [complaints] = await this.listAndCountComplaints({}, { select: ['id', 'product_id'] })
 
 		const complaintsByProduct: Record<string, number> = {}
 		for (const complaint of complaints) {
 			if (!complaint.product_id) continue
-			complaintsByProduct[complaint.product_id] =
-				(complaintsByProduct[complaint.product_id] || 0) + 1
+			complaintsByProduct[complaint.product_id] = (complaintsByProduct[complaint.product_id] || 0) + 1
 		}
 
 		// for (const [productId, complaintCount] of Object.entries(complaintsByProduct)) {

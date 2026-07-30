@@ -10,11 +10,4 @@
 	const ctx = getAddressContext()
 </script>
 
-<InputPostalCode
-	field={ctx.form.fields[`${prefix}postal_code`]}
-	{label}
-	autocomplete="postal-code"
-	onchange={ctx.onchange}
-	class={className}
-	{...rest}
-/>
+<InputPostalCode field={ctx.form.fields[`${prefix}postal_code`]} {label} autocomplete="postal-code" onchange={ctx.onchange} class={className} {...rest} />

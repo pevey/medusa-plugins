@@ -35,7 +35,7 @@ export function createReviewForm(options: () => CreateReviewFormOptions) {
 		get messages() {
 			return options().messages ?? reviewMessages
 		},
-		setOpen: (o) => options().setOpen(o)
+		setOpen: o => options().setOpen(o)
 	})
 
 	const enhanced = options().form.enhance(async ({ submit }) => {

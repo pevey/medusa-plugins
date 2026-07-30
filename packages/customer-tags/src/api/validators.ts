@@ -34,7 +34,7 @@ export const AdminAddCustomerTag = z
 		tag: z.string().optional(),
 		tag_id: z.string().optional()
 	})
-	.check((ctx) => {
+	.check(ctx => {
 		const val = ctx.value
 		if (val.tag && val.tag_id) {
 			ctx.issues.push({

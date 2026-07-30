@@ -18,10 +18,7 @@ export const handle = { breadcrumb: () => 'Chat' }
 
 // Immutably applies `updater` to the content of the trailing assistant
 // message (the one currently being streamed into).
-const updateTrailingAssistant = (
-	messages: ChatMessageType[],
-	updater: (content: ContentBlock[]) => ContentBlock[]
-): ChatMessageType[] => {
+const updateTrailingAssistant = (messages: ChatMessageType[], updater: (content: ContentBlock[]) => ContentBlock[]): ChatMessageType[] => {
 	if (messages.length === 0) return messages
 	const last = messages[messages.length - 1]
 	if (last.role !== 'assistant') return messages
@@ -77,19 +74,19 @@ const ChatPage = () => {
 		const userMessage: ChatMessageType = { role: 'user', content: [{ type: 'text', text }] }
 		const assistantMessage: ChatMessageType = { role: 'assistant', content: [] }
 
-		setMessages((prev) => [...prev, userMessage, assistantMessage])
+		setMessages(prev => [...prev, userMessage, assistantMessage])
 		setInput('')
 
 		send(
 			{ session_id: activeSessionId, text },
 			{
-				onSession: (id) => {
+				onSession: id => {
 					if (!activeSessionId) setActiveSessionId(id)
 					qc.invalidateQueries({ queryKey: ['mcp-chat-sessions'] })
 				},
-				onText: (delta) => {
-					setMessages((prev) =>
-						updateTrailingAssistant(prev, (content) => {
+				onText: delta => {
+					setMessages(prev =>
+						updateTrailingAssistant(prev, content => {
 							const last = content[content.length - 1]
 							if (last?.type === 'text') {
 								return [...content.slice(0, -1), { ...last, text: last.text + delta }]
@@ -98,35 +95,21 @@ const ChatPage = () => {
 						})
 					)
 				},
-				onToolCall: (call) => {
-					setMessages((prev) =>
-						updateTrailingAssistant(prev, (content) => [
-							...content,
-							{ type: 'tool_use', id: call.id, name: call.name, input: call.args }
-						])
-					)
+				onToolCall: call => {
+					setMessages(prev => updateTrailingAssistant(prev, content => [...content, { type: 'tool_use', id: call.id, name: call.name, input: call.args }]))
 				},
-				onToolResult: (result) => {
-					setMessages((prev) =>
-						updateTrailingAssistant(prev, (content) =>
-							content.map((b) =>
-								b.type === 'tool_use' && b.id === result.id
-									? { ...b, result: result.result, is_error: result.is_error }
-									: b
-							)
+				onToolResult: result => {
+					setMessages(prev =>
+						updateTrailingAssistant(prev, content =>
+							content.map(b => (b.type === 'tool_use' && b.id === result.id ? { ...b, result: result.result, is_error: result.is_error } : b))
 						)
 					)
 				},
 				onDone: () => {
 					qc.invalidateQueries({ queryKey: ['mcp-chat-sessions'] })
 				},
-				onError: (message) => {
-					setMessages((prev) =>
-						updateTrailingAssistant(prev, (content) => [
-							...content,
-							{ type: 'text', text: `\n\n**Error:** ${message}` }
-						])
-					)
+				onError: message => {
+					setMessages(prev => updateTrailingAssistant(prev, content => [...content, { type: 'text', text: `\n\n**Error:** ${message}` }]))
 				}
 			}
 		)
@@ -143,12 +126,12 @@ const ChatPage = () => {
 	const isThinking = streaming && lastMessage?.role === 'assistant' && lastMessage.content.length === 0
 
 	return (
-		<div className="flex h-[calc(100vh-120px)] p-4 gap-4">
-			<Container className="p-0 overflow-hidden">
+		<div className="flex h-[calc(100vh-120px)] gap-4 p-4">
+			<Container className="overflow-hidden p-0">
 				<SessionSidebar activeId={activeSessionId} onNew={onNew} onSelect={onSelect} disabled={streaming} />
 			</Container>
-			<Container className="flex flex-col flex-1 p-0 overflow-hidden">
-				<div className="px-6 py-4 border-b border-ui-border-base">
+			<Container className="flex flex-1 flex-col overflow-hidden p-0">
+				<div className="border-ui-border-base border-b px-6 py-4">
 					<Heading level="h1">Chat</Heading>
 					<Text size="small" className="text-ui-fg-subtle mt-1">
 						Ask questions about your store data or manage automations using natural language.
@@ -156,9 +139,9 @@ const ChatPage = () => {
 				</div>
 
 				{/* Messages area */}
-				<div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3">
+				<div className="flex flex-1 flex-col gap-3 overflow-y-auto px-6 py-4">
 					{messages.length === 0 && (
-						<div className="flex-1 flex items-center justify-center">
+						<div className="flex flex-1 items-center justify-center">
 							<Text size="small" className="text-ui-fg-muted">
 								Send a message to get started. Try "Show me recent orders" or "List my automations."
 							</Text>
@@ -169,19 +152,21 @@ const ChatPage = () => {
 					))}
 					{isThinking && (
 						<div className="self-start">
-							<Text size="small" className="text-ui-fg-muted animate-pulse">Thinking...</Text>
+							<Text size="small" className="text-ui-fg-muted animate-pulse">
+								Thinking...
+							</Text>
 						</div>
 					)}
 					<div ref={messagesEndRef} />
 				</div>
 
 				{/* Input area */}
-				<div className="px-6 py-4 border-t border-ui-border-base">
+				<div className="border-ui-border-base border-t px-6 py-4">
 					<div className="flex gap-2">
 						<Input
 							ref={inputRef}
 							value={input}
-							onChange={(e) => setInput(e.target.value)}
+							onChange={e => setInput(e.target.value)}
 							onKeyDown={handleKeyDown}
 							placeholder="Ask a question..."
 							disabled={streaming}

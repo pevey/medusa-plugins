@@ -1,11 +1,6 @@
 import { FileTypes } from '@medusajs/framework/types'
 import { Modules } from '@medusajs/framework/utils'
-import {
-	createStep,
-	createWorkflow,
-	StepResponse,
-	WorkflowResponse
-} from '@medusajs/framework/workflows-sdk'
+import { createStep, createWorkflow, StepResponse, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
 import { COMPLAINT_MODULE } from '../modules/complaint'
 import { ComplaintService } from '../modules/complaint/service'
 
@@ -22,10 +17,12 @@ export type UploadComplaintDocumentsInput = {
 	}>
 }
 
-type RollbackData = {
-	documentIds: string[]
-	fileKeys: string[]
-} | undefined
+type RollbackData =
+	| {
+			documentIds: string[]
+			fileKeys: string[]
+	  }
+	| undefined
 
 // ── Step ───────────────────────────────────────────────────────────────────────
 
@@ -42,7 +39,7 @@ export const uploadComplaintDocumentsStep = createStep(
 
 		// 1) Upload each file to the configured provider as private.
 		const uploaded = await Promise.all(
-			input.files.map((file) =>
+			input.files.map(file =>
 				provider.upload({
 					filename: file.filename,
 					mimeType: file.mimeType,
@@ -70,15 +67,13 @@ export const uploadComplaintDocumentsStep = createStep(
 			const documents = Array.isArray(created) ? created : [created]
 
 			const rollback: RollbackData = {
-				documentIds: documents.map((d) => d.id),
-				fileKeys: uploaded.map((u) => u.key)
+				documentIds: documents.map(d => d.id),
+				fileKeys: uploaded.map(u => u.key)
 			}
 
 			return new StepResponse(documents, rollback)
 		} catch (err) {
-			await provider.delete(
-				uploaded.map((u) => ({ fileKey: u.key, access: 'private' }))
-			)
+			await provider.delete(uploaded.map(u => ({ fileKey: u.key, access: 'private' })))
 			throw err
 		}
 	},
@@ -92,9 +87,7 @@ export const uploadComplaintDocumentsStep = createStep(
 			await complaintService.deleteComplaintDocuments(rollback.documentIds)
 		}
 		if (rollback.fileKeys.length) {
-			await provider.delete(
-				rollback.fileKeys.map((fileKey) => ({ fileKey, access: 'private' }))
-			)
+			await provider.delete(rollback.fileKeys.map(fileKey => ({ fileKey, access: 'private' })))
 		}
 	}
 )
@@ -103,9 +96,6 @@ export const uploadComplaintDocumentsStep = createStep(
 
 export const uploadComplaintDocumentsWorkflowId = 'upload-complaint-documents'
 
-export const uploadComplaintDocumentsWorkflow = createWorkflow(
-	uploadComplaintDocumentsWorkflowId,
-	(input: UploadComplaintDocumentsInput) => {
-		return new WorkflowResponse(uploadComplaintDocumentsStep(input))
-	}
-)
+export const uploadComplaintDocumentsWorkflow = createWorkflow(uploadComplaintDocumentsWorkflowId, (input: UploadComplaintDocumentsInput) => {
+	return new WorkflowResponse(uploadComplaintDocumentsStep(input))
+})

@@ -6,7 +6,9 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const userId = req.auth_context.actor_id
 
-	const { data: [user] } = await query.graph({
+	const {
+		data: [user]
+	} = await query.graph({
 		entity: 'user',
 		fields: ['id', 'metadata'],
 		filters: { id: userId }
@@ -17,15 +19,14 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 	res.json({ layout })
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminSaveStatisticsLayoutType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminSaveStatisticsLayoutType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const userService = req.scope.resolve(Modules.USER)
 	const userId = req.auth_context.actor_id
 
-	const { data: [user] } = await query.graph({
+	const {
+		data: [user]
+	} = await query.graph({
 		entity: 'user',
 		fields: ['id', 'metadata'],
 		filters: { id: userId }

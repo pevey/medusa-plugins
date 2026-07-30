@@ -146,15 +146,7 @@ export type StockLocationForVeeqoWarehouseInput = {
 
 // See list at https://github.com/VeeqoAPI/api-docs/blob/master/resources/references/order_statuses.json
 export type VeeqoStatus =
-	| null
-	| 'awaiting_payment'
-	| 'awaiting_stock'
-	| 'awaiting_fulfillment'
-	| 'awaiting_amazon_stock'
-	| 'shipped'
-	| 'on_hold'
-	| 'cancelled'
-	| 'refunded'
+	null | 'awaiting_payment' | 'awaiting_stock' | 'awaiting_fulfillment' | 'awaiting_amazon_stock' | 'shipped' | 'on_hold' | 'cancelled' | 'refunded'
 
 export interface VeeqoChannelDTO {
 	id: number

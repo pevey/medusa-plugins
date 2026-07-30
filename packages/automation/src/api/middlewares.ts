@@ -26,9 +26,17 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetAutomationTriggers, {
 				defaults: [
-					'id', 'name', 'description', 'trigger_type', 'is_active',
-					'trigger_events', 'signature_config', 'log_incoming',
-					'metadata', 'created_at', 'updated_at'
+					'id',
+					'name',
+					'description',
+					'trigger_type',
+					'is_active',
+					'trigger_events',
+					'signature_config',
+					'log_incoming',
+					'metadata',
+					'created_at',
+					'updated_at'
 				],
 				isList: true,
 				defaultLimit: 20
@@ -51,9 +59,17 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetAutomationTrigger, {
 				defaults: [
-					'id', 'name', 'description', 'trigger_type', 'is_active',
-					'trigger_events', 'signature_config', 'log_incoming',
-					'metadata', 'created_at', 'updated_at'
+					'id',
+					'name',
+					'description',
+					'trigger_type',
+					'is_active',
+					'trigger_events',
+					'signature_config',
+					'log_incoming',
+					'metadata',
+					'created_at',
+					'updated_at'
 				],
 				isList: false
 			})
@@ -71,9 +87,19 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetAutomationActions, {
 				defaults: [
-					'id', 'name', 'description', 'action_type', 'is_active', 'target_url',
-					'signing_secret_id', 'target_headers', 'medusa_workflow', 'field_mappings',
-					'metadata', 'created_at', 'updated_at'
+					'id',
+					'name',
+					'description',
+					'action_type',
+					'is_active',
+					'target_url',
+					'signing_secret_id',
+					'target_headers',
+					'medusa_workflow',
+					'field_mappings',
+					'metadata',
+					'created_at',
+					'updated_at'
 				],
 				isList: true,
 				defaultLimit: 20
@@ -96,9 +122,19 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetAutomationAction, {
 				defaults: [
-					'id', 'name', 'description', 'action_type', 'is_active', 'target_url',
-					'signing_secret_id', 'target_headers', 'medusa_workflow', 'field_mappings',
-					'metadata', 'created_at', 'updated_at'
+					'id',
+					'name',
+					'description',
+					'action_type',
+					'is_active',
+					'target_url',
+					'signing_secret_id',
+					'target_headers',
+					'medusa_workflow',
+					'field_mappings',
+					'metadata',
+					'created_at',
+					'updated_at'
 				],
 				isList: false
 			})
@@ -130,8 +166,16 @@ export default defineMiddlewares([
 		middlewares: [
 			validateAndTransformQuery(AdminGetAutomationDeliveries, {
 				defaults: [
-					'id', 'event_name', 'status', 'attempts', 'response_status',
-					'response_body', 'request_payload', 'error_message', 'created_at', 'updated_at'
+					'id',
+					'event_name',
+					'status',
+					'attempts',
+					'response_status',
+					'response_body',
+					'request_payload',
+					'error_message',
+					'created_at',
+					'updated_at'
 				],
 				isList: true,
 				defaultLimit: 20

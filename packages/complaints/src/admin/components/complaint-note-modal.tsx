@@ -19,12 +19,7 @@ type ComplaintNoteDrawerProps = {
 	setOpen: (open: boolean) => void
 }
 
-export const ComplaintNoteModal = ({
-	open,
-	setOpen,
-	complaintId,
-	note
-}: ComplaintNoteDrawerProps) => {
+export const ComplaintNoteModal = ({ open, setOpen, complaintId, note }: ComplaintNoteDrawerProps) => {
 	const { mutate: createNote, isPending } = useCreateNote(complaintId)
 	const { mutate: updateNote } = useUpdateNote(complaintId, note?.id)
 	const prompt = usePrompt()
@@ -36,10 +31,7 @@ export const ComplaintNoteModal = ({
 		}
 	})
 
-	let blocker = useBlocker(
-		({ currentLocation, nextLocation }) =>
-			form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname
-	)
+	let blocker = useBlocker(({ currentLocation, nextLocation }) => form.formState.isDirty && currentLocation.pathname !== nextLocation.pathname)
 
 	const handleNavigate = async () => {
 		if (blocker.state !== 'blocked') return
@@ -71,10 +63,7 @@ export const ComplaintNoteModal = ({
 			form.reset()
 			setOpen(false)
 		}
-		const onError = () =>
-			toast.error(
-				note?.id ? 'Failed to update complaint note' : 'Failed to create complaint note'
-			)
+		const onError = () => toast.error(note?.id ? 'Failed to update complaint note' : 'Failed to create complaint note')
 		if (note?.id) {
 			updateNote(data, { onSuccess, onError })
 		} else {
@@ -103,7 +92,10 @@ export const ComplaintNoteModal = ({
 							<div className="flex flex-1 flex-col items-center overflow-y-auto">
 								<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 									<div>
-										<Heading className="capitalize">Add Complaint Note</Heading>
+										<FocusModal.Title asChild>
+											<Heading className="capitalize">Add Complaint Note</Heading>
+										</FocusModal.Title>
+										<FocusModal.Description className="sr-only">Add a note to this complaint.</FocusModal.Description>
 									</div>
 									<div className="grid grid-cols-1 gap-4">
 										<Controller

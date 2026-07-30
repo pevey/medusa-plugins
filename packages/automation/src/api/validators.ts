@@ -20,36 +20,38 @@ const StaticValueSchema = z.object({
 
 // ─── Automation Triggers ─────────────────────────────────────────────────────
 
-const SignatureConfigSchema = z.object({
-	header: z.string().min(1).optional(),
-	encoding: z.enum(['hex', 'base64']).optional(),
-	prefix: z.string().optional(),
-	template: z.string().min(1).optional(),
-	timestamp_header: z.string().min(1).optional(),
-	tolerance_seconds: z.number().int().min(0).optional()
-}).superRefine((cfg, ctx) => {
-	if (cfg.template && !cfg.template.includes('{body}')) {
-		ctx.addIssue({
-			code: 'custom',
-			path: ['template'],
-			message: 'Template must include {body}'
-		})
-	}
-	if (cfg.template?.includes('{ts}') && !cfg.timestamp_header) {
-		ctx.addIssue({
-			code: 'custom',
-			path: ['timestamp_header'],
-			message: 'timestamp_header is required when template references {ts}'
-		})
-	}
-	if ((cfg.tolerance_seconds ?? 0) > 0 && !cfg.timestamp_header) {
-		ctx.addIssue({
-			code: 'custom',
-			path: ['timestamp_header'],
-			message: 'timestamp_header is required when tolerance_seconds > 0'
-		})
-	}
-})
+const SignatureConfigSchema = z
+	.object({
+		header: z.string().min(1).optional(),
+		encoding: z.enum(['hex', 'base64']).optional(),
+		prefix: z.string().optional(),
+		template: z.string().min(1).optional(),
+		timestamp_header: z.string().min(1).optional(),
+		tolerance_seconds: z.number().int().min(0).optional()
+	})
+	.superRefine((cfg, ctx) => {
+		if (cfg.template && !cfg.template.includes('{body}')) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['template'],
+				message: 'Template must include {body}'
+			})
+		}
+		if (cfg.template?.includes('{ts}') && !cfg.timestamp_header) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['timestamp_header'],
+				message: 'timestamp_header is required when template references {ts}'
+			})
+		}
+		if ((cfg.tolerance_seconds ?? 0) > 0 && !cfg.timestamp_header) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['timestamp_header'],
+				message: 'timestamp_header is required when tolerance_seconds > 0'
+			})
+		}
+	})
 
 export const AdminGetAutomationTriggers = createFindParams().extend({
 	q: z.string().optional(),
@@ -180,13 +182,14 @@ export const AdminGetAutomationDeliveries = createFindParams().extend({
 })
 export type AdminGetAutomationDeliveriesType = z.infer<typeof AdminGetAutomationDeliveries>
 
-export const AdminRetryAutomationDeliveries = z.object({
-	delivery_ids: z.array(z.string()).min(1).optional(),
-	status: z.enum(AutomationDeliveryStatus).optional(),
-	since: z.string().datetime({ offset: true }).optional(),
-	until: z.string().datetime({ offset: true }).optional()
-}).refine(
-	data => data.delivery_ids || data.status || data.since || data.until,
-	{ error: 'Provide delivery_ids or at least one filter (status, since, until)' }
-)
+export const AdminRetryAutomationDeliveries = z
+	.object({
+		delivery_ids: z.array(z.string()).min(1).optional(),
+		status: z.enum(AutomationDeliveryStatus).optional(),
+		since: z.string().datetime({ offset: true }).optional(),
+		until: z.string().datetime({ offset: true }).optional()
+	})
+	.refine(data => data.delivery_ids || data.status || data.since || data.until, {
+		error: 'Provide delivery_ids or at least one filter (status, since, until)'
+	})
 export type AdminRetryAutomationDeliveriesType = z.infer<typeof AdminRetryAutomationDeliveries>

@@ -1,11 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sdk } from '../lib/sdk'
-import {
-	AdminContentCollectionsResponse,
-	AdminContentCollectionResponse,
-	AdminContentItemsResponse,
-	AdminContentItemResponse
-} from '../types'
+import { AdminContentCollectionsResponse, AdminContentCollectionResponse, AdminContentItemsResponse, AdminContentItemResponse } from '../types'
 
 // ── Content Collections ───────────────────────────────────────────────────────
 
@@ -56,8 +51,7 @@ export const useUpdateContentCollection = (id: string) => {
 export const useDeleteContentCollections = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) =>
-			sdk.client.fetch('/admin/content', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/content', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['content-collections'] })
 		}
@@ -115,7 +109,10 @@ export const useDeleteContentItems = (collectionId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (ids: string[]) =>
-			sdk.client.fetch(`/admin/content/${collectionId}/items`, { method: 'DELETE', body: { ids } }),
+			sdk.client.fetch(`/admin/content/${collectionId}/items`, {
+				method: 'DELETE',
+				body: { ids }
+			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['content-items'] })
 		}

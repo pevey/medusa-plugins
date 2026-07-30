@@ -21,15 +21,11 @@
 			{#snippet trigger(open)}
 				<button
 					onclick={open}
-					class="border-input text-muted-foreground hover:bg-accent inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm"
+					class="inline-flex items-center gap-2 rounded-md border border-input px-3 py-2 text-sm text-muted-foreground hover:bg-accent"
 				>
 					<SearchIcon class="size-4" />
 					<span>Search…</span>
-					<kbd
-						class="bg-muted text-muted-foreground ml-4 rounded border px-1.5 py-0.5 font-mono text-xs"
-					>
-						⌘K
-					</kbd>
+					<kbd class="ml-4 rounded border bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground"> ⌘K </kbd>
 				</button>
 			{/snippet}
 		</SearchDialog>

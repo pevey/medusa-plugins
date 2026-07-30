@@ -14,16 +14,12 @@ const ToolCallCard = ({ block }: { block: ToolUseBlock }) => {
 			<button
 				onClick={() => !pending && setExpanded(!expanded)}
 				disabled={pending}
-				className="flex items-center gap-1.5 text-xs text-ui-fg-subtle hover:text-ui-fg-base transition-colors disabled:cursor-default"
+				className="text-ui-fg-subtle hover:text-ui-fg-base flex items-center gap-1.5 text-xs transition-colors disabled:cursor-default"
 			>
 				<Badge size="2xsmall" color={block.is_error ? 'red' : 'grey'}>
 					{block.name}
 				</Badge>
-				{pending ? (
-					<Spinner className="animate-spin text-ui-fg-subtle" />
-				) : (
-					<span>{expanded ? '▼' : '▶'}</span>
-				)}
+				{pending ? <Spinner className="text-ui-fg-subtle animate-spin" /> : <span>{expanded ? '▼' : '▶'}</span>}
 			</button>
 			{!pending && expanded && (
 				<div className="mt-1 ml-2">
@@ -37,7 +33,7 @@ const ToolCallCard = ({ block }: { block: ToolUseBlock }) => {
 							}
 						]}
 					>
-						<CodeBlock.Body className="text-xs [&_code]:text-xs max-h-48 overflow-y-auto" />
+						<CodeBlock.Body className="max-h-48 overflow-y-auto text-xs [&_code]:text-xs" />
 					</CodeBlock>
 				</div>
 			)}
@@ -56,15 +52,9 @@ const markdownComponents = {
 			{children}
 		</a>
 	),
-	code: ({ children }: { children?: React.ReactNode }) => (
-		<code className="rounded bg-ui-bg-subtle px-1 py-0.5 text-xs">{children}</code>
-	),
-	ul: ({ children }: { children?: React.ReactNode }) => (
-		<ul className="list-disc pl-5 text-sm">{children}</ul>
-	),
-	ol: ({ children }: { children?: React.ReactNode }) => (
-		<ol className="list-decimal pl-5 text-sm">{children}</ol>
-	)
+	code: ({ children }: { children?: React.ReactNode }) => <code className="bg-ui-bg-subtle rounded px-1 py-0.5 text-xs">{children}</code>,
+	ul: ({ children }: { children?: React.ReactNode }) => <ul className="list-disc pl-5 text-sm">{children}</ul>,
+	ol: ({ children }: { children?: React.ReactNode }) => <ol className="list-decimal pl-5 text-sm">{children}</ol>
 }
 
 export type ChatMessageProps = {
@@ -77,12 +67,14 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
 	if (role === 'user') {
 		const text = content
 			.filter((b): b is TextBlock => b.type === 'text')
-			.map((b) => b.text)
+			.map(b => b.text)
 			.join('')
 
 		return (
-			<div className="max-w-[80%] self-end rounded-lg px-4 py-2.5 bg-ui-bg-subtle text-ui-fg-base">
-				<Text size="small" className="whitespace-pre-wrap">{text}</Text>
+			<div className="bg-ui-bg-subtle text-ui-fg-base max-w-[80%] self-end rounded-lg px-4 py-2.5">
+				<Text size="small" className="whitespace-pre-wrap">
+					{text}
+				</Text>
 			</div>
 		)
 	}
@@ -90,20 +82,20 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
 	const toolBlocks = content.filter((b): b is ToolUseBlock => b.type === 'tool_use')
 	const textContent = content
 		.filter((b): b is TextBlock => b.type === 'text')
-		.map((b) => b.text)
+		.map(b => b.text)
 		.join('')
 
 	return (
-		<div className="max-w-[90%] self-start flex flex-col gap-1">
+		<div className="flex max-w-[90%] flex-col gap-1 self-start">
 			{toolBlocks.length > 0 && (
 				<div className="flex flex-col gap-0.5">
-					{toolBlocks.map((block) => (
+					{toolBlocks.map(block => (
 						<ToolCallCard key={block.id} block={block} />
 					))}
 				</div>
 			)}
 			{textContent && (
-				<div className="rounded-lg px-4 py-2.5 bg-ui-bg-base border border-ui-border-base">
+				<div className="bg-ui-bg-base border-ui-border-base rounded-lg border px-4 py-2.5">
 					<ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
 						{textContent}
 					</ReactMarkdown>

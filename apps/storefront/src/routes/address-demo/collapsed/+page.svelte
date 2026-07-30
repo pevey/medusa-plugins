@@ -12,9 +12,9 @@
 
 <div class="mx-auto max-w-2xl space-y-4 p-8">
 	<h1 class="text-2xl font-bold">Collapsed address (disclosure)</h1>
-	<p class="text-muted-foreground text-sm">
-		Type an address in the autocomplete, or let your browser autofill from the email field — the
-		structured fields reveal so you can confirm and add an Apt/Suite. See also
+	<p class="text-sm text-muted-foreground">
+		Type an address in the autocomplete, or let your browser autofill from the email field — the structured fields reveal so you can confirm and add an
+		Apt/Suite. See also
 		<a class="underline" href="/address-demo">the full layout →</a>
 	</p>
 	<form {...addressCollapsed}>

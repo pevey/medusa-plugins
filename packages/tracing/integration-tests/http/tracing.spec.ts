@@ -73,7 +73,16 @@ medusaIntegrationTestRunner({
 			const FAKE = 'nonexistent_id'
 			const endpoints = [
 				['GET', '/admin/stock-lots', null],
-				['POST', '/admin/stock-lots', { inventory_item_id: 'x', stock_location_id: 'x', lot_number: 'x', stocked_quantity: 1 }],
+				[
+					'POST',
+					'/admin/stock-lots',
+					{
+						inventory_item_id: 'x',
+						stock_location_id: 'x',
+						lot_number: 'x',
+						stocked_quantity: 1
+					}
+				],
 				['DELETE', '/admin/stock-lots', { ids: [FAKE] }],
 				['GET', `/admin/stock-lots/${FAKE}`, null],
 				['POST', `/admin/stock-lots/${FAKE}`, { lot_number: 'x' }],
@@ -143,7 +152,13 @@ medusaIntegrationTestRunner({
 				const res = await api
 					.post(
 						'/admin/stock-lots',
-						{ inventory_item_id: 'x', stock_location_id: 'x', lot_number: 'x', initial_quantity: 10, stocked_quantity: 20 },
+						{
+							inventory_item_id: 'x',
+							stock_location_id: 'x',
+							lot_number: 'x',
+							initial_quantity: 10,
+							stocked_quantity: 20
+						},
 						auth()
 					)
 					.catch((e: any) => e.response)
@@ -151,51 +166,37 @@ medusaIntegrationTestRunner({
 			})
 
 			it('DELETE /admin/stock-lots rejects empty ids array', async () => {
-				const res = await api
-					.delete('/admin/stock-lots', { data: { ids: [] }, ...auth() })
-					.catch((e: any) => e.response)
+				const res = await api.delete('/admin/stock-lots', { data: { ids: [] }, ...auth() }).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/serial-numbers rejects missing value', async () => {
-				const res = await api
-					.post('/admin/serial-numbers', { order_id: 'o', stock_lot_id: 's' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/serial-numbers', { order_id: 'o', stock_lot_id: 's' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/serial-numbers rejects missing stock_lot_id', async () => {
-				const res = await api
-					.post('/admin/serial-numbers', { order_id: 'o', value: 'SN001' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/serial-numbers', { order_id: 'o', value: 'SN001' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/serial-numbers rejects missing order_id', async () => {
-				const res = await api
-					.post('/admin/serial-numbers', { stock_lot_id: 's', value: 'SN001' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/serial-numbers', { stock_lot_id: 's', value: 'SN001' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('DELETE /admin/serial-numbers rejects empty ids array', async () => {
-				const res = await api
-					.delete('/admin/serial-numbers', { data: { ids: [] }, ...auth() })
-					.catch((e: any) => e.response)
+				const res = await api.delete('/admin/serial-numbers', { data: { ids: [] }, ...auth() }).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/invalidation-reasons rejects missing value', async () => {
-				const res = await api
-					.post('/admin/invalidation-reasons', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/invalidation-reasons', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('DELETE /admin/invalidation-reasons rejects empty ids array', async () => {
-				const res = await api
-					.delete('/admin/invalidation-reasons', { data: { ids: [] }, ...auth() })
-					.catch((e: any) => e.response)
+				const res = await api.delete('/admin/invalidation-reasons', { data: { ids: [] }, ...auth() }).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 		})
@@ -219,7 +220,10 @@ medusaIntegrationTestRunner({
 
 			afterAll(async () => {
 				await api
-					.delete('/admin/invalidation-reasons', { data: { ids: [reasonId, reasonId2] }, ...auth() })
+					.delete('/admin/invalidation-reasons', {
+						data: { ids: [reasonId, reasonId2] },
+						...auth()
+					})
 					.catch(() => {})
 			})
 
@@ -262,11 +266,7 @@ medusaIntegrationTestRunner({
 
 			it('POST /admin/invalidation-reasons/:id updates a reason', async () => {
 				const ts = Date.now()
-				const res = await api.post(
-					`/admin/invalidation-reasons/${reasonId}`,
-					{ value: `damaged-updated-${ts}` },
-					auth()
-				)
+				const res = await api.post(`/admin/invalidation-reasons/${reasonId}`, { value: `damaged-updated-${ts}` }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.invalidation_reason.value).toBe(`damaged-updated-${ts}`)
 			})
@@ -289,7 +289,10 @@ medusaIntegrationTestRunner({
 				])
 				const ids = [a.data.invalidation_reason.id, b.data.invalidation_reason.id]
 
-				const res = await api.delete('/admin/invalidation-reasons', { data: { ids }, ...auth() })
+				const res = await api.delete('/admin/invalidation-reasons', {
+					data: { ids },
+					...auth()
+				})
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toEqual(expect.arrayContaining(ids))
 			})
@@ -307,27 +310,15 @@ medusaIntegrationTestRunner({
 				const ts = Date.now()
 
 				// Create a stock location
-				const locationRes = await api.post(
-					'/admin/stock-locations',
-					{ name: `StockLot Test Warehouse ${ts}` },
-					auth()
-				)
+				const locationRes = await api.post('/admin/stock-locations', { name: `StockLot Test Warehouse ${ts}` }, auth())
 				stockLocationId = locationRes.data.stock_location.id
 
 				// Create an inventory item
-				const itemRes = await api.post(
-					'/admin/inventory-items',
-					{ sku: `SL-TEST-${ts}`, title: `StockLot Test Item ${ts}` },
-					auth()
-				)
+				const itemRes = await api.post('/admin/inventory-items', { sku: `SL-TEST-${ts}`, title: `StockLot Test Item ${ts}` }, auth())
 				inventoryItemId = itemRes.data.inventory_item.id
 
 				// Create an inventory level so adjustInventoryLevelsStep has something to work with
-				await api.post(
-					`/admin/inventory-items/${inventoryItemId}/location-levels`,
-					{ location_id: stockLocationId, stocked_quantity: 0 },
-					auth()
-				)
+				await api.post(`/admin/inventory-items/${inventoryItemId}/location-levels`, { location_id: stockLocationId, stocked_quantity: 0 }, auth())
 
 				// Create two stock lots for use across tests
 				const [r1, r2] = await Promise.all([
@@ -358,9 +349,7 @@ medusaIntegrationTestRunner({
 			})
 
 			afterAll(async () => {
-				await api
-					.delete('/admin/stock-lots', { data: { ids: [stockLotId, stockLotId2] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/stock-lots', { data: { ids: [stockLotId, stockLotId2] }, ...auth() }).catch(() => {})
 			})
 
 			it('POST /admin/stock-lots creates a stock lot', async () => {
@@ -388,9 +377,7 @@ medusaIntegrationTestRunner({
 				)
 				expect(res.status).toBe(200)
 				expect(res.data.stock_lot.stocked_quantity).toBe(10)
-				await api
-					.delete('/admin/stock-lots', { data: { ids: [res.data.stock_lot.id] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/stock-lots', { data: { ids: [res.data.stock_lot.id] }, ...auth() }).catch(() => {})
 			})
 
 			it('GET /admin/stock-lots lists stock lots', async () => {
@@ -403,14 +390,9 @@ medusaIntegrationTestRunner({
 			})
 
 			it('GET /admin/stock-lots filters by inventory_item_id', async () => {
-				const res = await api.get(
-					`/admin/stock-lots?inventory_item_id=${inventoryItemId}`,
-					auth()
-				)
+				const res = await api.get(`/admin/stock-lots?inventory_item_id=${inventoryItemId}`, auth())
 				expect(res.status).toBe(200)
-				expect(
-					res.data.stock_lots.every((s: any) => s.inventory_item_id === inventoryItemId)
-				).toBe(true)
+				expect(res.data.stock_lots.every((s: any) => s.inventory_item_id === inventoryItemId)).toBe(true)
 			})
 
 			it('GET /admin/stock-lots filters by enabled=true', async () => {
@@ -432,11 +414,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/stock-lots/:id updates a stock lot', async () => {
-				const res = await api.post(
-					`/admin/stock-lots/${stockLotId}`,
-					{ description: 'Updated description' },
-					auth()
-				)
+				const res = await api.post(`/admin/stock-lots/${stockLotId}`, { description: 'Updated description' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.stock_lot.description).toBe('Updated description')
 			})
@@ -495,11 +473,7 @@ medusaIntegrationTestRunner({
 
 			describe('Enable / Disable', () => {
 				it('POST /admin/stock-lots/disable disables stock lots', async () => {
-					const res = await api.post(
-						'/admin/stock-lots/disable',
-						{ ids: [stockLotId2] },
-						auth()
-					)
+					const res = await api.post('/admin/stock-lots/disable', { ids: [stockLotId2] }, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.disabled).toContain(stockLotId2)
 
@@ -517,11 +491,7 @@ medusaIntegrationTestRunner({
 				})
 
 				it('POST /admin/stock-lots/enable re-enables stock lots', async () => {
-					const res = await api.post(
-						'/admin/stock-lots/enable',
-						{ ids: [stockLotId2] },
-						auth()
-					)
+					const res = await api.post('/admin/stock-lots/enable', { ids: [stockLotId2] }, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.enabled).toContain(stockLotId2)
 
@@ -536,19 +506,13 @@ medusaIntegrationTestRunner({
 				let serialNumberId: string
 
 				beforeAll(async () => {
-					const res = await api.post(
-						'/admin/serial-numbers',
-						{ order_id: 'ord_test_sl_001', stock_lot_id: stockLotId, value: 'SN-SCOPED-001' },
-						auth()
-					)
+					const res = await api.post('/admin/serial-numbers', { order_id: 'ord_test_sl_001', stock_lot_id: stockLotId, value: 'SN-SCOPED-001' }, auth())
 					serialNumberId = res.data.serial_number.id
 					await seedSnapshot()
 				})
 
 				afterAll(async () => {
-					await api
-						.delete('/admin/serial-numbers', { data: { ids: [serialNumberId] }, ...auth() })
-						.catch(() => {})
+					await api.delete('/admin/serial-numbers', { data: { ids: [serialNumberId] }, ...auth() }).catch(() => {})
 				})
 
 				it('GET /admin/stock-lots/:id/serial-numbers lists serial numbers for the lot', async () => {
@@ -559,10 +523,7 @@ medusaIntegrationTestRunner({
 				})
 
 				it('GET /admin/stock-lots/:id/serial-numbers returns empty for a lot with no serial numbers', async () => {
-					const res = await api.get(
-						`/admin/stock-lots/${stockLotId2}/serial-numbers`,
-						auth()
-					)
+					const res = await api.get(`/admin/stock-lots/${stockLotId2}/serial-numbers`, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.serial_numbers).toHaveLength(0)
 				})
@@ -584,20 +545,12 @@ medusaIntegrationTestRunner({
 				// Stand-alone stock location + inventory item + level for this suite
 				const [locationRes, itemRes] = await Promise.all([
 					api.post('/admin/stock-locations', { name: `SN Test Warehouse ${ts}` }, auth()),
-					api.post(
-						'/admin/inventory-items',
-						{ sku: `SN-TEST-${ts}`, title: `SN Test Item ${ts}` },
-						auth()
-					)
+					api.post('/admin/inventory-items', { sku: `SN-TEST-${ts}`, title: `SN Test Item ${ts}` }, auth())
 				])
 				stockLocationId = locationRes.data.stock_location.id
 				inventoryItemId = itemRes.data.inventory_item.id
 
-				await api.post(
-					`/admin/inventory-items/${inventoryItemId}/location-levels`,
-					{ location_id: stockLocationId, stocked_quantity: 0 },
-					auth()
-				)
+				await api.post(`/admin/inventory-items/${inventoryItemId}/location-levels`, { location_id: stockLocationId, stocked_quantity: 0 }, auth())
 
 				const lotRes = await api.post(
 					'/admin/stock-lots',
@@ -612,16 +565,8 @@ medusaIntegrationTestRunner({
 				stockLotId = lotRes.data.stock_lot.id
 
 				const [r1, r2] = await Promise.all([
-					api.post(
-						'/admin/serial-numbers',
-						{ order_id: 'ord_sn_test_001', stock_lot_id: stockLotId, value: `SN-001-${ts}` },
-						auth()
-					),
-					api.post(
-						'/admin/serial-numbers',
-						{ order_id: 'ord_sn_test_001', stock_lot_id: stockLotId, value: `SN-002-${ts}` },
-						auth()
-					)
+					api.post('/admin/serial-numbers', { order_id: 'ord_sn_test_001', stock_lot_id: stockLotId, value: `SN-001-${ts}` }, auth()),
+					api.post('/admin/serial-numbers', { order_id: 'ord_sn_test_001', stock_lot_id: stockLotId, value: `SN-002-${ts}` }, auth())
 				])
 				serialNumberId = r1.data.serial_number.id
 				serialNumberId2 = r2.data.serial_number.id
@@ -635,9 +580,7 @@ medusaIntegrationTestRunner({
 						...auth()
 					})
 					.catch(() => {})
-				await api
-					.delete('/admin/stock-lots', { data: { ids: [stockLotId] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/stock-lots', { data: { ids: [stockLotId] }, ...auth() }).catch(() => {})
 			})
 
 			it('POST /admin/serial-numbers creates a serial number', async () => {
@@ -661,9 +604,7 @@ medusaIntegrationTestRunner({
 			it('GET /admin/serial-numbers filters by stock_lot_id', async () => {
 				const res = await api.get(`/admin/serial-numbers?stock_lot_id=${stockLotId}`, auth())
 				expect(res.status).toBe(200)
-				expect(
-					res.data.serial_numbers.every((sn: any) => sn.stock_lot_id === stockLotId)
-				).toBe(true)
+				expect(res.data.serial_numbers.every((sn: any) => sn.stock_lot_id === stockLotId)).toBe(true)
 			})
 
 			it('GET /admin/serial-numbers filters by invalidated=false', async () => {
@@ -685,11 +626,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/serial-numbers/:id updates a serial number (marks invalidated)', async () => {
-				const res = await api.post(
-					`/admin/serial-numbers/${serialNumberId}`,
-					{ invalidated: true },
-					auth()
-				)
+				const res = await api.post(`/admin/serial-numbers/${serialNumberId}`, { invalidated: true }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.serial_number.invalidated).toBe(true)
 
@@ -712,11 +649,7 @@ medusaIntegrationTestRunner({
 
 			it('DELETE /admin/serial-numbers/:id deletes a single serial number', async () => {
 				const ts = Date.now()
-				const created = await api.post(
-					'/admin/serial-numbers',
-					{ order_id: 'ord_sn_test_001', stock_lot_id: stockLotId, value: `SN-DEL-${ts}` },
-					auth()
-				)
+				const created = await api.post('/admin/serial-numbers', { order_id: 'ord_sn_test_001', stock_lot_id: stockLotId, value: `SN-DEL-${ts}` }, auth())
 				const id = created.data.serial_number.id
 
 				const res = await api.delete(`/admin/serial-numbers/${id}`, auth())
@@ -729,12 +662,20 @@ medusaIntegrationTestRunner({
 				const [a, b] = await Promise.all([
 					api.post(
 						'/admin/serial-numbers',
-						{ order_id: 'ord_sn_test_001', stock_lot_id: stockLotId, value: `SN-BULK-A-${ts}` },
+						{
+							order_id: 'ord_sn_test_001',
+							stock_lot_id: stockLotId,
+							value: `SN-BULK-A-${ts}`
+						},
 						auth()
 					),
 					api.post(
 						'/admin/serial-numbers',
-						{ order_id: 'ord_sn_test_001', stock_lot_id: stockLotId, value: `SN-BULK-B-${ts}` },
+						{
+							order_id: 'ord_sn_test_001',
+							stock_lot_id: stockLotId,
+							value: `SN-BULK-B-${ts}`
+						},
 						auth()
 					)
 				])

@@ -5,7 +5,8 @@ import type { ComplaintForExport } from '../types'
 function makeComplaint(id: string, number: number, opts: Partial<ComplaintForExport['complaint']> = {}): ComplaintForExport {
 	return {
 		complaint: {
-			id, number,
+			id,
+			number,
 			status: 'open',
 			description: 'A short description.',
 			actionable: false,
@@ -24,8 +25,7 @@ function makeComplaint(id: string, number: number, opts: Partial<ComplaintForExp
 	}
 }
 
-const PNG_1x1_B64 =
-	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+const PNG_1x1_B64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
 
 describe('buildComplaintsPdf', () => {
 	it('produces a loadable PDF for a single complaint with no documents', async () => {
@@ -75,14 +75,18 @@ describe('buildComplaintsPdf', () => {
 			created_at: new Date('2026-06-26')
 		}
 		const complaint = makeComplaint('cmp_1', 8, { documents: [zipDoc] })
-		const withZip = await PDFDocument.load(await buildComplaintsPdf({
-			complaints: [complaint],
-			docBytes: { doc_b: { document_id: 'doc_b', bytes: Buffer.from([0, 0, 0]) } }
-		}))
-		const withoutDoc = await PDFDocument.load(await buildComplaintsPdf({
-			complaints: [makeComplaint('cmp_1', 8)],
-			docBytes: {}
-		}))
+		const withZip = await PDFDocument.load(
+			await buildComplaintsPdf({
+				complaints: [complaint],
+				docBytes: { doc_b: { document_id: 'doc_b', bytes: Buffer.from([0, 0, 0]) } }
+			})
+		)
+		const withoutDoc = await PDFDocument.load(
+			await buildComplaintsPdf({
+				complaints: [makeComplaint('cmp_1', 8)],
+				docBytes: {}
+			})
+		)
 		expect(withZip.getPageCount()).toBe(withoutDoc.getPageCount())
 	})
 })

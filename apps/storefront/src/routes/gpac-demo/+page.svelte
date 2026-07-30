@@ -12,23 +12,22 @@
 
 	<section class="space-y-1">
 		<span class="text-sm font-medium">Default (chrome stripped, shadcn-themed)</span>
-		<GooglePlacesAutocomplete apiKey={key} onselect={(a) => { selected = a }} />
+		<GooglePlacesAutocomplete
+			apiKey={key}
+			onselect={a => {
+				selected = a
+			}}
+		/>
 	</section>
 
 	<section class="space-y-1">
-		<span class="text-sm font-medium"
-			>Icons kept (search + clear) — same height as default now</span
-		>
+		<span class="text-sm font-medium">Icons kept (search + clear) — same height as default now</span>
 		<GooglePlacesAutocomplete apiKey={key} icons={{ search: true, close: true }} />
 	</section>
 
 	<!-- Icons kept + tuned via --gpac-icon-size / --gpac-icon-gap -->
-	<section
-		class="space-y-1 [&_gmp-place-autocomplete]:[--gpac-icon-size:1.375rem] [&_gmp-place-autocomplete]:[--gpac-icon-gap:0.75rem]"
-	>
-		<span class="text-sm font-medium"
-			>Icons kept, resized via --gpac-icon-size / --gpac-icon-gap</span
-		>
+	<section class="space-y-1 [&_gmp-place-autocomplete]:[--gpac-icon-gap:0.75rem] [&_gmp-place-autocomplete]:[--gpac-icon-size:1.375rem]">
+		<span class="text-sm font-medium">Icons kept, resized via --gpac-icon-size / --gpac-icon-gap</span>
 		<GooglePlacesAutocomplete apiKey={key} icons={{ search: true, close: true }} />
 	</section>
 

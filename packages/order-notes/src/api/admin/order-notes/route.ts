@@ -4,10 +4,7 @@ import { AdminGetOrderNotesType, AdminCreateOrderNoteType } from '../../validato
 import { ORDER_NOTE_MODULE } from '../../../modules/order-note'
 import { OrderNoteService } from '../../../modules/order-note/service'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetOrderNotesType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetOrderNotesType>, res: MedusaResponse) => {
 	const { order_id } = req.validatedQuery
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
@@ -27,10 +24,7 @@ export const GET = async (
 	})
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateOrderNoteType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateOrderNoteType>, res: MedusaResponse) => {
 	const orderNoteService: OrderNoteService = req.scope.resolve(ORDER_NOTE_MODULE)
 	const order_note = await orderNoteService.createNote({
 		...req.validatedBody,

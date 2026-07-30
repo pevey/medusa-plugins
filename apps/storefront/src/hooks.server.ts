@@ -1,10 +1,5 @@
 import { createMedusaHandle } from 'sveltekit-medusa-sdk/server'
-import {
-	MEDUSA_BACKEND_URL,
-	MEDUSA_PUBLISHABLE_KEY,
-	MEDUSA_DEFAULT_REGION_ID,
-	MEDUSA_DEFAULT_COUNTRY_CODE
-} from '$app/env/private'
+import { MEDUSA_BACKEND_URL, MEDUSA_PUBLISHABLE_KEY, MEDUSA_DEFAULT_REGION_ID, MEDUSA_DEFAULT_COUNTRY_CODE } from '$app/env/private'
 
 export const handle = createMedusaHandle({
 	baseUrl: MEDUSA_BACKEND_URL,

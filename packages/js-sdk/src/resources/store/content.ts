@@ -8,53 +8,31 @@ import type {
 	StoreContentCollectionResponse,
 	StoreContentItemListQuery,
 	StoreContentItemListResponse,
-	StoreContentItemResponse,
+	StoreContentItemResponse
 } from '../../types/content'
 
 export function createStoreContentResource(client: Client) {
 	return {
-		list: async (
-			query?: StoreContentListQuery,
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<StoreContentCollectionListResponse>(
-				`/content`,
-				{ query, headers },
-			)
+		list: async (query?: StoreContentListQuery, headers?: ClientHeaders) => {
+			return client.fetch<StoreContentCollectionListResponse>(`/content`, { query, headers })
 		},
 
-		retrieve: async (
-			slug: string,
-			query?: StoreContentListQuery,
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<StoreContentCollectionResponse>(
-				`/content/${slug}`,
-				{ query, headers },
-			)
+		retrieve: async (slug: string, query?: StoreContentListQuery, headers?: ClientHeaders) => {
+			return client.fetch<StoreContentCollectionResponse>(`/content/${slug}`, { query, headers })
 		},
 
-		listItems: async (
-			slug: string,
-			query?: StoreContentItemListQuery,
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<StoreContentItemListResponse>(
-				`/content/${slug}/items`,
-				{ query, headers },
-			)
+		listItems: async (slug: string, query?: StoreContentItemListQuery, headers?: ClientHeaders) => {
+			return client.fetch<StoreContentItemListResponse>(`/content/${slug}/items`, {
+				query,
+				headers
+			})
 		},
 
-		retrieveItem: async (
-			slug: string,
-			itemSlug: string,
-			query?: StoreContentListQuery,
-			headers?: ClientHeaders,
-		) => {
-			return client.fetch<StoreContentItemResponse>(
-				`/content/${slug}/items/${itemSlug}`,
-				{ query, headers },
-			)
-		},
+		retrieveItem: async (slug: string, itemSlug: string, query?: StoreContentListQuery, headers?: ClientHeaders) => {
+			return client.fetch<StoreContentItemResponse>(`/content/${slug}/items/${itemSlug}`, {
+				query,
+				headers
+			})
+		}
 	}
 }

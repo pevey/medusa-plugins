@@ -9,9 +9,7 @@ import { createHmac, timingSafeEqual } from 'crypto'
 import { IncomingHttpHeaders } from 'http'
 import { SignatureConfig } from '../modules/automation/models/automation-trigger'
 
-export type VerificationResult =
-	| { ok: true }
-	| { ok: false; status: 400 | 401; error: string }
+export type VerificationResult = { ok: true } | { ok: false; status: 400 | 401; error: string }
 
 const DEFAULTS = {
 	header: 'x-webhook-signature',
@@ -83,7 +81,11 @@ export function verifySignature(
 
 	// Template requires {ts} but no timestamp header is configured.
 	if (template.includes('{ts}') && timestamp === undefined) {
-		return { ok: false, status: 400, error: 'Template references {ts} but no timestamp_header is configured' }
+		return {
+			ok: false,
+			status: 400,
+			error: 'Template references {ts} but no timestamp_header is configured'
+		}
 	}
 
 	// Render the signed-input template. Body is appended as raw bytes so
@@ -104,10 +106,7 @@ export function verifySignature(
 	if (providedBytes.length !== expectedBytes.length) {
 		return { ok: false, status: 401, error: 'Invalid signature' }
 	}
-	const equal = timingSafeEqual(
-		new Uint8Array(providedBytes),
-		new Uint8Array(expectedBytes)
-	)
+	const equal = timingSafeEqual(new Uint8Array(providedBytes), new Uint8Array(expectedBytes))
 	if (!equal) {
 		return { ok: false, status: 401, error: 'Invalid signature' }
 	}

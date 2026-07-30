@@ -126,34 +126,24 @@ medusaIntegrationTestRunner({
 
 		describe('Validation', () => {
 			it('POST /admin/complaints rejects missing description', async () => {
-				const res = await api
-					.post('/admin/complaints', { customer_id: 'c', order_id: 'o', product_id: 'p' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/complaints', { customer_id: 'c', order_id: 'o', product_id: 'p' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/complaints rejects missing customer_id', async () => {
-				const res = await api
-					.post('/admin/complaints', { description: 'x', order_id: 'o', product_id: 'p' }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/complaints', { description: 'x', order_id: 'o', product_id: 'p' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/complaints accepts missing order_id and product_id (general complaint)', async () => {
-				const res = await api.post(
-					'/admin/complaints',
-					{ description: 'general complaint', customer_id: 'cus_general_test' },
-					auth()
-				)
+				const res = await api.post('/admin/complaints', { description: 'general complaint', customer_id: 'cus_general_test' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.complaint).toMatchObject({
 					customer_id: 'cus_general_test',
 					order_id: null,
 					product_id: null
 				})
-				await api
-					.delete('/admin/complaints', { data: { ids: [res.data.complaint.id] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/complaints', { data: { ids: [res.data.complaint.id] }, ...auth() }).catch(() => {})
 			})
 
 			it('POST /admin/complaints accepts order_id without product_id', async () => {
@@ -171,48 +161,32 @@ medusaIntegrationTestRunner({
 					order_id: 'ord_order_only_test',
 					product_id: null
 				})
-				await api
-					.delete('/admin/complaints', { data: { ids: [res.data.complaint.id] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/complaints', { data: { ids: [res.data.complaint.id] }, ...auth() }).catch(() => {})
 			})
 
 			it('POST /admin/complaints rejects product_id without order_id', async () => {
-				const res = await api
-					.post(
-						'/admin/complaints',
-						{ description: 'x', customer_id: 'c', product_id: 'p' },
-						auth()
-					)
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/complaints', { description: 'x', customer_id: 'c', product_id: 'p' }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('DELETE /admin/complaints rejects empty ids array', async () => {
-				const res = await api
-					.delete('/admin/complaints', { data: { ids: [] }, ...auth() })
-					.catch((e: any) => e.response)
+				const res = await api.delete('/admin/complaints', { data: { ids: [] }, ...auth() }).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/complaint-tags rejects missing value', async () => {
-				const res = await api
-					.post('/admin/complaint-tags', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/complaint-tags', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('DELETE /admin/complaint-tags rejects empty ids array', async () => {
-				const res = await api
-					.delete('/admin/complaint-tags', { data: { ids: [] }, ...auth() })
-					.catch((e: any) => e.response)
+				const res = await api.delete('/admin/complaint-tags', { data: { ids: [] }, ...auth() }).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('POST /admin/complaints/:id/notes rejects missing note', async () => {
 				// Use a fake ID — validation should fire before the service lookup
-				const res = await api
-					.post('/admin/complaints/fake_id/notes', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/complaints/fake_id/notes', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 		})
@@ -235,9 +209,7 @@ medusaIntegrationTestRunner({
 			})
 
 			afterAll(async () => {
-				await api
-					.delete('/admin/complaint-tags', { data: { ids: [tagId, tagId2] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/complaint-tags', { data: { ids: [tagId, tagId2] }, ...auth() }).catch(() => {})
 			})
 
 			it('POST /admin/complaint-tags creates a tag', async () => {
@@ -249,7 +221,10 @@ medusaIntegrationTestRunner({
 					value: `temp-tag-${ts}`
 				})
 				await api
-					.delete('/admin/complaint-tags', { data: { ids: [res.data.complaint_tag.id] }, ...auth() })
+					.delete('/admin/complaint-tags', {
+						data: { ids: [res.data.complaint_tag.id] },
+						...auth()
+					})
 					.catch(() => {})
 			})
 
@@ -276,11 +251,7 @@ medusaIntegrationTestRunner({
 
 			it('POST /admin/complaint-tags/:id updates a tag', async () => {
 				const ts = Date.now()
-				const res = await api.post(
-					`/admin/complaint-tags/${tagId}`,
-					{ value: `defect-updated-${ts}` },
-					auth()
-				)
+				const res = await api.post(`/admin/complaint-tags/${tagId}`, { value: `defect-updated-${ts}` }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.complaint_tag.value).toBe(`defect-updated-${ts}`)
 			})
@@ -359,9 +330,7 @@ medusaIntegrationTestRunner({
 						...auth()
 					})
 					.catch(() => {})
-				await api
-					.delete('/admin/complaint-tags', { data: { ids: [tagId] }, ...auth() })
-					.catch(() => {})
+				await api.delete('/admin/complaint-tags', { data: { ids: [tagId] }, ...auth() }).catch(() => {})
 			})
 
 			it('POST /admin/complaints creates a complaint and auto-creates open activity', async () => {
@@ -404,9 +373,7 @@ medusaIntegrationTestRunner({
 			it('GET /admin/complaints filters by q (description search)', async () => {
 				const res = await api.get('/admin/complaints?q=broken+product', auth())
 				expect(res.status).toBe(200)
-				expect(
-					res.data.complaints.some((c: any) => c.description.includes('broken product'))
-				).toBe(true)
+				expect(res.data.complaints.some((c: any) => c.description.includes('broken product'))).toBe(true)
 			})
 
 			it('GET /admin/complaints filters by customer_id', async () => {
@@ -446,21 +413,13 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/complaints/:id updates description', async () => {
-				const res = await api.post(
-					`/admin/complaints/${complaintId2}`,
-					{ status: 'open', description: 'Updated description' },
-					auth()
-				)
+				const res = await api.post(`/admin/complaints/${complaintId2}`, { status: 'open', description: 'Updated description' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.complaint.description).toBe('Updated description')
 			})
 
 			it('POST /admin/complaints/:id creates close activity on status change to closed', async () => {
-				const res = await api.post(
-					`/admin/complaints/${complaintId}`,
-					{ status: 'closed' },
-					auth()
-				)
+				const res = await api.post(`/admin/complaints/${complaintId}`, { status: 'closed' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.complaint.status).toBe('closed')
 
@@ -471,11 +430,7 @@ medusaIntegrationTestRunner({
 			it('POST /admin/complaints/:id creates open activity on status change to open', async () => {
 				// Per-test DB restore isolates tests, so close first to make the reopen a real change
 				await api.post(`/admin/complaints/${complaintId}`, { status: 'closed' }, auth())
-				const res = await api.post(
-					`/admin/complaints/${complaintId}`,
-					{ status: 'open' },
-					auth()
-				)
+				const res = await api.post(`/admin/complaints/${complaintId}`, { status: 'open' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.complaint.status).toBe('open')
 
@@ -507,12 +462,22 @@ medusaIntegrationTestRunner({
 				const [a, b] = await Promise.all([
 					api.post(
 						'/admin/complaints',
-						{ description: 'bulk-a', customer_id: CUSTOMER_ID, order_id: ORDER_ID, product_id: PRODUCT_ID },
+						{
+							description: 'bulk-a',
+							customer_id: CUSTOMER_ID,
+							order_id: ORDER_ID,
+							product_id: PRODUCT_ID
+						},
 						auth()
 					),
 					api.post(
 						'/admin/complaints',
-						{ description: 'bulk-b', customer_id: CUSTOMER_ID, order_id: ORDER_ID, product_id: PRODUCT_ID },
+						{
+							description: 'bulk-b',
+							customer_id: CUSTOMER_ID,
+							order_id: ORDER_ID,
+							product_id: PRODUCT_ID
+						},
 						auth()
 					)
 				])
@@ -527,11 +492,7 @@ medusaIntegrationTestRunner({
 
 			describe('Notes', () => {
 				it('POST /admin/complaints/:id/notes creates a note activity', async () => {
-					const res = await api.post(
-						`/admin/complaints/${complaintId}/notes`,
-						{ note: 'This is a test note' },
-						auth()
-					)
+					const res = await api.post(`/admin/complaints/${complaintId}/notes`, { note: 'This is a test note' }, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.entry).toMatchObject({
 						type: 'note',
@@ -544,11 +505,7 @@ medusaIntegrationTestRunner({
 
 			describe('Activities', () => {
 				it('POST /admin/complaints/:id/activities creates a manual activity', async () => {
-					const res = await api.post(
-						`/admin/complaints/${complaintId}/activities`,
-						{ type: 'note', note: 'Manual activity entry' },
-						auth()
-					)
+					const res = await api.post(`/admin/complaints/${complaintId}/activities`, { type: 'note', note: 'Manual activity entry' }, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.activity).toMatchObject({
 						type: 'note',
@@ -564,11 +521,7 @@ medusaIntegrationTestRunner({
 				})
 
 				it('DELETE /admin/complaints/:id/activities bulk deletes activities', async () => {
-					const created = await api.post(
-						`/admin/complaints/${complaintId}/activities`,
-						{ type: 'note', note: 'to be deleted' },
-						auth()
-					)
+					const created = await api.post(`/admin/complaints/${complaintId}/activities`, { type: 'note', note: 'to be deleted' }, auth())
 					const id = created.data.activity.id
 
 					const res = await api.delete(`/admin/complaints/${complaintId}/activities`, {
@@ -589,16 +542,8 @@ medusaIntegrationTestRunner({
 
 			beforeAll(async () => {
 				const [r1, r2] = await Promise.all([
-					api.post(
-						'/admin/complaints',
-						{ description: 'doc owner', customer_id: 'cus_doc_test' },
-						auth()
-					),
-					api.post(
-						'/admin/complaints',
-						{ description: 'doc isolation', customer_id: 'cus_doc_other' },
-						auth()
-					)
+					api.post('/admin/complaints', { description: 'doc owner', customer_id: 'cus_doc_test' }, auth()),
+					api.post('/admin/complaints', { description: 'doc isolation', customer_id: 'cus_doc_other' }, auth())
 				])
 				docComplaintId = r1.data.complaint.id
 				otherComplaintId = r2.data.complaint.id
@@ -615,9 +560,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/complaints/:id/documents rejects request with no file', async () => {
-				const res = await api
-					.post(`/admin/complaints/${docComplaintId}/documents`, {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post(`/admin/complaints/${docComplaintId}/documents`, {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
@@ -632,10 +575,7 @@ medusaIntegrationTestRunner({
 				})
 				const seeded = Array.isArray(created) ? created[0] : created
 
-				const res = await api.get(
-					`/admin/complaints/${docComplaintId}/documents`,
-					auth()
-				)
+				const res = await api.get(`/admin/complaints/${docComplaintId}/documents`, auth())
 				expect(res.status).toBe(200)
 				expect(Array.isArray(res.data.documents)).toBe(true)
 				expect(res.data.documents.some((d: any) => d.id === seeded.id)).toBe(true)
@@ -664,10 +604,7 @@ medusaIntegrationTestRunner({
 				const seeded = Array.isArray(created) ? created[0] : created
 
 				try {
-					const res = await api.get(
-						`/admin/complaints/${docComplaintId}/documents/${seeded.id}/download`,
-						auth()
-					)
+					const res = await api.get(`/admin/complaints/${docComplaintId}/documents/${seeded.id}/download`, auth())
 					expect(res.status).toBe(200)
 					expect(typeof res.data.url).toBe('string')
 					expect(res.data.filename).toBe('download-test.txt')
@@ -689,12 +626,7 @@ medusaIntegrationTestRunner({
 				})
 				const seeded = Array.isArray(created) ? created[0] : created
 
-				const res = await api
-					.get(
-						`/admin/complaints/${docComplaintId}/documents/${seeded.id}/download`,
-						auth()
-					)
-					.catch((e: any) => e.response)
+				const res = await api.get(`/admin/complaints/${docComplaintId}/documents/${seeded.id}/download`, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(404)
 
 				await complaintService.deleteComplaintDocuments([seeded.id])
@@ -711,10 +643,7 @@ medusaIntegrationTestRunner({
 				})
 				const seeded = Array.isArray(created) ? created[0] : created
 
-				const res = await api.delete(
-					`/admin/complaints/${docComplaintId}/documents/${seeded.id}`,
-					auth()
-				)
+				const res = await api.delete(`/admin/complaints/${docComplaintId}/documents/${seeded.id}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toContain(seeded.id)
 
@@ -733,12 +662,7 @@ medusaIntegrationTestRunner({
 				})
 				const seeded = Array.isArray(created) ? created[0] : created
 
-				const res = await api
-					.delete(
-						`/admin/complaints/${docComplaintId}/documents/${seeded.id}`,
-						auth()
-					)
-					.catch((e: any) => e.response)
+				const res = await api.delete(`/admin/complaints/${docComplaintId}/documents/${seeded.id}`, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(404)
 
 				const stillThere = await complaintService.listComplaintDocuments({ id: seeded.id })
@@ -748,11 +672,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('DELETE complaint cascades through and removes its documents', async () => {
-				const c = await api.post(
-					'/admin/complaints',
-					{ description: 'cascade target', customer_id: 'cus_cascade_test' },
-					auth()
-				)
+				const c = await api.post('/admin/complaints', { description: 'cascade target', customer_id: 'cus_cascade_test' }, auth())
 				const targetId = c.data.complaint.id
 
 				const created = await complaintService.createComplaintDocuments({
@@ -800,17 +720,12 @@ medusaIntegrationTestRunner({
 			})
 
 			it('GET /admin/complaint-stats/products/:id returns 404 for unknown product', async () => {
-				const res = await api
-					.get('/admin/complaint-stats/products/prod_does_not_exist_xyz', auth())
-					.catch((e: any) => e.response)
+				const res = await api.get('/admin/complaint-stats/products/prod_does_not_exist_xyz', auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(404)
 			})
 
 			it('GET /admin/complaint-stats/products/:id returns stats for a known product', async () => {
-				const res = await api.get(
-					`/admin/complaint-stats/products/${STAT_PRODUCT_ID}`,
-					auth()
-				)
+				const res = await api.get(`/admin/complaint-stats/products/${STAT_PRODUCT_ID}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.complaint_product_stat).toMatchObject({
 					product_id: STAT_PRODUCT_ID,
@@ -835,32 +750,22 @@ medusaIntegrationTestRunner({
 			})
 
 			it('requires authentication', async () => {
-				const res = await api
-					.post('/admin/complaints/pdf-export', { ids: pdfExportIds })
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/complaints/pdf-export', { ids: pdfExportIds }).catch((e: any) => e.response)
 				expect(res.status).toBe(401)
 			})
 
 			it('rejects missing ids', async () => {
-				const res = await api
-					.post('/admin/complaints/pdf-export', {}, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/complaints/pdf-export', {}, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('rejects empty ids array', async () => {
-				const res = await api
-					.post('/admin/complaints/pdf-export', { ids: [] }, auth())
-					.catch((e: any) => e.response)
+				const res = await api.post('/admin/complaints/pdf-export', { ids: [] }, auth()).catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
 
 			it('accepts a valid request and returns 202 with transaction_id', async () => {
-				const res = await api.post(
-					'/admin/complaints/pdf-export',
-					{ ids: pdfExportIds },
-					auth()
-				)
+				const res = await api.post('/admin/complaints/pdf-export', { ids: pdfExportIds }, auth())
 				expect(res.status).toBe(202)
 				expect(res.data).toEqual({ transaction_id: expect.any(String) })
 			})

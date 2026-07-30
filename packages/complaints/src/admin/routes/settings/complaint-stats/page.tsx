@@ -14,7 +14,16 @@ const ComplaintStatsPage = () => {
 				<Heading level="h2">Complaint Statistics</Heading>
 			</div>
 			<div className="px-6 py-8">
-				<Button variant="primary" onClick={() => mutate(undefined, { onSuccess: () => toast.success('Complaint stats updated successfully'), onError: () => toast.error('Failed to update complaint stats') })} isLoading={isPending}>
+				<Button
+					variant="primary"
+					onClick={() =>
+						mutate(undefined, {
+							onSuccess: () => toast.success('Complaint stats updated successfully'),
+							onError: () => toast.error('Failed to update complaint stats')
+						})
+					}
+					isLoading={isPending}
+				>
 					Recalculate Complaint Stats
 				</Button>
 			</div>

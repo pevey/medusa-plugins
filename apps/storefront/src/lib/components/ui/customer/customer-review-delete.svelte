@@ -47,15 +47,7 @@
 </script>
 
 {#if review}
-	<Button
-		type="button"
-		variant="destructive"
-		size="sm"
-		disabled={pending || !productId}
-		onclick={handleClick}
-		class={cn('', className)}
-		data-review-delete
-	>
+	<Button type="button" variant="destructive" size="sm" disabled={pending || !productId} onclick={handleClick} class={cn('', className)} data-review-delete>
 		{#if children}{@render children()}{:else}{pending ? 'Deleting…' : 'Delete'}{/if}
 	</Button>
 {/if}

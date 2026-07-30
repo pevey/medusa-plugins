@@ -2,15 +2,9 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { CONTENT_MODULE } from '../../../../../modules/content'
 import { ContentService } from '../../../../../modules/content/service'
-import {
-	AdminCreateContentCollectionRelationshipType,
-	AdminGetContentCollectionRelationshipsType
-} from '../../../../validators'
+import { AdminCreateContentCollectionRelationshipType, AdminGetContentCollectionRelationshipsType } from '../../../../validators'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetContentCollectionRelationshipsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentCollectionRelationshipsType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { collectionId } = req.params
 
@@ -30,10 +24,7 @@ export const GET = async (
 	})
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateContentCollectionRelationshipType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateContentCollectionRelationshipType>, res: MedusaResponse) => {
 	const { collectionId: source_collection_id } = req.params
 	const { target_collection_id, relationship_type } = req.validatedBody
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)

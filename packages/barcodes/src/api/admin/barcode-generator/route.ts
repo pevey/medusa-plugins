@@ -3,10 +3,7 @@ import { AdminRenderBarcodeType } from '../../validators'
 import { BARCODE_MODULE } from '../../../modules/barcode'
 import { BarcodeService } from '../../../modules/barcode/service'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminRenderBarcodeType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminRenderBarcodeType>, res: MedusaResponse) => {
 	let options = req.validatedQuery
 	console.log(options)
 
@@ -29,10 +26,7 @@ export const GET = async (
 	res.send(buffer)
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminRenderBarcodeType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminRenderBarcodeType>, res: MedusaResponse) => {
 	let options = req.body
 	console.log(options)
 

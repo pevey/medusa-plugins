@@ -45,12 +45,7 @@
 </script>
 
 {#if open}
-	<form
-		{...driver.enhanced}
-		oninput={driver.clearError}
-		class={cn('flex flex-col gap-4', className)}
-		data-review-form
-	>
+	<form {...driver.enhanced} oninput={driver.clearError} class={cn('flex flex-col gap-4', className)} data-review-form>
 		<input type="hidden" name="productId" value={pid} />
 		{@render children()}
 	</form>

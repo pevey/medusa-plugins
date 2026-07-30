@@ -18,12 +18,7 @@ import {
 } from '@medusajs/ui'
 import { CreateStockLotModal } from '../../components/create-stock-lot-modal'
 import { AdminStockLot } from '../../types'
-import {
-	useStockLotsList,
-	useEnableStockLots,
-	useDisableStockLots,
-	useDeleteStockLots
-} from '../../hooks/stock-lots'
+import { useStockLotsList, useEnableStockLots, useDisableStockLots, useDeleteStockLots } from '../../hooks/stock-lots'
 
 export const config = defineRouteConfig({ label: 'Stock Lots', nested: '/inventory', rank: 1 })
 export const handle = { breadcrumb: () => 'Stock Lots' }
@@ -174,7 +169,7 @@ const StockLotsPage = () => {
 				<DataTable instance={table}>
 					<DataTable.Toolbar className="flex flex-col items-start justify-between gap-2 md:flex-row md:items-center">
 						<Heading>Stock Lots</Heading>
-						<div className="flex gap-2 justify-between">
+						<div className="flex justify-between gap-2">
 							<Button size="small" variant="secondary" onClick={() => setCreateOpen(true)}>
 								Create
 							</Button>

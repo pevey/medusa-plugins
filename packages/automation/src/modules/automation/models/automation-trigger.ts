@@ -36,10 +36,10 @@ export const AutomationTrigger = model
 		description: model.text().nullable(),
 		is_active: model.boolean().default(true),
 		trigger_type: model.enum(AutomationTriggerType),
-		trigger_events: model.json().nullable(),       // string[] — for medusa_event
-		trigger_signing_key: model.text().nullable(),  // encrypted HMAC key — for incoming_webhook
-		signature_config: model.json().nullable(),     // SignatureConfig — overrides defaults per sender
-		log_incoming: model.boolean().default(false),  // log incoming payloads as AutomationReceipts
+		trigger_events: model.json().nullable(), // string[] — for medusa_event
+		trigger_signing_key: model.text().nullable(), // encrypted HMAC key — for incoming_webhook
+		signature_config: model.json().nullable(), // SignatureConfig — overrides defaults per sender
+		log_incoming: model.boolean().default(false), // log incoming payloads as AutomationReceipts
 		metadata: model.json().nullable(),
 		actions: model.hasMany(() => AutomationAction, { mappedBy: 'trigger' }),
 		receipts: model.hasMany(() => AutomationReceipt, { mappedBy: 'trigger' })

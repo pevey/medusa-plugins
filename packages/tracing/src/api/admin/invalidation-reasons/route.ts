@@ -1,17 +1,10 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
-import {
-	AdminCreateInvalidationReasonType,
-	AdminDeleteInvalidationReasonsType,
-	AdminGetInvalidationReasonsType
-} from '../../validators'
+import { AdminCreateInvalidationReasonType, AdminDeleteInvalidationReasonsType, AdminGetInvalidationReasonsType } from '../../validators'
 import { TRACING_MODULE } from '../../../modules/tracing'
 import { TracingService } from '../../../modules/tracing/service'
 
-export const GET = async (
-	req: AuthenticatedMedusaRequest<AdminGetInvalidationReasonsType>,
-	res: MedusaResponse
-) => {
+export const GET = async (req: AuthenticatedMedusaRequest<AdminGetInvalidationReasonsType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
 	const { q } = req.validatedQuery as {
@@ -34,19 +27,13 @@ export const GET = async (
 	})
 }
 
-export const POST = async (
-	req: AuthenticatedMedusaRequest<AdminCreateInvalidationReasonType>,
-	res: MedusaResponse
-) => {
+export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateInvalidationReasonType>, res: MedusaResponse) => {
 	const tracingService: TracingService = req.scope.resolve(TRACING_MODULE)
 	const invalidationReason = await tracingService.createInvalidationReasons(req.validatedBody)
 	res.json({ invalidation_reason: invalidationReason })
 }
 
-export const DELETE = async (
-	req: AuthenticatedMedusaRequest<AdminDeleteInvalidationReasonsType>,
-	res: MedusaResponse
-) => {
+export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteInvalidationReasonsType>, res: MedusaResponse) => {
 	const { ids } = req.validatedBody
 	const tracingService: TracingService = req.scope.resolve(TRACING_MODULE)
 	await tracingService.deleteInvalidationReasons(ids)

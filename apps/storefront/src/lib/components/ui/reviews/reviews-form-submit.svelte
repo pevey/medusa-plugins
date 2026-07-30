@@ -7,6 +7,4 @@
 	const ctx = getReviewFormContext()
 </script>
 
-<Button type="submit" disabled={ctx.submitting} class={cn('', className)}
-	>{@render children()}</Button
->
+<Button type="submit" disabled={ctx.submitting} class={cn('', className)}>{@render children()}</Button>
