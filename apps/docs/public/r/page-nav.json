@@ -1,0 +1,52 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema/registry-item.json",
+  "name": "page-nav",
+  "title": "Page Nav",
+  "type": "registry:ui",
+  "description": "URL-driven pagination primitives (Root, Prev, Next, Pages, Info) shared by the products, categories and collections listings. The page lives in the URL as a 1-based `?p=` param (page 1 omits it) so pages are linkable, crawlable and back-button-correct; links preserve every other search param. Prev/Next render as aria-disabled spans at the ends, Pages renders a windowed range with ellipses and aria-current, Root renders nothing for a single page. Named `page-nav` rather than `pagination` to avoid colliding with shadcn-svelte's own pagination component. Pure math in page-nav-logic.ts; no $effect (SSR-safe).",
+  "registryDependencies": [
+    "button"
+  ],
+  "files": [
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { setPageNavContext } from './page-nav-ctx.svelte.js'\n\timport Prev from './page-nav-prev.svelte'\n\timport Pages from './page-nav-pages.svelte'\n\timport Next from './page-nav-next.svelte'\n\timport type { Snippet } from 'svelte'\n\n\tlet {\n\t\tpage,\n\t\tpageCount,\n\t\tpageParam = 'p',\n\t\tclass: className = '',\n\t\tchildren\n\t}: { page: number; pageCount: number; pageParam?: string; class?: string; children?: Snippet } = $props()\n\n\tsetPageNavContext({\n\t\tget page() {\n\t\t\treturn page\n\t\t},\n\t\tget pageCount() {\n\t\t\treturn pageCount\n\t\t},\n\t\tget pageParam() {\n\t\t\treturn pageParam\n\t\t}\n\t})\n</script>\n\n{#if pageCount > 1}\n\t<nav data-page-nav aria-label=\"Pagination\" class={cn('flex items-center justify-center gap-1', className)}>\n\t\t{#if children}\n\t\t\t{@render children()}\n\t\t{:else}\n\t\t\t<Prev />\n\t\t\t<Pages />\n\t\t\t<Next />\n\t\t{/if}\n\t</nav>\n{/if}\n",
+      "type": "registry:ui",
+      "target": "page-nav/page-nav.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { page } from '$app/state'\n\timport { buttonVariants } from '$lib/components/ui/button/index.js'\n\timport { getPageNavContext } from './page-nav-ctx.svelte.js'\n\timport { buildPageHref } from './page-nav-logic.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet { class: className = '', children }: { class?: string; children?: Snippet } = $props()\n\tconst ctx = getPageNavContext()\n\tconst disabled = $derived(ctx.page <= 0)\n\tconst href = $derived(buildPageHref(page.url, ctx.pageParam, ctx.page - 1))\n</script>\n\n{#if disabled}\n\t<span data-page-nav-prev aria-disabled=\"true\" class={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'pointer-events-none opacity-50', className)}\n\t\t>{#if children}{@render children()}{:else}Previous{/if}</span\n\t>\n{:else}\n\t<a data-page-nav-prev {href} rel=\"prev\" aria-label=\"Previous page\" class={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), className)}\n\t\t>{#if children}{@render children()}{:else}Previous{/if}</a\n\t>\n{/if}\n",
+      "type": "registry:ui",
+      "target": "page-nav/page-nav-prev.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { page } from '$app/state'\n\timport { buttonVariants } from '$lib/components/ui/button/index.js'\n\timport { getPageNavContext } from './page-nav-ctx.svelte.js'\n\timport { buildPageHref } from './page-nav-logic.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet { class: className = '', children }: { class?: string; children?: Snippet } = $props()\n\tconst ctx = getPageNavContext()\n\tconst disabled = $derived(ctx.page >= ctx.pageCount - 1)\n\tconst href = $derived(buildPageHref(page.url, ctx.pageParam, ctx.page + 1))\n</script>\n\n{#if disabled}\n\t<span data-page-nav-next aria-disabled=\"true\" class={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'pointer-events-none opacity-50', className)}\n\t\t>{#if children}{@render children()}{:else}Next{/if}</span\n\t>\n{:else}\n\t<a data-page-nav-next {href} rel=\"next\" aria-label=\"Next page\" class={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), className)}\n\t\t>{#if children}{@render children()}{:else}Next{/if}</a\n\t>\n{/if}\n",
+      "type": "registry:ui",
+      "target": "page-nav/page-nav-next.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { page } from '$app/state'\n\timport { buttonVariants } from '$lib/components/ui/button/index.js'\n\timport { getPageNavContext } from './page-nav-ctx.svelte.js'\n\timport { buildPageHref, pageWindow } from './page-nav-logic.js'\n\n\tlet { class: className = '', span = 1 }: { class?: string; span?: number } = $props()\n\tconst ctx = getPageNavContext()\n\tconst items = $derived(pageWindow(ctx.page, ctx.pageCount, span))\n</script>\n\n{#each items as item, i (item === 'ellipsis' ? `e${i}` : item)}\n\t{#if item === 'ellipsis'}\n\t\t<span data-page-nav-ellipsis aria-hidden=\"true\" class=\"px-2\">…</span>\n\t{:else}\n\t\t<a\n\t\t\tdata-page-nav-page={item}\n\t\t\thref={buildPageHref(page.url, ctx.pageParam, item)}\n\t\t\taria-label={`Page ${item + 1}`}\n\t\t\taria-current={item === ctx.page ? 'page' : undefined}\n\t\t\tclass={cn(buttonVariants({ variant: item === ctx.page ? 'outline' : 'ghost', size: 'sm' }), className)}>{item + 1}</a\n\t\t>\n\t{/if}\n{/each}\n",
+      "type": "registry:ui",
+      "target": "page-nav/page-nav-pages.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { getPageNavContext } from './page-nav-ctx.svelte.js'\n\n\tlet { class: className = '' }: { class?: string } = $props()\n\tconst ctx = getPageNavContext()\n</script>\n\n<span data-page-nav-info class={cn('px-2 text-sm text-muted-foreground', className)}>Page {ctx.page + 1} of {ctx.pageCount}</span>\n",
+      "type": "registry:ui",
+      "target": "page-nav/page-nav-info.svelte"
+    },
+    {
+      "content": "import { getContext, setContext } from 'svelte'\n\n// Set by PageNav.Root from its props so the parts don't each need page/pageCount/pageParam.\nexport type PageNavContext = {\n\treadonly page: number\n\treadonly pageCount: number\n\treadonly pageParam: string\n}\n\nconst KEY = Symbol('page-nav')\n\nexport function setPageNavContext(ctx: PageNavContext) {\n\tsetContext(KEY, ctx)\n}\n\nexport function getPageNavContext(): PageNavContext {\n\tconst ctx = getContext<PageNavContext>(KEY)\n\tif (!ctx) throw new Error('PageNav.* must be used within <PageNav.Root>')\n\treturn ctx\n}\n",
+      "type": "registry:file",
+      "target": "page-nav/page-nav-ctx.svelte.ts"
+    },
+    {
+      "content": "import { SvelteURLSearchParams } from 'svelte/reactivity'\n\n// Pagination math. No $app, no components — unit-testable.\n//\n// Two number spaces, deliberately: the URL param is 1-based (`?page=2` is the second page,\n// which is what a human or a crawler expects), while every internal `page` value is a 0-based\n// index. `parsePage` converts in, `buildPageHref` converts out. Page 0 omits the param so the\n// first page has exactly one canonical URL.\n\n/** Number of pages for a result count at a given page size. */\nexport function pageCount(count: number, pageSize: number): number {\n\treturn pageSize > 0 ? Math.ceil((count || 0) / pageSize) : 0\n}\n\n/** 1-based URL param → 0-based index. Missing/garbage/≤1 all mean the first page. */\nexport function parsePage(raw: string | null): number {\n\tconst n = parseInt(raw ?? '', 10)\n\treturn Number.isFinite(n) && n > 1 ? n - 1 : 0\n}\n\n/**\n * The bit of a URL this needs. Deliberately structural rather than `URL`: SvelteKit's\n * `page.url` is readonly (its `searchParams` is a `ReadonlyURLSearchParams`), so requiring a\n * real `URL` fails to typecheck in a consuming app.\n */\nexport type PageUrl = { pathname: string; searchParams: { toString(): string } }\n\n/**\n * Href for a 0-based page index, preserving every other search param.\n *\n * Copies into a `SvelteURLSearchParams` (never mutates the caller's params) so that reading\n * `page.url.searchParams` registers the dependency and callers get a fresh href per link.\n */\nexport function buildPageHref(url: PageUrl, pageParam: string, page: number): string {\n\tconst sp = new SvelteURLSearchParams(url.searchParams.toString())\n\tif (page <= 0) sp.delete(pageParam)\n\telse sp.set(pageParam, String(page + 1))\n\tconst q = sp.toString()\n\treturn q ? `${url.pathname}?${q}` : url.pathname\n}\n\n/**\n * The page indices to render, with `'ellipsis'` markers for elided runs: always the first and\n * last page, plus `span` pages either side of the current one.\n */\nexport function pageWindow(page: number, pageCount: number, span = 1): (number | 'ellipsis')[] {\n\tif (pageCount <= 0) return []\n\tconst first = 0\n\tconst last = pageCount - 1\n\tconst lo = Math.max(first, page - span)\n\tconst hi = Math.min(last, page + span)\n\tconst out: (number | 'ellipsis')[] = []\n\tif (lo > first) {\n\t\tout.push(first)\n\t\tif (lo > first + 1) out.push('ellipsis')\n\t}\n\tfor (let i = lo; i <= hi; i++) out.push(i)\n\tif (hi < last) {\n\t\tif (hi < last - 1) out.push('ellipsis')\n\t\tout.push(last)\n\t}\n\treturn out\n}\n",
+      "type": "registry:file",
+      "target": "page-nav/page-nav-logic.ts"
+    },
+    {
+      "content": "import Root from './page-nav.svelte'\nimport Prev from './page-nav-prev.svelte'\nimport Next from './page-nav-next.svelte'\nimport Pages from './page-nav-pages.svelte'\nimport Info from './page-nav-info.svelte'\n\nexport { Root, Prev, Next, Pages, Info }\nexport { getPageNavContext, setPageNavContext } from './page-nav-ctx.svelte.js'\nexport type { PageNavContext } from './page-nav-ctx.svelte.js'\nexport * as logic from './page-nav-logic.js'\n",
+      "type": "registry:file",
+      "target": "page-nav/index.ts"
+    }
+  ]
+}

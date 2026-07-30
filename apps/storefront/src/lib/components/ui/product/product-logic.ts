@@ -1,4 +1,5 @@
 import type { StoreProduct, StoreProductVariant } from '@medusajs/types'
+import type { CalculatedPrice } from './format-price.js'
 
 // Pure variant-resolution + inventory-availability logic (no runes, no $app) so it is
 // trivially unit-testable. `Product.Root` wires these into reactive `$derived` context.
@@ -103,4 +104,45 @@ export function clampToStock(n: number, variant: StoreProductVariant | null): nu
 		return Math.max(1, Math.min(n, variant.inventory_quantity ?? 0))
 	}
 	return Math.max(1, n)
+}
+
+function variantPrice(v: StoreProductVariant): CalculatedPrice | null {
+	const p = v.calculated_price as CalculatedPrice | undefined
+	return p && p.calculated_amount != null ? p : null
+}
+
+// The cheapest and dearest resolved variant prices, as `CalculatedPrice` objects so callers
+// keep the currency for formatting. Null when no variant has a price (e.g. the SDK dropped
+// calculated_price because no pricing region resolved).
+export function priceRange(product: StoreProduct | null): { min: CalculatedPrice; max: CalculatedPrice } | null {
+	const prices = (product?.variants ?? []).map(variantPrice).filter((p): p is CalculatedPrice => p !== null)
+	if (!prices.length) return null
+	let min = prices[0]
+	let max = prices[0]
+	for (const p of prices) {
+		if ((p.calculated_amount as number) < (min.calculated_amount as number)) min = p
+		if ((p.calculated_amount as number) > (max.calculated_amount as number)) max = p
+	}
+	return { min, max }
+}
+
+// The variant a card should preselect: cheapest among purchasable variants, falling back to
+// the cheapest overall when nothing is buyable. Undefined when no variant has a price, in
+// which case callers fall back to `defaultVariantId`.
+export function cheapestPurchasableVariantId(product: StoreProduct | null): string | undefined {
+	const all = product?.variants ?? []
+	const purchasable = all.filter(v => isPurchasable(v))
+	const pool = purchasable.length ? purchasable : all
+	let best: string | undefined
+	let bestAmount = Number.POSITIVE_INFINITY
+	for (const v of pool) {
+		const p = variantPrice(v)
+		if (!p) continue
+		const amount = p.calculated_amount as number
+		if (amount < bestAmount) {
+			bestAmount = amount
+			best = v.id
+		}
+	}
+	return best
 }

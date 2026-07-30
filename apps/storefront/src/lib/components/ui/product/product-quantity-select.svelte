@@ -17,7 +17,8 @@
 
 	const ctx = getProductContextOptional()
 
-	// Inside Product.Root the quantity is URL-derived (ctx.quantity); standalone it's the bindable value.
+	// Inside Product.Root the quantity is URL-derived, inside Product.Card it is local state
+	// (both via ctx.quantity); standalone it's the bindable value.
 	const current = $derived(ctx ? ctx.quantity : value)
 	const variant = $derived(ctx?.selectedVariant ?? null)
 	const options = $derived(logic.quantityRange(variant, { min: minQuantity, step: stepQuantity, max: maxQuantity }))
@@ -27,8 +28,13 @@
 
 	function onchange(e: Event) {
 		const n = Number((e.currentTarget as HTMLSelectElement).value)
-		if (ctx) navigate(ctx.buildQuantityHref(n))
-		else value = n
+		if (!ctx) {
+			value = n
+			return
+		}
+		// Inside a Product.Card the context is local: set it directly instead of navigating.
+		if (ctx.navigable) navigate(ctx.buildQuantityHref(n))
+		else ctx.setQuantity(n)
 	}
 
 	// shadcn-trigger-like native <select> styling (from input-select): appearance-none + pr-8 for the

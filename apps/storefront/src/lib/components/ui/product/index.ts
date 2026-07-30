@@ -1,8 +1,12 @@
 import Root from './product.svelte'
+import Card from './product-card.svelte'
 import Title from './product-title.svelte'
 import Subtitle from './product-subtitle.svelte'
 import Description from './product-description.svelte'
 import Price from './product-price.svelte'
+import PriceMin from './product-price-min.svelte'
+import PriceMax from './product-price-max.svelte'
+import Thumbnail from './product-thumbnail.svelte'
 import Options from './product-options.svelte'
 import OptionButton from './product-option-button.svelte'
 import QuantitySelect from './product-quantity-select.svelte'
@@ -10,8 +14,8 @@ import JsonLd from './product-jsonld.svelte'
 import Rating from './product-rating.svelte'
 import { Star } from '../review/index.js'
 
-export { Root, Title, Subtitle, Description, Price, Options, OptionButton, QuantitySelect, JsonLd, Rating, Star }
-export { getProductContext, getProductContextOptional, setProductContext } from './ctx.svelte.js'
+export { Root, Card, Title, Subtitle, Description, Price, PriceMin, PriceMax, Thumbnail, Options, OptionButton, QuantitySelect, JsonLd, Rating, Star }
+export { createProductContext, getProductContext, getProductContextOptional, setProductContext } from './ctx.svelte.js'
 export type { ProductContext } from './ctx.svelte.js'
 export { formatPrice } from './format-price.js'
 export { productSchema } from './product-schema.js'

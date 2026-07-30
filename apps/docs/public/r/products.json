@@ -1,0 +1,49 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema/registry-item.json",
+  "name": "products",
+  "title": "Products",
+  "type": "registry:ui",
+  "description": "Paginated product listing for category, collection and index pages: Root, Grid and Pagination. Root is context-aware — headless when given a `products` array (client-side paging), otherwise it fetches a page from the sveltekit-medusa-sdk products remote filtered by categoryId / collectionId / typeId / q / order. The page lives in the URL as a 1-based `?p=` param, so page 2 is linkable and crawlable. Grid defaults to 1/2/3/4 columns at base/md/lg/xl (override with `class`) and renders a Product.Card per product, or your own snippet per item, with an `empty` slot. Render-prop children expose { products, count, page, pageCount, loading, error }. No $effect (SSR-safe).",
+  "dependencies": [
+    "sveltekit-medusa-sdk"
+  ],
+  "devDependencies": [
+    "@medusajs/types@2.18.0"
+  ],
+  "registryDependencies": [
+    "https://pevey.com/r/product.json",
+    "https://pevey.com/r/page-nav.json"
+  ],
+  "files": [
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { page } from '$app/state'\n\t// Import from the /products subpath: svelte-check cannot resolve the remotes through the\n\t// package barrel (the SDK's ./* export maps this straight to products.remote).\n\timport { getProductsQuery } from 'sveltekit-medusa-sdk/products'\n\timport { logic as pageNavLogic } from '$lib/components/ui/page-nav/index.js'\n\timport { setProductsContext } from './products-ctx.svelte.js'\n\timport type { ProductsQuery } from './products-types.js'\n\timport type { StoreProduct } from '@medusajs/types'\n\timport type { Snippet } from 'svelte'\n\n\tinterface Props {\n\t\t/** Headless mode: supply the products yourself and this Root only paginates them. */\n\t\tproducts?: StoreProduct[]\n\t\tcategoryId?: string | string[]\n\t\tcollectionId?: string | string[]\n\t\ttypeId?: string | string[]\n\t\tq?: string\n\t\torder?: string\n\t\tpageSize?: number\n\t\tpageParam?: string\n\t\thref?: (p: StoreProduct) => string\n\t\tclass?: string\n\t\tchildren: Snippet<[{ products: StoreProduct[]; count: number; page: number; pageCount: number; loading: boolean; error: unknown }]>\n\t}\n\tlet { products, categoryId, collectionId, typeId, q, order, pageSize = 12, pageParam = 'p', href, class: className = '', children }: Props = $props()\n\n\tconst headless = $derived(products !== undefined)\n\t// The page lives in the URL (1-based param, 0-based index) so page 2 of a category is\n\t// linkable and crawlable.\n\tconst currentPage = $derived(pageNavLogic.parsePage(page.url.searchParams.get(pageParam)))\n\n\t// Read through `.current` rather than `await` so changing page swaps the grid in place\n\t// instead of suspending the whole route.\n\tconst listQ = $derived(\n\t\theadless\n\t\t\t? null\n\t\t\t: (getProductsQuery({\n\t\t\t\t\tlimit: pageSize,\n\t\t\t\t\toffset: currentPage * pageSize,\n\t\t\t\t\t...(categoryId ? { category_id: categoryId } : {}),\n\t\t\t\t\t...(collectionId ? { collection_id: collectionId } : {}),\n\t\t\t\t\t...(typeId ? { type_id: typeId } : {}),\n\t\t\t\t\t...(q ? { q } : {}),\n\t\t\t\t\t...(order ? { order } : {})\n\t\t\t\t}) as unknown as ProductsQuery)\n\t)\n\n\tconst visible = $derived(headless ? (products ?? []).slice(currentPage * pageSize, currentPage * pageSize + pageSize) : (listQ?.current?.products ?? []))\n\tconst count = $derived(headless ? (products?.length ?? 0) : (listQ?.current?.count ?? 0))\n\tconst pageCount = $derived(pageNavLogic.pageCount(count, pageSize))\n\tconst loading = $derived(headless ? false : (listQ?.loading ?? false))\n\tconst error = $derived(headless ? undefined : listQ?.error)\n\n\tsetProductsContext({\n\t\tget products() {\n\t\t\treturn visible\n\t\t},\n\t\tget count() {\n\t\t\treturn count\n\t\t},\n\t\tget page() {\n\t\t\treturn currentPage\n\t\t},\n\t\tget pageCount() {\n\t\t\treturn pageCount\n\t\t},\n\t\tget pageSize() {\n\t\t\treturn pageSize\n\t\t},\n\t\tget pageParam() {\n\t\t\treturn pageParam\n\t\t},\n\t\tget loading() {\n\t\t\treturn loading\n\t\t},\n\t\tget error() {\n\t\t\treturn error\n\t\t},\n\t\thref: p => (href ? href(p) : `/products/${p.handle}`)\n\t})\n</script>\n\n<div class={cn('', className)} data-products>\n\t{@render children({ products: visible, count, page: currentPage, pageCount, loading, error })}\n</div>\n",
+      "type": "registry:ui",
+      "target": "products/products-root.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport * as Product from '$lib/components/ui/product/index.js'\n\timport { getProductsContext } from './products-ctx.svelte.js'\n\timport type { StoreProduct } from '@medusajs/types'\n\timport type { Snippet } from 'svelte'\n\n\tlet { class: className = '', children, empty }: { class?: string; children?: Snippet<[{ product: StoreProduct }]>; empty?: Snippet } = $props()\n\tconst ctx = getProductsContext()\n</script>\n\n{#if ctx.products.length}\n\t<div data-products-grid aria-busy={ctx.loading || undefined} class={cn('grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4', className)}>\n\t\t{#each ctx.products as product (product.id)}\n\t\t\t{#if children}\n\t\t\t\t{@render children({ product })}\n\t\t\t{:else}\n\t\t\t\t<Product.Card {product} href={ctx.href} />\n\t\t\t{/if}\n\t\t{/each}\n\t</div>\n{:else if !ctx.loading && empty}\n\t{@render empty()}\n{/if}\n",
+      "type": "registry:ui",
+      "target": "products/products-grid.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport * as PageNav from '$lib/components/ui/page-nav/index.js'\n\timport { getProductsContext } from './products-ctx.svelte.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet { class: className = '', children }: { class?: string; children?: Snippet } = $props()\n\tconst ctx = getProductsContext()\n</script>\n\n<PageNav.Root page={ctx.page} pageCount={ctx.pageCount} pageParam={ctx.pageParam} class={className}>\n\t{#if children}\n\t\t{@render children()}\n\t{:else}\n\t\t<PageNav.Prev />\n\t\t<PageNav.Pages />\n\t\t<PageNav.Next />\n\t{/if}\n</PageNav.Root>\n",
+      "type": "registry:ui",
+      "target": "products/products-pagination.svelte"
+    },
+    {
+      "content": "import { getContext, setContext } from 'svelte'\nimport type { StoreProduct } from '@medusajs/types'\n\nexport type ProductsContext = {\n\treadonly products: StoreProduct[]\n\treadonly count: number\n\treadonly page: number\n\treadonly pageCount: number\n\treadonly pageSize: number\n\treadonly pageParam: string\n\treadonly loading: boolean\n\treadonly error: unknown\n\thref: (p: StoreProduct) => string\n}\n\nconst KEY = Symbol('products')\n\nexport function setProductsContext(ctx: ProductsContext) {\n\tsetContext(KEY, ctx)\n}\n\nexport function getProductsContext(): ProductsContext {\n\tconst ctx = getContext<ProductsContext>(KEY)\n\tif (!ctx) throw new Error('Products.* must be used within <Products.Root>')\n\treturn ctx\n}\n",
+      "type": "registry:file",
+      "target": "products/products-ctx.svelte.ts"
+    },
+    {
+      "content": "import type { StoreProduct } from '@medusajs/types'\n\n// Shape of the SDK's product list envelope, and of the remote-query object the components\n// read. `getProductsQuery` is typed as an async function; reading `.current`/`.loading` off it\n// requires this cast (the same pattern reviews-root.svelte uses).\nexport type ProductListResult = {\n\tproducts: StoreProduct[]\n\tcount: number\n\tlimit: number\n\toffset: number\n}\n\nexport type ProductsQuery = {\n\tcurrent?: ProductListResult\n\tloading?: boolean\n\terror?: unknown\n}\n",
+      "type": "registry:file",
+      "target": "products/products-types.ts"
+    },
+    {
+      "content": "import Root from './products-root.svelte'\nimport Grid from './products-grid.svelte'\nimport PaginationRoot from './products-pagination.svelte'\nimport { Prev, Next, Pages, Info } from '$lib/components/ui/page-nav/index.js'\n\n// Callable as <Products.Pagination /> or composed as <Products.Pagination><Products.Pagination.Prev />…\n// The parts are page-nav's; we assign onto our own wrapper, never onto the shared page-nav\n// components themselves.\nconst Pagination = Object.assign(PaginationRoot, { Root: PaginationRoot, Prev, Next, Pages, Info })\n\nexport { Root, Grid, Pagination }\nexport { getProductsContext, setProductsContext } from './products-ctx.svelte.js'\nexport type { ProductsContext } from './products-ctx.svelte.js'\nexport type { ProductListResult, ProductsQuery } from './products-types.js'\n",
+      "type": "registry:file",
+      "target": "products/index.ts"
+    }
+  ]
+}

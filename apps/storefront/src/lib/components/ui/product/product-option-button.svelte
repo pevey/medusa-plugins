@@ -20,14 +20,27 @@
 					{value.value}
 				</span>
 			{:else if available}
-				<a
-					data-value
-					data-available="true"
-					href={ctx.buildHref(ctx.resolveVariant(option.id, value.id))}
-					class={cn(base, 'border-input bg-transparent hover:bg-accent')}
-				>
-					{value.value}
-				</a>
+				{#if ctx.navigable}
+					<a
+						data-value
+						data-available="true"
+						href={ctx.buildHref(ctx.resolveVariant(option.id, value.id))}
+						class={cn(base, 'border-input bg-transparent hover:bg-accent')}
+					>
+						{value.value}
+					</a>
+				{:else}
+					<!-- Local selection (e.g. inside Product.Card): swap in place, never navigate. -->
+					<button
+						type="button"
+						data-value
+						data-available="true"
+						onclick={() => ctx.selectVariant(ctx.resolveVariant(option.id, value.id))}
+						class={cn(base, 'border-input bg-transparent hover:bg-accent')}
+					>
+						{value.value}
+					</button>
+				{/if}
 			{:else}
 				<span data-value data-available="false" aria-disabled="true" class={cn(base, 'border-input text-muted-foreground line-through opacity-50')}>
 					{value.value}

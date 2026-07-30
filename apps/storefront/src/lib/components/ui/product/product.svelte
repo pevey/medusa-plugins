@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { cn } from '$lib/utils.js'
-	import { page } from '$app/state'
-	import { setProductContext } from './ctx.svelte.js'
-	import * as logic from './product-logic.js'
+	import { createProductContext, setProductContext } from './ctx.svelte.js'
 	import type { StoreProduct } from '@medusajs/types'
 	import type { Snippet } from 'svelte'
 
@@ -21,65 +19,15 @@
 	}
 	let { product, variantParam = 'v', quantityParam = 'quantity', class: className = '', children }: Props = $props()
 
-	// Everything is `$derived` (no `$effect`) so it works during SSR. Selection lives in the
-	// URL (`?v=`), which is the reactive source of truth via `$app/state`.
-	const resolvedProduct = $derived(product ?? null)
-	// A `?v=` that doesn't resolve to a real variant (stale/garbage) falls back to the
-	// default rather than silently deselecting everything.
-	const selectedVariantId = $derived.by(() => {
-		const v = page.url.searchParams.get(variantParam)
-		if (v && resolvedProduct?.variants?.some(variant => variant.id === v)) return v
-		return logic.defaultVariantId(resolvedProduct)
-	})
-	const selectedVariant = $derived(resolvedProduct?.variants?.find(v => v.id === selectedVariantId) ?? null)
-
-	// Quantity lives in the URL exactly like variant selection (SSR-safe, shareable). Stock-clamped
-	// on read so a stale ?quantity= against a low-stock variant reads correctly everywhere.
-	const quantity = $derived.by(() => {
-		const raw = parseInt(page.url.searchParams.get(quantityParam) ?? '', 10)
-		const n = Number.isFinite(raw) && raw >= 1 ? raw : 1
-		return logic.clampToStock(n, selectedVariant)
-	})
-
-	function buildParamHref(param: string, value: string): string {
-		const sp = new URLSearchParams(page.url.searchParams.toString())
-		if (value) sp.set(param, value)
-		const q = sp.toString()
-		return q ? `?${q}` : page.url.pathname
-	}
-	function buildHref(variantId: string): string {
-		return buildParamHref(variantParam, variantId)
-	}
-	function buildQuantityHref(quantity: number): string {
-		return buildParamHref(quantityParam, String(quantity))
-	}
-
-	// Reactive context via getters (no `$effect`, no `$state` sync) — SSR-safe.
-	setProductContext({
-		get product() {
-			return resolvedProduct
-		},
-		get selectedVariant() {
-			return selectedVariant
-		},
-		get selectedVariantId() {
-			return selectedVariantId
-		},
-		get variantParam() {
-			return variantParam
-		},
-		isSelected: valueId => logic.isSelected(selectedVariant, valueId),
-		isAvailable: valueId => logic.isAvailable(resolvedProduct, selectedVariant, valueId),
-		resolveVariant: (optionId, valueId) => logic.resolveVariant(resolvedProduct, selectedVariant, optionId, valueId),
-		buildHref,
-		get quantity() {
-			return quantity
-		},
-		buildQuantityHref,
-		get quantityParam() {
-			return quantityParam
-		}
-	})
+	// URL-driven selection (`?v=`, `?quantity=`) — see createProductContext.
+	setProductContext(
+		createProductContext({
+			product: () => product ?? null,
+			selection: 'url',
+			variantParam: () => variantParam,
+			quantityParam: () => quantityParam
+		})
+	)
 </script>
 
 <div class={cn('', className)}>

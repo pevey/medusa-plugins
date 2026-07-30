@@ -13,7 +13,7 @@
 
 <h1>Products</h1>
 <ul>
-	{#each await getProducts() as product}
+	{#each (await getProducts()).products as product}
 		<li>{product.title}</li>
 	{:else}
 		<li>No products</li>

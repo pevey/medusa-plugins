@@ -1,0 +1,54 @@
+{
+  "$schema": "https://shadcn-svelte.com/schema/registry-item.json",
+  "name": "categories",
+  "title": "Categories",
+  "type": "registry:ui",
+  "description": "Paginated product-category listing: Root, Grid, Card and Pagination. Root is context-aware — headless when given a `categories` array, otherwise it fetches a page from the sveltekit-medusa-sdk categories remote, optionally filtered to one parent (`parentId`) for the subcategories-on-a-category-page case. Card links to /categories/<handle> by default (string or builder `href`) and reads its image from `metadata.thumbnail` — configurable via `imageKey`, overridable via an `image` snippet — since Medusa categories have no image field; it degrades to a text-only card when the key is absent. Grid defaults to 1/2/3/4 columns at base/md/lg/xl with a per-item snippet override and an `empty` slot. The page lives in the URL as a 1-based `?p=` param. No $effect (SSR-safe).",
+  "dependencies": [
+    "sveltekit-medusa-sdk"
+  ],
+  "devDependencies": [
+    "@medusajs/types@2.18.0"
+  ],
+  "registryDependencies": [
+    "https://pevey.com/r/page-nav.json",
+    "card"
+  ],
+  "files": [
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport { page } from '$app/state'\n\t// Import from the /categories subpath: svelte-check cannot resolve the remotes through the\n\t// package barrel (the SDK's ./* export maps this straight to categories.remote).\n\timport { getProductCategoriesQuery } from 'sveltekit-medusa-sdk/categories'\n\timport { logic as pageNavLogic } from '$lib/components/ui/page-nav/index.js'\n\timport { setCategoriesContext } from './categories-ctx.svelte.js'\n\timport type { CategoriesQuery } from './categories-types.js'\n\timport type { StoreProductCategory } from '@medusajs/types'\n\timport type { Snippet } from 'svelte'\n\n\tinterface Props {\n\t\t/** Headless mode: supply the categories yourself and this Root only paginates them. */\n\t\tcategories?: StoreProductCategory[]\n\t\t/** List the children of one category — the \"subcategories on a category page\" case. */\n\t\tparentId?: string\n\t\tq?: string\n\t\torder?: string\n\t\tpageSize?: number\n\t\tpageParam?: string\n\t\thref?: (c: StoreProductCategory) => string\n\t\timageKey?: string\n\t\tclass?: string\n\t\tchildren: Snippet<[{ categories: StoreProductCategory[]; count: number; page: number; pageCount: number; loading: boolean; error: unknown }]>\n\t}\n\tlet { categories, parentId, q, order, pageSize = 24, pageParam = 'p', href, imageKey = 'thumbnail', class: className = '', children }: Props = $props()\n\n\tconst headless = $derived(categories !== undefined)\n\tconst currentPage = $derived(pageNavLogic.parsePage(page.url.searchParams.get(pageParam)))\n\n\tconst listQ = $derived(\n\t\theadless\n\t\t\t? null\n\t\t\t: (getProductCategoriesQuery({\n\t\t\t\t\tlimit: pageSize,\n\t\t\t\t\toffset: currentPage * pageSize,\n\t\t\t\t\t...(parentId ? { parent_category_id: parentId } : {}),\n\t\t\t\t\t...(q ? { q } : {}),\n\t\t\t\t\t...(order ? { order } : {})\n\t\t\t\t}) as unknown as CategoriesQuery)\n\t)\n\n\tconst visible = $derived(\n\t\theadless ? (categories ?? []).slice(currentPage * pageSize, currentPage * pageSize + pageSize) : (listQ?.current?.product_categories ?? [])\n\t)\n\tconst count = $derived(headless ? (categories?.length ?? 0) : (listQ?.current?.count ?? 0))\n\tconst pageCount = $derived(pageNavLogic.pageCount(count, pageSize))\n\tconst loading = $derived(headless ? false : (listQ?.loading ?? false))\n\tconst error = $derived(headless ? undefined : listQ?.error)\n\n\tsetCategoriesContext({\n\t\tget categories() {\n\t\t\treturn visible\n\t\t},\n\t\tget count() {\n\t\t\treturn count\n\t\t},\n\t\tget page() {\n\t\t\treturn currentPage\n\t\t},\n\t\tget pageCount() {\n\t\t\treturn pageCount\n\t\t},\n\t\tget pageSize() {\n\t\t\treturn pageSize\n\t\t},\n\t\tget pageParam() {\n\t\t\treturn pageParam\n\t\t},\n\t\tget loading() {\n\t\t\treturn loading\n\t\t},\n\t\tget error() {\n\t\t\treturn error\n\t\t},\n\t\thref: c => (href ? href(c) : `/categories/${c.handle}`),\n\t\tget imageKey() {\n\t\t\treturn imageKey\n\t\t}\n\t})\n</script>\n\n<div class={cn('', className)} data-categories>\n\t{@render children({ categories: visible, count, page: currentPage, pageCount, loading, error })}\n</div>\n",
+      "type": "registry:ui",
+      "target": "categories/categories-root.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport Card from './categories-card.svelte'\n\timport { getCategoriesContext } from './categories-ctx.svelte.js'\n\timport type { StoreProductCategory } from '@medusajs/types'\n\timport type { Snippet } from 'svelte'\n\n\tlet { class: className = '', children, empty }: { class?: string; children?: Snippet<[{ category: StoreProductCategory }]>; empty?: Snippet } = $props()\n\tconst ctx = getCategoriesContext()\n</script>\n\n{#if ctx.categories.length}\n\t<div data-categories-grid aria-busy={ctx.loading || undefined} class={cn('grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4', className)}>\n\t\t{#each ctx.categories as category (category.id)}\n\t\t\t{#if children}\n\t\t\t\t{@render children({ category })}\n\t\t\t{:else}\n\t\t\t\t<Card {category} href={ctx.href} imageKey={ctx.imageKey} />\n\t\t\t{/if}\n\t\t{/each}\n\t</div>\n{:else if !ctx.loading && empty}\n\t{@render empty()}\n{/if}\n",
+      "type": "registry:ui",
+      "target": "categories/categories-grid.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport { cn } from '$UTILS$.js'\n\timport * as Card from '$lib/components/ui/card/index.js'\n\timport type { StoreProductCategory } from '@medusajs/types'\n\timport type { Snippet } from 'svelte'\n\n\tinterface Props {\n\t\tcategory: StoreProductCategory\n\t\thref?: string | ((c: StoreProductCategory) => string)\n\t\t/** Metadata key holding the image URL — Medusa categories have no image field. */\n\t\timageKey?: string\n\t\tclass?: string\n\t\timage?: Snippet<[{ src: string; alt: string }]>\n\t\tchildren?: Snippet<[{ category: StoreProductCategory }]>\n\t}\n\tlet { category, href, imageKey = 'thumbnail', class: className = '', image, children }: Props = $props()\n\n\tconst url = $derived(typeof href === 'function' ? href(category) : (href ?? `/categories/${category.handle}`))\n\tconst src = $derived(typeof category.metadata?.[imageKey] === 'string' ? (category.metadata[imageKey] as string) : '')\n</script>\n\n<Card.Root data-category-card class={cn('pt-0', className)}>\n\t{#if children}\n\t\t{@render children({ category })}\n\t{:else}\n\t\t<a href={url} data-category-card-link class=\"block\">\n\t\t\t{#if image}\n\t\t\t\t{@render image({ src, alt: category.name })}\n\t\t\t{:else if src}\n\t\t\t\t<img data-category-card-image {src} alt={category.name} loading=\"lazy\" class=\"aspect-video w-full rounded-t-xl object-cover\" />\n\t\t\t{/if}\n\t\t</a>\n\t\t<Card.Content class=\"flex flex-col gap-2\">\n\t\t\t<a href={url} class=\"hover:underline\">\n\t\t\t\t<h3 class=\"text-base font-medium\">{category.name}</h3>\n\t\t\t</a>\n\t\t\t{#if category.description}\n\t\t\t\t<p data-category-card-description class=\"text-sm text-muted-foreground\">{category.description}</p>\n\t\t\t{/if}\n\t\t</Card.Content>\n\t{/if}\n</Card.Root>\n",
+      "type": "registry:ui",
+      "target": "categories/categories-card.svelte"
+    },
+    {
+      "content": "<script lang=\"ts\">\n\timport * as PageNav from '$lib/components/ui/page-nav/index.js'\n\timport { getCategoriesContext } from './categories-ctx.svelte.js'\n\timport type { Snippet } from 'svelte'\n\n\tlet { class: className = '', children }: { class?: string; children?: Snippet } = $props()\n\tconst ctx = getCategoriesContext()\n</script>\n\n<PageNav.Root page={ctx.page} pageCount={ctx.pageCount} pageParam={ctx.pageParam} class={className}>\n\t{#if children}\n\t\t{@render children()}\n\t{:else}\n\t\t<PageNav.Prev />\n\t\t<PageNav.Pages />\n\t\t<PageNav.Next />\n\t{/if}\n</PageNav.Root>\n",
+      "type": "registry:ui",
+      "target": "categories/categories-pagination.svelte"
+    },
+    {
+      "content": "import { getContext, setContext } from 'svelte'\nimport type { StoreProductCategory } from '@medusajs/types'\n\nexport type CategoriesContext = {\n\treadonly categories: StoreProductCategory[]\n\treadonly count: number\n\treadonly page: number\n\treadonly pageCount: number\n\treadonly pageSize: number\n\treadonly pageParam: string\n\treadonly loading: boolean\n\treadonly error: unknown\n\thref: (c: StoreProductCategory) => string\n\treadonly imageKey: string\n}\n\nconst KEY = Symbol('categories')\n\nexport function setCategoriesContext(ctx: CategoriesContext) {\n\tsetContext(KEY, ctx)\n}\n\nexport function getCategoriesContext(): CategoriesContext {\n\tconst ctx = getContext<CategoriesContext>(KEY)\n\tif (!ctx) throw new Error('Categories.* must be used within <Categories.Root>')\n\treturn ctx\n}\n",
+      "type": "registry:file",
+      "target": "categories/categories-ctx.svelte.ts"
+    },
+    {
+      "content": "import type { StoreProductCategory } from '@medusajs/types'\n\n// Shape of the SDK's category list envelope, and of the remote-query object the components\n// read (reading `.current`/`.loading` off the remote requires the cast in the Root).\nexport type CategoryListResult = {\n\tproduct_categories: StoreProductCategory[]\n\tcount: number\n\tlimit: number\n\toffset: number\n}\n\nexport type CategoriesQuery = {\n\tcurrent?: CategoryListResult\n\tloading?: boolean\n\terror?: unknown\n}\n",
+      "type": "registry:file",
+      "target": "categories/categories-types.ts"
+    },
+    {
+      "content": "import Root from './categories-root.svelte'\nimport Grid from './categories-grid.svelte'\nimport Card from './categories-card.svelte'\nimport PaginationRoot from './categories-pagination.svelte'\nimport { Prev, Next, Pages, Info } from '$lib/components/ui/page-nav/index.js'\n\n// Callable as <Categories.Pagination /> or composed as <Categories.Pagination><Categories.Pagination.Prev />…\n// The parts are page-nav's; we assign onto our own wrapper, never onto the shared page-nav\n// components themselves.\nconst Pagination = Object.assign(PaginationRoot, { Root: PaginationRoot, Prev, Next, Pages, Info })\n\nexport { Root, Grid, Card, Pagination }\nexport { getCategoriesContext, setCategoriesContext } from './categories-ctx.svelte.js'\nexport type { CategoriesContext } from './categories-ctx.svelte.js'\nexport type { CategoryListResult, CategoriesQuery } from './categories-types.js'\n",
+      "type": "registry:file",
+      "target": "categories/index.ts"
+    }
+  ]
+}

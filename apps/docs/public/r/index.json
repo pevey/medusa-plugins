@@ -123,7 +123,7 @@
     "name": "product",
     "title": "Product",
     "type": "registry:ui",
-    "description": "Compound Product primitives (Root, Title, Subtitle, Description, Price, Options, OptionButton, QuantitySelect, Rating, JsonLd) over a Medusa StoreProduct. Rating renders the product's aggregate star summary from the sveltekit-medusa-sdk reviews remote (re-exporting Star from the `review` atom) and JsonLd emits schema.org Product/AggregateOffer markup. URL-driven variant selection (?v= links), inventory-aware option availability (manage_inventory/inventory_quantity), currency-aware price with sale strikethrough, sanitized {@html} description. Pure resolution logic in product-logic.ts; no $effect (SSR-safe). Fetch the product reactively in your route and pass it in.",
+    "description": "Compound Product primitives (Root, Card, Title, Subtitle, Description, Price, PriceMin, PriceMax, Thumbnail, Options, OptionButton, QuantitySelect, Rating, JsonLd) over a Medusa StoreProduct. Root drives variant selection from the URL (?v= links) for a detail page; Card is a sibling context provider using local selection, so a grid of cards each track their own variant and swatches swap in place instead of navigating — every part works inside either. Card takes an `href` (string or builder, default /products/<handle>), an `actions` snippet for an add-to-cart button (composed rather than built in, since `cta` already depends on `product`), and a `children` snippet that replaces the whole body; its context seeds the cheapest purchasable variant so <AddToCartButton /> needs no props. Title takes `as` so cards render an h3 rather than a page full of h1s. PriceMin/PriceMax render the range bounds as separate styleable parts (Medusa has no product-level price). Rating renders the product's aggregate star summary from the sveltekit-medusa-sdk reviews remote (re-exporting Star from the `review` atom) and JsonLd emits schema.org Product/AggregateOffer markup. Inventory-aware option availability (manage_inventory/inventory_quantity), currency-aware price with sale strikethrough, sanitized {@html} description. Pure resolution logic in product-logic.ts; no $effect (SSR-safe). Fetch the product reactively in your route and pass it in.",
     "dependencies": [
       "isomorphic-dompurify",
       "@lucide/svelte",
@@ -132,7 +132,8 @@
     ],
     "registryDependencies": [
       "https://pevey.com/r/seo.json",
-      "https://pevey.com/r/review.json"
+      "https://pevey.com/r/review.json",
+      "card"
     ],
     "relativeUrl": "product.json"
   },
@@ -364,5 +365,58 @@
       "https://pevey.com/r/input-text.json"
     ],
     "relativeUrl": "input-province.json"
+  },
+  {
+    "name": "page-nav",
+    "title": "Page Nav",
+    "type": "registry:ui",
+    "description": "URL-driven pagination primitives (Root, Prev, Next, Pages, Info) shared by the products, categories and collections listings. The page lives in the URL as a 1-based `?p=` param (page 1 omits it) so pages are linkable, crawlable and back-button-correct; links preserve every other search param. Prev/Next render as aria-disabled spans at the ends, Pages renders a windowed range with ellipses and aria-current, Root renders nothing for a single page. Named `page-nav` rather than `pagination` to avoid colliding with shadcn-svelte's own pagination component. Pure math in page-nav-logic.ts; no $effect (SSR-safe).",
+    "dependencies": [],
+    "registryDependencies": [
+      "button"
+    ],
+    "relativeUrl": "page-nav.json"
+  },
+  {
+    "name": "products",
+    "title": "Products",
+    "type": "registry:ui",
+    "description": "Paginated product listing for category, collection and index pages: Root, Grid and Pagination. Root is context-aware — headless when given a `products` array (client-side paging), otherwise it fetches a page from the sveltekit-medusa-sdk products remote filtered by categoryId / collectionId / typeId / q / order. The page lives in the URL as a 1-based `?p=` param, so page 2 is linkable and crawlable. Grid defaults to 1/2/3/4 columns at base/md/lg/xl (override with `class`) and renders a Product.Card per product, or your own snippet per item, with an `empty` slot. Render-prop children expose { products, count, page, pageCount, loading, error }. No $effect (SSR-safe).",
+    "dependencies": [
+      "sveltekit-medusa-sdk"
+    ],
+    "registryDependencies": [
+      "https://pevey.com/r/product.json",
+      "https://pevey.com/r/page-nav.json"
+    ],
+    "relativeUrl": "products.json"
+  },
+  {
+    "name": "categories",
+    "title": "Categories",
+    "type": "registry:ui",
+    "description": "Paginated product-category listing: Root, Grid, Card and Pagination. Root is context-aware — headless when given a `categories` array, otherwise it fetches a page from the sveltekit-medusa-sdk categories remote, optionally filtered to one parent (`parentId`) for the subcategories-on-a-category-page case. Card links to /categories/<handle> by default (string or builder `href`) and reads its image from `metadata.thumbnail` — configurable via `imageKey`, overridable via an `image` snippet — since Medusa categories have no image field; it degrades to a text-only card when the key is absent. Grid defaults to 1/2/3/4 columns at base/md/lg/xl with a per-item snippet override and an `empty` slot. The page lives in the URL as a 1-based `?p=` param. No $effect (SSR-safe).",
+    "dependencies": [
+      "sveltekit-medusa-sdk"
+    ],
+    "registryDependencies": [
+      "https://pevey.com/r/page-nav.json",
+      "card"
+    ],
+    "relativeUrl": "categories.json"
+  },
+  {
+    "name": "collections",
+    "title": "Collections",
+    "type": "registry:ui",
+    "description": "Paginated collection listing: Root, Grid, Card and Pagination. Root is context-aware — headless when given a `collections` array, otherwise it fetches a page from the sveltekit-medusa-sdk collections remote. Card links to /collections/<handle> by default (string or builder `href`) and reads its image from `metadata.thumbnail` — configurable via `imageKey`, overridable via an `image` snippet — since Medusa collections carry only title, handle and metadata; it degrades to a text-only card when the key is absent. Grid defaults to 1/2/3/4 columns at base/md/lg/xl with a per-item snippet override and an `empty` slot. The page lives in the URL as a 1-based `?p=` param. No $effect (SSR-safe).",
+    "dependencies": [
+      "sveltekit-medusa-sdk"
+    ],
+    "registryDependencies": [
+      "https://pevey.com/r/page-nav.json",
+      "card"
+    ],
+    "relativeUrl": "collections.json"
   }
 ]
