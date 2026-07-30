@@ -18,8 +18,10 @@ export default defineConfig({
 			experimental: {
 				remoteFunctions: true
 			},
+			// `$lib` is not built into SvelteKit 3 — it only exists because of this alias.
+			// TODO: migrate to package.json subpath imports (`#lib/*`) in lockstep with the
+			// sveltekit-ui registry, which also emits `$lib/components/ui/*` references.
 			alias: {
-				'$src/*': 'src/*',
 				$lib: 'src/lib'
 			},
 			prerender: {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { STRIPE_KEY } from '$app/env/public'
 	import { StripeExpressCheckout } from '$lib/components/ui/cta'
-	import { createProductIntent } from '$src/lib/payment.remote.js'
+	import { createProductIntent } from '$lib/payment.remote.js'
 
 	let { data } = $props()
 

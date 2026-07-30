@@ -56,7 +56,7 @@
 			params.delete('auth')
 		}
 		if (next !== 'reset') params.delete('token')
-		goto(`?${params.toString()}`, { replaceState: true, keepFocus: true, noScroll: true })
+		goto(`?${params.toString()}`, { replace: true, reset: false })
 	}
 	const switchMode = (m: string) => navigate(m as Mode)
 	const close = () => navigate(null)
