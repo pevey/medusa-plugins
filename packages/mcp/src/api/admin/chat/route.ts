@@ -1,6 +1,5 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { z } from '@medusajs/framework/zod'
-import { zodToJsonSchema } from 'zod-to-json-schema'
 import { AdminPostChatType } from '../../validators'
 import { resolveMcpTools } from '../../../mcp/tools'
 import { createProvider, type ChatMessage, type ContentBlock, type ToolDefinition } from '../../../lib/llm-provider'
@@ -60,7 +59,10 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminPostChatType>, r
 			toolDefs.push({
 				name: tool.name,
 				description: tool.description,
-				inputSchema: zodToJsonSchema(z.object(tool.inputSchema) as any) as Record<string, unknown>
+				// `tool.inputSchema` is already a Zod object schema (see McpToolConfig), and zod v4
+				// converts natively — which also retires the undeclared `zod-to-json-schema` import
+				// this file was relying on through hoisting.
+				inputSchema: z.toJSONSchema(tool.inputSchema) as Record<string, unknown>
 			})
 			toolHandlers.set(tool.name, tool.handler)
 		}

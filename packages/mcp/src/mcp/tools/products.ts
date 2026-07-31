@@ -10,10 +10,10 @@ export function registerProductTools(server: McpToolRegistry, scope: MedusaConta
 		'search_products',
 		{
 			description: 'Search products by title.',
-			inputSchema: {
+			inputSchema: z.object({
 				q: z.string().describe('Search term (matches title)'),
 				limit: z.coerce.number().int().min(1).max(50).optional().default(10)
-			}
+			})
 		},
 		async ({ q, limit }) => {
 			const { data } = await query.graph({
@@ -33,9 +33,9 @@ export function registerProductTools(server: McpToolRegistry, scope: MedusaConta
 		'get_product',
 		{
 			description: 'Fetch a single product by ID with variants and pricing.',
-			inputSchema: {
+			inputSchema: z.object({
 				product_id: z.string().describe('The product ID')
-			}
+			})
 		},
 		async ({ product_id }) => {
 			const {

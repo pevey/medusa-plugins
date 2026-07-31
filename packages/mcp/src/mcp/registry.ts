@@ -1,10 +1,18 @@
-import type { ZodRawShape } from 'zod'
+import type { ZodObject, ZodRawShape } from 'zod'
 
 export type McpToolHandler = (args: any) => Promise<{ content: { type: 'text'; text: string }[] }>
 
 export type McpToolConfig = {
 	description: string
-	inputSchema: ZodRawShape
+	/**
+	 * A Zod **object schema** (`z.object({ ... })`), not a raw shape.
+	 *
+	 * MCP SDK v2 deprecated the raw-shape form of `registerTool` in favour of passing a schema
+	 * directly, so the registry mirrors the supported shape rather than the deprecated one. Tool
+	 * packages contributing through `registerMcpTools` therefore hand over a schema they already
+	 * own, which also lets them use refinements/transforms that a bare shape cannot express.
+	 */
+	inputSchema: ZodObject<ZodRawShape>
 	/** Marks a tool that performs a write/dispatch action (gated — see options.allowWriteTools). */
 	write?: boolean
 }

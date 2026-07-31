@@ -8,7 +8,7 @@ If you are not familiar with Medusa, you can learn more on [the project web site
 
 ## Features
 
-- **MCP server** over streamable-HTTP at `POST /admin/mcp`, built on the official `@modelcontextprotocol/sdk`. Point any MCP client (for example Claude Desktop) at it to give an assistant read access to your store.
+- **MCP server** over streamable-HTTP at `POST /admin/mcp`, built on the official MCP TypeScript SDK (`@modelcontextprotocol/server` v2). Speaks both the `2026-07-28` and `2025-11-25` protocol revisions, so point any MCP client (for example Claude Desktop) at it to give an assistant read access to your store.
 - **Built-in tools** for querying Medusa — a generic graph `query` plus focused tools for orders, customers, products, and inventory.
 - **Admin Chat page** — converse with an LLM that calls those tools to answer questions about your store, right inside the Medusa admin.
 - **Pluggable LLM provider** — Anthropic or OpenAI (including self-hosted, OpenAI-compatible servers), chosen in config.
@@ -111,10 +111,21 @@ Compatible servers with their base URLs:
 The MCP server is exposed over **streamable-HTTP** at `POST /admin/mcp`. To connect an external MCP client:
 
 - Point it at `<your-backend>/admin/mcp`.
-- Authenticate as a Medusa admin — the endpoint is admin-only, so send a valid admin session cookie or admin API token. There is no separate MCP token.
-- The server runs **stateless** — each request is handled independently, so it scales across multiple instances with no session affinity or memory to leak. The client sends `initialize` then its `tools/list` / `tools/call` requests as usual.
+- Authenticate as a Medusa admin — the endpoint is admin-only, so send a valid admin session cookie or admin API token. There is no separate MCP token. Generating a dedicated admin API token per client is the recommended setup: it can be revoked on its own without disturbing anything else.
+- The server runs **stateless** — each request is handled independently, so it scales across multiple instances with no session affinity or memory to leak.
 
 The server advertises the MCP **tools** capability (`tools/list`, `tools/call`); it does not serve resources or prompts.
+
+### Protocol versions
+
+The endpoint speaks **both** supported revisions, so you do not need to match your client to it:
+
+| Revision     | How a client talks to it                                                                                                                                                                                       |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `2026-07-28` | No handshake. Every request carries its protocol version and client capabilities in `params._meta`, and names its method in an `Mcp-Method` header (plus `Mcp-Name` for `tools/call`). Replies are plain JSON. |
+| `2025-11-25` | The classic `initialize` handshake, then `tools/list` / `tools/call`. Replies are SSE-framed. This is what most MCP clients ship with today.                                                                   |
+
+Statelessness is no longer a configuration choice — `2026-07-28` removed protocol-level sessions and the initialize handshake outright, which is the model this server always used. Both eras are served per-request from the same tool set. `GET` and `DELETE` return `405`: they were the `2025` SSE-stream and session-termination endpoints, and neither exists in the newer revision.
 
 ## Available tools
 

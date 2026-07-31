@@ -10,10 +10,10 @@ export function registerCustomerTools(server: McpToolRegistry, scope: MedusaCont
 		'search_customers',
 		{
 			description: 'Search customers by email or name.',
-			inputSchema: {
+			inputSchema: z.object({
 				q: z.string().describe('Search term (matches email, first_name, or last_name)'),
 				limit: z.coerce.number().int().min(1).max(50).optional().default(10)
-			}
+			})
 		},
 		async ({ q, limit }) => {
 			const { data } = await query.graph({
@@ -35,9 +35,9 @@ export function registerCustomerTools(server: McpToolRegistry, scope: MedusaCont
 		'get_customer',
 		{
 			description: 'Fetch a single customer by ID with their order history.',
-			inputSchema: {
+			inputSchema: z.object({
 				customer_id: z.string().describe('The customer ID')
-			}
+			})
 		},
 		async ({ customer_id }) => {
 			const {

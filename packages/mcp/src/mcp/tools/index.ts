@@ -26,14 +26,30 @@ export async function resolveMcpTools(scope: MedusaContainer, options: McpPlugin
 	registerProductTools(registry, scope)
 	registerInventoryTools(registry, scope)
 
-	// Tools contributed by other plugins.
+	// Tools contributed by other plugins. Each entry is an OPTIONAL peer: a given backend
+	// may or may not have it installed, so an unresolvable specifier is a normal, silent
+	// outcome rather than an error.
+	//
+	// The catch is narrowed to exactly that case. A package that resolves but blows up while
+	// loading — bad export map, version skew, its own missing peer — is a real breakage, and
+	// swallowing it made it indistinguishable from "not installed": the tool set would quietly
+	// shrink and every diagnostic surface (tools/list, the chat route's tool menu) would look
+	// merely configured differently instead of broken.
+	//
+	// Node reports every unresolvable specifier as ERR_MODULE_NOT_FOUND, including an
+	// unexported subpath of a package that IS installed (verified against this Node version) --
+	// so `medusa-plugin-automation/mcp` before its export map lands stays silent, which is the
+	// desired behaviour. MODULE_NOT_FOUND is the CJS-require spelling of the same condition;
+	// it is matched too because a transpiled test build can downlevel `import()` to `require()`.
+	// A module that throws at load time carries no `code` at all, so it falls through and logs.
 	for (const pkg of options.toolPackages ?? []) {
 		try {
 			const mod: any = await import(pkg)
 			const register = mod.registerMcpTools ?? mod.default?.registerMcpTools
 			if (typeof register === 'function') register(registry, scope)
-		} catch {
-			// package not installed or exposes no MCP tools — skip
+		} catch (err: any) {
+			if (err?.code === 'ERR_MODULE_NOT_FOUND' || err?.code === 'MODULE_NOT_FOUND') continue
+			logWarn(scope, `[MCP] tool package "${pkg}" is installed but failed to load; its tools are unavailable: ${err?.message ?? err}`)
 		}
 	}
 
@@ -45,6 +61,15 @@ export async function resolveMcpTools(scope: MedusaContainer, options: McpPlugin
 		return tools.filter(t => !t.write)
 	}
 	return gateWriteTools(tools, scope, actor)
+}
+
+/** Warn through Medusa's logger, falling back to console if it isn't registered (e.g. a bare test scope). */
+function logWarn(scope: MedusaContainer, message: string): void {
+	try {
+		;(scope.resolve(ContainerRegistrationKeys.LOGGER) as any).warn(message)
+	} catch {
+		console.warn(message)
+	}
 }
 
 function gateWriteTools(tools: McpToolDef[], scope: MedusaContainer, actor?: McpActor): McpToolDef[] {

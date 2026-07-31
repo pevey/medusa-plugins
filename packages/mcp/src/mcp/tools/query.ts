@@ -40,13 +40,13 @@ export function registerQueryTool(server: McpToolRegistry, scope: MedusaContaine
 				`Run a query against any Medusa entity using query.graph(). Allowed entities: ${ALLOWED_ENTITIES.join(', ')}. ` +
 				'Use dot notation for relations (e.g. "customer.first_name"). ' +
 				'Filters support operators: $eq, $ne, $in, $nin, $like, $ilike, $gt, $gte, $lt, $lte.',
-			inputSchema: {
+			inputSchema: z.object({
 				entity: z.enum(ALLOWED_ENTITIES as [string, ...string[]]),
 				fields: z.array(z.string()).min(1).describe('Fields to return, e.g. ["id", "email", "orders.id"]'),
 				filters: z.record(z.string(), z.unknown()).optional().describe('Filter conditions, e.g. { status: "completed" }'),
 				limit: z.coerce.number().int().min(1).max(100).optional().default(20),
 				offset: z.coerce.number().int().min(0).optional().default(0)
-			}
+			})
 		},
 		async ({ entity, fields, filters, limit, offset }) => {
 			const query = scope.resolve(ContainerRegistrationKeys.QUERY)

@@ -10,10 +10,10 @@ export function registerInventoryTools(server: McpToolRegistry, scope: MedusaCon
 		'low_stock_items',
 		{
 			description: 'Find inventory items with stock levels at or below a threshold.',
-			inputSchema: {
+			inputSchema: z.object({
 				threshold: z.coerce.number().int().min(0).optional().default(10),
 				limit: z.coerce.number().int().min(1).max(100).optional().default(20)
-			}
+			})
 		},
 		async ({ threshold, limit }) => {
 			const { data } = await query.graph({
@@ -46,9 +46,9 @@ export function registerInventoryTools(server: McpToolRegistry, scope: MedusaCon
 		'get_inventory_item',
 		{
 			description: 'Fetch a single inventory item by ID with stock levels across locations.',
-			inputSchema: {
+			inputSchema: z.object({
 				inventory_item_id: z.string().describe('The inventory item ID')
-			}
+			})
 		},
 		async ({ inventory_item_id }) => {
 			const {

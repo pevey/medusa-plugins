@@ -1,14 +1,20 @@
 import { MedusaContainer } from '@medusajs/framework/types'
-import type { ZodRawShape } from 'zod'
+import type { ZodObject, ZodRawShape } from 'zod'
 import { z } from 'zod'
 import { dispatchAndRecord } from '../lib/dispatch'
 import { AUTOMATION_MODULE } from '../modules/automation'
 
 // Minimal structural type of medusa-plugin-mcp's tool registry — duck-typed so this package needs no dependency on medusa-plugin-mcp to contribute tools.
+//
+// `inputSchema` is a Zod OBJECT SCHEMA (`z.object({ ... })`), not a raw shape. It changed with
+// medusa-plugin-mcp's move to MCP SDK v2, which deprecated the raw-shape form of `registerTool`.
+// Because this type is duck-typed rather than imported, tsc cannot catch a mismatch here — the
+// break would surface at runtime instead, where the consuming plugin converts the schema with
+// `z.toJSONSchema()`. Keep it in step with `McpToolConfig` in medusa-plugin-mcp's `registry.ts`.
 type McpToolRegistry = {
 	registerTool: (
 		name: string,
-		config: { description: string; inputSchema: ZodRawShape; write?: boolean },
+		config: { description: string; inputSchema: ZodObject<ZodRawShape>; write?: boolean },
 		handler: (args: any) => Promise<{ content: { type: 'text'; text: string }[] }>
 	) => void
 }
@@ -20,10 +26,10 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 		'list_automations',
 		{
 			description: 'List automation triggers with their status, type, and event configuration.',
-			inputSchema: {
+			inputSchema: z.object({
 				is_active: z.boolean().optional().describe('Filter by active status'),
 				limit: z.coerce.number().int().min(1).max(100).optional().default(20)
-			}
+			})
 		},
 		async ({ is_active, limit }) => {
 			const filters: Record<string, unknown> = {}
@@ -49,9 +55,9 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 		'get_automation',
 		{
 			description: 'Fetch a single automation trigger by ID with its actions.',
-			inputSchema: {
+			inputSchema: z.object({
 				trigger_id: z.string().describe('The automation trigger ID')
-			}
+			})
 		},
 		async ({ trigger_id }) => {
 			const [trigger] = await automationService.listAutomationTriggers({ id: trigger_id }, { take: 1 })
@@ -77,13 +83,13 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 		'list_automation_deliveries',
 		{
 			description: 'View delivery history for an automation action. Filter by status and date range.',
-			inputSchema: {
+			inputSchema: z.object({
 				action_id: z.string().describe('The automation action ID'),
 				status: z.enum(['pending', 'success', 'failed']).optional().describe('Filter by delivery status'),
 				since: z.string().optional().describe('Only include deliveries after this ISO date'),
 				until: z.string().optional().describe('Only include deliveries before this ISO date'),
 				limit: z.coerce.number().int().min(1).max(100).optional().default(20)
-			}
+			})
 		},
 		async ({ action_id, status, since, until, limit }) => {
 			const filters: Record<string, unknown> = { action_id }
@@ -113,10 +119,10 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 		{
 			description: 'Manually fire all active actions on an automation trigger with a given payload.',
 			write: true,
-			inputSchema: {
+			inputSchema: z.object({
 				trigger_id: z.string().describe('The automation trigger ID'),
 				payload: z.record(z.string(), z.unknown()).optional().default({}).describe('The payload to dispatch')
-			}
+			})
 		},
 		async ({ trigger_id, payload }) => {
 			const [trigger] = await automationService.listAutomationTriggers({ id: trigger_id }, { take: 1 })
@@ -170,13 +176,13 @@ export function registerMcpTools(registry: McpToolRegistry, scope: MedusaContain
 			description:
 				'Replay failed deliveries using their stored request payloads. Provide specific delivery IDs or filters to select which deliveries to retry.',
 			write: true,
-			inputSchema: {
+			inputSchema: z.object({
 				delivery_ids: z.array(z.string()).optional().describe('Specific delivery IDs to retry'),
 				action_id: z.string().optional().describe('Filter by action ID (required when not using delivery_ids)'),
 				status: z.enum(['pending', 'success', 'failed']).optional().describe('Filter by delivery status'),
 				since: z.string().optional().describe('Only retry deliveries after this ISO date'),
 				until: z.string().optional().describe('Only retry deliveries before this ISO date')
-			}
+			})
 		},
 		async ({ delivery_ids, action_id, status, since, until }) => {
 			let deliveries: any[]

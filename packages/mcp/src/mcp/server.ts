@@ -1,4 +1,4 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { McpServer } from '@modelcontextprotocol/server'
 import { MedusaContainer } from '@medusajs/framework/types'
 import { resolveMcpTools, type McpActor } from './tools'
 import type { McpPluginOptions } from '../types'

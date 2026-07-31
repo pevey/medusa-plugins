@@ -142,3 +142,140 @@ const _sessionDeleteTypeMatchesSchema: z.infer<typeof ChatSessionDeleteResponseS
 export const ChatErrorResponseSchema = z.strictObject({
 	error: z.string()
 })
+
+// ── MCP protocol surface (POST /admin/mcp) ────────────────────────────────
+//
+// These model the JSON-RPC envelopes the MCP SDK writes for `POST /admin/mcp`,
+// now on SDK v2. Unlike everything above, they are deliberately NOT two-way
+// assignability-checked against a hand-written type: the SDK's own result types
+// are declared with an index signature, so `z.infer<typeof someStrictObject>`
+// is never assignable *from* them and the `const _x: SdkType = {} as
+// z.infer<...>` trick fails in one direction by construction. The SDK is the
+// upstream authority for these shapes, not this plugin, so there is no local
+// type to keep in sync -- the `.parse()` calls in mcp.spec.ts are the whole
+// enforcement mechanism here.
+//
+// The v1->v2 migration is the reason these are split by era. `createMcpHandler`
+// serves BOTH revisions from one endpoint, and they do not return the same
+// thing: a 2026-07-28 result carries `resultType` (and, on cacheable list
+// results, `ttlMs` + `cacheScope`) plus a `_meta` server identity, while a
+// 2025-11-25 result carries none of that. Modelling them with one permissive
+// schema would let a modern-only field silently go missing from modern
+// responses, which is exactly the regression worth catching. So: two schemas,
+// both `z.strictObject`, each asserting its era's shape exactly.
+//
+// The previous version of this block was written against v1 as a deliberate
+// migration tripwire, and it worked -- the strict parses failed by name on
+// `resultType`, `ttlMs` and `cacheScope` appearing, and on the v1-only
+// `execution` field (task-augmented execution) disappearing when 2026-07-28
+// moved tasks out of core into the `io.modelcontextprotocol/tasks` extension.
+// That is why `execution` is gone below.
+//
+// Nested payloads stay looser. `inputSchema` is a JSON Schema document the SDK
+// now generates natively from each tool's Zod object schema (note the emitted
+// `$schema` key); its interior is zod's business, not this plugin's contract,
+// so it is modelled only as far as this plugin guarantees it.
+
+// JSON-RPC 2.0 error envelope.
+//
+// v2 uses this MORE than v1 did. In v1 the CallToolRequest handler caught every
+// throw -- including its own "Tool X not found" -- and folded it into a
+// CallToolResult with `isError: true`. On the modern path an unknown tool is
+// now a real JSON-RPC error (-32602), so a client distinguishes "the tool
+// failed" from "there is no such tool" at the protocol level instead of by
+// reading prose out of a text block.
+export const JsonRpcErrorResponseSchema = z.strictObject({
+	jsonrpc: z.literal('2.0'),
+	id: z.union([z.string(), z.number(), z.null()]),
+	error: z.strictObject({
+		code: z.number(),
+		message: z.string(),
+		data: z.unknown().optional()
+	})
+})
+
+// The `_meta` envelope every modern result carries. 2026-07-28 removed the
+// initialize handshake, so server identity rides on each result instead of
+// being negotiated once per connection.
+export const ModernResultMetaSchema = z.looseObject({
+	'io.modelcontextprotocol/serverInfo': z.looseObject({
+		name: z.string(),
+		version: z.string()
+	})
+})
+
+// One entry of `tools/list`, identical across eras.
+export const McpToolDescriptorSchema = z.strictObject({
+	name: z.string(),
+	description: z.string(),
+	inputSchema: z.looseObject({
+		type: z.literal('object'),
+		properties: z.record(z.string(), z.unknown()).optional()
+	})
+})
+
+// ── Legacy (2025-11-25) results ───────────────────────────────────────────
+
+export const LegacyToolsListResultSchema = z.strictObject({
+	tools: z.array(McpToolDescriptorSchema),
+	nextCursor: z.string().optional()
+})
+
+export const LegacyCallToolResultSchema = z.strictObject({
+	content: z.array(TextBlockSchema),
+	isError: z.boolean().optional(),
+	structuredContent: z.record(z.string(), z.unknown()).optional()
+})
+
+// `initialize` -> InitializeResult. Legacy-only: 2026-07-28 removed the
+// handshake, so a modern client never sends this.
+export const LegacyInitializeResultSchema = z.strictObject({
+	protocolVersion: z.string(),
+	capabilities: z.record(z.string(), z.unknown()),
+	serverInfo: z.looseObject({
+		name: z.string(),
+		version: z.string()
+	}),
+	instructions: z.string().optional()
+})
+
+// ── Modern (2026-07-28) results ───────────────────────────────────────────
+//
+// `ttlMs` + `cacheScope` are required on cacheable list results. Both come
+// from the SDK's defaults rather than anything this plugin configures, and
+// both defaults happen to be the ones this plugin needs: `cacheScope:
+// 'private'` is REQUIRED FOR CORRECTNESS here because this server's tool list
+// varies per caller (write tools are filtered out by `allowWriteTools` and the
+// `mcp:write` policy), so a shared intermediary must never reuse one admin's
+// list for another. It is asserted below precisely so a future SDK default
+// flip to 'public' fails loudly instead of silently widening cache scope.
+export const ModernToolsListResultSchema = z.strictObject({
+	tools: z.array(McpToolDescriptorSchema),
+	resultType: z.literal('complete'),
+	ttlMs: z.number(),
+	cacheScope: z.enum(['public', 'private']),
+	_meta: ModernResultMetaSchema.optional(),
+	nextCursor: z.string().optional()
+})
+
+// `tools/call` carries `resultType` but NOT the cache fields -- only list-class
+// results are cacheable.
+export const ModernCallToolResultSchema = z.strictObject({
+	content: z.array(TextBlockSchema),
+	resultType: z.literal('complete'),
+	isError: z.boolean().optional(),
+	structuredContent: z.record(z.string(), z.unknown()).optional(),
+	_meta: ModernResultMetaSchema.optional()
+})
+
+// `server/discover` -> DiscoverResult. New in 2026-07-28 and MUST be
+// implemented by every server; it replaces `initialize` as the way a client
+// learns supported versions, capabilities and identity up front.
+export const ModernDiscoverResultSchema = z.strictObject({
+	supportedVersions: z.array(z.string()),
+	capabilities: z.record(z.string(), z.unknown()),
+	resultType: z.literal('complete'),
+	ttlMs: z.number(),
+	cacheScope: z.enum(['public', 'private']),
+	_meta: ModernResultMetaSchema.optional()
+})

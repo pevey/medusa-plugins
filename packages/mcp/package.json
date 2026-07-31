@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-mcp",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "MCP server and LLM chat plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"repository": {
@@ -60,7 +60,8 @@
 	},
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.115.0",
-		"@modelcontextprotocol/sdk": "^1.30.0",
+		"@modelcontextprotocol/node": "^2.0.0",
+		"@modelcontextprotocol/server": "^2.0.0",
 		"openai": "^6.49.0",
 		"react-markdown": "^10.1.0",
 		"remark-gfm": "^4.0.1"

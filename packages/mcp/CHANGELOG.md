@@ -1,3 +1,7 @@
+## 0.4.0
+
+- Added MCP v2 support
+
 ## 0.3.0
 
 - Added registry API for plugins and extensions to register their own tools
