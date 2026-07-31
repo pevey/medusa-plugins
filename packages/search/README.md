@@ -104,9 +104,7 @@ A single query scores every hit by the **better of the two lanes** — there is 
 | `localeTextSearchConfig`  | `Record<string, string>`                            | `{}`       | Overrides/extends the built-in BCP-47 → Postgres config mapping used for translated documents, e.g. `{ 'pt-BR': 'portuguese' }`. Unmapped locales use `'simple'`.                                                                                                                                                                                                                           |
 | `translations`            | `boolean`                                           | auto       | Force the translation path on/off. When unset, it is auto-detected from the presence of the Translation module. See **Translations** below.                                                                                                                                                                                                                                                 |
 
-NOTE: The defaultLanguage options as of Postgres 18.4 are: arabic, armenian, basque, catalan, danish, dutch, english, finnish,
-french, german, greek, hindi, hungarian, indonesian, irish, italian, lithuanian, nepali, norwegian, portuguese, romanian, russian, serbian,
-spanish, swedish, tamil, turkish, yiddish |
+NOTE: The defaultLanguage options as of Postgres 18.4 are: arabic, armenian, basque, catalan, danish, dutch, english, finnish, french, german, greek, hindi, hungarian, indonesian, irish, italian, lithuanian, nepali, norwegian, portuguese, romanian, russian, serbian, spanish, swedish, tamil, turkish, yiddish |
 
 ### Custom sources
 
