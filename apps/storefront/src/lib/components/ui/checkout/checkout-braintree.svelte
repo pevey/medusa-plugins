@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { RemoteForm } from '@sveltejs/kit'
 	import type { StoreOrder } from '@medusajs/types'
-	import { braintreeCheckoutForm } from 'sveltekit-medusa-sdk'
+	import { checkoutForm } from 'sveltekit-medusa-sdk'
 	import Root from './checkout.svelte'
 	import Body from './checkout-braintree-body.svelte'
 
@@ -15,7 +15,7 @@
 		onerror?: (err: unknown) => void
 		class?: string
 	}
-	let { form = braintreeCheckoutForm as unknown as RemoteForm<any, any>, googlePlacesApiKey, restrictToCurrentRegion, ...rest }: Props = $props()
+	let { form = checkoutForm as unknown as RemoteForm<any, any>, googlePlacesApiKey, restrictToCurrentRegion, ...rest }: Props = $props()
 </script>
 
 <form {...form}>

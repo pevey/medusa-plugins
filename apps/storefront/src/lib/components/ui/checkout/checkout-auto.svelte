@@ -5,7 +5,7 @@
 	// down, keyed by the full Medusa provider id.
 	import type { RemoteForm } from '@sveltejs/kit'
 	import type { StoreOrder } from '@medusajs/types'
-	import { braintreeCheckoutForm } from 'sveltekit-medusa-sdk'
+	import { checkoutForm } from 'sveltekit-medusa-sdk'
 	import Root from './checkout.svelte'
 	import AutoSwitch from './checkout-auto-switch.svelte'
 
@@ -31,7 +31,7 @@
 		class?: string
 	}
 	let {
-		form = braintreeCheckoutForm as unknown as RemoteForm<any, any>,
+		form = checkoutForm as unknown as RemoteForm<any, any>,
 		config,
 		googlePlacesApiKey,
 		publishableKey,

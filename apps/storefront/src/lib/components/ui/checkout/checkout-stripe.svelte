@@ -1,8 +1,9 @@
 <script lang="ts">
 	import type { RemoteForm } from '@sveltejs/kit'
 	import type { StoreOrder } from '@medusajs/types'
-	// Provider-agnostic checkout address form/schema (reused as-is; a neutral alias is a later cleanup).
-	import { braintreeCheckoutForm } from 'sveltekit-medusa-sdk'
+	// Provider-agnostic checkout address form — shared by every payment provider.
+	// Stripe's provider-specific work happens at the `authorizePayment` seam, not here.
+	import { checkoutForm } from 'sveltekit-medusa-sdk'
 	import Root from './checkout.svelte'
 	import Body from './checkout-stripe-body.svelte'
 
@@ -22,7 +23,7 @@
 		class?: string
 	}
 	let {
-		form = braintreeCheckoutForm as unknown as RemoteForm<any, any>,
+		form = checkoutForm as unknown as RemoteForm<any, any>,
 		publishableKey,
 		providerId,
 		returnUrl,
