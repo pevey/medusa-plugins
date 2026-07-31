@@ -32172,9 +32172,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"sveltekit-medusa-starter@workspace:apps/starter":
+"sveltekit-medusa-starter@workspace:apps/sveltekit-starter":
   version: 0.0.0-use.local
-  resolution: "sveltekit-medusa-starter@workspace:apps/starter"
+  resolution: "sveltekit-medusa-starter@workspace:apps/sveltekit-starter"
   dependencies:
     "@googlemaps/js-api-loader": "npm:^2.1.1"
     "@internationalized/date": "npm:^3.12.2"

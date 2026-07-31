@@ -16,7 +16,7 @@
 	path = packages/sveltekit-braintree
 	url = git@github.com:pevey/sveltekit-braintree.git
 	branch = main
-[submodule "apps/starter"]
-	path = apps/starter
+[submodule "apps/sveltekit-starter"]
+	path = apps/sveltekit-starter
 	url = git@github.com:pevey/sveltekit-medusa-starter.git
 	branch = main
