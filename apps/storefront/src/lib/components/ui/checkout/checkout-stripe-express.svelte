@@ -14,7 +14,7 @@
 	import { ExpressCheckout, getStripeContext } from 'sveltekit-stripe'
 	import { updateCart, completeCart, getRegions, getShippingOptions } from 'sveltekit-medusa-sdk'
 	import { getCheckoutContext } from './ctx.svelte.js'
-	import { getStripeClientSecretContext } from './stripe-cs-context.js'
+	import { getStripeSessionContext } from './stripe-cs-context.js'
 	import { medusaShippingToStripeRates, walletAddressToMedusa, resolveRedirect } from './checkout-logic.js'
 
 	let {
@@ -31,7 +31,7 @@
 
 	const ctx = getCheckoutContext()
 	const stripe = getStripeContext()
-	const cs = getStripeClientSecretContext()
+	const session = getStripeSessionContext()
 
 	let ready = $state(false)
 	let hideExpress = $state(false) // set in onReady when the element reports no wallet
@@ -83,9 +83,16 @@
 	async function onConfirm(e: any) {
 		try {
 			await updateCart(walletAddressToMedusa(e.billingDetails, e.shippingAddress))
+			// The wallet address (and any shipping rate chosen in the sheet) has just moved the
+			// total, so the session must be created now — after updateCart, not before.
+			const clientSecret = await session.ensureClientSecret()
+			if (!clientSecret) {
+				e.paymentFailed?.({ reason: 'fail' })
+				return
+			}
 			const { error } = await stripe.stripe!.confirmPayment({
 				elements: stripe.elements!,
-				clientSecret: cs.clientSecret!,
+				clientSecret,
 				confirmParams: { return_url: returnUrl },
 				redirect: 'if_required'
 			})

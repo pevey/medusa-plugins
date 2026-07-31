@@ -5,6 +5,7 @@
 	import { PaymentElement, getStripeContext } from 'sveltekit-stripe'
 	import { cn } from '$lib/utils.js'
 	import { getCheckoutContextOptional } from './ctx.svelte.js'
+	import { getStripeSessionContext } from './stripe-cs-context.js'
 
 	interface Props {
 		/** Stripe requires a return_url for confirmPayment (even with redirect:'if_required'). */
@@ -15,14 +16,27 @@
 
 	const ctx = getCheckoutContextOptional()
 	const stripe = getStripeContext()
+	const session = getStripeSessionContext()
 
 	async function authorizePayment() {
 		try {
 			if (!stripe.stripe || !stripe.elements) return { ok: false, error: new Error('Payment not ready') }
-			// clientSecret is bound to the Elements instance (created with it), so confirmPayment infers
-			// it from `elements`. `redirect: 'if_required'` keeps the card path inline (no redirect page).
+
+			// Stripe's deferred-intent order, and it matters:
+			//   1. elements.submit() — validate + collect while the total is still what the shopper saw
+			//   2. create the PaymentIntent against that final total (Medusa would have deleted any
+			//      session made earlier, so this is the first and only one)
+			//   3. confirm with the secret from step 2
+			const { error: submitError } = await stripe.elements.submit()
+			if (submitError) return { ok: false, error: submitError }
+
+			const clientSecret = await session.ensureClientSecret()
+			if (!clientSecret) return { ok: false, error: new Error('Could not start the payment session') }
+
+			// `redirect: 'if_required'` keeps the card path inline (no redirect page).
 			const { error } = await stripe.stripe.confirmPayment({
 				elements: stripe.elements,
+				clientSecret,
 				confirmParams: { return_url: returnUrl },
 				redirect: 'if_required'
 			})

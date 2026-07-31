@@ -6,7 +6,7 @@
 	import { getStripeContext, confirmIdealPayment } from 'sveltekit-stripe'
 	import { cn } from '$lib/utils.js'
 	import { getCheckoutContextOptional } from './ctx.svelte.js'
-	import { getStripeClientSecretContext } from './stripe-cs-context.js'
+	import { getStripeSessionContext } from './stripe-cs-context.js'
 	import { cartBillingDetails } from './checkout-logic.js'
 
 	let {
@@ -16,13 +16,18 @@
 	}: { returnUrl: string; note?: string; class?: string } = $props()
 	const ctx = getCheckoutContextOptional()
 	const stripe = getStripeContext()
-	const cs = getStripeClientSecretContext()
+	const session = getStripeSessionContext()
 
 	async function authorizePayment() {
 		try {
-			if (!stripe.stripe || !cs.clientSecret) return { ok: false, error: new Error('Payment not ready') }
+			if (!stripe.stripe || !stripe.elements) return { ok: false, error: new Error('Payment not ready') }
+			// Deferred intent: validate first, then create the session against the final total.
+			const { error: submitError } = await stripe.elements.submit()
+			if (submitError) return { ok: false, error: submitError }
+			const clientSecret = await session.ensureClientSecret()
+			if (!clientSecret) return { ok: false, error: new Error('Could not start the payment session') }
 			const billing = cartBillingDetails(ctx?.cart)
-			const { error } = await confirmIdealPayment(stripe.stripe, cs.clientSecret, {
+			const { error } = await confirmIdealPayment(stripe.stripe, clientSecret, {
 				billingDetails: { name: billing.name || '' } as any,
 				returnUrl
 			})
