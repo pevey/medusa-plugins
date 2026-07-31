@@ -94,9 +94,9 @@
 		"yalc": "1.0.0-pre.53"
 	},
 	"peerDependencies": {
-		"@medusajs/framework": "^2.17.2",
-		"@medusajs/js-sdk": "^2.17.2",
-		"@medusajs/medusa": "^2.17.2"
+		"@medusajs/framework": "^2.18.0",
+		"@medusajs/js-sdk": "^2.18.0",
+		"@medusajs/medusa": "^2.18.0"
 	},
 	"engines": {
 		"node": ">=22"
