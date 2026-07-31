@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Affiliates API
-  version: 0.1.3
+  version: 0.1.4
   description: Affiliate promotion code management and per-order attribution for Medusa v2.
 servers:
   - url: http://localhost:9000
@@ -73,8 +73,35 @@ paths:
                         created_at:
                           type: string
                           format: date-time
-                        "*addresses":
-                          type: string
+                        addresses:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                              affiliate_id:
+                                type: string
+                              first_name:
+                                type: string
+                              last_name:
+                                type: string
+                              company:
+                                type: string
+                              address_1:
+                                type: string
+                              address_2:
+                                type: string
+                              city:
+                                type: string
+                              province:
+                                type: string
+                              country_code:
+                                type: string
+                              postal_code:
+                                type: string
+                              phone:
+                                type: string
                   count:
                     type: integer
                   limit:
@@ -220,12 +247,63 @@ paths:
                       created_at:
                         type: string
                         format: date-time
-                      "*addresses":
-                        type: string
+                      addresses:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            affiliate_id:
+                              type: string
+                            first_name:
+                              type: string
+                            last_name:
+                              type: string
+                            company:
+                              type: string
+                            address_1:
+                              type: string
+                            address_2:
+                              type: string
+                            city:
+                              type: string
+                            province:
+                              type: string
+                            country_code:
+                              type: string
+                            postal_code:
+                              type: string
+                            phone:
+                              type: string
                       promotions:
                         type: array
                         items:
                           type: object
+                          properties:
+                            id:
+                              type: string
+                            code:
+                              type: string
+                            status:
+                              type: string
+                            is_automatic:
+                              type: string
+                            campaign:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                ends_at:
+                                  type: string
+                                  format: date-time
+                            application_method:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                value:
+                                  type: string
     post:
       operationId: postAdminAffiliatesByid
       summary: Update Affiliate
@@ -314,36 +392,6 @@ paths:
             application/json:
               schema:
                 type: object
-    delete:
-      operationId: deleteAdminAffiliatesByidAddressesByaddressId
-      summary: Delete Address
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: addressId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  object:
-                    type: string
-                  deleted:
-                    type: boolean
   /admin/affiliates/{id}/promotions:
     post:
       operationId: postAdminAffiliatesByidPromotions
@@ -395,103 +443,6 @@ paths:
                 end_date:
                   type: string
                   nullable: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-    delete:
-      operationId: deleteAdminAffiliatesByidPromotionsBypromotionId
-      summary: Delete Promotion
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: promotionId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  object:
-                    type: string
-                  deleted:
-                    type: boolean
-  /admin/affiliates/{id}/promotions/{promotionId}/reactivate:
-    post:
-      operationId: postAdminAffiliatesByidPromotionsBypromotionIdReactivate
-      summary: Create Reactivate
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: promotionId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-  /admin/affiliates/{id}/promotions/{promotionId}/retire:
-    post:
-      operationId: postAdminAffiliatesByidPromotionsBypromotionIdRetire
-      summary: Create Retire
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: promotionId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-  /admin/affiliates/{id}/attributions/recalculate:
-    post:
-      operationId: postAdminAffiliatesByidAttributionsRecalculate
-      summary: Recalculate Attribution
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
       responses:
         "200":
           description: OK

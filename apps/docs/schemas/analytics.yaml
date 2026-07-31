@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Analytics API
-  version: 0.3.1
+  version: 0.3.2
   description: Self-hosted analytics plugin for Medusa v2
 servers:
   - url: http://localhost:9000
@@ -988,6 +988,28 @@ paths:
           required: false
           schema:
             type: string
+        - name: event
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: actor_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: session_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: properties
+          in: query
+          required: false
+          schema:
+            type: object
+            additionalProperties: true
         - name: id
           in: path
           required: true
@@ -1021,44 +1043,6 @@ paths:
                     type: integer
                   offset:
                     type: integer
-  /admin/analytics/segments/{id}/preview:
-    get:
-      operationId: getAdminAnalyticsSegmentsByidPreview
-      summary: List Preview
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-  /admin/analytics/segments/{id}/export:
-    get:
-      operationId: getAdminAnalyticsSegmentsByidExport
-      summary: List Export
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
   /store/ping:
     post:
       operationId: postStorePing

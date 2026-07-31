@@ -173,75 +173,6 @@ paths:
                   deleted:
                     type: boolean
   /admin/automations/{id}:
-    get:
-      operationId: getAdminAutomationsByid
-      summary: Get Automation
-      tags:
-        - Admin
-      parameters:
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 20
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-        - name: order
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: fields
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  automation:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      name:
-                        type: string
-                      description:
-                        type: string
-                      trigger_type:
-                        type: string
-                      is_active:
-                        type: boolean
-                      trigger_events:
-                        type: string
-                      signature_config:
-                        type: string
-                      log_incoming:
-                        type: string
-                      metadata:
-                        type: object
-                        additionalProperties: true
-                      created_at:
-                        type: string
-                        format: date-time
-                      updated_at:
-                        type: string
-                        format: date-time
     post:
       operationId: postAdminAutomationsByid
       summary: Update Automation
@@ -481,84 +412,6 @@ paths:
                   deleted:
                     type: boolean
   /admin/automations/{id}/actions/{actionId}:
-    get:
-      operationId: getAdminAutomationsByidActionsByactionId
-      summary: Get Action
-      tags:
-        - Admin
-      parameters:
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 20
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-        - name: order
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: fields
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: actionId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  action:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      name:
-                        type: string
-                      description:
-                        type: string
-                      action_type:
-                        type: string
-                      is_active:
-                        type: boolean
-                      target_url:
-                        type: string
-                      signing_secret_id:
-                        type: string
-                      target_headers:
-                        type: string
-                      medusa_workflow:
-                        type: string
-                      field_mappings:
-                        type: string
-                      metadata:
-                        type: object
-                        additionalProperties: true
-                      created_at:
-                        type: string
-                        format: date-time
-                      updated_at:
-                        type: string
-                        format: date-time
     post:
       operationId: postAdminAutomationsByidActionsByactionId
       summary: Update Action
@@ -582,6 +435,16 @@ paths:
             schema:
               type: object
               properties:
+                limit:
+                  type: integer
+                  default: 100
+                offset:
+                  type: integer
+                  default: 0
+                order:
+                  type: string
+                fields:
+                  type: string
                 name:
                   type: string
                   minLength: 1
@@ -621,29 +484,6 @@ paths:
               schema:
                 type: object
   /admin/automations/{id}/actions/{actionId}/query:
-    get:
-      operationId: getAdminAutomationsByidActionsByactionIdQuery
-      summary: List Query
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: actionId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
     post:
       operationId: postAdminAutomationsByidActionsByactionIdQuery
       summary: Create Query
@@ -688,36 +528,6 @@ paths:
             application/json:
               schema:
                 type: object
-    delete:
-      operationId: deleteAdminAutomationsByidActionsByactionIdQuery
-      summary: Batch Delete Query
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: actionId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  object:
-                    type: string
-                  deleted:
-                    type: boolean
   /admin/automations/{id}/actions/{actionId}/deliveries:
     get:
       operationId: getAdminAutomationsByidActionsByactionIdDeliveries
@@ -929,7 +739,7 @@ paths:
           required: false
           schema:
             type: integer
-            default: 20
+            default: 100
         - name: offset
           in: query
           required: false
@@ -999,32 +809,6 @@ paths:
             application/json:
               schema:
                 type: object
-  /admin/automations/secrets/{id}:
-    delete:
-      operationId: deleteAdminAutomationsSecretsByid
-      summary: Delete Secret
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  object:
-                    type: string
-                  deleted:
-                    type: boolean
   /webhooks/{id}:
     post:
       operationId: postWebhooksByid

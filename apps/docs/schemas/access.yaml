@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Access API
-  version: 0.1.1
+  version: 0.1.2
   description: Access management for Medusa v2.
 servers:
   - url: http://localhost:9000
@@ -48,6 +48,55 @@ paths:
       summary: Create Policy
       tags:
         - Admin
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: id
+          in: query
+          required: false
+          schema:
+            type: array
+            items: &a1
+              type: string
+        - name: key
+          in: query
+          required: false
+          schema:
+            type: array
+            items: &a2
+              type: string
+        - name: resource
+          in: query
+          required: false
+          schema:
+            type: array
+            items: &a3
+              type: string
+        - name: operation
+          in: query
+          required: false
+          schema:
+            type: array
+            items: &a4
+              type: string
+        - name: created_at
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: updated_at
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: deleted_at
+          in: query
+          required: false
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -125,9 +174,48 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
         - name: id
-          in: path
-          required: true
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a1
+        - name: key
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a2
+        - name: resource
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a3
+        - name: operation
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a4
+        - name: created_at
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: updated_at
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: deleted_at
+          in: query
+          required: false
           schema:
             type: string
       responses:
@@ -143,9 +231,48 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
         - name: id
-          in: path
-          required: true
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a1
+        - name: key
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a2
+        - name: resource
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a3
+        - name: operation
+          in: query
+          required: false
+          schema:
+            type: array
+            items: *a4
+        - name: created_at
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: updated_at
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: deleted_at
+          in: query
+          required: false
           schema:
             type: string
       requestBody:
@@ -292,7 +419,7 @@ paths:
           required: false
           schema:
             type: array
-            items: &a1
+            items: &a5
               type: string
       requestBody:
         required: true
@@ -376,7 +503,7 @@ paths:
           required: false
           schema:
             type: array
-            items: *a1
+            items: *a5
         - name: id
           in: path
           required: true
@@ -400,7 +527,7 @@ paths:
           required: false
           schema:
             type: array
-            items: *a1
+            items: *a5
         - name: id
           in: path
           required: true
@@ -470,7 +597,7 @@ paths:
           required: false
           schema:
             type: array
-            items: *a1
+            items: *a5
         - name: id
           in: path
           required: true
@@ -494,7 +621,7 @@ paths:
           required: false
           schema:
             type: array
-            items: *a1
+            items: *a5
         - name: id
           in: path
           required: true

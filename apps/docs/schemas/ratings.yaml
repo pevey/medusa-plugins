@@ -281,31 +281,6 @@ paths:
             application/json:
               schema:
                 type: object
-    delete:
-      operationId: deleteAdminReviewsByid
-      summary: Delete Review
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  object:
-                    type: string
-                  deleted:
-                    type: boolean
   /admin/reviews/approve:
     post:
       operationId: postAdminReviewsApprove

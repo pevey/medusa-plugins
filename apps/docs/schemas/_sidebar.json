@@ -133,32 +133,12 @@
 					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidaddressesbyaddressid/"
 				},
 				{
-					"label": "Delete Address",
-					"link": "/medusa-plugin-affiliates/api/operations/deleteadminaffiliatesbyidaddressesbyaddressid/"
-				},
-				{
 					"label": "Create Promotion",
 					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidpromotions/"
 				},
 				{
 					"label": "Update Promotion",
 					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidpromotionsbypromotionid/"
-				},
-				{
-					"label": "Delete Promotion",
-					"link": "/medusa-plugin-affiliates/api/operations/deleteadminaffiliatesbyidpromotionsbypromotionid/"
-				},
-				{
-					"label": "Create Reactivate",
-					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidpromotionsbypromotionidreactivate/"
-				},
-				{
-					"label": "Create Retire",
-					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidpromotionsbypromotionidretire/"
-				},
-				{
-					"label": "Recalculate Attribution",
-					"link": "/medusa-plugin-affiliates/api/operations/postadminaffiliatesbyidattributionsrecalculate/"
 				},
 				{
 					"label": "List Stats",
@@ -247,14 +227,6 @@
 				{
 					"label": "List Members",
 					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticssegmentsbyidmembers/"
-				},
-				{
-					"label": "List Preview",
-					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticssegmentsbyidpreview/"
-				},
-				{
-					"label": "List Export",
-					"link": "/medusa-plugin-analytics/api/operations/getadminanalyticssegmentsbyidexport/"
 				}
 			]
 		},
@@ -287,10 +259,6 @@
 					"link": "/medusa-plugin-automation/api/operations/deleteadminautomations/"
 				},
 				{
-					"label": "Get Automation",
-					"link": "/medusa-plugin-automation/api/operations/getadminautomationsbyid/"
-				},
-				{
 					"label": "Update Automation",
 					"link": "/medusa-plugin-automation/api/operations/postadminautomationsbyid/"
 				},
@@ -307,24 +275,12 @@
 					"link": "/medusa-plugin-automation/api/operations/deleteadminautomationsbyidactions/"
 				},
 				{
-					"label": "Get Action",
-					"link": "/medusa-plugin-automation/api/operations/getadminautomationsbyidactionsbyactionid/"
-				},
-				{
 					"label": "Update Action",
 					"link": "/medusa-plugin-automation/api/operations/postadminautomationsbyidactionsbyactionid/"
 				},
 				{
-					"label": "List Query",
-					"link": "/medusa-plugin-automation/api/operations/getadminautomationsbyidactionsbyactionidquery/"
-				},
-				{
 					"label": "Create Query",
 					"link": "/medusa-plugin-automation/api/operations/postadminautomationsbyidactionsbyactionidquery/"
-				},
-				{
-					"label": "Batch Delete Query",
-					"link": "/medusa-plugin-automation/api/operations/deleteadminautomationsbyidactionsbyactionidquery/"
 				},
 				{
 					"label": "List Deliveries",
@@ -345,10 +301,6 @@
 				{
 					"label": "Create Secret",
 					"link": "/medusa-plugin-automation/api/operations/postadminautomationssecrets/"
-				},
-				{
-					"label": "Delete Secret",
-					"link": "/medusa-plugin-automation/api/operations/deleteadminautomationssecretsbyid/"
 				}
 			]
 		},
@@ -743,10 +695,6 @@
 					"link": "/medusa-plugin-forms/api/operations/postadminformsbyid/"
 				},
 				{
-					"label": "Delete Form",
-					"link": "/medusa-plugin-forms/api/operations/deleteadminformsbyid/"
-				},
-				{
 					"label": "List Fields",
 					"link": "/medusa-plugin-forms/api/operations/getadminformsbyidfields/"
 				},
@@ -789,10 +737,6 @@
 				{
 					"label": "Update Form Submission",
 					"link": "/medusa-plugin-forms/api/operations/postadminform-submissionsbyid/"
-				},
-				{
-					"label": "Delete Form Submission",
-					"link": "/medusa-plugin-forms/api/operations/deleteadminform-submissionsbyid/"
 				}
 			]
 		},
@@ -859,10 +803,6 @@
 				{
 					"label": "Update Review",
 					"link": "/medusa-plugin-ratings/api/operations/postadminreviewsbyid/"
-				},
-				{
-					"label": "Delete Review",
-					"link": "/medusa-plugin-ratings/api/operations/deleteadminreviewsbyid/"
 				},
 				{
 					"label": "Approve Review",
@@ -943,10 +883,6 @@
 				{
 					"label": "List Statistics",
 					"link": "/medusa-plugin-statistics/api/operations/getadminstatistics/"
-				},
-				{
-					"label": "Recalculate Statistic",
-					"link": "/medusa-plugin-statistics/api/operations/postadminstatisticsrecalculate/"
 				},
 				{
 					"label": "List Recent Orders",
@@ -1071,6 +1007,10 @@
 				{
 					"label": "Sync Stock Location",
 					"link": "/medusa-plugin-veeqo/api/operations/postadminveeqostock-locationssync/"
+				},
+				{
+					"label": "Sync Veeqo",
+					"link": "/medusa-plugin-veeqo/api/operations/postadminveeqosync/"
 				}
 			]
 		}

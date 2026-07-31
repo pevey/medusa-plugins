@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Content API
-  version: 1.0.0
+  version: 1.0.1
   description: Content management plugin for Medusa v2
 servers:
   - url: http://localhost:9000
@@ -189,96 +189,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  content:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      label:
-                        type: string
-                      slug:
-                        type: string
-                      format:
-                        type: string
-                      prefix:
-                        type: string
-                      metadata:
-                        type: object
-                        additionalProperties: true
-                      created_at:
-                        type: string
-                        format: date-time
-                      updated_at:
-                        type: string
-                        format: date-time
-                      content_fields:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            name:
-                              type: string
-                            label:
-                              type: string
-                            field_type:
-                              type: string
-                            required:
-                              type: string
-                            options:
-                              type: string
-                            default_value:
-                              type: string
-                            sort_order:
-                              type: string
-                      source_relationships:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            relationship_type:
-                              type: string
-                            source_collection:
-                              type: object
-                              properties:
-                                id:
-                                  type: string
-                                label:
-                                  type: string
-                            target_collection:
-                              type: object
-                              properties:
-                                id:
-                                  type: string
-                                label:
-                                  type: string
-                      target_relationships:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            relationship_type:
-                              type: string
-                            source_collection:
-                              type: object
-                              properties:
-                                id:
-                                  type: string
-                                label:
-                                  type: string
-                            target_collection:
-                              type: object
-                              properties:
-                                id:
-                                  type: string
-                                label:
-                                  type: string
     post:
       operationId: postAdminContentBycollectionId
       summary: Update Content
@@ -356,40 +266,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  fields:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        name:
-                          type: string
-                        label:
-                          type: string
-                        field_type:
-                          type: string
-                        required:
-                          type: string
-                        options:
-                          type: string
-                        default_value:
-                          type: string
-                        sort_order:
-                          type: string
-                        created_at:
-                          type: string
-                          format: date-time
-                        updated_at:
-                          type: string
-                          format: date-time
-                  count:
-                    type: integer
-                  limit:
-                    type: integer
-                  offset:
-                    type: integer
     post:
       operationId: postAdminContentBycollectionIdFields
       summary: Create Field
@@ -521,32 +397,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  field:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      name:
-                        type: string
-                      label:
-                        type: string
-                      field_type:
-                        type: string
-                      required:
-                        type: string
-                      options:
-                        type: string
-                      default_value:
-                        type: string
-                      sort_order:
-                        type: string
-                      created_at:
-                        type: string
-                        format: date-time
-                      updated_at:
-                        type: string
-                        format: date-time
     post:
       operationId: postAdminContentBycollectionIdFieldsByfieldId
       summary: Update Field
@@ -653,46 +503,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  relationships:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        relationship_type:
-                          type: string
-                        created_at:
-                          type: string
-                          format: date-time
-                        updated_at:
-                          type: string
-                          format: date-time
-                        source_collection:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            label:
-                              type: string
-                            slug:
-                              type: string
-                        target_collection:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            label:
-                              type: string
-                            slug:
-                              type: string
-                  count:
-                    type: integer
-                  limit:
-                    type: integer
-                  offset:
-                    type: integer
     post:
       operationId: postAdminContentBycollectionIdRelationships
       summary: Create Relationship
@@ -771,24 +581,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  relationship:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      relationship_type:
-                        type: string
-                      created_at:
-                        type: string
-                        format: date-time
-                      updated_at:
-                        type: string
-                        format: date-time
-                      source_collection:
-                        type: object
-                      target_collection:
-                        type: object
   /admin/content/{collectionId}/items:
     get:
       operationId: getAdminContentBycollectionIdItems
@@ -859,8 +651,6 @@ paths:
                           type: string
                         body:
                           type: string
-                        format:
-                          type: string
                         status:
                           type: string
                         published_at:
@@ -895,6 +685,14 @@ paths:
                           type: array
                           items:
                             type: object
+                            properties:
+                              id:
+                                type: string
+                              value:
+                                type: string
+                              metadata:
+                                type: object
+                                additionalProperties: true
                   count:
                     type: integer
                   limit:
@@ -1033,87 +831,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  item:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                      title:
-                        type: string
-                      slug:
-                        type: string
-                      body:
-                        type: string
-                      format:
-                        type: string
-                      status:
-                        type: string
-                      published_at:
-                        type: string
-                        format: date-time
-                      metadata:
-                        type: object
-                        additionalProperties: true
-                      created_at:
-                        type: string
-                        format: date-time
-                      updated_at:
-                        type: string
-                        format: date-time
-                      content_collection:
-                        type: object
-                        properties:
-                          id:
-                            type: string
-                          label:
-                            type: string
-                          slug:
-                            type: string
-                          format:
-                            type: string
-                          content_fields:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                id:
-                                  type: string
-                                name:
-                                  type: string
-                                label:
-                                  type: string
-                                field_type:
-                                  type: string
-                                required:
-                                  type: string
-                                options:
-                                  type: string
-                                sort_order:
-                                  type: string
-                      creator:
-                        type: object
-                        properties:
-                          id:
-                            type: string
-                          name:
-                            type: string
-                          bio:
-                            type: string
-                          avatar_url:
-                            type: string
-                      tags:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            value:
-                              type: string
-                            metadata:
-                              type: object
-                              additionalProperties: true
     post:
       operationId: postAdminContentBycollectionIdItemsByitemId
       summary: Update Item
@@ -1209,37 +926,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  activity:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        type:
-                          type: string
-                        user_id:
-                          type: string
-                        note:
-                          type: string
-                        metadata:
-                          type: object
-                          additionalProperties: true
-                        created_at:
-                          type: string
-                          format: date-time
-                        updated_at:
-                          type: string
-                          format: date-time
-                        user:
-                          type: object
-                  count:
-                    type: integer
-                  limit:
-                    type: integer
-                  offset:
-                    type: integer
     post:
       operationId: postAdminContentBycollectionIdItemsByitemIdActivity
       summary: Create Activity
@@ -1368,51 +1054,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  links:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        created_at:
-                          type: string
-                          format: date-time
-                        updated_at:
-                          type: string
-                          format: date-time
-                        source_item:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            title:
-                              type: string
-                            slug:
-                              type: string
-                        target_item:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            title:
-                              type: string
-                            slug:
-                              type: string
-                        relationship:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                            relationship_type:
-                              type: string
-                  count:
-                    type: integer
-                  limit:
-                    type: integer
-                  offset:
-                    type: integer
     post:
       operationId: postAdminContentBycollectionIdItemsByitemIdLinks
       summary: Create Link
@@ -1889,37 +1530,6 @@ paths:
             application/json:
               schema:
                 type: object
-                properties:
-                  activity:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        type:
-                          type: string
-                        user_id:
-                          type: string
-                        note:
-                          type: string
-                        metadata:
-                          type: object
-                          additionalProperties: true
-                        created_at:
-                          type: string
-                          format: date-time
-                        updated_at:
-                          type: string
-                          format: date-time
-                        user:
-                          type: object
-                  count:
-                    type: integer
-                  limit:
-                    type: integer
-                  offset:
-                    type: integer
     post:
       operationId: postAdminContent-creatorsByidActivity
       summary: Create Activity

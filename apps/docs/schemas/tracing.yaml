@@ -332,6 +332,28 @@ paths:
       tags:
         - Admin
       parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
         - name: id
           in: path
           required: true
@@ -352,9 +374,13 @@ paths:
                       properties:
                         id:
                           type: string
-                        value:
+                        stock_lot_id:
                           type: string
                         order_id:
+                          type: string
+                        value:
+                          type: string
+                        invalidated:
                           type: string
                         created_at:
                           type: string
@@ -583,10 +609,6 @@ paths:
                       updated_at:
                         type: string
                         format: date-time
-                      stock_lot:
-                        type: object
-                      order:
-                        type: object
     post:
       operationId: postAdminSerial-numbersByid
       summary: Update Serial Number

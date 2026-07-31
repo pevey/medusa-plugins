@@ -169,3 +169,33 @@ paths:
             application/json:
               schema:
                 type: object
+  /admin/veeqo/sync:
+    post:
+      operationId: postAdminVeeqoSync
+      summary: Sync Veeqo
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source_type:
+                  type: string
+                source_id:
+                  type: string
+                  minLength: 1
+                order_id:
+                  type: string
+              required:
+                - source_type
+                - source_id
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Statistics API
-  version: 0.2.3
+  version: 0.2.4
   description: Dashboard statistics plugin for Medusa v2 with daily aggregation and customizable widgets
 servers:
   - url: http://localhost:9000
@@ -41,28 +41,42 @@ paths:
             application/json:
               schema:
                 type: object
-  /admin/statistics/recalculate:
-    post:
-      operationId: postAdminStatisticsRecalculate
-      summary: Recalculate Statistic
-      tags:
-        - Admin
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                date:
-                  type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
+                properties:
+                  statistic:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      date:
+                        type: string
+                      revenue_total:
+                        type: string
+                      order_count:
+                        type: integer
+                      average_order_value:
+                        type: string
+                      new_customer_count:
+                        type: integer
+                      returning_customer_count:
+                        type: integer
+                      pending_fulfillment_count:
+                        type: integer
+                      low_stock_count:
+                        type: integer
+                      top_products:
+                        type: string
+                      metadata:
+                        type: object
+                        additionalProperties: true
+                      created_at:
+                        type: string
+                        format: date-time
+                      updated_at:
+                        type: string
+                        format: date-time
+                      deleted_at:
+                        type: string
+                        format: date-time
   /admin/statistics/recent-orders:
     get:
       operationId: getAdminStatisticsRecent-orders
@@ -83,6 +97,34 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  recent-order:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      display_id:
+                        type: string
+                      status:
+                        type: string
+                      email:
+                        type: string
+                      total:
+                        type: string
+                      created_at:
+                        type: string
+                        format: date-time
+                      customer_id:
+                        type: string
+                      customer:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          first_name:
+                            type: string
+                          last_name:
+                            type: string
   /admin/statistics/low-stock:
     get:
       operationId: getAdminStatisticsLow-stock
