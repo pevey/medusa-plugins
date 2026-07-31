@@ -6225,6 +6225,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@lucide/svelte@npm:^1.28.0":
+  version: 1.28.0
+  resolution: "@lucide/svelte@npm:1.28.0"
+  peerDependencies:
+    svelte: ^5
+  checksum: 10c0/2661432f673f605c085d02eecad13e8f0ab5b624e0fed8c358b31f8481dc10f3a102c01fba8f8643ccdc19baa8fa27a5cbef5271a7c4b3864cc5555f06f666d1
+  languageName: node
+  linkType: hard
+
 "@marijn/find-cluster-break@npm:^1.0.0":
   version: 1.0.2
   resolution: "@marijn/find-cluster-break@npm:1.0.2"
@@ -22661,6 +22670,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"isomorphic-dompurify@npm:^3.21.0":
+  version: 3.21.0
+  resolution: "isomorphic-dompurify@npm:3.21.0"
+  dependencies:
+    dompurify: "npm:^3.4.12"
+    jsdom: "npm:^30.0.0"
+  checksum: 10c0/498531249d222cf487b82077311493350796b8dcb16a9e378ef9f06aadec248b8fa2c5a4701b1316519f5a110776de76fba0b54759309ebd63ea4eca68a58ccc
+  languageName: node
+  linkType: hard
+
 "istanbul-lib-coverage@npm:^3.0.0, istanbul-lib-coverage@npm:^3.2.0":
   version: 3.2.2
   resolution: "istanbul-lib-coverage@npm:3.2.2"
@@ -26389,7 +26408,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mode-watcher@npm:1.1.0":
+"mode-watcher@npm:1.1.0, mode-watcher@npm:^1.1.0":
   version: 1.1.0
   resolution: "mode-watcher@npm:1.1.0"
   dependencies:
@@ -32100,7 +32119,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sveltekit-braintree@workspace:*, sveltekit-braintree@workspace:packages/sveltekit-braintree":
+"sveltekit-braintree@npm:^1.0.0, sveltekit-braintree@workspace:*, sveltekit-braintree@workspace:packages/sveltekit-braintree":
   version: 0.0.0-use.local
   resolution: "sveltekit-braintree@workspace:packages/sveltekit-braintree"
   dependencies:
@@ -32129,7 +32148,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"sveltekit-medusa-sdk@workspace:*, sveltekit-medusa-sdk@workspace:packages/sveltekit-sdk":
+"sveltekit-medusa-sdk@npm:^2.18.0, sveltekit-medusa-sdk@workspace:*, sveltekit-medusa-sdk@workspace:packages/sveltekit-sdk":
   version: 0.0.0-use.local
   resolution: "sveltekit-medusa-sdk@workspace:packages/sveltekit-sdk"
   dependencies:
@@ -32150,6 +32169,43 @@ __metadata:
   peerDependencies:
     "@sveltejs/kit": ^2.22.0 || ^3.0.0-next.0
     svelte: ^5.36.0
+  languageName: unknown
+  linkType: soft
+
+"sveltekit-medusa-starter@workspace:apps/starter":
+  version: 0.0.0-use.local
+  resolution: "sveltekit-medusa-starter@workspace:apps/starter"
+  dependencies:
+    "@googlemaps/js-api-loader": "npm:^2.1.1"
+    "@internationalized/date": "npm:^3.12.2"
+    "@lucide/svelte": "npm:^1.28.0"
+    "@stripe/stripe-js": "npm:^9.12.1"
+    "@sveltejs/adapter-auto": "npm:8.0.0-next.1"
+    "@sveltejs/kit": "npm:3.0.0-next.13"
+    "@sveltejs/vite-plugin-svelte": "npm:^7.2.0"
+    "@tailwindcss/forms": "npm:^0.5.11"
+    "@tailwindcss/typography": "npm:^0.5.20"
+    "@tailwindcss/vite": "npm:^4.3.3"
+    "@types/google.maps": "npm:3.65.3"
+    bits-ui: "npm:^2.18.1"
+    clsx: "npm:^2.1.1"
+    embla-carousel-svelte: "npm:^8.6.0"
+    isomorphic-dompurify: "npm:^3.21.0"
+    mode-watcher: "npm:^1.1.0"
+    schema-dts: "npm:^2.0.0"
+    shadcn-svelte: "npm:^1.4.2"
+    svelte: "npm:^5.56.8"
+    svelte-check: "npm:^4.7.4"
+    sveltekit-braintree: "npm:^1.0.0"
+    sveltekit-medusa-sdk: "npm:^2.18.0"
+    sveltekit-stripe: "npm:^4.0.0"
+    tailwind-merge: "npm:^3.6.0"
+    tailwind-variants: "npm:^3.3.0"
+    tailwindcss: "npm:^4.3.3"
+    tw-animate-css: "npm:^1.4.0"
+    typescript: "npm:^6.0.3"
+    valibot: "npm:^1.4.2"
+    vite: "npm:^8.1.5"
   languageName: unknown
   linkType: soft
 
@@ -32202,7 +32258,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"sveltekit-stripe@workspace:*, sveltekit-stripe@workspace:packages/sveltekit-stripe":
+"sveltekit-stripe@npm:^4.0.0, sveltekit-stripe@workspace:*, sveltekit-stripe@workspace:packages/sveltekit-stripe":
   version: 0.0.0-use.local
   resolution: "sveltekit-stripe@workspace:packages/sveltekit-stripe"
   dependencies:
