@@ -11,10 +11,19 @@
 		minLength?: number
 		debounce?: number
 		limit?: number
+		/**
+		 * Seed the query from outside the input — typically a `?q=` URL param on a
+		 * full-page search route. Runs the search on mount, and again whenever this
+		 * value changes (e.g. client-side navigation to a different term).
+		 *
+		 * One-way: nothing is written back to the URL, and the dropdown is not opened.
+		 * Leave undefined to opt out entirely; pass `''` to clear.
+		 */
+		query?: string
 		class?: string
 		children: Snippet
 	}
-	let { minLength, debounce, limit, class: className = '', children }: Props = $props()
+	let { minLength, debounce, limit, query, class: className = '', children }: Props = $props()
 
 	const uid = $props.id()
 	const state = untrack(() => new SearchState({ minLength, debounce, limit, baseId: uid }))
@@ -27,8 +36,13 @@
 		document.addEventListener('click', handler)
 		return () => document.removeEventListener('click', handler)
 	}
+
+	// An attachment rather than an $effect: attachments run only in the browser (so SSR
+	// never fires a search) and re-run when the state they read changes — which is exactly
+	// the seeding contract. Reading `query` in the template expression is what tracks it.
+	const seedQuery = (q: string) => () => state.seed(q)
 </script>
 
-<div {@attach closeOnOutside} class={cn('relative', className)}>
+<div {@attach closeOnOutside} {@attach query !== undefined && seedQuery(query)} class={cn('relative', className)}>
 	{@render children()}
 </div>

@@ -11,6 +11,8 @@
 		minLength?: number
 		debounce?: number
 		limit?: number
+		/** Seed the box from outside, e.g. `?q=` so it matches the search page. See <Search.Root>. */
+		query?: string
 		href?: (hit: SearchHit) => string
 		icon?: Snippet
 		class?: string
@@ -24,6 +26,7 @@
 		minLength,
 		debounce,
 		limit,
+		query,
 		href,
 		icon,
 		class: className = ''
@@ -45,7 +48,7 @@
 
 <!-- Expanded: full box with live-results dropdown. -->
 <div data-search-expanded class={cn(EXPANDED[breakpoint], 'w-full max-w-xl', className)}>
-	<Search.Root {minLength} {debounce} {limit}>
+	<Search.Root {minLength} {debounce} {limit} {query}>
 		<Search.Input {placeholder} {icon} />
 		<Search.Results {href} />
 	</Search.Root>

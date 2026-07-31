@@ -121,6 +121,23 @@ export class SearchState {
 		this.activeIndex = -1
 	}
 
+	// Shared fetch path for typed input and seeded queries. The monotonic request id
+	// discards out-of-order responses.
+	async #fetch(term: string) {
+		const id = ++this.#reqId
+		this.loading = true
+		try {
+			const res = await this.search({ q: term, ...(this.limit ? { limit: this.limit } : {}) })
+			if (id !== this.#reqId) return
+			this.hits = res.hits ?? []
+			this.activeIndex = -1
+		} catch {
+			if (id === this.#reqId) this.hits = []
+		} finally {
+			if (id === this.#reqId) this.loading = false
+		}
+	}
+
 	onInput() {
 		this.open = true
 		this.activeIndex = -1
@@ -132,19 +149,28 @@ export class SearchState {
 			return
 		}
 		this.loading = true
-		this.#timer = setTimeout(async () => {
-			const id = ++this.#reqId
-			try {
-				const res = await this.search({ q: term, ...(this.limit ? { limit: this.limit } : {}) })
-				if (id !== this.#reqId) return
-				this.hits = res.hits ?? []
-				this.activeIndex = -1
-			} catch {
-				if (id === this.#reqId) this.hits = []
-			} finally {
-				if (id === this.#reqId) this.loading = false
-			}
-		}, this.debounce)
+		this.#timer = setTimeout(() => this.#fetch(term), this.debounce)
+	}
+
+	/**
+	 * Seed the query from outside the input — typically a `?q=` URL param — and search
+	 * immediately.
+	 *
+	 * Deliberately does NOT set `open`: a full-page <Search.Results static> renders
+	 * regardless, and a navbar dropdown should not pop open on page load. Also skips the
+	 * debounce, since the term arrived whole rather than a keystroke at a time.
+	 */
+	seed(query: string) {
+		clearTimeout(this.#timer)
+		this.query = query
+		this.activeIndex = -1
+		const term = query.trim()
+		if (term.length < this.minLength) {
+			this.hits = []
+			this.loading = false
+			return
+		}
+		this.#fetch(term)
 	}
 
 	close() {
