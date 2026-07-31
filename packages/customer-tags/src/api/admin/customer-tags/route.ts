@@ -24,7 +24,21 @@ export async function GET(req: AuthenticatedMedusaRequest<AdminGetCustomerTagsTy
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateCustomerTagType>, res: MedusaResponse) => {
 	const customerTagService: CustomerTagService = req.scope.resolve(CUSTOMER_TAG_MODULE)
-	const customerTag = await customerTagService.createCustomerTags(req.validatedBody)
+	const created = await customerTagService.createCustomerTags(req.validatedBody)
+
+	// `createCustomerTags` returns the raw ORM entity (including `metadata`/`deleted_at`),
+	// not the field-selected shape GET /admin/customer-tags returns. Re-fetch through the
+	// same graph query the list/detail routes use so the response matches AdminCustomerTag
+	// exactly.
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+	const {
+		data: [customerTag]
+	} = await query.graph({
+		entity: 'customer_tag',
+		fields: ['id', 'value', 'created_at', 'updated_at'],
+		filters: { id: created.id }
+	})
+
 	res.json({ customer_tag: customerTag })
 }
 

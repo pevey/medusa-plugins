@@ -25,8 +25,12 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentCollect
 export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateContentCollectionFieldType>, res: MedusaResponse) => {
 	const { fieldId } = req.params
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
-	const field = await contentService.updateContentFields({ id: fieldId, ...req.validatedBody })
-	res.json({ field })
+	const updated = await contentService.updateContentFields({ id: fieldId, ...req.validatedBody })
+
+	// See POST /admin/content/:collectionId/fields -- destructure down to the same flat
+	// selection both GET routes use.
+	const { id, name, label, field_type, required, options, default_value, sort_order, created_at, updated_at } = updated
+	res.json({ field: { id, name, label, field_type, required, options, default_value, sort_order, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {

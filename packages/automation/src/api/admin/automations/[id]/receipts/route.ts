@@ -17,5 +17,12 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 		}
 	)
 
-	res.json({ receipts, count, limit: limit ?? 20, offset: offset ?? 0 })
+	// Strip `deleted_at` (soft-delete internal) and the `trigger` relation stub — nothing in the
+	// admin UI reads `.trigger` on a receipt; `trigger_id` (the scalar FK) is kept.
+	const safe = receipts.map((r: any) => {
+		const { deleted_at, trigger, ...rest } = r
+		return rest
+	})
+
+	res.json({ receipts: safe, count, limit: limit ?? 20, offset: offset ?? 0 })
 }

@@ -11,7 +11,8 @@ export const config = defineWidgetConfig({
 export type AdminOrderWithVeeqo = {
 	order: AdminOrder & {
 		veeqo_order?: {
-			veeqo_order_id: string
+			veeqo_order_id: number
+			order_id?: string
 		}
 	}
 }

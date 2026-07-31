@@ -18,6 +18,10 @@ export type AddAffiliateAddressInput = {
 	}
 }
 
+export type AddAffiliateAddressResult = {
+	id: string
+}
+
 export const addAffiliateAddressStep = createStep(
 	'add-affiliate-address-step',
 	async (input: AddAffiliateAddressInput, { container }) => {

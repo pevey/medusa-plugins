@@ -7,6 +7,13 @@ import type { WidgetProps } from './index'
 export const LowStockWidget = (_props: WidgetProps) => {
 	const { data, isLoading } = useLowStock(50)
 	const warnings = data?.warnings ?? []
+	// `lot_data_available` is `false` when medusa-plugin-tracing (the plugin that
+	// owns lot-level stock data) isn't installed/registered, or its query failed.
+	// In that mode the route still returns real inventory-level warnings (see
+	// AdminStatisticsLowStockResponse in ../../../types.ts), just without the
+	// lot-level "no enabled lots" distinction -- surface that instead of silently
+	// pretending the data is as complete as when tracing is installed.
+	const lotDataAvailable = data?.lot_data_available ?? true
 
 	return (
 		<Container className="flex h-full flex-col p-0">
@@ -18,6 +25,11 @@ export const LowStockWidget = (_props: WidgetProps) => {
 					</Badge>
 				)}
 			</div>
+			{!isLoading && !lotDataAvailable && (
+				<Text size="xsmall" className="text-ui-fg-muted border-ui-border-base border-b px-4 pb-2">
+					Lot-level tracking isn't installed -- showing inventory-level warnings only.
+				</Text>
+			)}
 			<div className="flex-1 overflow-y-auto">
 				{isLoading && (
 					<Text size="small" className="text-ui-fg-muted px-4">

@@ -71,7 +71,7 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminPostChatType>, r
 	}
 
 	// Load or create the session (before streaming, so 404s are clean JSON).
-	let sessionId = req.body.session_id
+	let sessionId = req.validatedBody.session_id
 	let title: string
 	let history: ChatMessage[] = []
 	try {
@@ -83,7 +83,7 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminPostChatType>, r
 				.sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
 				.map((m: any) => ({ role: m.role, content: m.content as ContentBlock[] }))
 		} else {
-			title = deriveTitle(req.body.text)
+			title = deriveTitle(req.validatedBody.text)
 			const session = await svc.createChatSessions({
 				user_id: userId,
 				title,
@@ -104,7 +104,7 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminPostChatType>, r
 	// Persist the user message immediately + touch the session.
 	const userMessage: ChatMessage = {
 		role: 'user',
-		content: [{ type: 'text', text: req.body.text }]
+		content: [{ type: 'text', text: req.validatedBody.text }]
 	}
 	const persist = async (m: ChatMessage) => {
 		await svc.createChatMessages({

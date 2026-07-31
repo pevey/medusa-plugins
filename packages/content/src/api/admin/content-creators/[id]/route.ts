@@ -26,9 +26,13 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentCreator
 export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateContentCreatorType>, res: MedusaResponse) => {
 	const { id } = req.params
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
-	const content_creator = await contentService.updateContentCreators({ id, ...req.validatedBody })
+	const updated = await contentService.updateContentCreators({ id, ...req.validatedBody })
 	await contentService.logContentCreatorActivity(id, req.auth_context.actor_id, ContentCreatorActivityType.EDIT)
-	res.json({ content_creator })
+
+	// See POST /admin/content-creators -- destructure down to the same flat selection both
+	// GET routes use.
+	const { id: creatorId, name, bio, avatar_url, metadata, created_at, updated_at } = updated
+	res.json({ content_creator: { id: creatorId, name, bio, avatar_url, metadata, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {

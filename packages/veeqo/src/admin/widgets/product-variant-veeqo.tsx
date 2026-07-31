@@ -11,7 +11,8 @@ export const config = defineWidgetConfig({
 type VariantWithVeeqo = {
 	variant: AdminProductVariant & {
 		veeqo_sellable?: {
-			veeqo_sellable_id: string
+			veeqo_sellable_id: number
+			product_variant_id?: string
 		}
 	}
 }

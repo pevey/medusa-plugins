@@ -168,16 +168,6 @@ export default defineMiddlewares({
 				})
 			]
 		},
-		{
-			matcher: '/admin/analytics/segments/:id/preview',
-			method: ['GET'],
-			middlewares: []
-		},
-		{
-			matcher: '/admin/analytics/segments/:id/export',
-			method: ['GET'],
-			middlewares: []
-		},
 		// ── Store Ping ───────────────────────────────────────────────────────────
 		{
 			matcher: '/store/ping',

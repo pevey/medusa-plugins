@@ -13,7 +13,8 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 		throw new MedusaError(MedusaError.Types.NOT_FOUND, `AutomationTrigger with id ${id} not found`)
 	}
 
-	const { trigger_signing_key, ...safe } = trigger as any
+	// Strip `deleted_at` — a soft-delete implementation detail, never part of the admin contract.
+	const { trigger_signing_key, deleted_at, ...safe } = trigger as any
 	res.json({ trigger: { ...safe, has_signing_key: Boolean(trigger_signing_key) } })
 }
 
@@ -35,7 +36,7 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAutomation
 		id,
 		...body
 	} as any) as any)
-	const { trigger_signing_key, ...safe } = trigger as any
+	const { trigger_signing_key, deleted_at, ...safe } = trigger as any
 	res.json({ trigger: { ...safe, has_signing_key: Boolean(trigger_signing_key) } })
 }
 

@@ -24,6 +24,26 @@ import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { Modules } from '@medusajs/framework/utils'
 import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
 import { VeeqoService } from '../../src/modules/veeqo/service'
+import {
+	AdminProductVariantsWithVeeqoListResponseSchema,
+	AdminProductWithVeeqoListResponseSchema,
+	AdminSalesChannelsWithVeeqoListResponseSchema,
+	AdminShippingOptionsWithVeeqoListResponseSchema,
+	AdminStockLocationsWithVeeqoListResponseSchema,
+	AdminSyncSourceToVeeqoResponseSchema,
+	SyncedCustomerIdsResponseSchema,
+	SyncedOrderIdsResponseSchema,
+	SyncedProductIdsResponseSchema,
+	SyncedSalesChannelIdsResponseSchema,
+	SyncedShippingOptionIdsResponseSchema,
+	SyncedWarehouseIdsResponseSchema,
+	VeeqoChannelSyncResponseSchema,
+	VeeqoCustomerSyncResponseSchema,
+	VeeqoDeliveryMethodSyncResponseSchema,
+	VeeqoOrderSyncResponseSchema,
+	VeeqoProductSyncResponseSchema,
+	VeeqoWarehouseSyncResponseSchema
+} from './response-contracts'
 
 jest.setTimeout(180 * 1000)
 jest.retryTimes(1)
@@ -205,12 +225,15 @@ medusaIntegrationTestRunner({
 				const res = await api.post(`/admin/veeqo/sales-channels/${salesChannelId}/sync`, {}, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.veeqo_channel).toMatchObject({ id: expect.any(Number) })
+				// Verifies VeeqoChannelSyncResponseSchema (see response-contracts.ts).
+				expect(() => VeeqoChannelSyncResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/veeqo/sales-channels/:id/sync is idempotent (updates on second call)', async () => {
 				const res = await api.post(`/admin/veeqo/sales-channels/${salesChannelId}/sync`, {}, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.veeqo_channel).toMatchObject({ id: expect.any(Number) })
+				expect(() => VeeqoChannelSyncResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/veeqo/sales-channels/sync syncs a batch', async () => {
@@ -218,6 +241,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.synced_sales_channel_ids.length).toBeGreaterThanOrEqual(1)
 				expect(res.data.synced_sales_channel_ids.every((id: any) => typeof id === 'number')).toBe(true)
+				// Verifies SyncedSalesChannelIdsResponseSchema (see response-contracts.ts).
+				expect(() => SyncedSalesChannelIdsResponseSchema.parse(res.data)).not.toThrow()
 			})
 		})
 
@@ -273,6 +298,8 @@ medusaIntegrationTestRunner({
 				const res = await api.post(`/admin/veeqo/stock-locations/${stockLocationId}/sync`, {}, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.veeqo_warehouse).toMatchObject({ id: expect.any(Number) })
+				// Verifies VeeqoWarehouseSyncResponseSchema (see response-contracts.ts).
+				expect(() => VeeqoWarehouseSyncResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/veeqo/stock-locations/sync syncs a batch', async () => {
@@ -280,6 +307,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.synced_warehouse_ids.length).toBeGreaterThanOrEqual(1)
 				expect(res.data.synced_warehouse_ids.every((id: any) => typeof id === 'number')).toBe(true)
+				// Verifies SyncedWarehouseIdsResponseSchema (see response-contracts.ts).
+				expect(() => SyncedWarehouseIdsResponseSchema.parse(res.data)).not.toThrow()
 			})
 		})
 
@@ -327,12 +356,15 @@ medusaIntegrationTestRunner({
 				const res = await api.post(`/admin/veeqo/customers/${customerId}/sync`, {}, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.veeqo_customer).toMatchObject({ id: expect.any(Number) })
+				// Verifies VeeqoCustomerSyncResponseSchema (see response-contracts.ts).
+				expect(() => VeeqoCustomerSyncResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/veeqo/customers/:id/sync is idempotent (updates on second call)', async () => {
 				const res = await api.post(`/admin/veeqo/customers/${customerId}/sync`, {}, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.veeqo_customer).toMatchObject({ id: expect.any(Number) })
+				expect(() => VeeqoCustomerSyncResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/veeqo/customers/sync syncs a batch', async () => {
@@ -340,6 +372,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.synced_customer_ids.length).toBeGreaterThanOrEqual(1)
 				expect(res.data.synced_customer_ids.every((id: any) => typeof id === 'number')).toBe(true)
+				// Verifies SyncedCustomerIdsResponseSchema (see response-contracts.ts).
+				expect(() => SyncedCustomerIdsResponseSchema.parse(res.data)).not.toThrow()
 			})
 		})
 
@@ -541,6 +575,8 @@ medusaIntegrationTestRunner({
 				const res = await api.post(`/admin/veeqo/orders/${orderId}/sync`, {}, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.veeqo_order).toMatchObject({ id: expect.any(Number) })
+				// Verifies VeeqoOrderSyncResponseSchema (see response-contracts.ts).
+				expect(() => VeeqoOrderSyncResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/veeqo/orders/sync syncs a batch of orders', async () => {
@@ -548,6 +584,16 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.synced_order_ids.length).toBeGreaterThanOrEqual(1)
 				expect(res.data.synced_order_ids.every((id: any) => typeof id === 'number')).toBe(true)
+				// Verifies SyncedOrderIdsResponseSchema (see response-contracts.ts).
+				expect(() => SyncedOrderIdsResponseSchema.parse(res.data)).not.toThrow()
+			})
+
+			it('POST /admin/veeqo/sync re-syncs the ORDER_PLACED source for an order', async () => {
+				const res = await api.post('/admin/veeqo/sync', { source_type: 'order_placed', source_id: orderId }, auth())
+				expect(res.status).toBe(200)
+				expect(res.data).toEqual({ ok: true })
+				// Verifies AdminSyncSourceToVeeqoResponseSchema (see response-contracts.ts).
+				expect(() => AdminSyncSourceToVeeqoResponseSchema.parse(res.data)).not.toThrow()
 			})
 		})
 
@@ -1041,12 +1087,15 @@ medusaIntegrationTestRunner({
 				const res = await api.post(`/admin/veeqo/products/${productId}/sync`, {}, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.veeqo_product).toMatchObject({ id: expect.any(Number) })
+				// Verifies VeeqoProductSyncResponseSchema (see response-contracts.ts).
+				expect(() => VeeqoProductSyncResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/veeqo/products/:id/sync is idempotent (updates on second call)', async () => {
 				const res = await api.post(`/admin/veeqo/products/${productId}/sync`, {}, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.veeqo_product).toMatchObject({ id: expect.any(Number) })
+				expect(() => VeeqoProductSyncResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/veeqo/products/sync syncs a batch', async () => {
@@ -1054,6 +1103,257 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.synced_product_ids.length).toBeGreaterThanOrEqual(1)
 				expect(res.data.synced_product_ids.every((id: any) => typeof id === 'number')).toBe(true)
+				// Verifies SyncedProductIdsResponseSchema (see response-contracts.ts).
+				expect(() => SyncedProductIdsResponseSchema.parse(res.data)).not.toThrow()
+			})
+		})
+
+		// ── Shipping options ─────────────────────────────────────────────────────
+		//
+		// Self-contained (unlike the Orders block's shipping option, which is set up
+		// only to be attached to a draft order): creates its own stock location +
+		// fulfillment set + service zone + shipping profile so the single- and
+		// batch-sync ack payloads get their own dedicated coverage.
+
+		describe('Shipping options', () => {
+			let shippingOptionId: string
+			let shippingOptionId2: string
+			let stockLocationId: string
+
+			beforeAll(async () => {
+				const ts = Date.now()
+
+				const slRes = await api.post(
+					'/admin/stock-locations',
+					{
+						name: `Veeqo ShippingOption Warehouse ${ts}`,
+						address: {
+							address_1: '123 Test St',
+							city: 'Portland',
+							province: 'OR',
+							country_code: 'us',
+							postal_code: '97201'
+						}
+					},
+					auth()
+				)
+				stockLocationId = slRes.data.stock_location.id
+
+				await api.post(`/admin/stock-locations/${stockLocationId}/fulfillment-providers`, { add: ['manual_manual'] }, auth())
+				await api.post(`/admin/stock-locations/${stockLocationId}/fulfillment-sets`, { name: `Veeqo ShippingOption Set ${ts}`, type: 'shipping' }, auth())
+				const slDetail = await api.get(`/admin/stock-locations/${stockLocationId}?fields=fulfillment_sets.id`, auth())
+				const fulfillmentSetId = slDetail.data.stock_location.fulfillment_sets[0].id
+
+				const szRes = await api.post(
+					`/admin/fulfillment-sets/${fulfillmentSetId}/service-zones`,
+					{
+						name: `Veeqo ShippingOption Zone ${ts}`,
+						geo_zones: [{ type: 'country', country_code: 'us' }]
+					},
+					auth()
+				)
+				const serviceZoneId = szRes.data.fulfillment_set.service_zones[0].id
+
+				const spRes = await api.post('/admin/shipping-profiles', { name: `Veeqo ShippingOption Profile ${ts}`, type: 'default' }, auth())
+				const shippingProfileId = spRes.data.shipping_profile.id
+
+				const [so1, so2] = await Promise.all([
+					api.post(
+						'/admin/shipping-options',
+						{
+							name: `Veeqo ShippingOption Standard ${ts}`,
+							service_zone_id: serviceZoneId,
+							shipping_profile_id: shippingProfileId,
+							provider_id: 'manual_manual',
+							price_type: 'flat',
+							prices: [{ currency_code: 'usd', amount: 500 }],
+							type: { label: 'Standard', description: 'Standard shipping', code: 'standard' }
+						},
+						auth()
+					),
+					api.post(
+						'/admin/shipping-options',
+						{
+							name: `Veeqo ShippingOption Batch ${ts}`,
+							service_zone_id: serviceZoneId,
+							shipping_profile_id: shippingProfileId,
+							provider_id: 'manual_manual',
+							price_type: 'flat',
+							prices: [{ currency_code: 'usd', amount: 700 }],
+							type: { label: 'Batch', description: 'Batch shipping', code: 'batch' }
+						},
+						auth()
+					)
+				])
+				shippingOptionId = so1.data.shipping_option.id
+				shippingOptionId2 = so2.data.shipping_option.id
+				await seedSnapshot()
+			})
+
+			afterAll(async () => {
+				await veeqoService.deleteDeliveryMethod(shippingOptionId).catch(() => {})
+				await veeqoService.deleteDeliveryMethod(shippingOptionId2).catch(() => {})
+				await veeqoService.deleteWarehouse(stockLocationId).catch(() => {})
+			})
+
+			it('POST /admin/veeqo/shipping-options/:id/sync syncs a single delivery method', async () => {
+				const res = await api.post(`/admin/veeqo/shipping-options/${shippingOptionId}/sync`, {}, auth())
+				expect(res.status).toBe(200)
+				expect(res.data.veeqo_delivery_method).toMatchObject({ id: expect.any(Number) })
+				// Verifies VeeqoDeliveryMethodSyncResponseSchema (see response-contracts.ts).
+				expect(() => VeeqoDeliveryMethodSyncResponseSchema.parse(res.data)).not.toThrow()
+			})
+
+			it('POST /admin/veeqo/shipping-options/sync syncs a batch', async () => {
+				const res = await api.post('/admin/veeqo/shipping-options/sync', { shipping_option_ids: [shippingOptionId2] }, auth())
+				expect(res.status).toBe(200)
+				expect(res.data.synced_shipping_option_ids.length).toBeGreaterThanOrEqual(1)
+				expect(res.data.synced_shipping_option_ids.every((id: any) => typeof id === 'number')).toBe(true)
+				// Verifies SyncedShippingOptionIdsResponseSchema (see response-contracts.ts).
+				expect(() => SyncedShippingOptionIdsResponseSchema.parse(res.data)).not.toThrow()
+			})
+		})
+
+		// ── Wizard list routes ────────────────────────────────────────────────────
+		//
+		// The five core-Medusa list routes the setup wizard's DataTables consume
+		// (`../../src/admin/hooks.ts`), hit with the exact narrow `fields` selection
+		// each hook requests. Every describe block above deletes its own fixtures
+		// (and their veeqo links) in its own `afterAll`, which runs before this block
+		// starts -- so this block seeds and syncs its OWN fresh fixture per entity in
+		// `beforeAll`, and filters each list call down to that fixture (`id[]=...`),
+		// to guarantee the nested `veeqo_*` link object is actually populated when
+		// the schema parses it. An unpopulated (always-`undefined`, since the field
+		// is optional) link object would let a real shape mismatch inside it pass
+		// silently -- exactly how the `product_variant_id` leak below was originally
+		// found by accident via a stale, previously-synced variant, before this
+		// block seeded its own guaranteed-populated fixtures.
+		describe('Wizard list routes', () => {
+			let salesChannelId: string
+			let stockLocationId: string
+			let shippingOptionId: string
+			let productId: string
+			let variantId: string
+
+			beforeAll(async () => {
+				const ts = Date.now()
+
+				const scRes = await api.post('/admin/sales-channels', { name: `Veeqo WizardList Channel ${ts}` }, auth())
+				salesChannelId = scRes.data.sales_channel.id
+				await api.post(`/admin/veeqo/sales-channels/${salesChannelId}/sync`, {}, auth())
+
+				const slRes = await api.post(
+					'/admin/stock-locations',
+					{
+						name: `Veeqo WizardList Warehouse ${ts}`,
+						address: {
+							address_1: '123 Test St',
+							city: 'Portland',
+							province: 'OR',
+							country_code: 'us',
+							postal_code: '97201'
+						}
+					},
+					auth()
+				)
+				stockLocationId = slRes.data.stock_location.id
+				await api.post(`/admin/veeqo/stock-locations/${stockLocationId}/sync`, {}, auth())
+
+				await api.post(`/admin/stock-locations/${stockLocationId}/fulfillment-providers`, { add: ['manual_manual'] }, auth())
+				await api.post(`/admin/stock-locations/${stockLocationId}/fulfillment-sets`, { name: `Veeqo WizardList Set ${ts}`, type: 'shipping' }, auth())
+				const slDetail = await api.get(`/admin/stock-locations/${stockLocationId}?fields=fulfillment_sets.id`, auth())
+				const fulfillmentSetId = slDetail.data.stock_location.fulfillment_sets[0].id
+				const szRes = await api.post(
+					`/admin/fulfillment-sets/${fulfillmentSetId}/service-zones`,
+					{ name: `Veeqo WizardList Zone ${ts}`, geo_zones: [{ type: 'country', country_code: 'us' }] },
+					auth()
+				)
+				const serviceZoneId = szRes.data.fulfillment_set.service_zones[0].id
+				const spRes = await api.post('/admin/shipping-profiles', { name: `Veeqo WizardList Profile ${ts}`, type: 'default' }, auth())
+				const soRes = await api.post(
+					'/admin/shipping-options',
+					{
+						name: `Veeqo WizardList Standard ${ts}`,
+						service_zone_id: serviceZoneId,
+						shipping_profile_id: spRes.data.shipping_profile.id,
+						provider_id: 'manual_manual',
+						price_type: 'flat',
+						prices: [{ currency_code: 'usd', amount: 500 }],
+						type: { label: 'Standard', description: 'Standard shipping', code: 'standard' }
+					},
+					auth()
+				)
+				shippingOptionId = soRes.data.shipping_option.id
+				await api.post(`/admin/veeqo/shipping-options/${shippingOptionId}/sync`, {}, auth())
+
+				const productRes = await api.post(
+					'/admin/products',
+					{
+						title: `Veeqo WizardList Product ${ts}`,
+						status: 'published',
+						options: [{ title: 'Default', values: ['Default'] }],
+						variants: [
+							{ title: 'Default', sku: `VEEQO-WIZARDLIST-${ts}`, options: { Default: 'Default' }, prices: [{ currency_code: 'usd', amount: 999 }] }
+						]
+					},
+					auth()
+				)
+				productId = productRes.data.product.id
+				variantId = productRes.data.product.variants[0].id
+				await api.post(`/admin/veeqo/products/${productId}/sync`, {}, auth())
+
+				await seedSnapshot()
+			})
+
+			afterAll(async () => {
+				await veeqoService.deleteProduct(productId).catch(() => {})
+				await veeqoService.deleteDeliveryMethod(shippingOptionId).catch(() => {})
+				await veeqoService.deleteWarehouse(stockLocationId).catch(() => {})
+				await veeqoService.deleteChannel(salesChannelId).catch(() => {})
+			})
+
+			it('GET /admin/sales-channels (wizard fields) matches AdminSalesChannelsWithVeeqoListResponse', async () => {
+				const res = await api.get(`/admin/sales-channels?fields=id,name,description,veeqo_channel.veeqo_channel_id&id[]=${salesChannelId}`, auth())
+				expect(res.status).toBe(200)
+				expect(res.data.sales_channels[0]?.veeqo_channel?.veeqo_channel_id).toEqual(expect.any(Number))
+				expect(() => AdminSalesChannelsWithVeeqoListResponseSchema.parse(res.data)).not.toThrow()
+			})
+
+			it('GET /admin/stock-locations (wizard fields) matches AdminStockLocationsWithVeeqoListResponse', async () => {
+				const res = await api.get(
+					`/admin/stock-locations?fields=id,name,address.city,address.country_code,veeqo_warehouse.veeqo_warehouse_id&id[]=${stockLocationId}`,
+					auth()
+				)
+				expect(res.status).toBe(200)
+				expect(res.data.stock_locations[0]?.veeqo_warehouse?.veeqo_warehouse_id).toEqual(expect.any(Number))
+				expect(() => AdminStockLocationsWithVeeqoListResponseSchema.parse(res.data)).not.toThrow()
+			})
+
+			it('GET /admin/shipping-options (wizard fields) matches AdminShippingOptionsWithVeeqoListResponse', async () => {
+				const res = await api.get(
+					`/admin/shipping-options?fields=id,name,type,veeqo_delivery_method.veeqo_delivery_method_id&id[]=${shippingOptionId}`,
+					auth()
+				)
+				expect(res.status).toBe(200)
+				expect(res.data.shipping_options[0]?.veeqo_delivery_method?.veeqo_delivery_method_id).toEqual(expect.any(Number))
+				expect(() => AdminShippingOptionsWithVeeqoListResponseSchema.parse(res.data)).not.toThrow()
+			})
+
+			it('GET /admin/products (wizard fields) matches AdminProductWithVeeqoListResponse', async () => {
+				const res = await api.get(`/admin/products?fields=id,title,status,veeqo_product.veeqo_product_id&id[]=${productId}`, auth())
+				expect(res.status).toBe(200)
+				expect(res.data.products[0]?.veeqo_product?.veeqo_product_id).toEqual(expect.any(Number))
+				expect(() => AdminProductWithVeeqoListResponseSchema.parse(res.data)).not.toThrow()
+			})
+
+			it('GET /admin/product-variants (wizard fields) matches AdminProductVariantsWithVeeqoListResponse', async () => {
+				const res = await api.get(
+					`/admin/product-variants?fields=id,title,sku,product_id,product.title,veeqo_sellable.veeqo_sellable_id&id[]=${variantId}`,
+					auth()
+				)
+				expect(res.status).toBe(200)
+				expect(res.data.variants[0]?.veeqo_sellable?.veeqo_sellable_id).toEqual(expect.any(Number))
+				expect(() => AdminProductVariantsWithVeeqoListResponseSchema.parse(res.data)).not.toThrow()
 			})
 		})
 	}

@@ -1,26 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { sdk } from '../lib/sdk'
-import { AdminAffiliate, AdminAffiliateStatsResponse } from '../types'
+import { AdminAffiliateResponse, AdminAffiliatesResponse, AdminAffiliateStatsResponse } from '../types'
 
 const KEY = ['affiliates'] as const
 
 export const useAffiliatesList = (params: Record<string, unknown> = {}) =>
 	useQuery({
 		queryKey: [...KEY, 'list', params],
-		queryFn: () =>
-			sdk.client.fetch<{
-				affiliates: AdminAffiliate[]
-				count: number
-				limit: number
-				offset: number
-			}>('/admin/affiliates', { method: 'GET', query: params })
+		queryFn: () => sdk.client.fetch<AdminAffiliatesResponse>('/admin/affiliates', { method: 'GET', query: params })
 	})
 
 export const useAffiliate = (id: string) =>
 	useQuery({
 		queryKey: [...KEY, 'detail', id],
 		queryFn: () =>
-			sdk.client.fetch<{ affiliate: AdminAffiliate }>(`/admin/affiliates/${id}`, {
+			sdk.client.fetch<AdminAffiliateResponse>(`/admin/affiliates/${id}`, {
 				method: 'GET'
 			})
 	})

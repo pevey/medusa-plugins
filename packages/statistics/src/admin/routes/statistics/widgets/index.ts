@@ -7,10 +7,11 @@ import { RecentOrdersWidget } from './recent-orders-widget'
 import { CustomerCountWidget } from './customer-count-widget'
 import { FulfillmentWidget } from './fulfillment-widget'
 import { LowStockWidget } from './low-stock-widget'
+import type { AdminStatisticsDaily, AdminStatisticsTotals } from '../../../types'
 
 export interface WidgetProps {
-	statistics: any[]
-	totals: Record<string, any>
+	statistics: AdminStatisticsDaily[]
+	totals: AdminStatisticsTotals
 	period: string
 }
 

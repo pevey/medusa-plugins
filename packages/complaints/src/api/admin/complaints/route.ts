@@ -35,10 +35,46 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetComplaintsType
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateComplaintType>, res: MedusaResponse) => {
 	const complaintService: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { tag_ids: tags, ...rest } = req.validatedBody
 	const complaint = await complaintService.createComplaints({ ...rest, tags })
-	const historyEntry = await complaintService.addOpenEntry(complaint.id, req.auth_context.actor_id)
-	res.json({ complaint })
+	await complaintService.addOpenEntry(complaint.id, req.auth_context.actor_id)
+
+	// `createComplaints` returns the raw ORM entity -- it carries `deleted_at` and
+	// uninitialized `tags`/`activity`/`documents` Collection proxies, none of which
+	// belong in the admin contract. `customer`/`order`/`product` are module-link
+	// relations that only exist via query.graph, not on the raw entity either.
+	// Re-fetch through the same field selection GET /admin/complaints/:id uses so
+	// the create response matches that shape exactly.
+	const {
+		data: [created]
+	} = await query.graph(
+		{
+			entity: 'complaint',
+			fields: [
+				'id',
+				'number',
+				'status',
+				'description',
+				'created_at',
+				'updated_at',
+				'customer_id',
+				'order_id',
+				'product_id',
+				'stock_lot_id',
+				'serial_number_id',
+				'actionable',
+				'reportable',
+				'tags.*',
+				'customer.*',
+				'order.*',
+				'product.*'
+			],
+			filters: { id: complaint.id }
+		},
+		{ throwIfKeyNotFound: true }
+	)
+	res.json({ complaint: created })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteComplaintsType>, res: MedusaResponse) => {

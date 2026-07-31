@@ -1,6 +1,14 @@
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { Modules } from '@medusajs/framework/utils'
 import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
+import {
+	AdminAddAffiliateAddressResponseSchema,
+	AdminAffiliateResponseSchema,
+	AdminAffiliateStatsResponseSchema,
+	AdminAffiliatesResponseSchema,
+	AdminCreateAffiliatePromotionResponseSchema,
+	AdminCreateAffiliateResponseSchema
+} from './response-contracts'
 
 jest.setTimeout(120 * 1000)
 jest.retryTimes(1)
@@ -78,6 +86,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.affiliate.affiliate_id).toMatch(/^aff_/)
 				expect(res.data.affiliate.promotion_id).toMatch(/^promo_/)
+				// AdminCreateAffiliateResponse (workflow `transform` result -- not a raw entity)
+				expect(() => AdminCreateAffiliateResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('refuses a duplicate promotion code', async () => {
@@ -103,7 +113,7 @@ medusaIntegrationTestRunner({
 					{
 						...createBody,
 						email: `jane-${Date.now()}@example.com`,
-						first_promotion: { ...createBody.first_promotion, code: `J${Date.now()}` }
+						first_promotion: { ...createBody.first_promotion, code: `J${Date.now()}`, end_date: '2027-06-01T00:00:00.000Z' }
 					},
 					auth()
 				)
@@ -114,6 +124,8 @@ medusaIntegrationTestRunner({
 				const res = await api.get('/admin/affiliates', auth())
 				expect(res.status).toBe(200)
 				expect(res.data.affiliates.some((a: any) => a.id === affiliateId)).toBe(true)
+				// AdminAffiliatesResponse
+				expect(() => AdminAffiliatesResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('detail includes addresses and promotions', async () => {
@@ -121,6 +133,14 @@ medusaIntegrationTestRunner({
 				expect(res.data.affiliate.addresses).toHaveLength(1)
 				expect(res.data.affiliate.promotions).toHaveLength(1)
 				expect(res.data.affiliate.primary_address_id).toBe(res.data.affiliate.addresses[0].id)
+				// The fixture's first_promotion carries an end_date, so both the campaign
+				// and application_method sub-relations should be populated -- this pins
+				// down finding 3 (the detail route's `promotions.*` default previously
+				// left both unpopulated even though the admin UI reads them).
+				expect(res.data.affiliate.promotions[0].application_method).toMatchObject({ type: 'percentage', value: 10 })
+				expect(res.data.affiliate.promotions[0].campaign).toMatchObject({ ends_at: '2027-06-01T00:00:00.000Z' })
+				// AdminAffiliateResponse
+				expect(() => AdminAffiliateResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('updates name + status (inactive deactivates codes)', async () => {
@@ -189,6 +209,8 @@ medusaIntegrationTestRunner({
 				)
 				expect(res.status).toBe(200)
 				expect(res.data.promotion.promotion_id).toMatch(/^promo_/)
+				// AdminCreateAffiliatePromotionResponse (workflow `transform` result -- not a raw entity)
+				expect(() => AdminCreateAffiliatePromotionResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('updates discount value and end date', async () => {
@@ -306,6 +328,8 @@ medusaIntegrationTestRunner({
 				)
 				expect(res.status).toBe(200)
 				expect(res.data.address.id).toMatch(/^affaddr_/)
+				// AdminAddAffiliateAddressResponse (workflow step result -- not a raw entity)
+				expect(() => AdminAddAffiliateAddressResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('rejects deleting the only-primary address; allows after adding another', async () => {
@@ -489,6 +513,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.promotion_id).toBe(statsPromotionId)
 				expect(res.data.buckets.length).toBeGreaterThan(0)
+				// AdminAffiliateStatsResponse
+				expect(() => AdminAffiliateStatsResponseSchema.parse(res.data)).not.toThrow()
 			})
 		})
 

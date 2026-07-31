@@ -29,7 +29,10 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateInvalidati
 		id,
 		...req.validatedBody
 	})
-	res.json({ invalidation_reason: invalidationReason })
+	// See the POST /admin/invalidation-reasons handler: updateInvalidationReasons returns the
+	// raw ORM entity (metadata/deleted_at included), so pick down to AdminInvalidationReason's fields.
+	const { id: reasonId, value, created_at, updated_at } = invalidationReason
+	res.json({ invalidation_reason: { id: reasonId, value, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {

@@ -10,6 +10,19 @@ import {
 	deleteAccessRolesWorkflow
 } from '../../.medusa/server/src/workflows/access/workflows'
 import { assignUserRolesWorkflow, removeUserRolesWorkflow } from '../../.medusa/server/src/workflows/user/workflows'
+import {
+	AdminAccessMePermissionsResponseSchema,
+	AdminAccessPolicyResponseSchema,
+	AdminAccessPolicyRolesResponseSchema,
+	AdminAccessPoliciesResponseSchema,
+	AdminAccessRoleResponseSchema,
+	AdminAccessRolePoliciesResponseSchema,
+	AdminAccessRoleUsersResponseSchema,
+	AdminAccessRolesResponseSchema,
+	AdminAddRolePoliciesResponseSchema,
+	AdminAssignRoleUsersResponseSchema,
+	AdminAssignUserRolesResponseSchema
+} from './response-contracts'
 
 jest.setTimeout(120 * 1000)
 jest.retryTimes(1)
@@ -348,11 +361,13 @@ medusaIntegrationTestRunner({
 
 		describe('roles routes', () => {
 			let token: string
+			let adminUserId: string
 			beforeAll(async () => {
 				const admin = await setupAdmin('admin-roles@example.com', {
 					superAdmin: true
 				})
 				token = admin.token
+				adminUserId = admin.userId
 				await utils.waitWorkflowExecutions()
 				await dbUtils.snapshot()
 			})
@@ -363,14 +378,52 @@ medusaIntegrationTestRunner({
 				const created = await api.post('/admin/access/roles', { name: 'RouteRole' }, auth())
 				expect(created.status).toBe(200)
 				expect(created.data.role.name).toBe('RouteRole')
+				// verifies: AdminAccessRoleResponse (POST /admin/access/roles)
+				expect(() => AdminAccessRoleResponseSchema.parse(created.data)).not.toThrow()
 
 				const listed = await api.get('/admin/access/roles', auth())
 				expect(listed.status).toBe(200)
 				expect(listed.data.roles.map((r: any) => r.name)).toContain('RouteRole')
+				// verifies: AdminAccessRolesResponse (GET /admin/access/roles)
+				expect(() => AdminAccessRolesResponseSchema.parse(listed.data)).not.toThrow()
 
 				const one = await api.get(`/admin/access/roles/${created.data.role.id}`, auth())
 				expect(one.status).toBe(200)
 				expect(one.data.role.id).toBe(created.data.role.id)
+				// verifies: AdminAccessRoleResponse (GET /admin/access/roles/:id)
+				expect(() => AdminAccessRoleResponseSchema.parse(one.data)).not.toThrow()
+			})
+
+			it('attaches a policy and assigns a user to a role, and both link routes reflect it', async () => {
+				const roleRes = await api.post('/admin/access/roles', { name: 'DebugRole' }, auth())
+				const roleId = roleRes.data.role.id
+				const policyRes = await api.post('/admin/access/policies', { key: 'debug:read', resource: 'debug', operation: 'read', name: 'DebugRead' }, auth())
+				const policyId = policyRes.data.policy.id
+
+				const addPolicy = await api.post(`/admin/access/roles/${roleId}/policies`, { policies: [policyId] }, auth())
+				expect(addPolicy.data.policies[0].policy).toBe('debug:read')
+				// verifies: AdminAddRolePoliciesResponse (POST /admin/access/roles/:id/policies)
+				expect(() => AdminAddRolePoliciesResponseSchema.parse(addPolicy.data)).not.toThrow()
+
+				const rpGet = await api.get(`/admin/access/roles/${roleId}/policies`, auth())
+				expect(rpGet.data.policies[0].policy).toBe('debug:read')
+				// verifies: AdminAccessRolePoliciesResponse (GET /admin/access/roles/:id/policies)
+				expect(() => AdminAccessRolePoliciesResponseSchema.parse(rpGet.data)).not.toThrow()
+
+				const assignUser = await api.post(`/admin/access/roles/${roleId}/users`, { users: [adminUserId] }, auth())
+				expect(assignUser.data.users.map((u: any) => u.id)).toContain(adminUserId)
+				// verifies: AdminAssignRoleUsersResponse (POST /admin/access/roles/:id/users)
+				expect(() => AdminAssignRoleUsersResponseSchema.parse(assignUser.data)).not.toThrow()
+
+				const usersGet = await api.get(`/admin/access/roles/${roleId}/users`, auth())
+				expect(usersGet.data.users.map((u: any) => u.id)).toContain(adminUserId)
+				// verifies: AdminAccessRoleUsersResponse (GET /admin/access/roles/:id/users)
+				expect(() => AdminAccessRoleUsersResponseSchema.parse(usersGet.data)).not.toThrow()
+
+				const rolesForPolicy = await api.get(`/admin/access/policies/${policyId}/roles`, auth())
+				expect(rolesForPolicy.data.roles.map((r: any) => r.id)).toContain(roleId)
+				// verifies: AdminAccessPolicyRolesResponse (GET /admin/access/policies/:id/roles)
+				expect(() => AdminAccessPolicyRolesResponseSchema.parse(rolesForPolicy.data)).not.toThrow()
 			})
 
 			it('creates, lists, and retrieves a policy', async () => {
@@ -386,14 +439,25 @@ medusaIntegrationTestRunner({
 				)
 				expect(created.status).toBe(200)
 				expect(created.data.policy.key).toBe('thing:read')
+				// verifies: AdminAccessPolicyResponse (POST /admin/access/policies)
+				expect(() => AdminAccessPolicyResponseSchema.parse(created.data)).not.toThrow()
 
 				const listed = await api.get('/admin/access/policies?limit=1000', auth())
 				expect(listed.status).toBe(200)
 				expect(listed.data.policies.map((p: any) => p.key)).toContain('thing:read')
+				// verifies: AdminAccessPoliciesResponse (GET /admin/access/policies)
+				expect(() => AdminAccessPoliciesResponseSchema.parse(listed.data)).not.toThrow()
 
 				const one = await api.get(`/admin/access/policies/${created.data.policy.id}`, auth())
 				expect(one.status).toBe(200)
 				expect(one.data.policy.id).toBe(created.data.policy.id)
+				// verifies: AdminAccessPolicyResponse (GET /admin/access/policies/:id)
+				expect(() => AdminAccessPolicyResponseSchema.parse(one.data)).not.toThrow()
+
+				const rolesForPolicy = await api.get(`/admin/access/policies/${created.data.policy.id}/roles`, auth())
+				expect(rolesForPolicy.status).toBe(200)
+				// verifies: AdminAccessPolicyRolesResponse (GET /admin/access/policies/:id/roles, empty case)
+				expect(() => AdminAccessPolicyRolesResponseSchema.parse(rolesForPolicy.data)).not.toThrow()
 			})
 		})
 
@@ -428,6 +492,9 @@ medusaIntegrationTestRunner({
 				// super-admin (*:*) grants everything in the universe, which now
 				// includes the synced core definitions
 				expect(res.data.permissions).toContain('product:read')
+				// verifies: AdminAccessMePermissionsResponse (GET /admin/access/me/permissions)
+				// -- also the contract other plugins' widgets rely on to detect access.
+				expect(() => AdminAccessMePermissionsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('assigns, lists, and removes a role on a user via routes', async () => {
@@ -437,10 +504,14 @@ medusaIntegrationTestRunner({
 				const assign = await api.post(`/admin/users/${adminUserId}/access/roles`, { roles: [roleId] }, auth())
 				expect(assign.status).toBe(200)
 				expect(assign.data.roles.map((r: any) => r.id)).toContain(roleId)
+				// verifies: AdminAssignUserRolesResponse (POST /admin/users/:id/access/roles)
+				expect(() => AdminAssignUserRolesResponseSchema.parse(assign.data)).not.toThrow()
 
 				const list = await api.get(`/admin/users/${adminUserId}/access/roles`, auth())
 				expect(list.status).toBe(200)
 				expect(list.data.roles.map((r: any) => r.id)).toContain(roleId)
+				// verifies: AdminAccessRolesResponse (GET /admin/users/:id/access/roles)
+				expect(() => AdminAccessRolesResponseSchema.parse(list.data)).not.toThrow()
 
 				const del = await api.delete(`/admin/users/${adminUserId}/access/roles/${roleId}`, auth())
 				expect(del.status).toBe(200)

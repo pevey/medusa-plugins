@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-complaints",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Complaint logger plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",
@@ -55,6 +55,7 @@
 		"clean:snapshots": "find . -name '.snapshot-*.json' -path '*/migrations/*' -delete",
 		"dev": "medusa plugin:develop",
 		"prepublishOnly": "medusa plugin:build",
+		"typecheck": "tsc --noEmit -p tsconfig.json",
 		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests",
 		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit"
 	},

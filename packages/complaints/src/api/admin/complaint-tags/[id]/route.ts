@@ -25,11 +25,18 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetComplaintTagTy
 export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateComplaintTagType>, res: MedusaResponse) => {
 	const complaintService: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)
 	const { id } = req.params
-	const complaintTag = await complaintService.updateComplaintTags({
+	// See POST /admin/complaint-tags -- `updateComplaintTags` returns the raw ORM
+	// entity, so destructure down to AdminComplaintTag's fields.
+	const {
+		id: tagId,
+		value,
+		created_at,
+		updated_at
+	} = await complaintService.updateComplaintTags({
 		id,
 		...req.validatedBody
 	})
-	res.json({ complaint_tag: complaintTag })
+	res.json({ complaint_tag: { id: tagId, value, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {

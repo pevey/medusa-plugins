@@ -64,9 +64,6 @@ export const AdminGetAutomationTriggers = createFindParams().extend({
 })
 export type AdminGetAutomationTriggersType = z.infer<typeof AdminGetAutomationTriggers>
 
-export const AdminGetAutomationTrigger = createFindParams()
-export type AdminGetAutomationTriggerType = z.infer<typeof AdminGetAutomationTrigger>
-
 export const AdminCreateAutomationTrigger = z.object({
 	name: z.string().min(1),
 	description: z.string().optional(),
@@ -111,9 +108,6 @@ export const AdminGetAutomationActions = createFindParams().extend({
 	}, z.boolean().optional())
 })
 export type AdminGetAutomationActionsType = z.infer<typeof AdminGetAutomationActions>
-
-export const AdminGetAutomationAction = createFindParams()
-export type AdminGetAutomationActionType = z.infer<typeof AdminGetAutomationAction>
 
 export const AdminCreateAutomationAction = z.object({
 	name: z.string().min(1),

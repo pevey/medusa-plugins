@@ -30,7 +30,11 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetInvalidationRe
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateInvalidationReasonType>, res: MedusaResponse) => {
 	const tracingService: TracingService = req.scope.resolve(TRACING_MODULE)
 	const invalidationReason = await tracingService.createInvalidationReasons(req.validatedBody)
-	res.json({ invalidation_reason: invalidationReason })
+	// createInvalidationReasons returns the raw ORM entity (metadata/deleted_at included),
+	// which isn't part of the admin contract (no GET route ever selects them). Pick down to
+	// AdminInvalidationReason's fields so the create response matches the GET shape.
+	const { id, value, created_at, updated_at } = invalidationReason
+	res.json({ invalidation_reason: { id, value, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteInvalidationReasonsType>, res: MedusaResponse) => {

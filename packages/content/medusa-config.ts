@@ -1,4 +1,5 @@
 import { loadEnv, defineConfig } from '@medusajs/framework/utils'
+import { TEST_UPLOAD_DIR } from './integration-tests/http/upload-dir'
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
@@ -17,6 +18,25 @@ module.exports = defineConfig({
 	modules: [
 		{
 			resolve: './src/modules/content'
+		},
+		{
+			// Not published (package.json `files` only ships `.medusa/server`), so this
+			// only ever runs for local dev and the integration-test runner. Pins the
+			// local file provider's upload dirs to a throwaway OS temp directory --
+			// see integration-tests/http/upload-dir.ts for why.
+			resolve: '@medusajs/medusa/file',
+			options: {
+				providers: [
+					{
+						resolve: '@medusajs/file-local',
+						id: 'local',
+						options: {
+							upload_dir: TEST_UPLOAD_DIR,
+							private_upload_dir: TEST_UPLOAD_DIR
+						}
+					}
+				]
+			}
 		}
 	]
 })

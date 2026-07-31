@@ -5,12 +5,10 @@ import {
 	AdminCreateAutomationTrigger,
 	AdminDeleteAutomationActions,
 	AdminDeleteAutomationTriggers,
-	AdminGetAutomationAction,
 	AdminGetAutomationActions,
 	AdminGetAutomationDeliveries,
 	AdminGetAutomationReceipts,
 	AdminGetAutomationSecrets,
-	AdminGetAutomationTrigger,
 	AdminGetAutomationTriggers,
 	AdminRetryAutomationDeliveries,
 	AdminUpdateAutomationAction,
@@ -55,28 +53,6 @@ export default defineMiddlewares([
 	},
 	{
 		matcher: '/admin/automations/:id',
-		method: ['GET'],
-		middlewares: [
-			validateAndTransformQuery(AdminGetAutomationTrigger, {
-				defaults: [
-					'id',
-					'name',
-					'description',
-					'trigger_type',
-					'is_active',
-					'trigger_events',
-					'signature_config',
-					'log_incoming',
-					'metadata',
-					'created_at',
-					'updated_at'
-				],
-				isList: false
-			})
-		]
-	},
-	{
-		matcher: '/admin/automations/:id',
 		method: ['POST'],
 		middlewares: [validateAndTransformBody(AdminUpdateAutomationTrigger)]
 	},
@@ -118,47 +94,13 @@ export default defineMiddlewares([
 	},
 	{
 		matcher: '/admin/automations/:id/actions/:actionId',
-		method: ['GET'],
-		middlewares: [
-			validateAndTransformQuery(AdminGetAutomationAction, {
-				defaults: [
-					'id',
-					'name',
-					'description',
-					'action_type',
-					'is_active',
-					'target_url',
-					'signing_secret_id',
-					'target_headers',
-					'medusa_workflow',
-					'field_mappings',
-					'metadata',
-					'created_at',
-					'updated_at'
-				],
-				isList: false
-			})
-		]
-	},
-	{
-		matcher: '/admin/automations/:id/actions/:actionId',
 		method: ['POST'],
 		middlewares: [validateAndTransformBody(AdminUpdateAutomationAction)]
 	},
 	{
 		matcher: '/admin/automations/:id/actions/:actionId/query',
-		method: ['GET'],
-		middlewares: []
-	},
-	{
-		matcher: '/admin/automations/:id/actions/:actionId/query',
 		method: ['POST'],
 		middlewares: [validateAndTransformBody(AdminUpsertAutomationQuery)]
-	},
-	{
-		matcher: '/admin/automations/:id/actions/:actionId/query',
-		method: ['DELETE'],
-		middlewares: []
 	},
 	{
 		matcher: '/admin/automations/:id/actions/:actionId/deliveries',
@@ -214,11 +156,6 @@ export default defineMiddlewares([
 		matcher: '/admin/automations/secrets',
 		method: ['POST'],
 		middlewares: [validateAndTransformBody(AdminCreateAutomationSecret)]
-	},
-	{
-		matcher: '/admin/automations/secrets/:id',
-		method: ['DELETE'],
-		middlewares: []
 	},
 	// Public listener
 	// preserveRawBody is required so the webhook handler can verify HMAC

@@ -13,13 +13,19 @@ export type AdminAffiliateAddress = {
 	phone: string | null
 }
 
+// A hand-selected subset of the core Medusa `Promotion` entity (via the
+// affiliate<->promotion module link), not the full `AdminPromotion` type --
+// `campaign_id`/`campaign.id`/`application_method.id` are always present
+// alongside the fields the admin UI actually reads (see middlewares.ts'
+// `promotions.*` defaults for the detail route).
 export type AdminAffiliatePromotion = {
 	id: string
 	code: string
 	status: 'active' | 'inactive' | 'draft'
 	is_automatic: boolean
+	campaign_id: string | null
 	campaign?: { id: string; ends_at: string | null } | null
-	application_method?: { type: 'percentage' | 'fixed'; value: number } | null
+	application_method?: { id: string; type: 'percentage' | 'fixed'; value: number } | null
 }
 
 export type AdminAffiliateStatus = 'active' | 'restricted' | 'inactive'
@@ -31,11 +37,23 @@ export type AdminAffiliate = {
 	phone: string | null
 	currency_code: string | null
 	status: AdminAffiliateStatus
-	primary_address_id: string | null
+	// Only present on the detail route (`GET /admin/affiliates/:id`) -- the
+	// list route's `defaults` never requests it, so it's optional here.
+	primary_address_id?: string | null
 	created_at: string
-	updated_at: string
 	addresses?: AdminAffiliateAddress[]
 	promotions?: AdminAffiliatePromotion[]
+}
+
+export type AdminAffiliatesResponse = {
+	affiliates: AdminAffiliate[]
+	count: number
+	offset: number
+	limit: number
+}
+
+export type AdminAffiliateResponse = {
+	affiliate: AdminAffiliate
 }
 
 export type AdminAffiliateStatsBucket = {

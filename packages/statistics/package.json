@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-statistics",
-	"version": "0.2.3",
+	"version": "0.2.4",
 	"description": "Dashboard statistics plugin for Medusa v2 with daily aggregation and customizable widgets",
 	"author": "Lacey Pevey",
 	"license": "MIT",
@@ -54,6 +54,7 @@
 		"clean:snapshots": "find . -name '.snapshot-*.json' -path '*/migrations/*' -delete",
 		"dev": "medusa plugin:develop",
 		"prepublishOnly": "medusa plugin:build",
+		"typecheck": "tsc --noEmit -p tsconfig.json",
 		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests",
 		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit"
 	},

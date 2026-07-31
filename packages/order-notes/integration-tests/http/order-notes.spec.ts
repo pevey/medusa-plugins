@@ -18,6 +18,7 @@
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { Modules } from '@medusajs/framework/utils'
 import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
+import { AdminDeleteOrderNoteResponseSchema, AdminOrderNoteResponseSchema, AdminOrderNotesResponseSchema } from './response-contracts'
 
 jest.setTimeout(120 * 1000)
 jest.retryTimes(1)
@@ -134,6 +135,8 @@ medusaIntegrationTestRunner({
 					note: 'Default sent flag',
 					sent: false
 				})
+				// Response contract: AdminOrderNoteResponse
+				expect(() => AdminOrderNoteResponseSchema.parse(res.data)).not.toThrow()
 				await api.delete(`/admin/order-notes/${res.data.order_note.id}`, auth()).catch(() => {})
 			})
 
@@ -162,6 +165,8 @@ medusaIntegrationTestRunner({
 				expect(res.data.count).toBeGreaterThanOrEqual(1)
 				expect(res.data.limit).toBeGreaterThan(0)
 				expect(res.data.offset).toBeGreaterThanOrEqual(0)
+				// Response contract: AdminOrderNotesResponse
+				expect(() => AdminOrderNotesResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/order-notes filters by order_id', async () => {
@@ -202,6 +207,8 @@ medusaIntegrationTestRunner({
 				const res = await api.delete(`/admin/order-notes/${id}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toContain(id)
+				// Response contract: AdminDeleteOrderNoteResponse
+				expect(() => AdminDeleteOrderNoteResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/order-notes/:id removes the note from subsequent list', async () => {

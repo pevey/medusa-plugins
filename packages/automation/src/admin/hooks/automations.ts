@@ -2,22 +2,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sdk } from '../lib/sdk'
 import {
 	ActionsResponse,
+	ActionResponse,
 	TriggersResponse,
-	AutomationTrigger,
-	AutomationReceipt,
-	AutomationDelivery,
+	TriggerResponse,
+	AutomationQueryResponse,
+	DeliveriesResponse,
+	ReceiptsResponse,
+	RetryDeliveriesResponse,
 	SecretsListResponse,
-	CreateSecretResponse,
-	AutomationAction
+	CreateSecretResponse
 } from '../types'
-
-type AutomationQueryConfig = {
-	id: string
-	entity_name: string
-	fields?: string[] | null
-	filters?: Record<string, unknown> | null
-	limit?: number | null
-}
 
 // ─── Triggers ─────────────────────────────────────────────────────────────────
 
@@ -55,7 +49,7 @@ export const useCreateAutomationAction = (triggerId: string) => {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (data: object) =>
-			sdk.client.fetch<{ action: AutomationAction }>(`/admin/automations/${triggerId}/actions`, {
+			sdk.client.fetch<ActionResponse>(`/admin/automations/${triggerId}/actions`, {
 				method: 'POST',
 				body: data
 			}),
@@ -97,7 +91,7 @@ export const useDeleteAutomationActions = (triggerId: string) => {
 // ─── Action Query Config ───────────────────────────────────────────────────────
 
 export const useAutomationActionQuery = (triggerId: string, actionId: string, enabled = true) => {
-	return useQuery<{ query: AutomationQueryConfig | null }>({
+	return useQuery<AutomationQueryResponse>({
 		queryFn: () => sdk.client.fetch(`/admin/automations/${triggerId}/actions/${actionId}/query`),
 		queryKey: ['automation-action-query', actionId],
 		enabled
@@ -165,7 +159,7 @@ export const useAutomationTriggersList = (params: Record<string, unknown>) => {
 }
 
 export const useAutomationTrigger = (id: string | undefined) => {
-	return useQuery<{ trigger: AutomationTrigger }>({
+	return useQuery<TriggerResponse>({
 		queryFn: () => sdk.client.fetch(`/admin/automations/${id}`),
 		queryKey: ['automation', id],
 		enabled: !!id
@@ -183,7 +177,7 @@ export const useDeleteAutomationTriggers = () => {
 }
 
 export const useAutomationReceipts = (triggerId: string | undefined, enabled: boolean) => {
-	return useQuery<{ receipts: AutomationReceipt[]; count: number }>({
+	return useQuery<ReceiptsResponse>({
 		queryFn: () =>
 			sdk.client.fetch(`/admin/automations/${triggerId}/receipts`, {
 				query: { limit: 10, offset: 0 }
@@ -194,7 +188,7 @@ export const useAutomationReceipts = (triggerId: string | undefined, enabled: bo
 }
 
 export const useAutomationAction = (triggerId: string | undefined, actionId: string | undefined) => {
-	return useQuery<{ action: AutomationAction }>({
+	return useQuery<ActionResponse>({
 		queryFn: () => sdk.client.fetch(`/admin/automations/${triggerId}/actions/${actionId}`),
 		queryKey: ['automation-action', actionId],
 		enabled: !!triggerId && !!actionId
@@ -202,7 +196,7 @@ export const useAutomationAction = (triggerId: string | undefined, actionId: str
 }
 
 export const useAutomationDeliveries = (triggerId: string | undefined, actionId: string | undefined) => {
-	return useQuery<{ deliveries: AutomationDelivery[]; count: number }>({
+	return useQuery<DeliveriesResponse>({
 		queryFn: () =>
 			sdk.client.fetch(`/admin/automations/${triggerId}/actions/${actionId}/deliveries`, {
 				query: { limit: 10, offset: 0 }
@@ -216,7 +210,7 @@ export const useRetryAutomationDeliveries = (triggerId: string, actionId: string
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (body: { delivery_ids?: string[]; status?: string; since?: string; until?: string }) =>
-			sdk.client.fetch<{ retried: number; succeeded: number; failed: number }>(`/admin/automations/${triggerId}/actions/${actionId}/deliveries/retry`, {
+			sdk.client.fetch<RetryDeliveriesResponse>(`/admin/automations/${triggerId}/actions/${actionId}/deliveries/retry`, {
 				method: 'POST',
 				body
 			}),

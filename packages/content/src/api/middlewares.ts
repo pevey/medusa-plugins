@@ -45,6 +45,124 @@ import {
 	AdminUpdateContentCollectionField
 } from './validators'
 
+// ── Shared field selections ──────────────────────────────────────────────────
+//
+// Exported so mutation routes can re-fetch through `query.graph` with the EXACT same
+// selection their matching GET route uses, guaranteeing shape parity (task 4d: mutation
+// responses must match their GET counterpart's field-selected shape, not the raw
+// `MedusaService`-returned ORM entity). A single shared array also rules out the two
+// arrays silently drifting apart over time.
+
+export const COLLECTION_DETAIL_FIELDS = [
+	'id',
+	'label',
+	'slug',
+	'format',
+	'prefix',
+	'metadata',
+	'created_at',
+	'updated_at',
+	'content_fields.id',
+	'content_fields.name',
+	'content_fields.label',
+	'content_fields.field_type',
+	'content_fields.required',
+	'content_fields.options',
+	'content_fields.default_value',
+	'content_fields.sort_order',
+	'content_fields.created_at',
+	'content_fields.updated_at',
+	'source_relationships.id',
+	'source_relationships.relationship_type',
+	'source_relationships.source_collection_id',
+	'source_relationships.target_collection_id',
+	'source_relationships.created_at',
+	'source_relationships.updated_at',
+	'source_relationships.source_collection.id',
+	'source_relationships.source_collection.label',
+	'source_relationships.source_collection.slug',
+	'source_relationships.target_collection.id',
+	'source_relationships.target_collection.label',
+	'source_relationships.target_collection.slug',
+	'target_relationships.id',
+	'target_relationships.relationship_type',
+	'target_relationships.source_collection_id',
+	'target_relationships.target_collection_id',
+	'target_relationships.created_at',
+	'target_relationships.updated_at',
+	'target_relationships.source_collection.id',
+	'target_relationships.source_collection.label',
+	'target_relationships.source_collection.slug',
+	'target_relationships.target_collection.id',
+	'target_relationships.target_collection.label',
+	'target_relationships.target_collection.slug'
+]
+
+export const CONTENT_FIELD_FIELDS = ['id', 'name', 'label', 'field_type', 'required', 'options', 'default_value', 'sort_order', 'created_at', 'updated_at']
+
+export const CONTENT_RELATIONSHIP_FIELDS = [
+	'id',
+	'relationship_type',
+	'source_collection_id',
+	'target_collection_id',
+	'created_at',
+	'updated_at',
+	'source_collection.id',
+	'source_collection.label',
+	'source_collection.slug',
+	'target_collection.id',
+	'target_collection.label',
+	'target_collection.slug'
+]
+
+export const ITEM_DETAIL_FIELDS = [
+	'id',
+	'title',
+	'slug',
+	'body',
+	'status',
+	'published_at',
+	'metadata',
+	'created_at',
+	'updated_at',
+	'content_collection.id',
+	'content_collection.label',
+	'content_collection.slug',
+	'content_collection.format',
+	'content_collection.content_fields.id',
+	'content_collection.content_fields.name',
+	'content_collection.content_fields.label',
+	'content_collection.content_fields.field_type',
+	'content_collection.content_fields.required',
+	'content_collection.content_fields.options',
+	'content_collection.content_fields.sort_order',
+	'creator.id',
+	'creator.name',
+	'creator.bio',
+	'creator.avatar_url',
+	'tags.id',
+	'tags.value',
+	'tags.metadata'
+]
+
+export const ITEM_ACTIVITY_FIELDS = ['id', 'type', 'user_id', 'note', 'metadata', 'created_at', 'updated_at', 'user.*']
+
+export const CREATOR_ACTIVITY_FIELDS = ['id', 'type', 'user_id', 'note', 'metadata', 'created_at', 'updated_at', 'user.*']
+
+export const ITEM_LINK_FIELDS = [
+	'id',
+	'created_at',
+	'updated_at',
+	'source_item.id',
+	'source_item.title',
+	'source_item.slug',
+	'target_item.id',
+	'target_item.title',
+	'target_item.slug',
+	'relationship.id',
+	'relationship.relationship_type'
+]
+
 export default defineMiddlewares([
 	// Content Collections
 	{
@@ -73,36 +191,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetContentCollection, {
-				defaults: [
-					'id',
-					'label',
-					'slug',
-					'format',
-					'prefix',
-					'metadata',
-					'created_at',
-					'updated_at',
-					'content_fields.id',
-					'content_fields.name',
-					'content_fields.label',
-					'content_fields.field_type',
-					'content_fields.required',
-					'content_fields.options',
-					'content_fields.default_value',
-					'content_fields.sort_order',
-					'source_relationships.id',
-					'source_relationships.relationship_type',
-					'source_relationships.source_collection.id',
-					'source_relationships.source_collection.label',
-					'source_relationships.target_collection.id',
-					'source_relationships.target_collection.label',
-					'target_relationships.id',
-					'target_relationships.relationship_type',
-					'target_relationships.source_collection.id',
-					'target_relationships.source_collection.label',
-					'target_relationships.target_collection.id',
-					'target_relationships.target_collection.label'
-				],
+				defaults: COLLECTION_DETAIL_FIELDS,
 				isList: false
 			})
 		]
@@ -117,7 +206,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetContentCollectionFields, {
-				defaults: ['id', 'name', 'label', 'field_type', 'required', 'options', 'default_value', 'sort_order', 'created_at', 'updated_at'],
+				defaults: CONTENT_FIELD_FIELDS,
 				isList: true,
 				defaultLimit: 50
 			})
@@ -138,7 +227,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetContentCollectionField, {
-				defaults: ['id', 'name', 'label', 'field_type', 'required', 'options', 'default_value', 'sort_order', 'created_at', 'updated_at'],
+				defaults: CONTENT_FIELD_FIELDS,
 				isList: false
 			})
 		]
@@ -168,18 +257,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetContentCollectionRelationships, {
-				defaults: [
-					'id',
-					'relationship_type',
-					'created_at',
-					'updated_at',
-					'source_collection.id',
-					'source_collection.label',
-					'source_collection.slug',
-					'target_collection.id',
-					'target_collection.label',
-					'target_collection.slug'
-				],
+				defaults: CONTENT_RELATIONSHIP_FIELDS,
 				isList: true,
 				defaultLimit: 50
 			})
@@ -195,7 +273,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetContentCollectionRelationship, {
-				defaults: ['id', 'relationship_type', 'created_at', 'updated_at', 'source_collection.*', 'target_collection.*'],
+				defaults: CONTENT_RELATIONSHIP_FIELDS,
 				isList: false
 			})
 		]
@@ -211,7 +289,6 @@ export default defineMiddlewares([
 					'title',
 					'slug',
 					'body',
-					'format',
 					'status',
 					'published_at',
 					'metadata',
@@ -222,7 +299,9 @@ export default defineMiddlewares([
 					'content_collection.slug',
 					'creator.id',
 					'creator.name',
-					'tags.*'
+					'tags.id',
+					'tags.value',
+					'tags.metadata'
 				],
 				isList: true,
 				defaultLimit: 15
@@ -244,36 +323,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetContentItem, {
-				defaults: [
-					'id',
-					'title',
-					'slug',
-					'body',
-					'format',
-					'status',
-					'published_at',
-					'metadata',
-					'created_at',
-					'updated_at',
-					'content_collection.id',
-					'content_collection.label',
-					'content_collection.slug',
-					'content_collection.format',
-					'content_collection.content_fields.id',
-					'content_collection.content_fields.name',
-					'content_collection.content_fields.label',
-					'content_collection.content_fields.field_type',
-					'content_collection.content_fields.required',
-					'content_collection.content_fields.options',
-					'content_collection.content_fields.sort_order',
-					'creator.id',
-					'creator.name',
-					'creator.bio',
-					'creator.avatar_url',
-					'tags.id',
-					'tags.value',
-					'tags.metadata'
-				],
+				defaults: ITEM_DETAIL_FIELDS,
 				isList: false
 			})
 		]
@@ -288,7 +338,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetContentItemActivity, {
-				defaults: ['id', 'type', 'user_id', 'note', 'metadata', 'created_at', 'updated_at', 'user.*'],
+				defaults: ITEM_ACTIVITY_FIELDS,
 				isList: true,
 				defaultLimit: 20
 			})
@@ -309,19 +359,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetContentItemLinks, {
-				defaults: [
-					'id',
-					'created_at',
-					'updated_at',
-					'source_item.id',
-					'source_item.title',
-					'source_item.slug',
-					'target_item.id',
-					'target_item.title',
-					'target_item.slug',
-					'relationship.id',
-					'relationship.relationship_type'
-				],
+				defaults: ITEM_LINK_FIELDS,
 				isList: true,
 				defaultLimit: 50
 			})
@@ -395,7 +433,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetContentCreatorActivity, {
-				defaults: ['id', 'type', 'user_id', 'note', 'metadata', 'created_at', 'updated_at', 'user.*'],
+				defaults: CREATOR_ACTIVITY_FIELDS,
 				isList: true,
 				defaultLimit: 20
 			})

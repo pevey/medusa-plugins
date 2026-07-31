@@ -18,7 +18,27 @@ export default defineMiddlewares({
 			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminListAffiliatesSchema, {
-					defaults: ['id', 'name', 'email', 'phone', 'status', 'currency_code', 'created_at', '*addresses'],
+					defaults: [
+						'id',
+						'name',
+						'email',
+						'phone',
+						'status',
+						'currency_code',
+						'created_at',
+						'addresses.id',
+						'addresses.affiliate_id',
+						'addresses.first_name',
+						'addresses.last_name',
+						'addresses.company',
+						'addresses.address_1',
+						'addresses.address_2',
+						'addresses.city',
+						'addresses.province',
+						'addresses.country_code',
+						'addresses.postal_code',
+						'addresses.phone'
+					],
 					defaultLimit: 20,
 					isList: true
 				})
@@ -39,7 +59,36 @@ export default defineMiddlewares({
 			method: ['GET'],
 			middlewares: [
 				validateAndTransformQuery(AdminListAffiliatesSchema.partial(), {
-					defaults: ['id', 'name', 'email', 'phone', 'status', 'currency_code', 'primary_address_id', 'created_at', '*addresses', 'promotions.*'],
+					defaults: [
+						'id',
+						'name',
+						'email',
+						'phone',
+						'status',
+						'currency_code',
+						'primary_address_id',
+						'created_at',
+						'addresses.id',
+						'addresses.affiliate_id',
+						'addresses.first_name',
+						'addresses.last_name',
+						'addresses.company',
+						'addresses.address_1',
+						'addresses.address_2',
+						'addresses.city',
+						'addresses.province',
+						'addresses.country_code',
+						'addresses.postal_code',
+						'addresses.phone',
+						'promotions.id',
+						'promotions.code',
+						'promotions.status',
+						'promotions.is_automatic',
+						'promotions.campaign.id',
+						'promotions.campaign.ends_at',
+						'promotions.application_method.type',
+						'promotions.application_method.value'
+					],
 					isList: false
 				})
 			]
@@ -60,11 +109,6 @@ export default defineMiddlewares({
 			middlewares: [validateAndTransformBody(AdminUpdateAddressSchema)]
 		},
 		{
-			matcher: '/admin/affiliates/:id/addresses/:addressId',
-			method: ['DELETE'],
-			middlewares: []
-		},
-		{
 			matcher: '/admin/affiliates/:id/promotions',
 			method: ['POST'],
 			middlewares: [validateAndTransformBody(AdminCreateAffiliatePromotionSchema)]
@@ -73,26 +117,6 @@ export default defineMiddlewares({
 			matcher: '/admin/affiliates/:id/promotions/:promotionId',
 			method: ['POST'],
 			middlewares: [validateAndTransformBody(AdminUpdateAffiliatePromotionSchema)]
-		},
-		{
-			matcher: '/admin/affiliates/:id/promotions/:promotionId',
-			method: ['DELETE'],
-			middlewares: []
-		},
-		{
-			matcher: '/admin/affiliates/:id/promotions/:promotionId/reactivate',
-			method: ['POST'],
-			middlewares: []
-		},
-		{
-			matcher: '/admin/affiliates/:id/promotions/:promotionId/retire',
-			method: ['POST'],
-			middlewares: []
-		},
-		{
-			matcher: '/admin/affiliates/:id/attributions/recalculate',
-			method: ['POST'],
-			middlewares: []
 		},
 		{
 			matcher: '/admin/affiliates/:id/stats',

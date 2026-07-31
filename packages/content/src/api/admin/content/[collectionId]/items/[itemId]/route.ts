@@ -5,6 +5,7 @@ import { ContentService } from '../../../../../../modules/content/service'
 import { ContentStatus } from '../../../../../../modules/content/models/content-item'
 import { ContentItemActivityType } from '../../../../../../modules/content/models/content-item-activity'
 import { AdminGetContentItemType, AdminUpdateContentItemType } from '../../../../../validators'
+import { ITEM_DETAIL_FIELDS } from '../../../../../middlewares'
 
 const statusToActivityType: Partial<Record<ContentStatus, ContentItemActivityType>> = {
 	[ContentStatus.PUBLISHED]: ContentItemActivityType.PUBLISH,
@@ -35,7 +36,7 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateContentIte
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
 
 	const current = await contentService.retrieveContentItem(itemId)
-	const content_item = await contentService.updateItem({ id: itemId, ...req.validatedBody })
+	await contentService.updateItem({ id: itemId, ...req.validatedBody })
 
 	const { status } = req.validatedBody
 	if (status && status !== current.status) {
@@ -49,6 +50,18 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateContentIte
 
 	const eventBus = req.scope.resolve(Modules.EVENT_BUS)
 	await eventBus.emit({ name: 'content-item.updated', data: { id: itemId } })
+
+	// `updateItem` returns the raw ORM entity. Re-fetch through the same query.graph
+	// selection the item detail GET route uses so the response matches AdminContentItem
+	// exactly -- see POST /admin/content/:collectionId/items.
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+	const {
+		data: [content_item]
+	} = await query.graph({
+		entity: 'content_item',
+		fields: ITEM_DETAIL_FIELDS,
+		filters: { id: itemId }
+	})
 
 	res.json({ content_item })
 }

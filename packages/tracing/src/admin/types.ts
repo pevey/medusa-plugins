@@ -17,9 +17,12 @@ export type AdminStockLot = {
 
 export type AdminSerialNumber = {
 	id: string
-	value: string
+	stock_lot_id: string
 	order_id: string
+	value: string
+	invalidated: boolean
 	created_at: string
+	updated_at: string
 }
 
 export type AdminInvalidationReason = {
@@ -39,9 +42,29 @@ export type AdminStockLotResponse = {
 	stock_lot: AdminStockLot
 }
 
+export type AdminDeleteStockLotsResponse = {
+	deleted: string[]
+}
+
+export type AdminEnableStockLotsResponse = {
+	enabled: string[]
+}
+
+export type AdminDisableStockLotsResponse = {
+	disabled: string[]
+}
+
 export type AdminSerialNumbersResponse = PaginatedResponse<{
 	serial_numbers: AdminSerialNumber[]
 }>
+
+export type AdminSerialNumberResponse = {
+	serial_number: AdminSerialNumber
+}
+
+export type AdminDeleteSerialNumbersResponse = {
+	deleted: string[]
+}
 
 export type AdminInvalidationReasonsResponse = PaginatedResponse<{
 	invalidation_reasons: AdminInvalidationReason[]
@@ -49,4 +72,8 @@ export type AdminInvalidationReasonsResponse = PaginatedResponse<{
 
 export type AdminInvalidationReasonResponse = {
 	invalidation_reason: AdminInvalidationReason
+}
+
+export type AdminDeleteInvalidationReasonsResponse = {
+	deleted: string[]
 }

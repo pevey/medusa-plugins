@@ -29,8 +29,21 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetRubricsType>, 
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateRubricType>, res: MedusaResponse) => {
 	const privateAnalyticsService: PrivateAnalyticsService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
-	const rubric = await privateAnalyticsService.createAnalyticsRubrics(req.validatedBody)
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+	const created = await privateAnalyticsService.createAnalyticsRubrics(req.validatedBody)
 	invalidateRubricCache()
+
+	// `createAnalyticsRubrics` returns the raw ORM entity (including `deleted_at`),
+	// not the field-selected shape the GET routes return. Re-fetch through the same
+	// graph query the detail route uses so the response matches AdminRubric exactly.
+	const {
+		data: [rubric]
+	} = await query.graph({
+		entity: 'analytics_rubric',
+		fields: ['id', 'name', 'label', 'description', 'expected_properties', 'active', 'created_at', 'updated_at'],
+		filters: { id: created.id }
+	})
+
 	res.json({ rubric })
 }
 

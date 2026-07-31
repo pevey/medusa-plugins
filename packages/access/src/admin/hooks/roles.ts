@@ -1,6 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sdk } from '../lib/sdk'
-import { AdminAccessRoleResponse, AdminAccessRolesResponse, AdminAccessRolePoliciesResponse, AdminAccessRoleUsersResponse } from '../types'
+import {
+	AdminAccessRoleResponse,
+	AdminAccessRolesResponse,
+	AdminAccessRolePoliciesResponse,
+	AdminAccessRoleUsersResponse,
+	AdminAddRolePoliciesResponse,
+	AdminAssignRoleUsersResponse
+} from '../types'
 
 // --- Roles CRUD ---------------------------------------------------------------
 
@@ -65,7 +72,10 @@ export const useAccessRolePolicies = (roleId: string | undefined) => {
 	return useQuery<AdminAccessRolePoliciesResponse>({
 		queryFn: () =>
 			sdk.client.fetch(`/admin/access/roles/${roleId}/policies`, {
-				query: { fields: 'id,role_id,policy_id,policy', limit: 200 }
+				// `policy.key`, not bare `policy` -- see the note in
+				// `roles/[id]/policies/route.ts` on why the bare relation name
+				// returns a nested `{ id }` object instead of the key string.
+				query: { fields: 'id,role_id,policy_id,policy.key', limit: 200 }
 			}),
 		queryKey: ['access-role-policies', roleId],
 		enabled: !!roleId
@@ -76,7 +86,7 @@ export const useAddAccessRolePolicies = (roleId: string | undefined) => {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (policies: string[]) =>
-			sdk.client.fetch(`/admin/access/roles/${roleId}/policies`, {
+			sdk.client.fetch<AdminAddRolePoliciesResponse>(`/admin/access/roles/${roleId}/policies`, {
 				method: 'POST',
 				body: { policies }
 			}),
@@ -113,7 +123,7 @@ export const useAssignAccessRoleUsers = (roleId: string | undefined) => {
 	const queryClient = useQueryClient()
 	return useMutation({
 		mutationFn: (users: string[]) =>
-			sdk.client.fetch(`/admin/access/roles/${roleId}/users`, {
+			sdk.client.fetch<AdminAssignRoleUsersResponse>(`/admin/access/roles/${roleId}/users`, {
 				method: 'POST',
 				body: { users }
 			}),

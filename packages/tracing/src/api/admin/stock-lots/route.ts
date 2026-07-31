@@ -37,7 +37,13 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateStockLotTy
 	const { result } = await createStockLotWorkflow(req.scope).run({
 		input: req.validatedBody
 	})
-	res.json({ stock_lot: result })
+	// The workflow returns the raw ORM entity (created via a direct service call, not
+	// query.graph), which also carries `initial_quantity`, `metadata`, and the standard
+	// Medusa soft-delete `deleted_at` column -- none of which are part of the admin
+	// contract (the GET routes never select them). Pick down to AdminStockLot's fields
+	// so the create response matches the same shape as every other stock-lot route.
+	const { id, inventory_item_id, stock_location_id, lot_number, description, enabled, stocked_quantity, created_at, updated_at } = result
+	res.json({ stock_lot: { id, inventory_item_id, stock_location_id, lot_number, description, enabled, stocked_quantity, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteStockLotsType>, res: MedusaResponse) => {

@@ -26,9 +26,13 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetOrderNotesType
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateOrderNoteType>, res: MedusaResponse) => {
 	const orderNoteService: OrderNoteService = req.scope.resolve(ORDER_NOTE_MODULE)
-	const order_note = await orderNoteService.createNote({
+	const { id, order_id, user_id, note, sent, metadata, created_at, updated_at } = await orderNoteService.createNote({
 		...req.validatedBody,
 		user_id: req.auth_context.actor_id
 	})
-	res.status(201).json({ order_note })
+	// Only the admin-facing fields are returned here -- the raw entity also carries
+	// `deleted_at` (soft-delete bookkeeping), which GET /admin/order-notes deliberately
+	// omits via its `defaults` list. Picking fields explicitly keeps this route's shape
+	// consistent with the list/detail contract instead of leaking an internal column.
+	res.status(201).json({ order_note: { id, order_id, user_id, note, sent, metadata, created_at, updated_at } })
 }

@@ -19,10 +19,39 @@
  *   npm run test:integration:http -- --testPathPattern=content
  */
 
+import fs from 'fs/promises'
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { Modules } from '@medusajs/framework/utils'
 import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
 import { ContentService } from '../../src/modules/content/service'
+import { TEST_UPLOAD_DIR } from './upload-dir'
+import {
+	AdminContentCollectionFieldResponseSchema,
+	AdminContentCollectionFieldsResponseSchema,
+	AdminContentCollectionRelationshipResponseSchema,
+	AdminContentCollectionRelationshipsResponseSchema,
+	AdminContentCollectionResponseSchema,
+	AdminContentCollectionsResponseSchema,
+	AdminContentCreatorActivityEntryResponseSchema,
+	AdminContentCreatorActivityResponseSchema,
+	AdminContentCreatorResponseSchema,
+	AdminContentCreatorsResponseSchema,
+	AdminContentItemActivityEntryResponseSchema,
+	AdminContentItemActivityResponseSchema,
+	AdminContentItemLinkResponseSchema,
+	AdminContentItemLinksResponseSchema,
+	AdminContentItemResponseSchema,
+	AdminContentItemsResponseSchema,
+	AdminContentItemTagResponseSchema,
+	AdminContentItemTagsResponseSchema,
+	AdminContentTagResponseSchema,
+	AdminContentTagsResponseSchema,
+	AdminContentUploadResponseSchema,
+	StoreContentCollectionResponseSchema,
+	StoreContentCollectionsResponseSchema,
+	StoreContentItemResponseSchema,
+	StoreContentItemsResponseSchema
+} from './response-contracts'
 
 jest.setTimeout(120 * 1000)
 jest.retryTimes(1)
@@ -68,6 +97,15 @@ medusaIntegrationTestRunner({
 				password: 'Sup3rSecret!'
 			})
 			adminToken = loginRes.data.token
+		})
+
+		// Broader net than any per-test cleanup: medusa-config.ts points the local
+		// file provider at TEST_UPLOAD_DIR (an OS temp dir) instead of the package's
+		// `static/` folder, so nothing should land here at all -- but the content
+		// collection upload route (tested below) writes files and cleans up nothing
+		// of its own, so this removes the whole directory as a backstop.
+		afterAll(async () => {
+			await fs.rm(TEST_UPLOAD_DIR, { recursive: true, force: true })
 		})
 
 		// ── Authentication ─────────────────────────────────────────────────────────
@@ -267,6 +305,9 @@ medusaIntegrationTestRunner({
 					slug: `temp-collection-${ts}`,
 					metadata: { icon: 'file' }
 				})
+				// Verifies AdminContentCollectionResponse -- same shape as GET /admin/content/:id,
+				// not the raw ORM entity (deleted_at, uninitialized relation proxies).
+				expect(() => AdminContentCollectionResponseSchema.parse(res.data)).not.toThrow()
 				await api
 					.delete('/admin/content', {
 						data: { ids: [res.data.content_collection.id] },
@@ -282,6 +323,8 @@ medusaIntegrationTestRunner({
 				expect(res.data.count).toBeGreaterThanOrEqual(2)
 				expect(res.data.limit).toBeGreaterThan(0)
 				expect(res.data.offset).toBe(0)
+				// Verifies AdminContentCollectionsResponse
+				expect(() => AdminContentCollectionsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/content filters by q', async () => {
@@ -300,6 +343,8 @@ medusaIntegrationTestRunner({
 				const res = await api.get(`/admin/content/${collectionId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_collection.id).toBe(collectionId)
+				// Verifies AdminContentCollectionResponse
+				expect(() => AdminContentCollectionResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/content/:id includes fields and relationships in response', async () => {
@@ -315,6 +360,8 @@ medusaIntegrationTestRunner({
 				const res = await api.post(`/admin/content/${collectionId2}`, { label: `Updated Label ${ts}` }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_collection.label).toBe(`Updated Label ${ts}`)
+				// Verifies AdminContentCollectionResponse
+				expect(() => AdminContentCollectionResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/content/:id deletes a single content collection', async () => {
@@ -383,6 +430,9 @@ medusaIntegrationTestRunner({
 						field_type: 'textarea',
 						required: false
 					})
+					// Verifies AdminContentCollectionFieldResponse -- same shape as GET
+					// .../fields/:fieldId, not the raw ORM entity (content_collection_id, deleted_at).
+					expect(() => AdminContentCollectionFieldResponseSchema.parse(res.data)).not.toThrow()
 					await api
 						.delete(`/admin/content/${collectionId}/fields`, {
 							data: { ids: [res.data.field.id] },
@@ -409,12 +459,16 @@ medusaIntegrationTestRunner({
 					expect(res.status).toBe(200)
 					expect(Array.isArray(res.data.fields)).toBe(true)
 					expect(res.data.fields.length).toBeGreaterThanOrEqual(1)
+					// Verifies AdminContentCollectionFieldsResponse
+					expect(() => AdminContentCollectionFieldsResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('GET .../fields/:fieldId retrieves a single field', async () => {
 					const res = await api.get(`/admin/content/${collectionId}/fields/${fieldId}`, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.field.id).toBe(fieldId)
+					// Verifies AdminContentCollectionFieldResponse
+					expect(() => AdminContentCollectionFieldResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('POST .../fields/:fieldId updates a field', async () => {
@@ -422,6 +476,8 @@ medusaIntegrationTestRunner({
 					expect(res.status).toBe(200)
 					expect(res.data.field.label).toBe('Updated Headline')
 					expect(res.data.field.sort_order).toBe(10)
+					// Verifies AdminContentCollectionFieldResponse
+					expect(() => AdminContentCollectionFieldResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('DELETE .../fields/:fieldId deletes a field', async () => {
@@ -486,6 +542,23 @@ medusaIntegrationTestRunner({
 				it('POST .../relationships creates a relationship', async () => {
 					expect(typeof relId).toBe('string')
 					expect(relId.length).toBeGreaterThan(0)
+
+					const res = await api.post(
+						`/admin/content/${sourceCollectionId}/relationships`,
+						{ target_collection_id: targetCollectionId, relationship_type: 'one_to_many' },
+						auth()
+					)
+					expect(res.status).toBe(200)
+					expect(res.data.relationship).toMatchObject({
+						id: expect.any(String),
+						source_collection: { id: sourceCollectionId },
+						target_collection: { id: targetCollectionId }
+					})
+					// Verifies AdminContentCollectionRelationshipResponse -- same shape as
+					// GET .../relationships/:relId, not the raw ORM entity (no nested
+					// source_collection/target_collection, and per the content_relationship ->
+					// content_collection FK trap, no auto-included FK scalars either).
+					expect(() => AdminContentCollectionRelationshipResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('GET .../relationships lists relationships including both sides', async () => {
@@ -495,6 +568,8 @@ medusaIntegrationTestRunner({
 					const rel = res.data.relationships.find((r: any) => r.id === relId)
 					expect(rel).toBeDefined()
 					expect(rel.relationship_type).toBe('many_to_many')
+					// Verifies AdminContentCollectionRelationshipsResponse
+					expect(() => AdminContentCollectionRelationshipsResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('GET .../relationships returns the relationship when queried from target side', async () => {
@@ -515,6 +590,8 @@ medusaIntegrationTestRunner({
 						source_collection: { id: sourceCollectionId },
 						target_collection: { id: targetCollectionId }
 					})
+					// Verifies AdminContentCollectionRelationshipResponse
+					expect(() => AdminContentCollectionRelationshipResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('DELETE .../relationships/:relId deletes a relationship', async () => {
@@ -590,6 +667,8 @@ medusaIntegrationTestRunner({
 					name: `Temp Creator ${ts}`,
 					bio: 'Temporary'
 				})
+				// Verifies AdminContentCreatorResponse
+				expect(() => AdminContentCreatorResponseSchema.parse(res.data)).not.toThrow()
 				await api
 					.delete('/admin/content-creators', {
 						data: { ids: [res.data.content_creator.id] },
@@ -605,6 +684,8 @@ medusaIntegrationTestRunner({
 				expect(res.data.count).toBeGreaterThanOrEqual(2)
 				expect(typeof res.data.limit).toBe('number')
 				expect(typeof res.data.offset).toBe('number')
+				// Verifies AdminContentCreatorsResponse
+				expect(() => AdminContentCreatorsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/content-creators filters by q', async () => {
@@ -618,12 +699,16 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.content_creator.id).toBe(creatorId)
 				expect(res.data.content_creator.bio).toBe('Writer')
+				// Verifies AdminContentCreatorResponse
+				expect(() => AdminContentCreatorResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/content-creators/:id updates a creator and auto-logs EDIT', async () => {
 				const res = await api.post(`/admin/content-creators/${creatorId}`, { bio: 'Updated bio' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_creator.bio).toBe('Updated bio')
+				// Verifies AdminContentCreatorResponse
+				expect(() => AdminContentCreatorResponseSchema.parse(res.data)).not.toThrow()
 
 				const actRes = await api.get(`/admin/content-creators/${creatorId}/activity`, auth())
 				expect(actRes.data.activity.some((a: any) => a.type === 'edit')).toBe(true)
@@ -661,6 +746,9 @@ medusaIntegrationTestRunner({
 						type: 'note',
 						note: 'Left a note on this creator'
 					})
+					// Verifies AdminContentCreatorActivityEntryResponse -- same per-entry shape as
+					// GET .../activity (user resolved via re-fetch, not the raw created entity).
+					expect(() => AdminContentCreatorActivityEntryResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('GET .../activity lists activity for a creator', async () => {
@@ -671,6 +759,8 @@ medusaIntegrationTestRunner({
 					expect(Array.isArray(res.data.activity)).toBe(true)
 					expect(res.data.count).toBeGreaterThan(0)
 					expect(typeof res.data.limit).toBe('number')
+					// Verifies AdminContentCreatorActivityResponse
+					expect(() => AdminContentCreatorActivityResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('GET .../activity includes user_id on entries', async () => {
@@ -733,6 +823,10 @@ medusaIntegrationTestRunner({
 				])
 				itemId = r1.data.content_item.id
 				itemId2 = r2.data.content_item.id
+				// Verifies AdminContentItemResponse on the create path (same shape as GET
+				// .../items/:itemId, not the raw ORM entity -- see task-4d-content-report.md).
+				expect(() => AdminContentItemResponseSchema.parse(r1.data)).not.toThrow()
+				expect(() => AdminContentItemResponseSchema.parse(r2.data)).not.toThrow()
 				await seedSnapshot()
 			})
 
@@ -764,6 +858,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(Array.isArray(res.data.content_items)).toBe(true)
 				expect(res.data.count).toBeGreaterThanOrEqual(2)
+				// Verifies AdminContentItemsResponse
+				expect(() => AdminContentItemsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/content/:id/items filters by status', async () => {
@@ -799,12 +895,19 @@ medusaIntegrationTestRunner({
 					content_collection: { id: collectionId },
 					creator: { id: creatorId }
 				})
+				// Verifies AdminContentItemResponse, and that content_collection_id is
+				// actually returned -- EditContentItemDrawer reads it unguarded to build
+				// the update URL (see task-4c-content-report.md finding).
+				expect(res.data.content_item.content_collection_id).toBe(collectionId)
+				expect(() => AdminContentItemResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/content/:id/items/:itemId updates title', async () => {
 				const res = await api.post(`/admin/content/${collectionId}/items/${itemId}`, { title: 'Updated First Article' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_item.title).toBe('Updated First Article')
+				// Verifies AdminContentItemResponse
+				expect(() => AdminContentItemResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST .../items/:itemId auto-logs EDIT activity on update without status change', async () => {
@@ -904,6 +1007,9 @@ medusaIntegrationTestRunner({
 						type: 'note',
 						note: 'Reviewer comment here'
 					})
+					// Verifies AdminContentItemActivityEntryResponse -- same per-entry shape as
+					// GET .../activity (user resolved via re-fetch, not the raw created entity).
+					expect(() => AdminContentItemActivityEntryResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('GET .../activity lists activity for a content item', async () => {
@@ -913,6 +1019,8 @@ medusaIntegrationTestRunner({
 					expect(res.status).toBe(200)
 					expect(Array.isArray(res.data.activity)).toBe(true)
 					expect(res.data.count).toBeGreaterThan(0)
+					// Verifies AdminContentItemActivityResponse
+					expect(() => AdminContentItemActivityResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('GET .../activity includes user_id on entries', async () => {
@@ -981,6 +1089,10 @@ medusaIntegrationTestRunner({
 					expect(res.data.link).toMatchObject({
 						id: expect.any(String)
 					})
+					// Verifies AdminContentItemLinkResponse -- same per-link shape as the GET list
+					// route (re-fetched via query.graph, not the raw created entity's
+					// source_item_id/target_item_id/relationship_id scalars).
+					expect(() => AdminContentItemLinkResponseSchema.parse(res.data)).not.toThrow()
 					linkId = res.data.link.id
 				})
 
@@ -991,6 +1103,8 @@ medusaIntegrationTestRunner({
 					expect(res.status).toBe(200)
 					expect(Array.isArray(res.data.links)).toBe(true)
 					expect(res.data.links.length).toBeGreaterThanOrEqual(1)
+					// Verifies AdminContentItemLinksResponse
+					expect(() => AdminContentItemLinksResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('DELETE .../links/:linkId deletes a link', async () => {
@@ -1012,6 +1126,8 @@ medusaIntegrationTestRunner({
 						id: expect.any(String),
 						value: 'featured'
 					})
+					// Verifies AdminContentItemTagResponse (item-scoped -- no item_id per tag)
+					expect(() => AdminContentItemTagResponseSchema.parse(res.data)).not.toThrow()
 					tagId = res.data.tag.id
 				})
 
@@ -1023,6 +1139,8 @@ medusaIntegrationTestRunner({
 					expect(res.status).toBe(200)
 					expect(Array.isArray(res.data.tags)).toBe(true)
 					expect(res.data.tags.some((t: any) => t.id === seededTagId)).toBe(true)
+					// Verifies AdminContentItemTagsResponse (item-scoped -- no item_id per tag)
+					expect(() => AdminContentItemTagsResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('DELETE .../tags bulk removes tags from the item', async () => {
@@ -1091,6 +1209,8 @@ medusaIntegrationTestRunner({
 					id: expect.any(String),
 					value: `temp-tag-${ts}`
 				})
+				// Verifies AdminContentTagResponse (standalone -- includes item_id)
+				expect(() => AdminContentTagResponseSchema.parse(res.data)).not.toThrow()
 				await api
 					.delete('/admin/content-tags', {
 						data: { ids: [res.data.content_tag.id] },
@@ -1104,6 +1224,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(Array.isArray(res.data.content_tags)).toBe(true)
 				expect(res.data.count).toBeGreaterThanOrEqual(2)
+				// Verifies AdminContentTagsResponse (standalone -- includes item_id per tag)
+				expect(() => AdminContentTagsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/content-tags filters by item_id', async () => {
@@ -1122,12 +1244,16 @@ medusaIntegrationTestRunner({
 				const res = await api.get(`/admin/content-tags/${tagId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_tag.id).toBe(tagId)
+				// Verifies AdminContentTagResponse (standalone -- includes item_id)
+				expect(() => AdminContentTagResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/content-tags/:id updates a tag', async () => {
 				const res = await api.post(`/admin/content-tags/${tagId}`, { value: 'updated-tag-value' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.content_tag.value).toBe('updated-tag-value')
+				// Verifies AdminContentTagResponse
+				expect(() => AdminContentTagResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/content-tags/:id deletes a single tag', async () => {
@@ -1218,6 +1344,26 @@ medusaIntegrationTestRunner({
 					.catch((e: any) => e.response)
 				expect(res.status).toBe(400)
 			})
+
+			it('POST /admin/content/:id/upload uploads a file and returns file metadata', async () => {
+				const FormData = require('form-data')
+				const form = new FormData()
+				form.append('files', Buffer.from('fake-image-bytes'), {
+					filename: 'test.png',
+					contentType: 'image/png'
+				})
+				const res = await api.post(`/admin/content/${imgCollectionId}/upload`, form, {
+					...auth(),
+					headers: { ...auth().headers, ...form.getHeaders() }
+				})
+				expect(res.status).toBe(200)
+				expect(Array.isArray(res.data.files)).toBe(true)
+				expect(res.data.files.length).toBe(1)
+				expect(typeof res.data.files[0].url).toBe('string')
+				// Verifies AdminContentUploadResponse -- not a MedusaService entity, so no
+				// deleted_at/ORM-leak risk here (see response-contracts.ts doc comment).
+				expect(() => AdminContentUploadResponseSchema.parse(res.data)).not.toThrow()
+			})
 		})
 
 		// ── Public Content Routes ──────────────────────────────────────────────────
@@ -1282,6 +1428,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(Array.isArray(res.data.content_collections)).toBe(true)
 				expect(res.data.content_collections.length).toBeGreaterThanOrEqual(1)
+				// Verifies the store's content-collections list contract
+				expect(() => StoreContentCollectionsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /content filters by q', async () => {
@@ -1296,6 +1444,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.content_collection.slug).toBe(publicCollectionSlug)
 				expect(res.data.content_collection.label).toBe(`Public Collection ${ts}`)
+				// Verifies the store's content-collection detail contract
+				expect(() => StoreContentCollectionResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /content/:slug returns 404 for unknown slug', async () => {
@@ -1312,6 +1462,8 @@ medusaIntegrationTestRunner({
 				const slugs = res.data.content_items.map((i: any) => i.slug)
 				expect(slugs).toContain(publishedItemSlug)
 				expect(slugs).not.toContain(draftItemSlug)
+				// Verifies the store's content-items list contract
+				expect(() => StoreContentItemsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /content/:slug/items filters by q', async () => {
@@ -1331,6 +1483,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.content_item.slug).toBe(publishedItemSlug)
 				expect(res.data.content_item.body).toBe('<p>Published content</p>')
+				// Verifies the store's content-item detail contract
+				expect(() => StoreContentItemResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /content/:slug/items/:itemSlug returns 404 for draft item', async () => {
@@ -1425,6 +1579,7 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.content_item.body).toBe(MD_BODY)
 				expect(res.data.content_item.body_html).toBeUndefined()
+				expect(() => StoreContentItemResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('accepts ?render=html but does not render non-markdown formats (guard)', async () => {

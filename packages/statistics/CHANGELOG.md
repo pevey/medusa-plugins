@@ -1,3 +1,7 @@
+## 0.2.4
+
+- Fix admin display issue caused by expecting medusa-plugin-tracing to always be installed. Now, the widget checks first before attempting to render.
+
 ## 0.2.3
 
 - Fix a11y issues with create modal and edit drawer

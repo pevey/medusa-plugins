@@ -24,6 +24,7 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetComplaintType>
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateComplaintType>, res: MedusaResponse) => {
 	const complaintService: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { id } = req.params
 	const currentComplaint = await complaintService.retrieveComplaint(id)
 	const complaint = await complaintService.updateComplaints({
@@ -37,7 +38,39 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateComplaintT
 			await complaintService.addCloseEntry(id, req.auth_context.actor_id)
 		}
 	}
-	res.json({ complaint })
+
+	// See POST /admin/complaints -- `updateComplaints` returns the raw ORM entity,
+	// not the field-selected shape GET /admin/complaints/:id returns. Re-fetch
+	// through the same field selection so the update response matches it exactly.
+	const {
+		data: [updated]
+	} = await query.graph(
+		{
+			entity: 'complaint',
+			fields: [
+				'id',
+				'number',
+				'status',
+				'description',
+				'created_at',
+				'updated_at',
+				'customer_id',
+				'order_id',
+				'product_id',
+				'stock_lot_id',
+				'serial_number_id',
+				'actionable',
+				'reportable',
+				'tags.*',
+				'customer.*',
+				'order.*',
+				'product.*'
+			],
+			filters: { id }
+		},
+		{ throwIfKeyNotFound: true }
+	)
+	res.json({ complaint: updated })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {

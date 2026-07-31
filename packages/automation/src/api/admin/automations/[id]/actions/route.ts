@@ -20,7 +20,17 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 		order: { created_at: 'DESC' }
 	})
 
-	res.json({ actions, count, limit: limit ?? 20, offset: offset ?? 0 })
+	// Strip `deleted_at` (soft-delete internal) and the `trigger`/`query` relation stubs the
+	// list query happens to populate (as `{ id }`/`null`) but no other action route
+	// (create/update) returns — nothing in the admin UI reads `.trigger`/`.query` on an action.
+	// `trigger_id` (the scalar FK, not the relation) is kept: it's a real column present on
+	// every action route including create/update, unlike the relation stub.
+	const safe = actions.map((a: any) => {
+		const { deleted_at, trigger, query, ...rest } = a
+		return rest
+	})
+
+	res.json({ actions: safe, count, limit: limit ?? 20, offset: offset ?? 0 })
 }
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateAutomationActionType>, res: MedusaResponse) => {
@@ -49,10 +59,15 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateAutomation
 		)
 	}
 
-	const action = await automationService.createAutomationActions({
+	const created = await automationService.createAutomationActions({
 		...req.validatedBody,
 		trigger_id
 	} as any)
+	// Strip `deleted_at` (soft-delete internal) and `deliveries` — MikroORM auto-initializes
+	// the hasMany relation to `[]` on a freshly created entity, which the update/get/list
+	// routes never return, so leaving it in here would make this one route's response
+	// inconsistent with the rest.
+	const { deleted_at, deliveries, ...action } = created as any
 	res.json({ action })
 }
 

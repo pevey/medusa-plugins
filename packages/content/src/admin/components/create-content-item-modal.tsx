@@ -3,7 +3,7 @@ import { useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button, FocusModal, Heading, Input, Label, Text, toast } from '@medusajs/ui'
-import { AdminContentCollection } from '../types'
+import { AdminContentCollection, AdminContentUploadResponse } from '../types'
 import { useCreateContentItem } from '../hooks/content'
 import { sdk } from '../lib/sdk'
 import { ContentItemMetadataFields } from './content-item-metadata-fields'
@@ -85,7 +85,7 @@ export const CreateContentItemModal = ({ open, onOpenChange, contentCollection }
 			try {
 				const formData = new FormData()
 				formData.append('files', selectedFile)
-				const result = await sdk.client.fetch<{ files: { url: string; key: string }[] }>(`/admin/content/${contentCollection.id}/upload`, {
+				const result = await sdk.client.fetch<AdminContentUploadResponse>(`/admin/content/${contentCollection.id}/upload`, {
 					method: 'POST',
 					body: formData,
 					headers: { 'content-type': null }

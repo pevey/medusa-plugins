@@ -1,5 +1,4 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
-import { AdminRecalculateStatisticsType } from '../../../validators'
 import { STATISTICS_MODULE } from '../../../../modules/statistics'
 import { StatisticsService } from '../../../../modules/statistics/service'
 import { computeStatsForDay } from '../../../../jobs/update-statistics'
@@ -30,7 +29,7 @@ async function recalculateAll(req: AuthenticatedMedusaRequest) {
 	}
 }
 
-export const POST = async (req: AuthenticatedMedusaRequest<AdminRecalculateStatisticsType>, res: MedusaResponse) => {
+export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	await recalculateAll(req)
 	res.json({ success: true })
 }

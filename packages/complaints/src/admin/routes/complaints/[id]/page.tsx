@@ -113,7 +113,7 @@ const ComplaintDetailPage = () => {
 						Customer
 					</Text>
 					<Text size="small" leading="compact">
-						<Link to={`/customers/${complaint.customer_id}`}>{complaint.customer.email ?? '-'}</Link>
+						<Link to={`/customers/${complaint.customer_id}`}>{complaint.customer?.email ?? '-'}</Link>
 					</Text>
 				</div>
 				<div className="text-ui-fg-subtle grid grid-cols-2 items-center px-6 py-4">

@@ -4,7 +4,7 @@ import { syncDeliveryMethodToVeeqoWorkflow } from '../../../../../../workflows/d
 // one-way sync of a delivery method from medusa to veeqo
 export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const { shippingOptionId } = req.params
-	const result = await syncDeliveryMethodToVeeqoWorkflow(req.scope).run({
+	const { result } = await syncDeliveryMethodToVeeqoWorkflow(req.scope).run({
 		input: shippingOptionId
 	})
 	if (result) {

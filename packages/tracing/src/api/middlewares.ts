@@ -82,7 +82,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(createFindParams(), {
-				defaults: ['id', 'value', 'order_id', 'created_at', 'updated_at'],
+				defaults: ['id', 'stock_lot_id', 'order_id', 'value', 'invalidated', 'created_at', 'updated_at'],
 				isList: true,
 				defaultLimit: 10
 			})
@@ -114,7 +114,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetSerialNumber, {
-				defaults: ['id', 'stock_lot_id', 'order_id', 'value', 'invalidated', 'created_at', 'updated_at', 'stock_lot.*', 'order.*'],
+				defaults: ['id', 'stock_lot_id', 'order_id', 'value', 'invalidated', 'created_at', 'updated_at'],
 				isList: false
 			})
 		]

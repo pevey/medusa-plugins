@@ -18,8 +18,11 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 		order: { created_at: 'DESC' }
 	})
 
+	// Strip the raw ORM entity's internal-only columns before returning: `deleted_at` is a
+	// soft-delete implementation detail with no admin-facing meaning here (this module never
+	// exposes restore), and `trigger_signing_key` is swapped for the `has_signing_key` flag.
 	const safe = triggers.map((t: any) => {
-		const { trigger_signing_key, ...rest } = t
+		const { trigger_signing_key, deleted_at, ...rest } = t
 		return { ...rest, has_signing_key: Boolean(trigger_signing_key) }
 	})
 
@@ -33,8 +36,12 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateAutomation
 		body.trigger_signing_key = automationService.encryptSecret(body.trigger_signing_key)
 	}
 	const trigger = await automationService.createAutomationTriggers(body as any)
-	// Never echo the signing key back, even ciphertext — expose only presence.
-	const { trigger_signing_key, ...safe } = trigger as any
+	// Never echo the signing key back, even ciphertext — expose only presence. Also strip
+	// `deleted_at` (soft-delete internal) and the `actions`/`receipts` hasMany relations —
+	// MikroORM auto-initializes them to `[]` on a freshly created entity, which every other
+	// trigger route (list/get/update) never returns, so leaving them in here would make this
+	// one route's response shape inconsistent with the rest.
+	const { trigger_signing_key, deleted_at, actions, receipts, ...safe } = trigger as any
 	res.json({ trigger: { ...safe, has_signing_key: Boolean(trigger_signing_key) } })
 }
 

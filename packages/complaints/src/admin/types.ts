@@ -11,17 +11,6 @@ export type AdminComplaintTag = {
 	updated_at: string
 }
 
-export type AdminComplaintHistory = {
-	id: string
-	created_at: string
-	type: string
-	user_id: string
-	user: AdminUser
-	data: Record<string, unknown>
-	complaint_id: string
-	complaint: AdminComplaint
-}
-
 export type ComplaintStatus = 'open' | 'closed'
 
 export type ComplaintActivityType = 'open' | 'close' | 'note'
@@ -31,16 +20,16 @@ export type AdminComplaintActivity = {
 	complaint_id: string
 	user_id: string
 	type: ComplaintActivityType
-	note?: string
-	metadata?: Record<string, unknown>
+	note?: string | null
+	metadata?: Record<string, unknown> | null
 	created_at: string
 	updated_at: string
 	user: AdminUser
 }
 
-export type AdminComplaintActivityResponse = {
+export type AdminComplaintActivityResponse = PaginatedResponse<{
 	activities: AdminComplaintActivity[]
-}
+}>
 
 export type AdminComplaintDocument = {
 	id: string
@@ -71,17 +60,26 @@ export type AdminComplaint = {
 	number: number
 	status: ComplaintStatus
 	description: string
+	created_at: string
+	updated_at: string
 	customer_id: string
-	customer: AdminCustomer
+	// Optional: the customer/order/product links are `readOnly` module links keyed
+	// on a plain text id field with no FK enforcement (see complaints.spec.ts's
+	// top-of-file note). If the id doesn't resolve to a live record -- customer
+	// deleted after the complaint was filed, or simply never existed -- the graph
+	// query omits the relation key entirely rather than returning a stub, so admin
+	// views must not assume these are always present.
+	customer?: AdminCustomer
 	order_id: string | null
-	order: AdminOrder | null
+	order?: AdminOrder | null
 	product_id: string | null
-	product: AdminProduct | null
+	product?: AdminProduct | null
+	stock_lot_id: string | null
+	serial_number_id: string | null
 	actionable: boolean
 	reportable: boolean
 	metadata?: Record<string, unknown> | null
 	tags?: AdminComplaintTag[]
-	history: AdminComplaintHistory[]
 }
 
 export type ComplaintProductStat = {

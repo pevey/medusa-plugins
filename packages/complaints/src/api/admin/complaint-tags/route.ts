@@ -24,8 +24,12 @@ export async function GET(req: AuthenticatedMedusaRequest<AdminGetComplaintTagsT
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateComplaintTagType>, res: MedusaResponse) => {
 	const complaintService: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)
-	const complaintTag = await complaintService.createComplaintTags(req.validatedBody)
-	res.json({ complaint_tag: complaintTag })
+	// `createComplaintTags` returns the raw ORM entity, which also carries the
+	// unresolved `complaints` many-to-many Collection proxy. Destructure down to
+	// AdminComplaintTag's fields so the create response matches
+	// GET /admin/complaint-tags/:id's shape.
+	const { id, value, created_at, updated_at } = await complaintService.createComplaintTags(req.validatedBody)
+	res.json({ complaint_tag: { id, value, created_at, updated_at } })
 }
 
 export async function DELETE(req: AuthenticatedMedusaRequest<AdminDeleteComplaintTagsType>, res: MedusaResponse) {

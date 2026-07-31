@@ -29,7 +29,10 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateSerialNumb
 		id,
 		...req.validatedBody
 	})
-	res.json({ serial_number: serialNumber })
+	// See the POST /admin/serial-numbers handler: updateSerialNumbers returns the raw ORM
+	// entity (metadata/deleted_at included), so pick down to AdminSerialNumber's fields.
+	const { id: serialNumberId, stock_lot_id, order_id, value, invalidated, created_at, updated_at } = serialNumber
+	res.json({ serial_number: { id: serialNumberId, stock_lot_id, order_id, value, invalidated, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {

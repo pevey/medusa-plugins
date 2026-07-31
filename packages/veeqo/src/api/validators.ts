@@ -1,4 +1,5 @@
 import { z } from '@medusajs/framework/zod'
+import { SourceType } from '../modules/veeqo/models/veeqo-order'
 
 export const AdminSyncCustomerToVeeqo = z.object({
 	customer_ids: z.array(z.string()).min(1, 'At least one Customer ID is required')
@@ -29,3 +30,15 @@ export const AdminSyncStockLocationsToVeeqo = z.object({
 	stock_location_ids: z.array(z.string()).min(1, 'At least one Stock Location ID is required')
 })
 export type AdminSyncStockLocationsToVeeqoType = z.infer<typeof AdminSyncStockLocationsToVeeqo>
+
+export const AdminSyncSourceToVeeqo = z
+	.object({
+		source_type: z.enum(SourceType),
+		source_id: z.string().min(1, 'source_id is required'),
+		order_id: z.string().optional()
+	})
+	.refine(data => data.source_type === SourceType.ORDER_PLACED || Boolean(data.order_id), {
+		message: 'order_id is required when source_type is claim or exchange',
+		path: ['order_id']
+	})
+export type AdminSyncSourceToVeeqoType = z.infer<typeof AdminSyncSourceToVeeqo>

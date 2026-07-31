@@ -19,6 +19,20 @@ import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
 import http from 'http'
 import { AddressInfo } from 'net'
 import { createHmac } from 'crypto'
+import {
+	ActionResponseSchema,
+	ActionsResponseSchema,
+	AutomationQueryResponseSchema,
+	CreateSecretResponseSchema,
+	DeleteQueryResponseSchema,
+	DeleteResponseSchema,
+	DeliveriesResponseSchema,
+	ReceiptsResponseSchema,
+	RetryDeliveriesResponseSchema,
+	SecretsListResponseSchema,
+	TriggerResponseSchema,
+	TriggersResponseSchema
+} from './response-contracts'
 
 jest.setTimeout(120 * 1000)
 // The BullMQ workflow engine emits a transient "Connection is closed" rejection
@@ -181,6 +195,8 @@ medusaIntegrationTestRunner({
 					trigger_type: 'incoming_webhook',
 					is_active: true
 				})
+				// Verifies AutomationTrigger / TriggerResponse (src/admin/types.ts)
+				expect(() => TriggerResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('creates a medusa_event trigger', async () => {
@@ -197,6 +213,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.trigger.trigger_type).toBe('medusa_event')
 				expect(res.data.trigger.trigger_events).toContain('customer.created')
+				// Verifies AutomationTrigger / TriggerResponse, esp. a populated trigger_events array
+				expect(() => TriggerResponseSchema.parse(res.data)).not.toThrow()
 				// Note: intentionally not deleting here — the trigger persists but does not
 				// affect other tests (each describe block creates its own triggers).
 			})
@@ -206,12 +224,18 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(Array.isArray(res.data.triggers)).toBe(true)
 				expect(res.data.count).toBeGreaterThan(0)
+				// Verifies TriggersResponse (src/admin/types.ts)
+				expect(() => TriggersResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('gets trigger by id', async () => {
 				const res = await api.get(`/admin/automations/${triggerId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.trigger.id).toBe(triggerId)
+				// Verifies TriggerResponse (src/admin/types.ts) — this route has no queryConfig,
+				// the handler hand-builds the response by stripping trigger_signing_key and
+				// deleted_at and adding has_signing_key.
+				expect(() => TriggerResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('updates trigger', async () => {
@@ -219,12 +243,16 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.trigger.description).toBe('Updated via test')
 				expect(res.data.trigger.is_active).toBe(false)
+				// Verifies TriggerResponse (src/admin/types.ts)
+				expect(() => TriggerResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('deletes trigger', async () => {
 				const res = await api.delete(`/admin/automations/${triggerId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toContain(triggerId)
+				// Verifies DeleteResponse (src/admin/types.ts)
+				expect(() => DeleteResponseSchema.parse(res.data)).not.toThrow()
 			})
 		})
 
@@ -275,6 +303,8 @@ medusaIntegrationTestRunner({
 					is_active: true
 				})
 				expect(res.data.action.field_mappings).toHaveLength(1)
+				// Verifies AutomationAction / ActionResponse (src/admin/types.ts)
+				expect(() => ActionResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('lists actions for trigger', async () => {
@@ -282,6 +312,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.actions).toHaveLength(1)
 				expect(res.data.actions[0].id).toBe(actionId)
+				// Verifies ActionsResponse (src/admin/types.ts)
+				expect(() => ActionsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('updates action', async () => {
@@ -298,11 +330,20 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.action.name).toBe('Renamed Action')
 				expect(res.data.action.is_active).toBe(false)
+				// Verifies ActionResponse (src/admin/types.ts)
+				expect(() => ActionResponseSchema.parse(res.data)).not.toThrow()
+
+				const getRes = await api.get(`/admin/automations/${triggerId}/actions/${actionId}`, auth())
+				// Verifies ActionResponse (src/admin/types.ts) — this route has no queryConfig,
+				// the handler hand-builds the response by stripping deleted_at/trigger/query.
+				expect(() => ActionResponseSchema.parse(getRes.data)).not.toThrow()
 			})
 
 			it('deletes action', async () => {
 				const res = await api.delete(`/admin/automations/${triggerId}/actions/${actionId}`, auth())
 				expect(res.status).toBe(200)
+				// Verifies DeleteResponse (src/admin/types.ts)
+				expect(() => DeleteResponseSchema.parse(res.data)).not.toThrow()
 
 				// Verify gone
 				const listRes = await api.get(`/admin/automations/${triggerId}/actions`, auth())
@@ -575,6 +616,8 @@ medusaIntegrationTestRunner({
 				const res = await api.get(queryUrl(), auth())
 				expect(res.status).toBe(200)
 				expect(res.data.query).toBeNull()
+				// Verifies AutomationQueryResponse (src/admin/types.ts)
+				expect(() => AutomationQueryResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('creates a query config', async () => {
@@ -591,6 +634,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.query).toMatchObject({ entity_name: 'customer', limit: 1 })
 				expect(res.data.query.fields).toContain('id')
+				// Verifies AutomationQueryResponse (src/admin/types.ts)
+				expect(() => AutomationQueryResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('upserts (updates) an existing query config', async () => {
@@ -598,6 +643,8 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(res.data.query.entity_name).toBe('order')
 				expect(res.data.query.limit).toBe(5)
+				// Verifies AutomationQueryResponse (src/admin/types.ts)
+				expect(() => AutomationQueryResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('clamps limit to 100', async () => {
@@ -606,7 +653,10 @@ medusaIntegrationTestRunner({
 			})
 
 			it('deletes the query config', async () => {
-				await api.delete(queryUrl(), auth())
+				const delRes = await api.delete(queryUrl(), auth())
+				// Verifies DeleteQueryResponse (src/admin/types.ts) — `{ deleted: boolean }`,
+				// distinct from the trigger/action/secret delete routes' `{ deleted: string[] }`.
+				expect(() => DeleteQueryResponseSchema.parse(delRes.data)).not.toThrow()
 				const res = await api.get(queryUrl(), auth())
 				expect(res.data.query).toBeNull()
 			})
@@ -1017,6 +1067,18 @@ medusaIntegrationTestRunner({
 				expect(delRes.status).toBe(200)
 				expect(delRes.data.deliveries.length).toBeGreaterThan(0)
 				expect(delRes.data.deliveries[0].status).toBe('success')
+				// Verifies DeliveriesResponse (src/admin/types.ts)
+				expect(() => DeliveriesResponseSchema.parse(delRes.data)).not.toThrow()
+
+				const retryRes = await api.post(
+					`/admin/automations/${triggerId}/actions/${actionId}/deliveries/retry`,
+					{ delivery_ids: [delRes.data.deliveries[0].id] },
+					auth()
+				)
+				expect(retryRes.status).toBe(200)
+				expect(retryRes.data.retried).toBe(1)
+				// Verifies RetryDeliveriesResponse (src/admin/types.ts)
+				expect(() => RetryDeliveriesResponseSchema.parse(retryRes.data)).not.toThrow()
 			})
 
 			it('creates a FAILED delivery record when target URL is unreachable', async () => {
@@ -1044,6 +1106,9 @@ medusaIntegrationTestRunner({
 					status: 'failed',
 					id: expect.any(String)
 				})
+				// Verifies DeliveriesResponse (src/admin/types.ts), esp. a failed delivery's
+				// nullable response_status/response_body and a populated error_message
+				expect(() => DeliveriesResponseSchema.parse(delRes.data)).not.toThrow()
 			})
 		})
 
@@ -1508,6 +1573,8 @@ medusaIntegrationTestRunner({
 				const res = await api.get(`/admin/automations/${triggerId}/receipts`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.receipts.length).toBeGreaterThan(0)
+				// Verifies ReceiptsResponse (src/admin/types.ts)
+				expect(() => ReceiptsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('does not log receipts when log_incoming is disabled', async () => {
@@ -1527,6 +1594,54 @@ medusaIntegrationTestRunner({
 
 				const res = await api.get(`/admin/automations/${noLogId}/receipts`, auth())
 				expect(res.data.receipts).toHaveLength(0)
+			})
+		})
+
+		// ── Secrets ─────────────────────────────────────────────────────────────
+
+		describe('Secrets', () => {
+			it('creates a secret and returns the plaintext value exactly once', async () => {
+				const res = await api.post('/admin/automations/secrets', { label: 'CRUD Test Secret' }, auth())
+				expect(res.status).toBe(200)
+				expect(res.data.secret).toMatchObject({ label: 'CRUD Test Secret' })
+				expect(typeof res.data.secret.secret).toBe('string')
+				expect(res.data.secret.secret.length).toBeGreaterThan(0)
+				// Verifies CreateSecretResponse (src/admin/types.ts) — the ONE route allowed to
+				// return the plaintext secret value; z.strictObject also means it can't leak
+				// anything beyond id/label/secret/created_at (e.g. the encrypted `secret` column
+				// stored on the entity, or `updated_at`/`deleted_at`).
+				expect(() => CreateSecretResponseSchema.parse(res.data)).not.toThrow()
+			})
+
+			it('lists secrets without ever leaking the secret value', async () => {
+				const created = await api.post('/admin/automations/secrets', { label: 'List Test Secret' }, auth())
+				const secretId = created.data.secret.id
+
+				const res = await api.get('/admin/automations/secrets', auth())
+				expect(res.status).toBe(200)
+				expect(res.data.secrets.some((s: any) => s.id === secretId)).toBe(true)
+				// SECURITY: the list route must never return the plaintext or encrypted secret value.
+				for (const s of res.data.secrets) {
+					expect(s).not.toHaveProperty('secret')
+				}
+				// Verifies SecretsListResponse (src/admin/types.ts) — z.strictObject makes the
+				// security check above load-bearing: AutomationSecretSchema has no `secret` field,
+				// so a route that started leaking it would fail this parse too.
+				expect(() => SecretsListResponseSchema.parse(res.data)).not.toThrow()
+			})
+
+			it('deletes a secret', async () => {
+				const created = await api.post('/admin/automations/secrets', { label: 'Delete Test Secret' }, auth())
+				const secretId = created.data.secret.id
+
+				const res = await api.delete(`/admin/automations/secrets/${secretId}`, auth())
+				expect(res.status).toBe(200)
+				expect(res.data.deleted).toContain(secretId)
+				// Verifies DeleteResponse (src/admin/types.ts)
+				expect(() => DeleteResponseSchema.parse(res.data)).not.toThrow()
+
+				const listRes = await api.get('/admin/automations/secrets', auth())
+				expect(listRes.data.secrets.some((s: any) => s.id === secretId)).toBe(false)
 			})
 		})
 	}

@@ -7,7 +7,7 @@ import { dispatchAndRecord } from '../../../../../../../../lib/dispatch'
 export const POST = async (req: AuthenticatedMedusaRequest<AdminRetryAutomationDeliveriesType>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { actionId } = req.params
-	const { delivery_ids, status, since, until } = req.body
+	const { delivery_ids, status, since, until } = req.validatedBody
 
 	// Fetch the action to dispatch against
 	const [action] = await automationService.listAutomationActions({ id: actionId }, { take: 1 })

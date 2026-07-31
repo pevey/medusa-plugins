@@ -25,8 +25,15 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminAddContentTagType>, res: MedusaResponse) => {
 	const { itemId: item_id } = req.params
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
-	const tag = await contentService.createContentTags({ item_id, ...req.validatedBody })
-	res.json({ tag })
+	const created = await contentService.createContentTags({ item_id, ...req.validatedBody })
+
+	// `createContentTags` returns the raw ORM entity (`item_id`, `deleted_at` included).
+	// The item-scoped GET route never selects `item_id` -- the item is already the resource
+	// being scoped to (see AdminContentTag vs. AdminContentTagWithItem in types.ts).
+	// Destructure down to the same flat selection the GET route uses -- no relations
+	// involved, so no re-fetch needed.
+	const { id, value, metadata, created_at, updated_at } = created
+	res.json({ tag: { id, value, metadata, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest<AdminRemoveContentTagsType>, res: MedusaResponse) => {

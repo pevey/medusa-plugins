@@ -31,7 +31,11 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetSerialNumbersT
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateSerialNumberType>, res: MedusaResponse) => {
 	const tracingService: TracingService = req.scope.resolve(TRACING_MODULE)
 	const serialNumber = await tracingService.createSerialNumbers(req.validatedBody)
-	res.json({ serial_number: serialNumber })
+	// createSerialNumbers returns the raw ORM entity (metadata/deleted_at included), which
+	// isn't part of the admin contract (no GET route ever selects them). Pick down to
+	// AdminSerialNumber's fields so the create response matches the GET shape.
+	const { id, stock_lot_id, order_id, value, invalidated, created_at, updated_at } = serialNumber
+	res.json({ serial_number: { id, stock_lot_id, order_id, value, invalidated, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteSerialNumbersType>, res: MedusaResponse) => {

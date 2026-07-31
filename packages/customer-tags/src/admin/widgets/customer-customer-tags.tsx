@@ -4,7 +4,7 @@ import { Container, Heading, Text, Button, Badge, Select, toast } from '@medusaj
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { sdk } from '../lib/sdk'
-import { AdminCustomerTagsResponse, CustomerWithTags } from '../types'
+import { AdminAddCustomerTagResponse, AdminCustomerTagsResponse, AdminRemoveCustomerTagResponse, CustomerWithTags } from '../types'
 
 export const config = defineWidgetConfig({
 	zone: 'customer.details.before'
@@ -31,7 +31,9 @@ const CustomerTagsWidget = ({ data: customer }: DetailWidgetProps<AdminCustomer>
 	}>({
 		queryFn: () =>
 			sdk.client.fetch(`/admin/customers/${customer.id}`, {
-				query: { fields: '+customer_tags.*' }
+				// Only `id`/`value` are rendered below -- requesting `+customer_tags.*` would
+				// also pull `metadata`/`deleted_at` over the wire for no reason.
+				query: { fields: '+customer_tags.id,+customer_tags.value' }
 			}),
 		queryKey: ['customer', customer.id, 'tags']
 	})
@@ -41,7 +43,7 @@ const CustomerTagsWidget = ({ data: customer }: DetailWidgetProps<AdminCustomer>
 	// Mutation: add a tag to the customer
 	const { mutate: addTag, isPending: isAdding } = useMutation({
 		mutationFn: (tagId: string) =>
-			sdk.client.fetch(`/admin/customers/${customer.id}/customer-tags`, {
+			sdk.client.fetch<AdminAddCustomerTagResponse>(`/admin/customers/${customer.id}/customer-tags`, {
 				method: 'POST',
 				body: { tag_id: tagId }
 			}),
@@ -61,7 +63,7 @@ const CustomerTagsWidget = ({ data: customer }: DetailWidgetProps<AdminCustomer>
 	// Mutation: remove a tag from the customer
 	const { mutate: removeTag } = useMutation({
 		mutationFn: (tagId: string) =>
-			sdk.client.fetch(`/admin/customers/${customer.id}/customer-tags/${tagId}`, {
+			sdk.client.fetch<AdminRemoveCustomerTagResponse>(`/admin/customers/${customer.id}/customer-tags/${tagId}`, {
 				method: 'DELETE'
 			}),
 		onSuccess: () => {

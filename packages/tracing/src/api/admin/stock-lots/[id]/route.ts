@@ -32,7 +32,10 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateStockLotTy
 		}
 	})
 
-	res.json({ stock_lot: result })
+	// See the POST /admin/stock-lots handler: the workflow returns the raw ORM entity
+	// (initial_quantity/metadata/deleted_at included), so pick down to AdminStockLot's fields.
+	const { id: lotId, inventory_item_id, stock_location_id, lot_number, description, enabled, stocked_quantity, created_at, updated_at } = result
+	res.json({ stock_lot: { id: lotId, inventory_item_id, stock_location_id, lot_number, description, enabled, stocked_quantity, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
@@ -44,5 +47,8 @@ export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaRespons
 		}
 	})
 
-	res.json({ stock_lot: result })
+	// See the POST /admin/stock-lots handler: the workflow returns the raw ORM entity
+	// (initial_quantity/metadata/deleted_at included), so pick down to AdminStockLot's fields.
+	const { id: lotId, inventory_item_id, stock_location_id, lot_number, description, enabled, stocked_quantity, created_at, updated_at } = result
+	res.json({ stock_lot: { id: lotId, inventory_item_id, stock_location_id, lot_number, description, enabled, stocked_quantity, created_at, updated_at } })
 }

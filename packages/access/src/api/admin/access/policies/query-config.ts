@@ -22,7 +22,16 @@ export const listTransformQueryConfig = {
 	isList: true
 }
 
-export const defaultAdminAccessPolicyRolesFields = ['id', 'role.id', 'role.name', 'role.description', 'role.created_at', 'role.updated_at', 'role.users.id']
+export const defaultAdminAccessPolicyRolesFields = [
+	'id',
+	'role.id',
+	'role.name',
+	'role.description',
+	'role.created_at',
+	'role.updated_at',
+	'role.deleted_at',
+	'role.users.id'
+]
 
 export const listAccessPolicyRolesTransformQueryConfig = {
 	defaults: defaultAdminAccessPolicyRolesFields,

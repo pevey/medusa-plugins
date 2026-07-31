@@ -18,6 +18,14 @@
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { Modules } from '@medusajs/framework/utils'
 import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
+import {
+	AdminAddCustomerTagResponseSchema,
+	AdminCustomerTagResponseSchema,
+	AdminCustomerTagsResponseSchema,
+	AdminCustomerWithTagsResponseSchema,
+	AdminDeleteCustomerTagsResponseSchema,
+	AdminRemoveCustomerTagResponseSchema
+} from './response-contracts'
 
 jest.setTimeout(120 * 1000)
 jest.retryTimes(1)
@@ -144,6 +152,10 @@ medusaIntegrationTestRunner({
 					id: expect.any(String),
 					value: `temp-${ts}`
 				})
+				// Verifies AdminCustomerTagResponse (src/admin/types.ts) -- the create route
+				// re-fetches through the same query.graph selection GET uses, so it no longer
+				// leaks `metadata`/`deleted_at` from the raw persisted entity.
+				expect(() => AdminCustomerTagResponseSchema.parse(res.data)).not.toThrow()
 				await api
 					.delete('/admin/customer-tags', {
 						data: { ids: [res.data.customer_tag.id] },
@@ -159,6 +171,8 @@ medusaIntegrationTestRunner({
 				expect(res.data.count).toBeGreaterThanOrEqual(2)
 				expect(res.data.limit).toBeGreaterThan(0)
 				expect(res.data.offset).toBe(0)
+				// Verifies AdminCustomerTagsResponse (src/admin/types.ts)
+				expect(() => AdminCustomerTagsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/customer-tags filters by q', async () => {
@@ -171,6 +185,8 @@ medusaIntegrationTestRunner({
 				const res = await api.get(`/admin/customer-tags/${tagId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.customer_tag.id).toBe(tagId)
+				// Verifies AdminCustomerTagResponse (src/admin/types.ts)
+				expect(() => AdminCustomerTagResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/customer-tags/:id updates a tag', async () => {
@@ -181,6 +197,10 @@ medusaIntegrationTestRunner({
 					id: tagId,
 					value: `vip-updated-${ts}`
 				})
+				// Verifies AdminCustomerTagResponse (src/admin/types.ts) -- the update route
+				// re-fetches through the same query.graph selection GET uses, so it no longer
+				// leaks `metadata`/`deleted_at` from the raw updated entity.
+				expect(() => AdminCustomerTagResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/customer-tags/:id deletes a single tag', async () => {
@@ -191,6 +211,8 @@ medusaIntegrationTestRunner({
 				const res = await api.delete(`/admin/customer-tags/${id}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toContain(id)
+				// Verifies AdminDeleteCustomerTagsResponse (src/admin/types.ts)
+				expect(() => AdminDeleteCustomerTagsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/customer-tags bulk deletes tags', async () => {
@@ -204,6 +226,8 @@ medusaIntegrationTestRunner({
 				const res = await api.delete('/admin/customer-tags', { data: { ids }, ...auth() })
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toEqual(expect.arrayContaining(ids))
+				// Verifies AdminDeleteCustomerTagsResponse (src/admin/types.ts)
+				expect(() => AdminDeleteCustomerTagsResponseSchema.parse(res.data)).not.toThrow()
 			})
 		})
 
@@ -243,23 +267,33 @@ medusaIntegrationTestRunner({
 				const res = await api.post(`/admin/customers/${customerId}/customer-tags`, { tag_id: tagId }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data).toMatchObject({ customer_id: customerId, tag: tagId })
+				// Verifies AdminAddCustomerTagResponse (src/admin/types.ts) -- called by both the
+				// customer and order widgets' "add tag" mutation.
+				expect(() => AdminAddCustomerTagResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/customers/:id/customer-tags links a tag by tag', async () => {
 				const res = await api.post(`/admin/customers/${customerId}/customer-tags`, { tag: tagId2 }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data).toMatchObject({ customer_id: customerId, tag: tagId2 })
+				// Verifies AdminAddCustomerTagResponse (src/admin/types.ts)
+				expect(() => AdminAddCustomerTagResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('linked tags appear when querying the customer with customer_tags field', async () => {
 				// Per-test DB restore isolates tests, so create the links within this test
 				await api.post(`/admin/customers/${customerId}/customer-tags`, { tag_id: tagId }, auth())
 				await api.post(`/admin/customers/${customerId}/customer-tags`, { tag: tagId2 }, auth())
+				// Matches the field selector the customer widget actually uses
+				// (src/admin/widgets/customer-customer-tags.tsx) -- `id`/`value` only, not `.*`.
 				const res = await api.get(`/admin/customers/${customerId}?fields=+customer_tags.id,+customer_tags.value`, auth())
 				expect(res.status).toBe(200)
 				const tagIds = (res.data.customer.customer_tags ?? []).map((t: any) => t.id)
 				expect(tagIds).toContain(tagId)
 				expect(tagIds).toContain(tagId2)
+				// Verifies CustomerWithTags (src/admin/types.ts), the type both the customer and
+				// order widgets read `associatedTags` off of.
+				expect(() => AdminCustomerWithTagsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/customers/:id/customer-tags/:tagId removes a tag link', async () => {
@@ -273,6 +307,9 @@ medusaIntegrationTestRunner({
 					tag_id: tagId,
 					deleted: true
 				})
+				// Verifies AdminRemoveCustomerTagResponse (src/admin/types.ts) -- called by both
+				// the customer and order widgets' "remove tag" mutation.
+				expect(() => AdminRemoveCustomerTagResponseSchema.parse(res.data)).not.toThrow()
 
 				// Confirm the tag is no longer linked
 				const check = await api.get(`/admin/customers/${customerId}?fields=+customer_tags.id`, auth())

@@ -27,7 +27,7 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminRenderBarcodeType
 }
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminRenderBarcodeType>, res: MedusaResponse) => {
-	let options = req.body
+	let options = req.validatedBody
 	console.log(options)
 
 	const barcodeService = req.scope.resolve(BARCODE_MODULE) as BarcodeService

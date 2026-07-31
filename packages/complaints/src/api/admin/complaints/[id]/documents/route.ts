@@ -44,5 +44,10 @@ export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse)
 		}
 	})
 
-	res.json({ document: result[0] })
+	// The workflow step returns the raw ORM entity (via createComplaintDocuments),
+	// which also carries `file_key` (an internal storage key never exposed to the
+	// admin dashboard), `updated_at`, and `deleted_at`. Destructure down to
+	// AdminComplaintDocument's fields so this matches GET .../documents' shape.
+	const { id: documentId, complaint_id, filename, mime_type, size_bytes, uploaded_by, created_at } = result[0]
+	res.json({ document: { id: documentId, complaint_id, filename, mime_type, size_bytes, uploaded_by, created_at } })
 }

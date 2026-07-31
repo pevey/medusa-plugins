@@ -1,4 +1,5 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
+import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { COMPLAINT_MODULE } from '../../../../../../modules/complaint'
 import { ComplaintService } from '../../../../../../modules/complaint/service'
 import { AdminUpdateComplaintActivityType, AdminGetComplaintActivityType } from '../../../../../validators'
@@ -23,12 +24,27 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetComplaintActiv
 export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateComplaintActivityType>, res: MedusaResponse) => {
 	const { id: complaintId, entryId } = req.params
 	const complaintService: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)
-	const activity = await complaintService.updateComplaintActivities({
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+	const updated = await complaintService.updateComplaintActivities({
 		id: entryId,
 		complaint_id: complaintId,
 		user_id: req.auth_context?.actor_id,
 		...req.validatedBody
 	})
+
+	// See POST /admin/complaints/:id/activities -- `updateComplaintActivities`
+	// returns the raw ORM entity, so re-fetch through the same field selection
+	// GET .../activities uses.
+	const {
+		data: [activity]
+	} = await query.graph(
+		{
+			entity: 'complaint_activity',
+			fields: ['id', 'complaint_id', 'user_id', 'type', 'note', 'metadata', 'created_at', 'updated_at', 'user.*'],
+			filters: { id: updated.id }
+		},
+		{ throwIfKeyNotFound: true }
+	)
 	res.json({ activity })
 }
 

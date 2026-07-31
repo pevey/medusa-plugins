@@ -3,12 +3,20 @@ import { AUTOMATION_MODULE } from '../../../../../../../modules/automation'
 import { AutomationService } from '../../../../../../../modules/automation/service'
 import { AdminUpsertAutomationQueryType } from '../../../../../../validators'
 
+// Strip `deleted_at` (soft-delete internal) and the `action` relation stub — nothing in the
+// admin UI reads `.action` on a query config; `action_id` (the scalar FK) is kept.
+function toSafeQuery(q: any): any {
+	if (!q) return null
+	const { deleted_at, action, ...rest } = q
+	return rest
+}
+
 export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaResponse) => {
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { actionId } = req.params
 
 	const queries = await automationService.listAutomationQueries({ action_id: actionId }, { take: 1 })
-	res.json({ query: queries[0] ?? null })
+	res.json({ query: toSafeQuery(queries[0]) })
 }
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminUpsertAutomationQueryType>, res: MedusaResponse) => {
@@ -35,7 +43,7 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpsertAutomation
 		} as any)
 	}
 
-	res.json({ query })
+	res.json({ query: toSafeQuery(query) })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest<never>, res: MedusaResponse) => {

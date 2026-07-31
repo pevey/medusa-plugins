@@ -2,11 +2,16 @@ export type AdminRubric = {
 	id: string
 	name: string
 	label: string
-	description?: string | null
+	// Nullable, but always requested by both the list and detail middleware
+	// `defaults` -- never actually absent from a response.
+	description: string | null
+	// Only requested by the detail route's `defaults`; genuinely absent on list
+	// responses, so this one stays optional.
 	expected_properties?: Record<string, unknown> | null
 	active: boolean
-	created_at?: string
-	updated_at?: string
+	// Always requested by both the list and detail middleware `defaults`.
+	created_at: string
+	updated_at: string
 }
 
 export type AdminRubricsResponse = {
@@ -24,12 +29,14 @@ export type AdminFunnel = {
 	id: string
 	name: string
 	label: string
-	description?: string | null
+	// Nullable, but always requested by both the list and detail middleware
+	// `defaults` -- never actually absent from a response.
+	description: string | null
 	steps: string[]
-	sales_channel_id?: string | null
+	sales_channel_id: string | null
 	is_default: boolean
-	created_at?: string
-	updated_at?: string
+	created_at: string
+	updated_at: string
 }
 
 export type AdminFunnelsResponse = {
@@ -57,12 +64,14 @@ export type AdminFunnelQueryResponse = {
 export type AdminEvent = {
 	id: string
 	event: string
-	actor_id?: string | null
+	// Nullable, but always requested by the list route's `defaults` -- never
+	// actually absent from a response.
+	actor_id: string | null
 	source: 'storefront' | 'backend'
-	sales_channel_id?: string | null
-	properties?: Record<string, unknown> | null
+	sales_channel_id: string | null
+	properties: Record<string, unknown> | null
 	timestamp: string
-	created_at?: string
+	created_at: string
 }
 
 export type AdminEventsResponse = {

@@ -101,6 +101,8 @@ export default defineMiddlewares([
 					'product_id',
 					'stock_lot_id',
 					'serial_number_id',
+					'actionable',
+					'reportable',
 					'tags.*'
 				],
 				isList: true,
@@ -140,6 +142,8 @@ export default defineMiddlewares([
 					'product_id',
 					'stock_lot_id',
 					'serial_number_id',
+					'actionable',
+					'reportable',
 					'tags.*',
 					'customer.*',
 					'order.*',
@@ -241,7 +245,7 @@ export default defineMiddlewares([
 		method: ['GET'],
 		middlewares: [
 			validateAndTransformQuery(AdminGetComplaintProductStat, {
-				defaults: ['product_id', 'total_complaints', 'total_orders', 'complaint_rate', 'last_calculated_at'],
+				defaults: ['id', 'product_id', 'total_complaints', 'total_orders', 'complaint_rate', 'last_calculated_at'],
 				isList: false
 			})
 		]

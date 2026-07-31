@@ -25,8 +25,12 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentTagType
 export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateContentTagType>, res: MedusaResponse) => {
 	const { id } = req.params
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
-	const content_tag = await contentService.updateContentTags({ id, ...req.validatedBody })
-	res.json({ content_tag })
+	const updated = await contentService.updateContentTags({ id, ...req.validatedBody })
+
+	// See POST /admin/content-tags -- destructure down to the same flat selection both
+	// standalone GET routes use.
+	const { id: tagId, value, item_id, metadata, created_at, updated_at } = updated
+	res.json({ content_tag: { id: tagId, value, item_id, metadata, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {

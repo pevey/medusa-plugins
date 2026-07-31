@@ -26,8 +26,14 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentCreator
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateContentCreatorType>, res: MedusaResponse) => {
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
-	const content_creator = await contentService.createContentCreators(req.validatedBody)
-	res.json({ content_creator })
+	const created = await contentService.createContentCreators(req.validatedBody)
+
+	// `createContentCreators` returns the raw ORM entity (`deleted_at`, uninitialized hasMany
+	// Collection proxies for `items`/`activity`). Destructure down to the same flat
+	// selection both GET routes use -- we never touch the Collection proxies, so no
+	// re-fetch is needed here.
+	const { id, name, bio, avatar_url, metadata, created_at, updated_at } = created
+	res.json({ content_creator: { id, name, bio, avatar_url, metadata, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteContentCreatorsType>, res: MedusaResponse) => {

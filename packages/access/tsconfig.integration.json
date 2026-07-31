@@ -1,0 +1,23 @@
+{
+	// Typechecks `integration-tests/`, which the server config (`tsconfig.json`) excludes.
+	//
+	// Why a second config: `integration-tests/http/access.spec.ts` imports workflows from
+	// `../../.medusa/server/src/workflows/...` — the BUILD OUTPUT — on purpose. Medusa's workflow
+	// registry is static, so the test must reference the same instances the container registered,
+	// which come from the built plugin, not from `src`. Including that spec in the emitting server
+	// config makes tsc treat those emitted `.d.ts` files as INPUTS, and with `rootDir: "./"` and
+	// `outDir: "./.medusa/server"` their computed output paths land on top of themselves:
+	// "Cannot write file ... because it would overwrite input file."
+	//
+	// `noEmit` removes the collision — nothing is written, so nothing can be overwritten — while
+	// still checking the response-contract module's two-way assignability consts, which are the
+	// whole reason `integration-tests/` needs typechecking at all.
+	"extends": "../../_tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"declaration": false,
+		"rootDir": "./"
+	},
+	"include": ["integration-tests/**/*", ".medusa/types/*"],
+	"exclude": ["node_modules", ".cache"]
+}

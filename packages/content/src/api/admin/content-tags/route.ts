@@ -27,8 +27,14 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentTagsTyp
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateContentTagType>, res: MedusaResponse) => {
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
-	const content_tag = await contentService.createContentTags(req.validatedBody)
-	res.json({ content_tag })
+	const created = await contentService.createContentTags(req.validatedBody)
+
+	// `createContentTags` returns the raw ORM entity (`deleted_at` included). Destructure
+	// down to the same flat selection both standalone GET routes use -- no relations
+	// involved, so no re-fetch needed. Unlike the item-scoped add-tag route, `item_id` IS
+	// part of this standalone shape (AdminContentTagWithItem) -- see types.ts.
+	const { id, value, item_id, metadata, created_at, updated_at } = created
+	res.json({ content_tag: { id, value, item_id, metadata, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteContentTagsType>, res: MedusaResponse) => {

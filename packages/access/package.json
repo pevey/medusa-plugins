@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-access",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Access management for Medusa v2.",
 	"author": "Lacey Pevey",
 	"license": "UNLICENSED",
@@ -50,8 +50,9 @@
 		"clean:snapshots": "find . -name '.snapshot-*.json' -path '*/migrations/*' -delete",
 		"dev": "medusa plugin:develop",
 		"prepublishOnly": "medusa plugin:build",
-		"typecheck": "tsc --noEmit -p tsconfig.json",
-		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests"
+		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.integration.json",
+		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests",
+		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit"
 	},
 	"devDependencies": {
 		"@medusajs/admin-sdk": "2.18.0",

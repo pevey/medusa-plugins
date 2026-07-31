@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { CONTENT_MODULE } from '../../../../../../../modules/content'
 import { ContentService } from '../../../../../../../modules/content/service'
 import { AdminCreateContentItemActivityType, AdminDeleteContentItemActivityType, AdminGetContentItemActivityType } from '../../../../../../validators'
+import { ITEM_ACTIVITY_FIELDS } from '../../../../../../middlewares'
 
 export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentItemActivityType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -25,11 +26,25 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentItemAct
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateContentItemActivityType>, res: MedusaResponse) => {
 	const { itemId: item_id } = req.params
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
-	const entry = await contentService.createContentItemActivities({
+	const created = await contentService.createContentItemActivities({
 		item_id,
 		user_id: req.auth_context.actor_id,
 		...req.validatedBody
 	})
+
+	// `createContentItemActivities` returns the raw ORM entity: no `user` object (the GET
+	// list route resolves it via a read-only module link on `user_id`, not a stored
+	// relation) and `deleted_at`. Re-fetch through the same query.graph selection the list
+	// route uses so the response matches AdminContentItemActivity exactly, `user` included.
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+	const {
+		data: [entry]
+	} = await query.graph({
+		entity: 'content_item_activity',
+		fields: ITEM_ACTIVITY_FIELDS,
+		filters: { id: created.id }
+	})
+
 	res.json({ entry })
 }
 

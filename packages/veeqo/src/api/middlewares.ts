@@ -5,6 +5,7 @@ import {
 	AdminSyncProductToVeeqo,
 	AdminSyncSalesChannelsToVeeqo,
 	AdminSyncShippingOptionsToVeeqo,
+	AdminSyncSourceToVeeqo,
 	AdminSyncStockLocationsToVeeqo
 } from './validators'
 
@@ -39,6 +40,11 @@ export default defineMiddlewares({
 			matcher: '/admin/veeqo/stock-locations/sync',
 			method: ['POST'],
 			middlewares: [validateAndTransformBody(AdminSyncStockLocationsToVeeqo)]
+		},
+		{
+			matcher: '/admin/veeqo/sync',
+			method: ['POST'],
+			middlewares: [validateAndTransformBody(AdminSyncSourceToVeeqo)]
 		}
 	]
 })

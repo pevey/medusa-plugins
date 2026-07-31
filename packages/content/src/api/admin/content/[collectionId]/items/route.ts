@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import { CONTENT_MODULE } from '../../../../../modules/content'
 import { ContentService } from '../../../../../modules/content/service'
 import { AdminCreateContentItemType, AdminDeleteContentItemsType, AdminGetContentItemsType } from '../../../../validators'
+import { ITEM_DETAIL_FIELDS } from '../../../../middlewares'
 
 export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentItemsType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -29,13 +30,27 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentItemsTy
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateContentItemType>, res: MedusaResponse) => {
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
-	const content_item = await contentService.createContentItems({
+	const created = await contentService.createContentItems({
 		...req.validatedBody,
 		content_collection_id: req.params.collectionId
 	})
 
 	const eventBus = req.scope.resolve(Modules.EVENT_BUS)
-	await eventBus.emit({ name: 'content-item.created', data: { id: content_item.id } })
+	await eventBus.emit({ name: 'content-item.created', data: { id: created.id } })
+
+	// `createContentItems` returns the raw ORM entity: uninitialized hasMany Collection
+	// proxies for `tags`/`outgoing_links`/`incoming_links`/`activity`, no nested
+	// content_collection/creator objects, and `deleted_at`. Re-fetch through the same
+	// query.graph selection the item detail GET route uses so the response matches
+	// AdminContentItem exactly.
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+	const {
+		data: [content_item]
+	} = await query.graph({
+		entity: 'content_item',
+		fields: ITEM_DETAIL_FIELDS,
+		filters: { id: created.id }
+	})
 
 	res.json({ content_item })
 }

@@ -15,3 +15,11 @@ export type AdminOrderNotesResponse = {
 	limit: number
 	offset: number
 }
+
+export type AdminOrderNoteResponse = {
+	order_note: AdminOrderNote
+}
+
+export type AdminDeleteOrderNoteResponse = {
+	deleted: string[]
+}

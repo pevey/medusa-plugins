@@ -7,11 +7,6 @@ export const AdminGetStatistics = z.object({
 })
 export type AdminGetStatisticsType = z.infer<typeof AdminGetStatistics>
 
-export const AdminRecalculateStatistics = z.object({
-	date: z.string().optional()
-})
-export type AdminRecalculateStatisticsType = z.infer<typeof AdminRecalculateStatistics>
-
 export const AdminGetRecentOrders = z.object({
 	limit: z.coerce.number().int().min(1).max(50).optional().default(10)
 })

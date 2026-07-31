@@ -22,6 +22,19 @@
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { Modules } from '@medusajs/framework/utils'
 import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
+import {
+	AdminDeleteInvalidationReasonsResponseSchema,
+	AdminDeleteSerialNumbersResponseSchema,
+	AdminDeleteStockLotsResponseSchema,
+	AdminDisableStockLotsResponseSchema,
+	AdminEnableStockLotsResponseSchema,
+	AdminInvalidationReasonResponseSchema,
+	AdminInvalidationReasonsResponseSchema,
+	AdminSerialNumberResponseSchema,
+	AdminSerialNumbersResponseSchema,
+	AdminStockLotResponseSchema,
+	AdminStockLotsResponseSchema
+} from './response-contracts'
 
 jest.setTimeout(120 * 1000)
 jest.retryTimes(1)
@@ -235,6 +248,8 @@ medusaIntegrationTestRunner({
 					id: expect.any(String),
 					value: `temp-${ts}`
 				})
+				// AdminInvalidationReasonResponse
+				expect(() => AdminInvalidationReasonResponseSchema.parse(res.data)).not.toThrow()
 				await api
 					.delete('/admin/invalidation-reasons', {
 						data: { ids: [res.data.invalidation_reason.id] },
@@ -250,6 +265,8 @@ medusaIntegrationTestRunner({
 				expect(res.data.count).toBeGreaterThanOrEqual(2)
 				expect(res.data.limit).toBeGreaterThan(0)
 				expect(res.data.offset).toBe(0)
+				// AdminInvalidationReasonsResponse
+				expect(() => AdminInvalidationReasonsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/invalidation-reasons filters by q', async () => {
@@ -262,6 +279,8 @@ medusaIntegrationTestRunner({
 				const res = await api.get(`/admin/invalidation-reasons/${reasonId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.invalidation_reason.id).toBe(reasonId)
+				// AdminInvalidationReasonResponse
+				expect(() => AdminInvalidationReasonResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/invalidation-reasons/:id updates a reason', async () => {
@@ -269,6 +288,8 @@ medusaIntegrationTestRunner({
 				const res = await api.post(`/admin/invalidation-reasons/${reasonId}`, { value: `damaged-updated-${ts}` }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.invalidation_reason.value).toBe(`damaged-updated-${ts}`)
+				// AdminInvalidationReasonResponse
+				expect(() => AdminInvalidationReasonResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/invalidation-reasons/:id deletes a single reason', async () => {
@@ -279,6 +300,8 @@ medusaIntegrationTestRunner({
 				const res = await api.delete(`/admin/invalidation-reasons/${id}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toContain(id)
+				// AdminDeleteInvalidationReasonsResponse
+				expect(() => AdminDeleteInvalidationReasonsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/invalidation-reasons bulk deletes reasons', async () => {
@@ -295,6 +318,8 @@ medusaIntegrationTestRunner({
 				})
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toEqual(expect.arrayContaining(ids))
+				// AdminDeleteInvalidationReasonsResponse
+				expect(() => AdminDeleteInvalidationReasonsResponseSchema.parse(res.data)).not.toThrow()
 			})
 		})
 
@@ -361,6 +386,8 @@ medusaIntegrationTestRunner({
 					stocked_quantity: 50,
 					enabled: true
 				})
+				// AdminStockLotResponse (detail route -- includes inventory_item/stock_location)
+				expect(() => AdminStockLotResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/stock-lots accepts only initial_quantity (mirrors to stocked_quantity)', async () => {
@@ -377,6 +404,8 @@ medusaIntegrationTestRunner({
 				)
 				expect(res.status).toBe(200)
 				expect(res.data.stock_lot.stocked_quantity).toBe(10)
+				// AdminStockLotResponse (create route)
+				expect(() => AdminStockLotResponseSchema.parse(res.data)).not.toThrow()
 				await api.delete('/admin/stock-lots', { data: { ids: [res.data.stock_lot.id] }, ...auth() }).catch(() => {})
 			})
 
@@ -387,6 +416,8 @@ medusaIntegrationTestRunner({
 				expect(res.data.count).toBeGreaterThanOrEqual(2)
 				expect(res.data.limit).toBeGreaterThan(0)
 				expect(res.data.offset).toBe(0)
+				// AdminStockLotsResponse
+				expect(() => AdminStockLotsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/stock-lots filters by inventory_item_id', async () => {
@@ -411,12 +442,16 @@ medusaIntegrationTestRunner({
 				const res = await api.get(`/admin/stock-lots/${stockLotId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.stock_lot.id).toBe(stockLotId)
+				// AdminStockLotResponse
+				expect(() => AdminStockLotResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/stock-lots/:id updates a stock lot', async () => {
 				const res = await api.post(`/admin/stock-lots/${stockLotId}`, { description: 'Updated description' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.stock_lot.description).toBe('Updated description')
+				// AdminStockLotResponse (update route)
+				expect(() => AdminStockLotResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/stock-lots/:id deletes a single stock lot', async () => {
@@ -436,6 +471,8 @@ medusaIntegrationTestRunner({
 				const res = await api.delete(`/admin/stock-lots/${id}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.stock_lot.id).toBe(id)
+				// AdminStockLotResponse (delete route -- returns the deleted entity, not { deleted: [...] })
+				expect(() => AdminStockLotResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/stock-lots bulk deletes stock lots', async () => {
@@ -467,6 +504,8 @@ medusaIntegrationTestRunner({
 				const res = await api.delete('/admin/stock-lots', { data: { ids }, ...auth() })
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toEqual(expect.arrayContaining(ids))
+				// AdminDeleteStockLotsResponse
+				expect(() => AdminDeleteStockLotsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			// ── Enable / Disable ──────────────────────────────────────────────────
@@ -476,6 +515,8 @@ medusaIntegrationTestRunner({
 					const res = await api.post('/admin/stock-lots/disable', { ids: [stockLotId2] }, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.disabled).toContain(stockLotId2)
+					// AdminDisableStockLotsResponse
+					expect(() => AdminDisableStockLotsResponseSchema.parse(res.data)).not.toThrow()
 
 					const check = await api.get(`/admin/stock-lots/${stockLotId2}`, auth())
 					expect(check.data.stock_lot.enabled).toBe(false)
@@ -494,6 +535,8 @@ medusaIntegrationTestRunner({
 					const res = await api.post('/admin/stock-lots/enable', { ids: [stockLotId2] }, auth())
 					expect(res.status).toBe(200)
 					expect(res.data.enabled).toContain(stockLotId2)
+					// AdminEnableStockLotsResponse
+					expect(() => AdminEnableStockLotsResponseSchema.parse(res.data)).not.toThrow()
 
 					const check = await api.get(`/admin/stock-lots/${stockLotId2}`, auth())
 					expect(check.data.stock_lot.enabled).toBe(true)
@@ -520,6 +563,8 @@ medusaIntegrationTestRunner({
 					expect(res.status).toBe(200)
 					expect(Array.isArray(res.data.serial_numbers)).toBe(true)
 					expect(res.data.serial_numbers.some((sn: any) => sn.id === serialNumberId)).toBe(true)
+					// AdminSerialNumbersResponse
+					expect(() => AdminSerialNumbersResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('GET /admin/stock-lots/:id/serial-numbers returns empty for a lot with no serial numbers', async () => {
@@ -590,6 +635,8 @@ medusaIntegrationTestRunner({
 					stock_lot_id: stockLotId,
 					invalidated: false
 				})
+				// AdminSerialNumberResponse (detail route)
+				expect(() => AdminSerialNumberResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/serial-numbers lists serial numbers', async () => {
@@ -599,6 +646,8 @@ medusaIntegrationTestRunner({
 				expect(res.data.count).toBeGreaterThanOrEqual(2)
 				expect(res.data.limit).toBeGreaterThan(0)
 				expect(res.data.offset).toBe(0)
+				// AdminSerialNumbersResponse
+				expect(() => AdminSerialNumbersResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/serial-numbers filters by stock_lot_id', async () => {
@@ -623,12 +672,16 @@ medusaIntegrationTestRunner({
 				const res = await api.get(`/admin/serial-numbers/${serialNumberId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.serial_number.id).toBe(serialNumberId)
+				// AdminSerialNumberResponse
+				expect(() => AdminSerialNumberResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/serial-numbers/:id updates a serial number (marks invalidated)', async () => {
 				const res = await api.post(`/admin/serial-numbers/${serialNumberId}`, { invalidated: true }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.serial_number.invalidated).toBe(true)
+				// AdminSerialNumberResponse (update route)
+				expect(() => AdminSerialNumberResponseSchema.parse(res.data)).not.toThrow()
 
 				// Restore
 				await api.post(`/admin/serial-numbers/${serialNumberId}`, { invalidated: false }, auth())
@@ -655,6 +708,8 @@ medusaIntegrationTestRunner({
 				const res = await api.delete(`/admin/serial-numbers/${id}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toContain(id)
+				// AdminDeleteSerialNumbersResponse
+				expect(() => AdminDeleteSerialNumbersResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/serial-numbers bulk deletes serial numbers', async () => {
@@ -684,6 +739,8 @@ medusaIntegrationTestRunner({
 				const res = await api.delete('/admin/serial-numbers', { data: { ids }, ...auth() })
 				expect(res.status).toBe(200)
 				expect(res.data.deleted).toEqual(expect.arrayContaining(ids))
+				// AdminDeleteSerialNumbersResponse
+				expect(() => AdminDeleteSerialNumbersResponseSchema.parse(res.data)).not.toThrow()
 			})
 		})
 	}

@@ -89,11 +89,6 @@ export default defineMiddlewares([
 		middlewares: [validateAndTransformBody(AdminUpdateReview)]
 	},
 	{
-		matcher: '/admin/reviews/:id',
-		method: ['DELETE'],
-		middlewares: []
-	},
-	{
 		matcher: '/admin/reviews/approve',
 		method: ['POST'],
 		middlewares: [validateAndTransformBody(AdminApproveReviews)]

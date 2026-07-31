@@ -26,16 +26,16 @@ it with the real schema, and answers from a fixture projected through `queryConf
 The point: a component that sends a request the real backend would reject fails here, loudly, in
 about a second.
 
-| File                             | Responsibility                                                                             |
-| -------------------------------- | ------------------------------------------------------------------------------------------ |
-| `src/config.ts`                  | `defineAdminTestConfig()` — the vitest config factory each plugin calls                    |
-| `src/shims/framework-http.ts`    | Stand-in for `@medusajs/framework/http`; tags validators with `__schema` / `__queryConfig` |
-| `src/shims/medusa-validators.ts` | Stand-in for `createFindParams`, kept identical to Medusa's                                |
-| `src/contracts/load.ts`          | Walks the tagged middleware tree into a route map                                          |
-| `src/contracts/match.ts`         | Path matching; literal segments beat `:param`                                              |
-| `src/contracts/invariants.ts`    | No-DOM static checks (unwired validators, `defaultLimit`, declared fields)                 |
-| `src/fake-sdk.ts`                | The validating fake `sdk.client.fetch`                                                     |
-| `src/render.tsx`                 | Mounts a route component inside the providers the real dashboard supplies                  |
+| File                             | Responsibility                                                                                |
+| -------------------------------- | --------------------------------------------------------------------------------------------- |
+| `src/config.ts`                  | `defineAdminTestConfig()` — the vitest config factory each plugin calls                       |
+| `src/shims/framework-http.ts`    | Stand-in for `@medusajs/framework/http`; tags validators with `__schema` / `__queryConfig`    |
+| `src/shims/medusa-validators.ts` | Stand-in for `createFindParams`, kept identical to Medusa's                                   |
+| `src/contracts/load.ts`          | Builds the route map from the file system (existence) + `middlewares.ts` (schema/queryConfig) |
+| `src/contracts/match.ts`         | Path matching; literal segments beat `:param`                                                 |
+| `src/contracts/invariants.ts`    | No-DOM static checks (unwired validators, `defaultLimit`, declared fields)                    |
+| `src/fake-sdk.ts`                | The validating fake `sdk.client.fetch`                                                        |
+| `src/render.tsx`                 | Mounts a route component inside the providers the real dashboard supplies                     |
 
 Wired today: `packages/ratings`, `packages/forms`.
 
@@ -82,11 +82,28 @@ flips its emitted `.medusa/server/**/*.js` from CommonJS to ESM — and no plugi
 `"type": "module"`, so that output breaks at runtime. Keep `src/admin` excluded from the server
 config and typecheck it from `tsconfig.admin.json`.
 
-**A route with no validators still needs a `middlewares.ts` entry.** The contract map is built from
-`middlewares.ts`, so a route absent from it is invisible and the fake throws "no route in this
-plugin's middlewares matches". Register it with `middlewares: []` — inert at runtime, and already
-the convention for `DELETE /admin/<thing>/:id` in several plugins. This is a known leak:
-`loadRouteContracts` treats an optional middleware-attachment list as a route registry.
+**Routes are discovered from the file system, not `middlewares.ts`.** `middlewares.ts` supplies
+schema/queryConfig for the routes that have them; it is never required just to make a route
+_visible_. Pass a second argument to `loadRouteContracts`:
+
+```ts
+// in a plugin's src/admin/__tests__/setup.ts
+
+// Read as raw text, NOT executed: a real route.ts pulls in @medusajs/framework/utils ->
+// jsonwebtoken -> jws, which calls util.inherits — undefined once Vite externalizes Node's
+// `util` for the browser test environment. Executing the module (eager, no `query`) crashes the
+// whole suite import before a single test runs. `query: '?raw', import: 'default'` hands
+// loadRouteContracts the source text instead, and it recovers the exported HTTP verbs by regex.
+const routeModules = import.meta.glob('../../api/admin/**/route.ts', { eager: true, query: '?raw', import: 'default' })
+export const contracts = loadRouteContracts(middlewares, { routeModules })
+```
+
+`loadRouteContracts`'s second argument is optional — omit it and behavior is unchanged from
+before file-system discovery existed. The two sources merge on `(method, matcher)`: a route
+present in both keeps the `middlewares.ts` schema/queryConfig (the glob only ever contributes
+existence, never overrides a schema); a route present only on disk resolves with no contract to
+validate against; a route present only in `middlewares.ts` (an entry with no on-disk file, which
+should not happen but is not rejected) still resolves too.
 
 **Selectors: check the DOM, don't trust the plan.** `@medusajs/ui`'s DataTable renders filter chips
 that duplicate row text, Radix marks background content `aria-hidden` while a dialog is open (so

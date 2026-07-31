@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sdk } from '../lib/sdk'
-import { AdminCustomerTagResponse, AdminCustomerTagsResponse } from '../types'
+import { AdminCustomerTagResponse, AdminCustomerTagsResponse, AdminDeleteCustomerTagsResponse } from '../types'
 
 export const useCreateCustomerTag = () => {
 	const queryClient = useQueryClient()
@@ -49,7 +49,7 @@ export const useCustomerTag = (id: string | undefined) => {
 export const useDeleteCustomerTags = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (ids: string[]) => sdk.client.fetch('/admin/customer-tags', { method: 'DELETE', body: { ids } }),
+		mutationFn: (ids: string[]) => sdk.client.fetch<AdminDeleteCustomerTagsResponse>('/admin/customer-tags', { method: 'DELETE', body: { ids } }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['customer-tags'] })
 		}

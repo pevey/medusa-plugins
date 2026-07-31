@@ -9,11 +9,14 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 	const automationService = req.scope.resolve(AUTOMATION_MODULE) as AutomationService
 	const { actionId } = req.params
 
-	const [action] = await automationService.listAutomationActions({ id: actionId }, { take: 1 })
-	if (!action) {
+	const [found] = await automationService.listAutomationActions({ id: actionId }, { take: 1 })
+	if (!found) {
 		throw new MedusaError(MedusaError.Types.NOT_FOUND, `AutomationAction with id ${actionId} not found`)
 	}
 
+	// Strip `deleted_at` (soft-delete internal) and the `trigger`/`query` relation stubs —
+	// nothing in the admin UI reads `.trigger`/`.query` on an action.
+	const { deleted_at, trigger, query, ...action } = found as any
 	res.json({ action })
 }
 
@@ -42,10 +45,13 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAutomation
 		)
 	}
 
-	const action = await (automationService.updateAutomationActions({
+	const updated = await (automationService.updateAutomationActions({
 		id: actionId,
 		...req.validatedBody
 	} as any) as any)
+	// Strip `deleted_at` (soft-delete internal) and the `trigger`/`query` relation stubs —
+	// nothing in the admin UI reads `.trigger`/`.query` on an action.
+	const { deleted_at, trigger, query, ...action } = updated as any
 	res.json({ action })
 }
 

@@ -25,6 +25,7 @@ import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { Modules } from '@medusajs/framework/utils'
 import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
 import { MCP_MODULE } from '../../src/modules/mcp'
+import { ChatErrorResponseSchema, ChatSessionDeleteResponseSchema, ChatSessionDetailResponseSchema, ChatSessionsListResponseSchema } from './response-contracts'
 
 jest.setTimeout(120 * 1000)
 jest.retryTimes(1)
@@ -109,14 +110,19 @@ medusaIntegrationTestRunner({
 				const listA = await api.get('/admin/chat/sessions', auth(adminA.token))
 				expect(listA.status).toBe(200)
 				expect(listA.data.sessions.map((s: any) => s.id)).toEqual([sessionA2.id, sessionA1.id])
+				// Response contract: GET /admin/chat/sessions -> SessionsListResponse
+				expect(() => ChatSessionsListResponseSchema.parse(listA.data)).not.toThrow()
 
 				const listB = await api.get('/admin/chat/sessions', auth(adminB.token))
 				expect(listB.status).toBe(200)
 				expect(listB.data.sessions.map((s: any) => s.id)).toEqual([sessionB1.id])
+				expect(() => ChatSessionsListResponseSchema.parse(listB.data)).not.toThrow()
 
 				// --- load: cross-owner is 404, never 403 ---
 				const loadForeign = await api.get(`/admin/chat/sessions/${sessionA1.id}`, auth(adminB.token)).catch((e: any) => e.response)
 				expect(loadForeign.status).toBe(404)
+				// Response contract: the plugin's own 404 error envelope
+				expect(() => ChatErrorResponseSchema.parse(loadForeign.data)).not.toThrow()
 
 				const loadOwn = await api.get(`/admin/chat/sessions/${sessionA1.id}`, auth(adminA.token))
 				expect(loadOwn.status).toBe(200)
@@ -125,14 +131,19 @@ medusaIntegrationTestRunner({
 					{ role: 'user', content: [{ type: 'text', text: 'Hello' }] },
 					{ role: 'assistant', content: [{ type: 'text', text: 'Hi there' }] }
 				])
+				// Response contract: GET /admin/chat/sessions/:id -> SessionDetailResponse
+				expect(() => ChatSessionDetailResponseSchema.parse(loadOwn.data)).not.toThrow()
 
 				// --- delete: cross-owner is 404, never 403; cascades to messages ---
 				const deleteForeign = await api.delete(`/admin/chat/sessions/${sessionA1.id}`, auth(adminB.token)).catch((e: any) => e.response)
 				expect(deleteForeign.status).toBe(404)
+				expect(() => ChatErrorResponseSchema.parse(deleteForeign.data)).not.toThrow()
 
 				const deleteOwn = await api.delete(`/admin/chat/sessions/${sessionA1.id}`, auth(adminA.token))
 				expect(deleteOwn.status).toBe(200)
 				expect(deleteOwn.data).toEqual({ id: sessionA1.id, deleted: true })
+				// Response contract: DELETE /admin/chat/sessions/:id -> DeleteSessionResponse
+				expect(() => ChatSessionDeleteResponseSchema.parse(deleteOwn.data)).not.toThrow()
 
 				const remainingSessions = await mcp.listChatSessions({ id: sessionA1.id })
 				expect(remainingSessions).toHaveLength(0)

@@ -25,11 +25,17 @@ export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentCollect
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateContentCollectionFieldType>, res: MedusaResponse) => {
 	const { collectionId: content_collection_id } = req.params
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
-	const field = await contentService.createContentFields({
+	const created = await contentService.createContentFields({
 		content_collection_id,
 		...req.validatedBody
 	})
-	res.json({ field })
+
+	// `createContentFields` returns the raw ORM entity (`content_collection_id`, `deleted_at`
+	// included). Neither GET fields route selects `content_collection_id` (see
+	// AdminContentField's comment in types.ts), so destructure down to the same flat
+	// selection both GET routes use -- no relations involved, so no re-fetch needed.
+	const { id, name, label, field_type, required, options, default_value, sort_order, created_at, updated_at } = created
+	res.json({ field: { id, name, label, field_type, required, options, default_value, sort_order, created_at, updated_at } })
 }
 
 export const DELETE = async (req: AuthenticatedMedusaRequest<AdminDeleteContentCollectionFieldsType>, res: MedusaResponse) => {

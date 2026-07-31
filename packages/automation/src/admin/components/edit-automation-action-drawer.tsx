@@ -306,16 +306,16 @@ const FieldMappingEditor = ({
 type AutomationActionForEdit = {
 	id: string
 	name: string
-	description?: string
+	description?: string | null
 	action_type: ActionType
 	is_active: boolean
-	target_url?: string
+	target_url?: string | null
 	signing_secret_id?: string | null
 	request_method?: string | null
-	target_headers?: Array<{ key: string; value: string }>
-	medusa_workflow?: string
-	field_mappings?: FieldMapping[]
-	static_values?: StaticValue[]
+	target_headers?: Array<{ key: string; value: string }> | null
+	medusa_workflow?: string | null
+	field_mappings?: FieldMapping[] | null
+	static_values?: StaticValue[] | null
 }
 
 type Props = {

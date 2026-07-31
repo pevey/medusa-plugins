@@ -17,52 +17,59 @@ export type SignatureConfig = {
 export type AutomationTrigger = {
 	id: string
 	name: string
-	description?: string
+	description: string | null
 	trigger_type: TriggerType
 	is_active: boolean
-	trigger_events?: string[]
+	trigger_events: string[] | null
 	/** True when a signing key is set. The key value itself is never returned. */
-	has_signing_key?: boolean
-	signature_config?: SignatureConfig | null
-	log_incoming?: boolean
-	metadata?: Record<string, unknown>
+	has_signing_key: boolean
+	signature_config: SignatureConfig | null
+	log_incoming: boolean
+	metadata: Record<string, unknown> | null
 	created_at: string
 	updated_at: string
 }
 
 export type AutomationAction = {
 	id: string
+	trigger_id: string
 	name: string
-	description?: string
+	description: string | null
 	action_type: ActionType
 	is_active: boolean
-	target_url?: string
-	request_method?: string | null
-	target_headers?: Array<{ key: string; value: string }>
-	signing_secret_id?: string | null
-	medusa_workflow?: string
-	field_mappings?: FieldMapping[]
-	static_values?: StaticValue[]
-	metadata?: Record<string, unknown>
+	target_url: string | null
+	request_method: string | null
+	target_headers: Array<{ key: string; value: string }> | null
+	signing_secret_id: string | null
+	medusa_workflow: string | null
+	field_mappings: FieldMapping[] | null
+	static_values: StaticValue[] | null
+	metadata: Record<string, unknown> | null
 	created_at: string
 	updated_at: string
 }
 
 export type AutomationDelivery = {
 	id: string
+	action_id: string
 	event_name: string
+	request_payload: Record<string, unknown> | null
+	response_status: number | null
+	response_body: string | null
 	status: 'pending' | 'success' | 'failed'
 	attempts: number
-	response_status?: number
-	error_message?: string
+	error_message: string | null
 	created_at: string
+	updated_at: string
 }
 
 export type AutomationReceipt = {
 	id: string
-	request_ip?: string
+	trigger_id: string
+	request_ip: string | null
 	payload: unknown
 	created_at: string
+	updated_at: string
 }
 
 export type AutomationSecret = {
@@ -79,6 +86,17 @@ export type CreatedSecret = {
 	created_at: string
 }
 
+export type AutomationQueryConfig = {
+	id: string
+	action_id: string
+	entity_name: string
+	fields: string[] | null
+	filters: Record<string, unknown> | null
+	limit: number
+	created_at: string
+	updated_at: string
+}
+
 export type TriggersResponse = {
 	triggers: AutomationTrigger[]
 	count: number
@@ -86,11 +104,54 @@ export type TriggersResponse = {
 	offset: number
 }
 
+export type TriggerResponse = {
+	trigger: AutomationTrigger
+}
+
 export type ActionsResponse = {
 	actions: AutomationAction[]
 	count: number
 	limit: number
 	offset: number
+}
+
+export type ActionResponse = {
+	action: AutomationAction
+}
+
+export type DeliveriesResponse = {
+	deliveries: AutomationDelivery[]
+	count: number
+	limit: number
+	offset: number
+}
+
+export type ReceiptsResponse = {
+	receipts: AutomationReceipt[]
+	count: number
+	limit: number
+	offset: number
+}
+
+export type AutomationQueryResponse = {
+	query: AutomationQueryConfig | null
+}
+
+export type RetryDeliveriesResponse = {
+	retried: number
+	succeeded: number
+	failed: number
+}
+
+export type DeleteResponse = {
+	deleted: string[]
+}
+
+/** DELETE /admin/automations/:id/actions/:actionId/query — a single boolean flag, not a
+ *  list of deleted ids like the other delete routes (there is at most one query config
+ *  per action, and it's a no-op if none exists). */
+export type DeleteQueryResponse = {
+	deleted: boolean
 }
 
 export type SecretsListResponse = {

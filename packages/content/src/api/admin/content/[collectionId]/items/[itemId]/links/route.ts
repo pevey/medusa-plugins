@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { CONTENT_MODULE } from '../../../../../../../modules/content'
 import { ContentService } from '../../../../../../../modules/content/service'
 import { AdminCreateContentItemLinkType, AdminGetContentItemLinksType } from '../../../../../../validators'
+import { ITEM_LINK_FIELDS } from '../../../../../../middlewares'
 
 export const GET = async (req: AuthenticatedMedusaRequest<AdminGetContentItemLinksType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -26,10 +27,25 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateContentIte
 	const { itemId: source_item_id } = req.params
 	const { target_item_id, relationship_id } = req.validatedBody
 	const contentService: ContentService = req.scope.resolve(CONTENT_MODULE)
-	const link = await contentService.createContentLinks({
+	const created = await contentService.createContentLinks({
 		source_item_id,
 		target_item_id,
 		relationship_id
 	})
+
+	// `createContentLinks` returns the raw ORM entity: FK scalars
+	// (source_item_id/target_item_id/relationship_id) and `deleted_at`, not the nested
+	// source_item/target_item/relationship objects the type declares. Re-fetch through the
+	// same query.graph selection the list route uses so the response matches
+	// AdminContentItemLink exactly.
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+	const {
+		data: [link]
+	} = await query.graph({
+		entity: 'content_link',
+		fields: ITEM_LINK_FIELDS,
+		filters: { id: created.id }
+	})
+
 	res.json({ link })
 }

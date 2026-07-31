@@ -30,10 +30,24 @@
  *   npm run test:integration:http -- --testPathPattern=complaints
  */
 
+import fs from 'fs/promises'
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { Modules } from '@medusajs/framework/utils'
 import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
 import { ComplaintService } from '../../src/modules/complaint/service'
+import {
+	AdminComplaintActivitySchema,
+	AdminComplaintActivityResponseSchema,
+	AdminComplaintDocumentDownloadResponseSchema,
+	AdminComplaintDocumentResponseSchema,
+	AdminComplaintDocumentsResponseSchema,
+	AdminComplaintResponseSchema,
+	AdminComplaintsResponseSchema,
+	AdminComplaintTagResponseSchema,
+	AdminComplaintTagsResponseSchema,
+	ComplaintProductStatSchema
+} from './response-contracts'
+import { TEST_UPLOAD_DIR } from './upload-dir'
 
 jest.setTimeout(120 * 1000)
 jest.retryTimes(1)
@@ -79,6 +93,15 @@ medusaIntegrationTestRunner({
 				password: 'Sup3rSecret!'
 			})
 			adminToken = loginRes.data.token
+		})
+
+		// Broader net than the per-test file cleanup below: medusa-config.ts points
+		// the local file provider at TEST_UPLOAD_DIR (an OS temp dir) instead of the
+		// package's `static/` folder, so nothing should land here at all -- but the
+		// pdf-export workflow (tested below) writes files and cleans up nothing of
+		// its own, so this removes the whole directory as a backstop.
+		afterAll(async () => {
+			await fs.rm(TEST_UPLOAD_DIR, { recursive: true, force: true })
 		})
 
 		// ── Authentication ────────────────────────────────────────────────────────
@@ -220,6 +243,9 @@ medusaIntegrationTestRunner({
 					id: expect.any(String),
 					value: `temp-tag-${ts}`
 				})
+				// Response contract: verifies AdminComplaintTagResponse (src/admin/types.ts)
+				// actually matches what the route returns -- same schema GET .../:id uses.
+				expect(() => AdminComplaintTagResponseSchema.parse(res.data)).not.toThrow()
 				await api
 					.delete('/admin/complaint-tags', {
 						data: { ids: [res.data.complaint_tag.id] },
@@ -235,6 +261,9 @@ medusaIntegrationTestRunner({
 				expect(res.data.count).toBeGreaterThanOrEqual(2)
 				expect(res.data.limit).toBeGreaterThan(0)
 				expect(res.data.offset).toBe(0)
+				// Response contract: verifies AdminComplaintTagsResponse (src/admin/types.ts)
+				// actually matches what the route returns.
+				expect(() => AdminComplaintTagsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/complaint-tags filters by q', async () => {
@@ -247,6 +276,9 @@ medusaIntegrationTestRunner({
 				const res = await api.get(`/admin/complaint-tags/${tagId}`, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.complaint_tag.id).toBe(tagId)
+				// Response contract: verifies AdminComplaintTagResponse (src/admin/types.ts)
+				// actually matches what the route returns.
+				expect(() => AdminComplaintTagResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/complaint-tags/:id updates a tag', async () => {
@@ -254,6 +286,9 @@ medusaIntegrationTestRunner({
 				const res = await api.post(`/admin/complaint-tags/${tagId}`, { value: `defect-updated-${ts}` }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.complaint_tag.value).toBe(`defect-updated-${ts}`)
+				// Response contract: verifies AdminComplaintTagResponse (src/admin/types.ts)
+				// actually matches what the route returns -- same schema GET .../:id uses.
+				expect(() => AdminComplaintTagResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('DELETE /admin/complaint-tags/:id deletes a single tag', async () => {
@@ -286,6 +321,7 @@ medusaIntegrationTestRunner({
 			let complaintId: string
 			let complaintId2: string
 			let tagId: string
+			let createResponse: any
 
 			const CUSTOMER_ID = 'cus_test_complaint_001'
 			const ORDER_ID = 'ord_test_complaint_001'
@@ -320,6 +356,7 @@ medusaIntegrationTestRunner({
 				])
 				complaintId = r1.data.complaint.id
 				complaintId2 = r2.data.complaint.id
+				createResponse = r1
 				await seedSnapshot()
 			})
 
@@ -334,6 +371,11 @@ medusaIntegrationTestRunner({
 			})
 
 			it('POST /admin/complaints creates a complaint and auto-creates open activity', async () => {
+				// Response contract: verifies AdminComplaintResponse (src/admin/types.ts)
+				// actually matches what POST /admin/complaints returns -- same schema
+				// GET /admin/complaints/:id uses.
+				expect(() => AdminComplaintResponseSchema.parse(createResponse.data)).not.toThrow()
+
 				const detailRes = await api.get(`/admin/complaints/${complaintId}`, auth())
 				expect(detailRes.data.complaint).toMatchObject({
 					id: complaintId,
@@ -356,6 +398,9 @@ medusaIntegrationTestRunner({
 				expect(res.data.count).toBeGreaterThanOrEqual(2)
 				expect(res.data.limit).toBeGreaterThan(0)
 				expect(res.data.offset).toBe(0)
+				// Response contract: verifies AdminComplaintsResponse (src/admin/types.ts)
+				// actually matches what the route returns.
+				expect(() => AdminComplaintsResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/complaints filters by status=open', async () => {
@@ -410,12 +455,18 @@ medusaIntegrationTestRunner({
 				expect(res.data.complaint.customer_id).toBe(CUSTOMER_ID)
 				expect(res.data.complaint.order_id).toBe(ORDER_ID)
 				expect(res.data.complaint.product_id).toBe(PRODUCT_ID)
+				// Response contract: verifies AdminComplaintResponse (src/admin/types.ts)
+				// actually matches what the route returns.
+				expect(() => AdminComplaintResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/complaints/:id updates description', async () => {
 				const res = await api.post(`/admin/complaints/${complaintId2}`, { status: 'open', description: 'Updated description' }, auth())
 				expect(res.status).toBe(200)
 				expect(res.data.complaint.description).toBe('Updated description')
+				// Response contract: verifies AdminComplaintResponse (src/admin/types.ts)
+				// actually matches what the route returns -- same schema GET /:id uses.
+				expect(() => AdminComplaintResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('POST /admin/complaints/:id creates close activity on status change to closed', async () => {
@@ -498,6 +549,25 @@ medusaIntegrationTestRunner({
 						type: 'note',
 						note: 'This is a test note'
 					})
+					// Response contract: verifies the note entry matches AdminComplaintActivity
+					// (src/admin/types.ts) -- same schema GET .../activities uses per entry.
+					expect(() => AdminComplaintActivitySchema.parse(res.data.entry)).not.toThrow()
+				})
+
+				it('POST /admin/complaints/:id/notes/:noteId updates a note activity', async () => {
+					const created = await api.post(`/admin/complaints/${complaintId}/notes`, { note: 'original note' }, auth())
+					const noteId = created.data.entry.id
+
+					const res = await api.post(`/admin/complaints/${complaintId}/notes/${noteId}`, { note: 'updated note' }, auth())
+					expect(res.status).toBe(200)
+					expect(res.data.entry).toMatchObject({
+						id: noteId,
+						note: 'updated note'
+					})
+					// Response contract: verifies the updated note entry matches
+					// AdminComplaintActivity (src/admin/types.ts) -- same schema
+					// GET .../activities uses per entry.
+					expect(() => AdminComplaintActivitySchema.parse(res.data.entry)).not.toThrow()
 				})
 			})
 
@@ -511,6 +581,25 @@ medusaIntegrationTestRunner({
 						type: 'note',
 						note: 'Manual activity entry'
 					})
+					// Response contract: verifies the activity matches AdminComplaintActivity
+					// (src/admin/types.ts) -- same schema GET .../activities uses per entry.
+					expect(() => AdminComplaintActivitySchema.parse(res.data.activity)).not.toThrow()
+				})
+
+				it('POST /admin/complaints/:id/activities/:entryId updates an activity', async () => {
+					const created = await api.post(`/admin/complaints/${complaintId}/activities`, { type: 'note', note: 'original activity' }, auth())
+					const entryId = created.data.activity.id
+
+					const res = await api.post(`/admin/complaints/${complaintId}/activities/${entryId}`, { note: 'updated activity' }, auth())
+					expect(res.status).toBe(200)
+					expect(res.data.activity).toMatchObject({
+						id: entryId,
+						note: 'updated activity'
+					})
+					// Response contract: verifies the updated activity matches
+					// AdminComplaintActivity (src/admin/types.ts) -- same schema
+					// GET .../activities uses per entry.
+					expect(() => AdminComplaintActivitySchema.parse(res.data.activity)).not.toThrow()
 				})
 
 				it('GET /admin/complaints/:id/activities lists activities for a complaint', async () => {
@@ -518,6 +607,9 @@ medusaIntegrationTestRunner({
 					expect(res.status).toBe(200)
 					expect(Array.isArray(res.data.activities)).toBe(true)
 					expect(res.data.count).toBeGreaterThan(0)
+					// Response contract: verifies AdminComplaintActivityResponse (src/admin/types.ts)
+					// actually matches what the route returns.
+					expect(() => AdminComplaintActivityResponseSchema.parse(res.data)).not.toThrow()
 				})
 
 				it('DELETE /admin/complaints/:id/activities bulk deletes activities', async () => {
@@ -564,6 +656,41 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(400)
 			})
 
+			it('POST /admin/complaints/:id/documents uploads a file and returns document metadata', async () => {
+				const FormData = require('form-data')
+				const form = new FormData()
+				form.append('file', Buffer.from('upload-test-content'), {
+					filename: 'upload-test.txt',
+					contentType: 'text/plain'
+				})
+
+				const res = await api.post(`/admin/complaints/${docComplaintId}/documents`, form, {
+					...auth(),
+					headers: { ...auth().headers, ...form.getHeaders() }
+				})
+				expect(res.status).toBe(200)
+				expect(res.data.document).toMatchObject({
+					complaint_id: docComplaintId,
+					filename: 'upload-test.txt',
+					mime_type: 'text/plain'
+				})
+				// Response contract: verifies AdminComplaintDocumentResponse
+				// (src/admin/types.ts) actually matches what the route returns -- same
+				// schema GET .../documents/:docId's sibling detail shape would use.
+				expect(() => AdminComplaintDocumentResponseSchema.parse(res.data)).not.toThrow()
+
+				// Clean up: the route response deliberately omits `file_key` (an internal
+				// storage key), so fetch it via the service before deleting the row and
+				// the underlying stored object.
+				const seeded = await complaintService.retrieveComplaintDocument(res.data.document.id)
+				await complaintService.deleteComplaintDocuments([seeded.id])
+				const fileService = getContainer().resolve(Modules.FILE)
+				await fileService
+					.getProvider()
+					.delete({ fileKey: seeded.file_key } as any)
+					.catch(() => {})
+			})
+
 			it('GET /admin/complaints/:id/documents lists documents for the complaint', async () => {
 				const created = await complaintService.createComplaintDocuments({
 					complaint_id: docComplaintId,
@@ -579,6 +706,9 @@ medusaIntegrationTestRunner({
 				expect(res.status).toBe(200)
 				expect(Array.isArray(res.data.documents)).toBe(true)
 				expect(res.data.documents.some((d: any) => d.id === seeded.id)).toBe(true)
+				// Response contract: verifies AdminComplaintDocumentsResponse (src/admin/types.ts)
+				// actually matches what the route returns.
+				expect(() => AdminComplaintDocumentsResponseSchema.parse(res.data)).not.toThrow()
 
 				await complaintService.deleteComplaintDocuments([seeded.id])
 			})
@@ -609,6 +739,9 @@ medusaIntegrationTestRunner({
 					expect(typeof res.data.url).toBe('string')
 					expect(res.data.filename).toBe('download-test.txt')
 					expect(res.data.mime_type).toBe('text/plain')
+					// Response contract: verifies AdminComplaintDocumentDownloadResponse
+					// (src/admin/types.ts) actually matches what the route returns.
+					expect(() => AdminComplaintDocumentDownloadResponseSchema.parse(res.data)).not.toThrow()
 				} finally {
 					await complaintService.deleteComplaintDocuments([seeded.id])
 					await provider.delete({ fileKey: uploaded.key } as any).catch(() => {})
@@ -733,6 +866,11 @@ medusaIntegrationTestRunner({
 					total_orders: 50,
 					complaint_rate: expect.any(Number)
 				})
+				// Response contract: verifies ComplaintProductStat (src/admin/types.ts)
+				// actually matches what the route returns. No named envelope type exists
+				// for `{ complaint_product_stat }` in admin/types.ts, so only the inner
+				// object is checked against its type.
+				expect(() => ComplaintProductStatSchema.parse(res.data.complaint_product_stat)).not.toThrow()
 			})
 		})
 

@@ -23,11 +23,24 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 
 export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateFunnelType>, res: MedusaResponse) => {
 	const privateAnalyticsService: PrivateAnalyticsService = req.scope.resolve(PRIVATE_ANALYTICS_MODULE)
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 	const { steps, ...rest } = req.validatedBody
-	const funnel = await privateAnalyticsService.updateAnalyticsFunnels({
+	await privateAnalyticsService.updateAnalyticsFunnels({
 		id: req.params.id,
 		...rest,
 		...(steps !== undefined ? { steps: steps as unknown as Record<string, unknown> } : {})
 	})
+
+	// `updateAnalyticsFunnels` returns the raw ORM entity (including `deleted_at`),
+	// not the field-selected shape the GET route returns. Re-fetch through the same
+	// graph query the detail route uses so the response matches AdminFunnel exactly.
+	const {
+		data: [funnel]
+	} = await query.graph({
+		entity: 'analytics_funnel',
+		fields: ['id', 'name', 'label', 'description', 'steps', 'sales_channel_id', 'is_default', 'created_at', 'updated_at'],
+		filters: { id: req.params.id }
+	})
+
 	res.json({ funnel })
 }

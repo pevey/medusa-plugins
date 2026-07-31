@@ -26,11 +26,26 @@ export async function GET(req: AuthenticatedMedusaRequest<AdminGetComplaintActiv
 export const POST = async (req: AuthenticatedMedusaRequest<AdminCreateComplaintActivityType>, res: MedusaResponse) => {
 	const { id: complaint_id } = req.params
 	const complaintService: ComplaintService = req.scope.resolve(COMPLAINT_MODULE)
-	const activity = await complaintService.createComplaintActivities({
+	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+	const created = await complaintService.createComplaintActivities({
 		user_id: req.auth_context?.actor_id,
 		complaint_id,
 		...req.validatedBody
 	})
+
+	// `createComplaintActivities` returns the raw ORM entity -- missing the `user`
+	// module-link relation and carrying `deleted_at`. Re-fetch through the same
+	// field selection GET .../activities uses so this matches AdminComplaintActivity.
+	const {
+		data: [activity]
+	} = await query.graph(
+		{
+			entity: 'complaint_activity',
+			fields: ['id', 'complaint_id', 'user_id', 'type', 'note', 'metadata', 'created_at', 'updated_at', 'user.*'],
+			filters: { id: created.id }
+		},
+		{ throwIfKeyNotFound: true }
+	)
 	res.json({ activity })
 }
 

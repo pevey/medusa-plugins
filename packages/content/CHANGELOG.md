@@ -1,3 +1,7 @@
+## 1.0.1
+
+- Fix relationship direction display in admin detail page.
+
 ## 1.0.0
 
 - Fix a11y issues with create modal and edit drawer

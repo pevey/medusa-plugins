@@ -3,7 +3,15 @@ import { loadRouteContracts, createContractFake, type ContractFake, type Respond
 import middlewares from '../../api/middlewares'
 import type { AdminForm } from '../types'
 
-export const contracts = loadRouteContracts(middlewares)
+// Discovers routes from the real file tree so a route needs no `middlewares.ts` entry just to
+// be visible here — `middlewares.ts` only supplies schemas/queryConfig for the routes that have
+// them. Read as raw text, NOT executed: a route.ts pulls in `@medusajs/framework/utils` ->
+// `jsonwebtoken`, which calls `util.inherits` and crashes the whole suite import once Vite
+// externalizes Node's `util` for the browser. `loadRouteContracts` recovers the exported HTTP
+// verbs by regex over the source text instead.
+const routeModules = import.meta.glob('../../api/admin/**/route.ts', { eager: true, query: '?raw', import: 'default' })
+
+export const contracts = loadRouteContracts(middlewares, { routeModules })
 
 export function makeForm(overrides: Partial<AdminForm> = {}): AdminForm {
 	return {

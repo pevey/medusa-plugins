@@ -23,5 +23,12 @@ export const GET = async (req: AuthenticatedMedusaRequest<never>, res: MedusaRes
 		order: { created_at: 'DESC' }
 	})
 
-	res.json({ deliveries, count, limit: limit ?? 20, offset: offset ?? 0 })
+	// Strip `deleted_at` (soft-delete internal) and the `action` relation stub — nothing in the
+	// admin UI reads `.action` on a delivery; `action_id` (the scalar FK) is kept.
+	const safe = deliveries.map((d: any) => {
+		const { deleted_at, action, ...rest } = d
+		return rest
+	})
+
+	res.json({ deliveries: safe, count, limit: limit ?? 20, offset: offset ?? 0 })
 }

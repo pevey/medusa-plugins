@@ -1,3 +1,8 @@
+## 1.0.1
+
+- Remove test artifacts from repo & package
+- Fix document upload api endpoint to not return internal file_key. The files are saved with ACL: private, but a Medusa backend configured to use R2 storage via the s3 file provider silently ignores that.
+
 ## 1.0.0
 
 - Fix a11y issues with create modal and edit drawer

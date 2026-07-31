@@ -60,7 +60,7 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminAssignRoleUsersT
 
 	const { data: links } = await query.graph({
 		entity: 'user_access_role',
-		fields: ['user.*'],
+		fields: ['user.id', 'user.email', 'user.first_name', 'user.last_name'],
 		filters: { access_role_id: roleId }
 	})
 

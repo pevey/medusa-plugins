@@ -90,11 +90,6 @@ export default defineMiddlewares([
 		middlewares: [validateAndTransformBody(AdminUpdateForm)]
 	},
 	{
-		matcher: '/admin/forms/:id',
-		method: ['DELETE'],
-		middlewares: []
-	},
-	{
 		matcher: '/admin/forms/:id/fields',
 		method: ['GET'],
 		middlewares: [
@@ -180,11 +175,6 @@ export default defineMiddlewares([
 		matcher: '/admin/form-submissions/:id',
 		method: ['POST'],
 		middlewares: [validateAndTransformBody(AdminUpdateFormSubmission)]
-	},
-	{
-		matcher: '/admin/form-submissions/:id',
-		method: ['DELETE'],
-		middlewares: []
 	},
 	// Store
 	{
