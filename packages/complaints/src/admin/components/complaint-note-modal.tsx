@@ -1,5 +1,5 @@
 import * as zod from 'zod'
-import { FocusModal, Heading, Text, Textarea, Button, Input, toast, usePrompt } from '@medusajs/ui'
+import { FocusModal, Heading, Label, Textarea, Button, toast, usePrompt } from '@medusajs/ui'
 import { useEffect } from 'react'
 import { FormProvider, Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -93,9 +93,11 @@ export const ComplaintNoteModal = ({ open, setOpen, complaintId, note }: Complai
 								<div className="mx-auto flex w-full max-w-[720px] flex-col gap-y-8 px-2 py-16">
 									<div>
 										<FocusModal.Title asChild>
-											<Heading className="capitalize">Add Complaint Note</Heading>
+											<Heading className="capitalize">{note?.id ? 'Edit Complaint Note' : 'Add Complaint Note'}</Heading>
 										</FocusModal.Title>
-										<FocusModal.Description className="sr-only">Add a note to this complaint.</FocusModal.Description>
+										<FocusModal.Description className="sr-only">
+											{note?.id ? "Edit this complaint's note." : 'Add a note to this complaint.'}
+										</FocusModal.Description>
 									</div>
 									<div className="grid grid-cols-1 gap-4">
 										<Controller
@@ -103,10 +105,10 @@ export const ComplaintNoteModal = ({ open, setOpen, complaintId, note }: Complai
 											name="note"
 											render={({ field }) => (
 												<div className="flex flex-col space-y-2">
-													<Text size="small" weight="plus">
+													<Label htmlFor="ccn-note" size="small" weight="plus">
 														Note
-													</Text>
-													<Textarea {...field} />
+													</Label>
+													<Textarea id="ccn-note" {...field} />
 												</div>
 											)}
 										/>

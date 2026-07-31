@@ -32,7 +32,12 @@ const RolesPage = () => {
 	const [sorting, setSorting] = useState<DataTableSortingState | null>(null)
 	const [search, setSearch] = useState('')
 
-	const { data, isLoading } = useAccessRolesList({ limit, offset, q: search })
+	const { data, isLoading } = useAccessRolesList({
+		limit,
+		offset,
+		q: search,
+		order: sorting ? `${sorting.desc ? '-' : ''}${sorting.id}` : undefined
+	})
 	const { mutateAsync: deleteRoles } = useDeleteAccessRoles()
 
 	const columnHelper = createDataTableColumnHelper<AdminAccessRole>()

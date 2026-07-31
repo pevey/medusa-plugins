@@ -163,3 +163,83 @@ describe('createContractFake query handling', () => {
 		await expect(pagedFake().fetch('/admin/paged', { query: { fields: '-id,-name' } })).rejects.toThrow(/no fields at all/i)
 	})
 })
+
+// A route whose fixture has a relation (`inventory_item`) not in the route's own `defaults`, to
+// exercise leading-star / trailing-star relation expansion the way `stock-lots/page.tsx` and
+// `useStockLot` really do (`fields: '*inventory_item,*stock_location'`).
+const withRelation = loadRouteContracts(
+	defineMiddlewares([
+		{
+			matcher: '/admin/relational',
+			method: ['GET'],
+			middlewares: [
+				validateAndTransformQuery(createFindParams(), {
+					defaults: ['id', 'name'],
+					isList: true
+				})
+			]
+		}
+	])
+)
+
+describe('createContractFake star-field handling', () => {
+	const relationalFake = () =>
+		createContractFake({
+			contracts: withRelation,
+			responders: {
+				'GET /admin/relational': () => ({
+					items: [
+						{
+							id: 'r_1',
+							name: 'One',
+							secret: 'nope',
+							inventory_item: { id: 'iitem_1', title: 'Widget' },
+							stock_location: { id: 'sloc_1', name: 'Main' }
+						}
+					],
+					count: 1
+				})
+			}
+		})
+
+	it('expands a leading-star relation token in addition to the defaults, not instead of them', async () => {
+		const result = (await relationalFake().fetch('/admin/relational', { query: { fields: '*inventory_item' } })) as {
+			items: Array<Record<string, unknown>>
+		}
+		expect(result.items[0]).toEqual({
+			id: 'r_1',
+			name: 'One',
+			inventory_item: { id: 'iitem_1', title: 'Widget' }
+		})
+	})
+
+	it('expands a trailing dot-star relation token the same way as a leading star', async () => {
+		const result = (await relationalFake().fetch('/admin/relational', { query: { fields: 'inventory_item.*' } })) as {
+			items: Array<Record<string, unknown>>
+		}
+		expect(result.items[0]).toEqual({
+			id: 'r_1',
+			name: 'One',
+			inventory_item: { id: 'iitem_1', title: 'Widget' }
+		})
+	})
+
+	it('adds every star-marked token in a fields list made entirely of them, keeping all defaults', async () => {
+		const result = (await relationalFake().fetch('/admin/relational', { query: { fields: '*inventory_item,*stock_location' } })) as {
+			items: Array<Record<string, unknown>>
+		}
+		expect(result.items[0]).toEqual({
+			id: 'r_1',
+			name: 'One',
+			inventory_item: { id: 'iitem_1', title: 'Widget' },
+			stock_location: { id: 'sloc_1', name: 'Main' }
+		})
+	})
+
+	it('still replaces defaults when a star token is mixed with a genuinely bare field', async () => {
+		const result = (await relationalFake().fetch('/admin/relational', { query: { fields: 'id,*inventory_item' } })) as {
+			items: Array<Record<string, unknown>>
+		}
+		expect(result.items[0]).toEqual({ id: 'r_1', inventory_item: { id: 'iitem_1', title: 'Widget' } })
+	})
+})

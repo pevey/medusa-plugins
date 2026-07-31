@@ -172,10 +172,10 @@ export const EditStockLotDrawer = ({ stockLot, open, setOpen }: EditStockLotDraw
 								rules={{ required: 'Lot number is required' }}
 								render={({ field }) => (
 									<div className="flex flex-col space-y-2">
-										<Label size="small" weight="plus">
+										<Label htmlFor="esl-lot-number" size="small" weight="plus">
 											Lot Number
 										</Label>
-										<Input {...field} value={field.value} placeholder="e.g. LOT-001" />
+										<Input id="esl-lot-number" {...field} value={field.value} placeholder="e.g. LOT-001" />
 									</div>
 								)}
 							/>
@@ -186,10 +186,10 @@ export const EditStockLotDrawer = ({ stockLot, open, setOpen }: EditStockLotDraw
 								name="description"
 								render={({ field }) => (
 									<div className="flex flex-col space-y-2">
-										<Label size="small" weight="plus">
+										<Label htmlFor="esl-description" size="small" weight="plus">
 											Description
 										</Label>
-										<Input {...field} value={field.value ?? ''} placeholder="Optional description" />
+										<Input id="esl-description" {...field} value={field.value ?? ''} placeholder="Optional description" />
 									</div>
 								)}
 							/>
@@ -200,10 +200,16 @@ export const EditStockLotDrawer = ({ stockLot, open, setOpen }: EditStockLotDraw
 								name="stocked_quantity"
 								render={({ field }) => (
 									<div className="flex flex-col space-y-2">
-										<Label size="small" weight="plus">
+										<Label htmlFor="esl-stocked-quantity" size="small" weight="plus">
 											Stocked Quantity
 										</Label>
-										<Input type="number" min={0} value={field.value} onChange={e => field.onChange(Number(e.target.value))} />
+										<Input
+											id="esl-stocked-quantity"
+											type="number"
+											min={0}
+											value={field.value}
+											onChange={e => field.onChange(Number(e.target.value))}
+										/>
 									</div>
 								)}
 							/>

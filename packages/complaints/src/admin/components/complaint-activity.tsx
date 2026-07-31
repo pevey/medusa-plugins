@@ -39,7 +39,7 @@ export const ComplaintActivity = ({ complaint }: ComplaintActivityProps) => {
 					{!isLoading &&
 						entries
 							?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-							.map((entry, index) => <ComplaintActivityEntry isFirst={index === entries.length - 1} entry={entry} />)}
+							.map((entry, index) => <ComplaintActivityEntry key={entry.id} isFirst={index === entries.length - 1} entry={entry} />)}
 				</div>
 			</Container>
 			<ComplaintNoteModal open={createNoteOpen} setOpen={setCreateNoteOpen} complaintId={complaint.id} />

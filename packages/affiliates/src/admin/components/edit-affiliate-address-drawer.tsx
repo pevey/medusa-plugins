@@ -74,64 +74,64 @@ export const EditAffiliateAddressDrawer = ({ affiliateId, address, open, onOpenC
 					<Drawer.Body className="flex max-w-full flex-1 flex-col gap-y-8 overflow-y-auto">
 						<div className="grid grid-cols-2 gap-4">
 							<div className="flex flex-col space-y-2">
-								<Label size="small" weight="plus">
+								<Label htmlFor="eaad-first-name" size="small" weight="plus">
 									First name
 								</Label>
-								<Input value={first} onChange={e => setFirst(e.target.value)} />
+								<Input id="eaad-first-name" value={first} onChange={e => setFirst(e.target.value)} />
 							</div>
 							<div className="flex flex-col space-y-2">
-								<Label size="small" weight="plus">
+								<Label htmlFor="eaad-last-name" size="small" weight="plus">
 									Last name
 								</Label>
-								<Input value={last} onChange={e => setLast(e.target.value)} />
+								<Input id="eaad-last-name" value={last} onChange={e => setLast(e.target.value)} />
 							</div>
 							<div className="col-span-2 flex flex-col space-y-2">
-								<Label size="small" weight="plus">
+								<Label htmlFor="eaad-company" size="small" weight="plus">
 									Company
 								</Label>
-								<Input value={company} onChange={e => setCompany(e.target.value)} />
+								<Input id="eaad-company" value={company} onChange={e => setCompany(e.target.value)} />
 							</div>
 							<div className="col-span-2 flex flex-col space-y-2">
-								<Label size="small" weight="plus">
+								<Label htmlFor="eaad-address-1" size="small" weight="plus">
 									Address 1
 								</Label>
-								<Input value={a1} onChange={e => setA1(e.target.value)} />
+								<Input id="eaad-address-1" value={a1} onChange={e => setA1(e.target.value)} />
 							</div>
 							<div className="col-span-2 flex flex-col space-y-2">
-								<Label size="small" weight="plus">
+								<Label htmlFor="eaad-address-2" size="small" weight="plus">
 									Address 2
 								</Label>
-								<Input value={a2} onChange={e => setA2(e.target.value)} />
+								<Input id="eaad-address-2" value={a2} onChange={e => setA2(e.target.value)} />
 							</div>
 							<div className="flex flex-col space-y-2">
-								<Label size="small" weight="plus">
+								<Label htmlFor="eaad-city" size="small" weight="plus">
 									City
 								</Label>
-								<Input value={city} onChange={e => setCity(e.target.value)} />
+								<Input id="eaad-city" value={city} onChange={e => setCity(e.target.value)} />
 							</div>
 							<div className="flex flex-col space-y-2">
-								<Label size="small" weight="plus">
+								<Label htmlFor="eaad-province" size="small" weight="plus">
 									State/Province
 								</Label>
-								<Input value={province} onChange={e => setProvince(e.target.value)} />
+								<Input id="eaad-province" value={province} onChange={e => setProvince(e.target.value)} />
 							</div>
 							<div className="flex flex-col space-y-2">
-								<Label size="small" weight="plus">
+								<Label htmlFor="eaad-country" size="small" weight="plus">
 									Country
 								</Label>
-								<Input value={country} onChange={e => setCountry(e.target.value.toLowerCase())} />
+								<Input id="eaad-country" value={country} onChange={e => setCountry(e.target.value.toLowerCase())} />
 							</div>
 							<div className="flex flex-col space-y-2">
-								<Label size="small" weight="plus">
+								<Label htmlFor="eaad-postal" size="small" weight="plus">
 									Postal
 								</Label>
-								<Input value={postal} onChange={e => setPostal(e.target.value)} />
+								<Input id="eaad-postal" value={postal} onChange={e => setPostal(e.target.value)} />
 							</div>
 							<div className="col-span-2 flex flex-col space-y-2">
-								<Label size="small" weight="plus">
+								<Label htmlFor="eaad-phone" size="small" weight="plus">
 									Phone
 								</Label>
-								<Input value={phone} onChange={e => setPhone(e.target.value)} />
+								<Input id="eaad-phone" value={phone} onChange={e => setPhone(e.target.value)} />
 							</div>
 						</div>
 					</Drawer.Body>

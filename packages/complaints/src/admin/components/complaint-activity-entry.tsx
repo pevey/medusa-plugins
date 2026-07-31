@@ -1,4 +1,4 @@
-import { Avatar, clx, Text, Tooltip } from '@medusajs/ui'
+import { Avatar, clx, Text, Tooltip, toast, usePrompt } from '@medusajs/ui'
 import { PencilSquare, Trash } from '@medusajs/icons'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -13,12 +13,26 @@ export type ComplaintActivityEntryProps = {
 	isFirst?: boolean
 }
 
-const handleDeleteNote = () => {}
-
 export const ComplaintActivityEntry = ({ entry, isFirst }: ComplaintActivityEntryProps) => {
 	const { mutate: deleteNote } = useDeleteNote(entry.complaint_id, entry.id)
 	const { getFullDate, getRelativeDate } = useDate()
 	const [editNoteOpen, setEditNoteOpen] = useState(false)
+	const prompt = usePrompt()
+
+	const handleDeleteNote = async () => {
+		const confirmed = await prompt({
+			title: 'Delete note?',
+			description: 'This action cannot be undone.',
+			confirmText: 'Delete',
+			cancelText: 'Cancel',
+			variant: 'danger'
+		})
+		if (!confirmed) return
+		deleteNote(undefined, {
+			onSuccess: () => toast.success('Note deleted successfully'),
+			onError: () => toast.error('Failed to delete note')
+		})
+	}
 
 	const { user } = entry
 	const name = [user.first_name, user.last_name].filter(Boolean).join(' ')

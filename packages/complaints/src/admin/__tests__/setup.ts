@@ -2,7 +2,7 @@ import { vi } from 'vitest'
 import { validateAndTransformQuery, validateAndTransformBody } from '@medusajs/framework/http'
 import { loadRouteContracts, createContractFake, type ContractFake, type Responder } from 'medusa-admin-test-utils'
 import * as V from '../../api/validators'
-import type { AdminComplaint, AdminComplaintTag } from '../types'
+import type { AdminComplaint, AdminComplaintActivity, AdminComplaintTag } from '../types'
 
 // Discovers routes from the real file tree so a route needs no entry below just to be visible
 // here. Read as raw text, NOT executed: a route.ts pulls in `@medusajs/framework/utils` ->
@@ -200,6 +200,21 @@ export function makeComplaintTag(overrides: Partial<AdminComplaintTag> = {}): Ad
 		value: 'VIP',
 		created_at: '2026-01-15T10:00:00.000Z',
 		updated_at: '2026-01-15T10:00:00.000Z',
+		...overrides
+	}
+}
+
+export function makeComplaintActivity(overrides: Partial<AdminComplaintActivity> = {}): AdminComplaintActivity {
+	return {
+		id: 'cact_1',
+		complaint_id: 'complaint_1',
+		user_id: 'user_1',
+		type: 'note',
+		note: 'Followed up with the customer by phone.',
+		metadata: null,
+		created_at: '2026-01-15T11:00:00.000Z',
+		updated_at: '2026-01-15T11:00:00.000Z',
+		user: { id: 'user_1', first_name: 'Jane', last_name: 'Doe', email: 'jane@example.com' } as unknown as AdminComplaintActivity['user'],
 		...overrides
 	}
 }

@@ -68,6 +68,7 @@ const ContentCollectionsPage = () => {
 	const { mutate: deleteContentCollections } = useDeleteContentCollections()
 
 	const columns = [
+		columnHelper.select(),
 		columnHelper.accessor('label', { header: 'Label', enableSorting: false }),
 		columnHelper.accessor('format', {
 			header: 'Format',

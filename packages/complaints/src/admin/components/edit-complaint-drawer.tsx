@@ -401,10 +401,10 @@ export const EditComplaintDrawer = ({ complaint, open, setOpen }: EditComplaintD
 								name="description"
 								render={({ field }) => (
 									<div className="flex flex-col space-y-2">
-										<Label size="small" weight="plus">
+										<Label htmlFor="ecd-description" size="small" weight="plus">
 											Description
 										</Label>
-										<Textarea {...field} value={field.value ?? ''} />
+										<Textarea id="ecd-description" {...field} value={field.value ?? ''} />
 									</div>
 								)}
 							/>

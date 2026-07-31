@@ -31,7 +31,7 @@ export const useUpdateCustomerTag = (id: string | undefined) => {
 	})
 }
 
-export const useCustomerTagsList = (params: { limit: number; offset: number; q?: string }) => {
+export const useCustomerTagsList = (params: { limit: number; offset: number; q?: string; order?: string }) => {
 	return useQuery<AdminCustomerTagsResponse>({
 		queryFn: () => sdk.client.fetch('/admin/customer-tags', { query: params }),
 		queryKey: ['customer-tags', params]

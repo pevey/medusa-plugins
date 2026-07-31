@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-customer-tags",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Customer tagging plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",

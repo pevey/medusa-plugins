@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { cloneElement, isValidElement, useState, type ReactElement } from 'react'
 import { Button, FocusModal, Heading, Input, Label, RadioGroup, Text, toast } from '@medusajs/ui'
 import { useCreateAffiliate } from '../hooks/affiliates'
 
@@ -88,12 +88,12 @@ export const CreateAffiliateModal = ({ open, onOpenChange, onCreated }: Props) =
 		}
 	}
 
-	const field = (label: string, input: React.ReactNode) => (
+	const field = (label: string, id: string, input: ReactElement) => (
 		<div className="flex flex-col space-y-2">
-			<Text size="small" weight="plus">
+			<Label htmlFor={id} size="small" weight="plus">
 				{label}
-			</Text>
-			{input}
+			</Label>
+			{isValidElement(input) ? cloneElement(input, { id } as any) : input}
 		</div>
 	)
 
@@ -125,31 +125,39 @@ export const CreateAffiliateModal = ({ open, onOpenChange, onCreated }: Props) =
 							</div>
 
 							<div className="grid grid-cols-1 gap-4">
-								{field('Name', <Input value={name} onChange={e => setName(e.target.value)} />)}
-								{field('Email', <Input type="email" value={email} onChange={e => setEmail(e.target.value)} />)}
-								{field('Phone', <Input value={phone} onChange={e => setPhone(e.target.value)} />)}
-								{field('Currency', <Input value={currencyCode} onChange={e => setCurrencyCode(e.target.value.toLowerCase())} placeholder="usd" />)}
+								{field('Name', 'ca-name', <Input value={name} onChange={e => setName(e.target.value)} />)}
+								{field('Email', 'ca-email', <Input type="email" value={email} onChange={e => setEmail(e.target.value)} />)}
+								{field('Phone', 'ca-phone', <Input value={phone} onChange={e => setPhone(e.target.value)} />)}
+								{field(
+									'Currency',
+									'ca-currency',
+									<Input value={currencyCode} onChange={e => setCurrencyCode(e.target.value.toLowerCase())} placeholder="usd" />
+								)}
 							</div>
 
 							<div className="flex flex-col gap-y-4">
 								<Heading level="h2">Primary address</Heading>
 								<div className="grid grid-cols-1 gap-4">
 									<div className="grid grid-cols-2 gap-4">
-										{field('First name', <Input value={first} onChange={e => setFirst(e.target.value)} />)}
-										{field('Last name', <Input value={last} onChange={e => setLast(e.target.value)} />)}
+										{field('First name', 'ca-first-name', <Input value={first} onChange={e => setFirst(e.target.value)} />)}
+										{field('Last name', 'ca-last-name', <Input value={last} onChange={e => setLast(e.target.value)} />)}
 									</div>
-									{field('Company', <Input value={company} onChange={e => setCompany(e.target.value)} />)}
-									{field('Address 1', <Input value={a1} onChange={e => setA1(e.target.value)} />)}
-									{field('Address 2', <Input value={a2} onChange={e => setA2(e.target.value)} />)}
+									{field('Company', 'ca-company', <Input value={company} onChange={e => setCompany(e.target.value)} />)}
+									{field('Address 1', 'ca-address-1', <Input value={a1} onChange={e => setA1(e.target.value)} />)}
+									{field('Address 2', 'ca-address-2', <Input value={a2} onChange={e => setA2(e.target.value)} />)}
 									<div className="grid grid-cols-2 gap-4">
-										{field('City', <Input value={city} onChange={e => setCity(e.target.value)} />)}
-										{field('State / Province', <Input value={province} onChange={e => setProvince(e.target.value)} />)}
+										{field('City', 'ca-city', <Input value={city} onChange={e => setCity(e.target.value)} />)}
+										{field('State / Province', 'ca-province', <Input value={province} onChange={e => setProvince(e.target.value)} />)}
 									</div>
 									<div className="grid grid-cols-2 gap-4">
-										{field('Country code', <Input value={country} onChange={e => setCountry(e.target.value.toLowerCase())} placeholder="us" />)}
-										{field('Postal code', <Input value={postal} onChange={e => setPostal(e.target.value)} />)}
+										{field(
+											'Country code',
+											'ca-country',
+											<Input value={country} onChange={e => setCountry(e.target.value.toLowerCase())} placeholder="us" />
+										)}
+										{field('Postal code', 'ca-postal', <Input value={postal} onChange={e => setPostal(e.target.value)} />)}
 									</div>
-									{field('Phone', <Input value={aPhone} onChange={e => setAPhone(e.target.value)} />)}
+									{field('Phone', 'ca-address-phone', <Input value={aPhone} onChange={e => setAPhone(e.target.value)} />)}
 								</div>
 							</div>
 
@@ -157,8 +165,12 @@ export const CreateAffiliateModal = ({ open, onOpenChange, onCreated }: Props) =
 								<Heading level="h2">First promotion code</Heading>
 								<div className="grid grid-cols-1 gap-4">
 									<div className="grid grid-cols-2 gap-4">
-										{field('Code', <Input value={code} onChange={e => setCode(e.target.value)} placeholder="JANE10" />)}
-										{field('Discount value', <Input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} />)}
+										{field('Code', 'ca-code', <Input value={code} onChange={e => setCode(e.target.value)} placeholder="JANE10" />)}
+										{field(
+											'Discount value',
+											'ca-discount-value',
+											<Input type="number" value={discountValue} onChange={e => setDiscountValue(e.target.value)} />
+										)}
 									</div>
 									<div className="flex flex-col space-y-2">
 										<Text size="small" weight="plus">
@@ -179,7 +191,11 @@ export const CreateAffiliateModal = ({ open, onOpenChange, onCreated }: Props) =
 											</div>
 										</RadioGroup>
 									</div>
-									{field('End date (optional)', <Input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} />)}
+									{field(
+										'End date (optional)',
+										'ca-end-date',
+										<Input type="datetime-local" value={endDate} onChange={e => setEndDate(e.target.value)} />
+									)}
 								</div>
 							</div>
 						</div>

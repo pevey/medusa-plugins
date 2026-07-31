@@ -11,7 +11,7 @@ import {
 
 // --- Roles CRUD ---------------------------------------------------------------
 
-export const useAccessRolesList = (params: { limit: number; offset: number; q?: string }) => {
+export const useAccessRolesList = (params: { limit: number; offset: number; q?: string; order?: string }) => {
 	return useQuery<AdminAccessRolesResponse>({
 		queryFn: () => sdk.client.fetch('/admin/access/roles', { query: params }),
 		queryKey: ['access-roles', params]

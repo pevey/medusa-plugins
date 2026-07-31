@@ -1,6 +1,7 @@
 import { vi } from 'vitest'
 import { loadRouteContracts, createContractFake, type ContractFake, type Responder } from 'medusa-admin-test-utils'
 import middlewares from '../../api/middlewares'
+import type { AdminOrder } from '@medusajs/framework/types'
 import type { AdminOrderNote } from '../types'
 
 // Discovers routes from the real file tree so a route needs no `middlewares.ts` entry just to
@@ -25,6 +26,19 @@ export function makeOrderNote(overrides: Partial<AdminOrderNote> = {}): AdminOrd
 		metadata: null,
 		...overrides
 	}
+}
+
+/**
+ * The widget only ever reads `order.id` (it fetches/creates/deletes notes scoped to it) — every
+ * other `AdminOrder` field is irrelevant to this component, so this is a minimal fixture cast to
+ * the real SDK type rather than a fully-populated order. `as unknown as AdminOrder`: the object
+ * literal is too far from `AdminOrder`'s shape for a direct assertion.
+ */
+export function makeOrder(overrides: Partial<AdminOrder> = {}): AdminOrder {
+	return {
+		id: 'order_1',
+		...overrides
+	} as unknown as AdminOrder
 }
 
 /**

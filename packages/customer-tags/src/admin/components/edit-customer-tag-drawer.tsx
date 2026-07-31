@@ -93,10 +93,10 @@ export const EditCustomerTagDrawer = ({ customerTag, open, setOpen }: EditCustom
 								rules={{ required: 'Value is required' }}
 								render={({ field }) => (
 									<div className="flex flex-col space-y-2">
-										<Label size="small" weight="plus">
+										<Label htmlFor="ect-value" size="small" weight="plus">
 											Value
 										</Label>
-										<Input {...field} placeholder="e.g. VIP" />
+										<Input id="ect-value" {...field} placeholder="e.g. VIP" />
 									</div>
 								)}
 							/>

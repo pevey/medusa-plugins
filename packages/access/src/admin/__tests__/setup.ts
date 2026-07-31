@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import { z } from '@medusajs/framework/zod'
 import { validateAndTransformQuery, validateAndTransformBody } from '@medusajs/framework/http'
 import { loadRouteContracts, createContractFake, type ContractFake, type Responder } from 'medusa-admin-test-utils'
 import * as RoleValidators from '../../api/admin/access/roles/validators'
@@ -7,7 +8,7 @@ import * as PolicyValidators from '../../api/admin/access/policies/validators'
 import * as PolicyQueryConfig from '../../api/admin/access/policies/query-config'
 import * as UserRoleValidators from '../../api/admin/users/[id]/access/roles/validators'
 import * as UserRoleQueryConfig from '../../api/admin/users/[id]/access/roles/query-config'
-import type { AdminAccessRole, AdminAccessPolicy } from '../types'
+import type { AdminAccessRole, AdminAccessPolicy, AdminAccessRolePolicy, AdminAccessRoleUser } from '../types'
 
 // Discovers routes from the real file tree so a route needs no entry below just to be visible
 // here. Read as raw text, NOT executed: a route.ts pulls in `@medusajs/framework/utils` ->
@@ -88,11 +89,51 @@ const routes = [
 	{
 		matcher: '/admin/access/roles/:id/users',
 		methods: ['GET'],
-		middlewares: [validateAndTransformQuery(RoleValidators.AdminGetRoleUsersParams, RoleQueryConfig.listRoleUsersTransformQueryConfig)]
+		middlewares: [
+			validateAndTransformQuery(RoleValidators.AdminGetRoleUsersParams, {
+				...RoleQueryConfig.listRoleUsersTransformQueryConfig,
+				// `roles/[id]/users/route.ts` flattens the `user_access_role` join's `user` relation
+				// onto bare top-level fields before responding (`users: links.map(l => l.user)`), so
+				// the real `defaultAdminRoleUsersFields` -- which describe the PRE-flatten
+				// `query.graph` fields (`user.id`, `user.email`, ...) -- don't match the actual
+				// response shape at all. Real Medusa only ever uses `defaults` to build the graph
+				// query, so this mismatch is invisible there; this harness's `project()` re-applies
+				// `defaults` to the RESPONSE too, so using the pre-flatten list here would silently
+				// project every returned user down to `{}` (none of `id`/`email`/`first_name`/
+				// `last_name` match a top-level key named `user`). Overridden with the POST-flatten
+				// field names for the fake's benefit only -- this doesn't change the real backend,
+				// just what this test contract models the response shape as.
+				defaults: ['id', 'email', 'first_name', 'last_name']
+			})
+		]
 	},
 	{ matcher: '/admin/access/roles/:id/users', methods: ['POST'], middlewares: [validateAndTransformBody(RoleValidators.AdminAssignRoleUsers)] },
 	{ matcher: '/admin/access/roles/:id/users', methods: ['DELETE'], middlewares: [validateAndTransformBody(RoleValidators.AdminRemoveRoleUsers)] },
 	{ matcher: '/admin/access/roles/:id', methods: ['DELETE'], middlewares: [] },
+
+	// `/admin/users` is a CORE Medusa route, not one this plugin owns or declares middlewares for
+	// -- there is no `src/api/admin/users/route.ts` here for `loadRouteContracts`'s file-system
+	// scan to discover. `add-role-users-modal.tsx`'s user picker calls it anyway (via this
+	// plugin's own `hooks/users.ts` -> `useUsersList`) to search the core user list, and always
+	// sends an explicit bare `fields=id,email,first_name,last_name` override, so no `queryConfig`
+	// is needed here for the fake to project it correctly. A minimal permissive stand-in contract
+	// is registered so that call can be answered at all in the harness, the same way a real
+	// backend would answer it from a different route file entirely.
+	{
+		matcher: '/admin/users',
+		methods: ['GET'],
+		middlewares: [
+			validateAndTransformQuery(
+				z.object({
+					limit: z.coerce.number().optional(),
+					offset: z.coerce.number().optional(),
+					q: z.string().optional(),
+					fields: z.string().optional()
+				}),
+				{}
+			)
+		]
+	},
 
 	{
 		matcher: '/admin/access/policies',
@@ -169,6 +210,32 @@ export function makeAccessPolicy(overrides: Partial<AdminAccessPolicy> = {}): Ad
 		created_at: '2026-01-15T10:00:00.000Z',
 		updated_at: '2026-01-15T10:00:00.000Z',
 		deleted_at: null,
+		...overrides
+	}
+}
+
+// A row from `GET /admin/access/roles/:id/policies`. `policy` is the already-flattened
+// permission-key string (see `roles/[id]/policies/route.ts`'s `flattenPolicy`) -- the fix this
+// pins is that the page renders `{p.policy}` directly, which crashed with "objects are not valid
+// as a React child" back when this field was still the raw `{ id }` relation stub.
+export function makeAccessRolePolicy(overrides: Partial<AdminAccessRolePolicy> = {}): AdminAccessRolePolicy {
+	return {
+		id: 'accrolepolicy_1',
+		role_id: 'accrole_1',
+		policy_id: 'accpolicy_1',
+		policy: 'product:read',
+		...overrides
+	}
+}
+
+// A row from `GET /admin/access/roles/:id/users` (post-fix: a 4-field projection, not the full
+// raw `AdminUser` row -- see the `defaults` override on that route's contract above).
+export function makeAccessRoleUser(overrides: Partial<AdminAccessRoleUser> = {}): AdminAccessRoleUser {
+	return {
+		id: 'user_1',
+		email: 'jane@example.com',
+		first_name: 'Jane',
+		last_name: 'Doe',
 		...overrides
 	}
 }

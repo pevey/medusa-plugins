@@ -1,3 +1,7 @@
+## 1.0.1
+
+- Fix UI bugs in admin extensions
+
 ## 1.0.0
 
 - Fix a11y issues with create modal and edit drawer

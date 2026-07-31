@@ -32,11 +32,13 @@ const CustomerTagsPage = () => {
 	const [sorting, setSorting] = useState<DataTableSortingState | null>(null)
 	const [search, setSearch] = useState('')
 
-	const { data, isLoading } = useCustomerTagsList({ limit, offset, q: search })
+	const order = sorting ? `${sorting.desc ? '-' : ''}${sorting.id}` : undefined
+	const { data, isLoading } = useCustomerTagsList({ limit, offset, q: search, order })
 	const { mutateAsync: deleteCustomerTags } = useDeleteCustomerTags()
 
 	const columnHelper = createDataTableColumnHelper<AdminCustomerTag>()
 	const columns = [
+		columnHelper.select(),
 		columnHelper.accessor('value', {
 			header: 'Value',
 			enableSorting: true,

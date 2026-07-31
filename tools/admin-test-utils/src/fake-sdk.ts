@@ -68,9 +68,24 @@ function project(value: unknown, defaults: string[] | undefined): unknown {
 
 /**
  * The field list a response should be projected through: the route's `queryConfig.defaults`,
- * adjusted by an explicit `fields` query param the way the real API adjusts it. A bare list
- * replaces the defaults; `+x` / `-x` entries are deltas over them; a mixed form uses the bare
- * entries as the base and then applies the deltas.
+ * adjusted by an explicit `fields` query param the way the real API adjusts it.
+ *
+ * Ground truth is `@medusajs/framework`'s own `FieldParser.parse()`
+ * (`http/utils/field-filtering/field-parser.ts`) and `prepareListQuery()`
+ * (`http/utils/get-query-config.ts`), read from `node_modules/@medusajs/framework/dist`:
+ *
+ *  - A token counts as "modified" if it starts with `+` or `-`, starts with `*`, or ends with
+ *    `.*` (`shouldReplaceDefaults`). `fields` ADDS to `defaults` unless at least one token has
+ *    NONE of those markers — a genuinely bare, unprefixed list is what replaces `defaults`
+ *    wholesale. A `fields` value made entirely of `*relation` / `relation.*` tokens (real routes
+ *    do this — e.g. `fields: '*inventory_item,*stock_location'`) therefore ADDS those relations
+ *    to the defaults rather than discarding them.
+ *  - `-x` removes `x` and any already-present `x.<rest>` nested path (`applyFieldModifiers`).
+ *  - A leading star (`*relation`) and a trailing star (`relation.*`) are the SAME instruction —
+ *    "select all of this relation" — and are normalized identically (`extractStarFields` strips
+ *    either `^\*` or `\.\*$`); `prepareListQuery` re-emits every such field to the query as
+ *    `relation.*`, which is the form `project()` below already understands via its dot-path
+ *    nested-star case.
  *
  * Anything this cannot interpret throws rather than falling back to `defaults` — answering a
  * `fields` request more generously than the real API is exactly the silent divergence this
@@ -91,11 +106,44 @@ function resolveFields(validatedQuery: Record<string, unknown>, contract: RouteC
 		throw new Error(`${where}: \`fields\` has an empty entry — ${JSON.stringify(raw)}.`)
 	}
 
-	const base = entries.filter(entry => !entry.startsWith('+') && !entry.startsWith('-'))
-	const added = entries.filter(entry => entry.startsWith('+')).map(entry => entry.slice(1))
-	const removed = new Set(entries.filter(entry => entry.startsWith('-')).map(entry => entry.slice(1)))
+	const isStar = (entry: string) => entry.startsWith('*') || entry.endsWith('.*')
+	const hasModifier = (entry: string) => entry.startsWith('+') || entry.startsWith('-') || isStar(entry)
+	const shouldReplace = entries.some(entry => !hasModifier(entry))
 
-	const resolved = [...(base.length > 0 ? base : (defaults ?? [])), ...added].filter(field => !removed.has(field))
+	// Bare-list replace: defaults are discarded; entries keep any star marker (only the `+`/`-`
+	// prefix is stripped), stripped out below by the star-extraction pass.
+	// Additive: start from `defaults` and apply each entry as a delta.
+	const fields = new Set<string>(shouldReplace ? [] : (defaults ?? []))
+	if (shouldReplace) {
+		for (const entry of entries) fields.add(entry.replace(/^[+-]/, ''))
+	} else {
+		for (const entry of entries) {
+			if (entry.startsWith('+')) {
+				fields.add(entry.slice(1))
+			} else if (entry.startsWith('-')) {
+				const name = entry.slice(1)
+				for (const existing of fields) {
+					const existingName = existing.replace(/^\*/, '')
+					if (existingName === name || existingName.startsWith(`${name}.`)) fields.delete(existing)
+				}
+			} else {
+				fields.add(entry)
+			}
+		}
+	}
+
+	// Normalize every star-marked field (leading `*` or trailing `.*`) to the `relation.*` form
+	// `project()` interprets as "keep this nested value whole" — matching how real Medusa
+	// re-emits `starFields` to the query regardless of which marker the request used.
+	const starFields = new Set<string>()
+	for (const field of fields) {
+		if (isStar(field)) {
+			starFields.add(field.replace(/^\*/, '').replace(/\.\*$/, ''))
+			fields.delete(field)
+		}
+	}
+
+	const resolved = [...fields, ...Array.from(starFields, name => `${name}.*`)]
 	if (resolved.length === 0) {
 		throw new Error(`${where}: \`fields\` ${JSON.stringify(raw)} resolves to no fields at all against ` + `defaults [${(defaults ?? []).join(', ')}].`)
 	}

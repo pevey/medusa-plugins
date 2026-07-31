@@ -109,10 +109,10 @@ export const EditContentItemDrawer = ({ item, open, onOpenChange }: Props) => {
 							rules={{ required: 'Title is required' }}
 							render={({ field, fieldState }) => (
 								<div className="flex flex-col space-y-2">
-									<Label size="small" weight="plus">
+									<Label htmlFor="ecid-title" size="small" weight="plus">
 										Title <span className="text-ui-fg-error">*</span>
 									</Label>
-									<Input {...field} placeholder="Item title" />
+									<Input id="ecid-title" {...field} placeholder="Item title" />
 									{fieldState.error && <span className="text-ui-fg-error text-sm">{fieldState.error.message}</span>}
 								</div>
 							)}
@@ -123,10 +123,10 @@ export const EditContentItemDrawer = ({ item, open, onOpenChange }: Props) => {
 							rules={{ required: 'Slug is required' }}
 							render={({ field, fieldState }) => (
 								<div className="flex flex-col space-y-2">
-									<Label size="small" weight="plus">
+									<Label htmlFor="ecid-slug" size="small" weight="plus">
 										Slug <span className="text-ui-fg-error">*</span>
 									</Label>
-									<Input {...field} placeholder="item-slug" onChange={e => field.onChange(sanitizeSlug(e.target.value))} />
+									<Input id="ecid-slug" {...field} placeholder="item-slug" onChange={e => field.onChange(sanitizeSlug(e.target.value))} />
 									{fieldState.error && <span className="text-ui-fg-error text-sm">{fieldState.error.message}</span>}
 								</div>
 							)}

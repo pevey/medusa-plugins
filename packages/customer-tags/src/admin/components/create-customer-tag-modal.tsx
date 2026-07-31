@@ -1,5 +1,5 @@
 import * as zod from 'zod'
-import { FocusModal, Heading, Text, Button, Input, toast, usePrompt } from '@medusajs/ui'
+import { FocusModal, Heading, Label, Button, Input, toast, usePrompt } from '@medusajs/ui'
 import { useEffect } from 'react'
 import { FormProvider, Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -87,10 +87,10 @@ export const CreateCustomerTagModal = ({ open, setOpen }: CreateCustomerTagDrawe
 										name="value"
 										render={({ field }) => (
 											<div className="flex flex-col space-y-2">
-												<Text size="small" weight="plus">
+												<Label htmlFor="ct-value" size="small" weight="plus">
 													Tag Value
-												</Text>
-												<Input {...field} placeholder="e.g. VIP" />
+												</Label>
+												<Input id="ct-value" {...field} placeholder="e.g. VIP" />
 											</div>
 										)}
 									/>
