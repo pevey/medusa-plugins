@@ -15,7 +15,11 @@ export const retrieveTransformQueryConfig = {
 
 export const listTransformQueryConfig = {
 	...retrieveTransformQueryConfig,
-	defaultLimit: 20,
+	// Must agree with `AdminGetAccessRolesParams = createFindParams({ limit: 50, offset: 0 })` in
+	// `./validators.ts` -- was 20, silently disagreeing with the schema's own default (a caller
+	// omitting `limit` would get 50 rows back from `req.validatedQuery.limit`'s zod default, but
+	// the query graph's actual pagination `take` follows THIS defaultLimit, not the schema's).
+	defaultLimit: 50,
 	isList: true
 }
 

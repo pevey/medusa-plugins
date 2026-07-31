@@ -53,7 +53,8 @@
 		"db:generate": "medusa plugin:db:generate && yarn build",
 		"dev": "medusa plugin:develop",
 		"prepublishOnly": "medusa plugin:build",
-		"typecheck": "tsc --noEmit -p tsconfig.json",
+		"typecheck": "tsc --noEmit -p tsconfig.json && tsc -p tsconfig.admin.json",
+		"test:admin": "vitest run",
 		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit",
 		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --forceExit"
 	},
@@ -78,13 +79,15 @@
 		"@types/react": "18.3.31",
 		"@types/react-dom": "18.3.7",
 		"jest": "29.7.0",
+		"medusa-admin-test-utils": "workspace:*",
 		"medusa-plugin-automation": "0.3.2",
 		"medusa-plugin-statistics": "0.2.2",
 		"prop-types": "15.8.1",
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
 		"typescript": "6.0.3",
-		"vite": "8.1.5"
+		"vite": "8.1.5",
+		"vitest": "4.1.10"
 	},
 	"peerDependencies": {
 		"@medusajs/framework": "^2.17.2",

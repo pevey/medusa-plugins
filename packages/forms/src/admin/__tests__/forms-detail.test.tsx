@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { page } from 'vitest/browser'
-import { renderAdminRoute } from 'admin-test-utils'
+import { renderAdminRoute } from 'medusa-admin-test-utils'
 import { installFake, makeForm } from './setup.js'
 
 const responders = (form = makeForm()) => ({

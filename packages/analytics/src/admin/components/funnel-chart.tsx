@@ -74,7 +74,7 @@ const FunnelChart = ({ funnelName, steps, layout, onLayoutChange, period, onPeri
 								<CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-base, #e5e7eb)" />
 								<XAxis type="number" tick={{ fontSize: 11 }} />
 								<YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={140} />
-								<Tooltip formatter={(value: number) => [value.toLocaleString(), 'Count']} labelStyle={{ fontWeight: 600 }} />
+								<Tooltip formatter={value => [Number(value).toLocaleString(), 'Count']} labelStyle={{ fontWeight: 600 }} />
 								<Bar dataKey="count" radius={[0, 6, 6, 0]} fill={BAR_COLOR}>
 									{chartData.map((_entry, i) => (
 										<Cell key={i} fill={BAR_COLOR} fillOpacity={1 - i * 0.12} />
@@ -86,7 +86,7 @@ const FunnelChart = ({ funnelName, steps, layout, onLayoutChange, period, onPeri
 								<CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-base, #e5e7eb)" />
 								<XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={0} textAnchor="middle" />
 								<YAxis tick={{ fontSize: 11 }} />
-								<Tooltip formatter={(value: number) => [value.toLocaleString(), 'Count']} labelStyle={{ fontWeight: 600 }} />
+								<Tooltip formatter={value => [Number(value).toLocaleString(), 'Count']} labelStyle={{ fontWeight: 600 }} />
 								<Bar dataKey="count" radius={[6, 6, 0, 0]}>
 									{chartData.map((_entry, i) => (
 										<Cell key={i} fill={BAR_COLOR} fillOpacity={1 - i * 0.12} />

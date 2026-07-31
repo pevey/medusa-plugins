@@ -13,11 +13,25 @@ export type AdminTestConfigOptions = {
 	root: string
 	/** Extra aliases for plugin-specific node-only imports (e.g. content's `multer`). */
 	alias?: Array<{ find: string | RegExp; replacement: string }>
+	/**
+	 * Extra esbuild-style `define` text replacements, for plugin source that references a
+	 * Node-only global directly rather than through an importable module (so `alias` can't reach
+	 * it) — e.g. `middlewares.ts` reading `process.env.SOME_VAR` inline for a `bodyParser` option.
+	 * The browser test environment has no `process` global at all, so an unreplaced reference
+	 * throws `ReferenceError: process is not defined` at import time, before any test runs. Give
+	 * the FULL member-expression text as the key (`'process.env.SOME_VAR'`, not just `'process'`)
+	 * so the whole expression is replaced as one token and `process` never survives into the
+	 * bundle unresolved. Values are inserted as raw code, so a string default must be
+	 * `JSON.stringify`'d if you want a runtime string back — most callers just want `'undefined'`
+	 * so the plugin's own `?? fallback`/`|| fallback` supplies the value instead.
+	 */
+	define?: Record<string, string>
 }
 
 export function defineAdminTestConfig(options: AdminTestConfigOptions): ViteUserConfig {
 	return defineConfig({
 		plugins: [react()],
+		define: options.define,
 		resolve: {
 			// One copy of each context-carrying library, always. The harness supplies the
 			// QueryClientProvider and the router while the plugin's own hooks consume them;
@@ -31,6 +45,10 @@ export function defineAdminTestConfig(options: AdminTestConfigOptions): ViteUser
 				{
 					find: '@medusajs/medusa/api/utils/validators',
 					replacement: shim('medusa-validators')
+				},
+				{
+					find: '@medusajs/medusa/api/utils/common-validators/index',
+					replacement: shim('medusa-common-validators')
 				},
 				// `@medusajs/framework/zod` is a re-export of zod; alias it so importing a
 				// plugin's validators does not drag framework internals into the browser bundle.

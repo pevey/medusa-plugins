@@ -1,3 +1,8 @@
+## 0.3.2
+
+- Fix admin type errors
+- Remove dead code
+
 ## 0.3.1
 
 - Fix a11y issues with create modal and edit drawer

@@ -191,7 +191,7 @@ const FunnelConfigPage = () => {
 					</div>
 
 					{!hasCustomRubrics && (
-						<InlineTip variant="info">
+						<InlineTip label="Tip" variant="info">
 							Only backend events are available. To track custom storefront events (like page views),{' '}
 							<Link to="/analytics/rubrics" className="text-ui-fg-interactive underline">
 								create a custom event rubric

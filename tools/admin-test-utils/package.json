@@ -1,14 +1,31 @@
 {
-	"name": "admin-test-utils",
-	"version": "0.0.0",
-	"private": true,
-	"description": "Contract-checked test harness for Medusa plugin admin dashboard extensions.",
+	"name": "medusa-admin-test-utils",
+	"version": "0.1.0",
+	"description": "Test utils for Medusa plugin admin dashboard extensions",
+	"license": "MIT",
+	"author": "Lacey Pevey",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/pevey/medusa-plugins.git"
+	},
+	"keywords": [
+		"medusa-v2",
+		"medusa",
+		"testing",
+		"admin",
+		"vitest"
+	],
+	"files": [
+		"src",
+		"!src/__tests__"
+	],
 	"type": "module",
 	"exports": {
 		".": "./src/index.ts",
 		"./config": "./src/config.ts",
 		"./shims/framework-http": "./src/shims/framework-http.ts",
-		"./shims/medusa-validators": "./src/shims/medusa-validators.ts"
+		"./shims/medusa-validators": "./src/shims/medusa-validators.ts",
+		"./shims/medusa-common-validators": "./src/shims/medusa-common-validators.ts"
 	},
 	"scripts": {
 		"test:admin": "vitest run && vitest run --config vitest.node.config.ts",

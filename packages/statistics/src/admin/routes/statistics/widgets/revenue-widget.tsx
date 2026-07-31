@@ -32,7 +32,7 @@ export const RevenueWidget = ({ statistics, totals }: WidgetProps) => {
 							</defs>
 							<XAxis dataKey="date" tick={{ fontSize: 11 }} />
 							<YAxis tick={{ fontSize: 11 }} width={60} />
-							<Tooltip formatter={(v: number) => [`$${v.toFixed(2)}`, 'Revenue']} />
+							<Tooltip formatter={v => [`$${Number(v).toFixed(2)}`, 'Revenue']} />
 							<Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#revGrad)" />
 						</AreaChart>
 					</ResponsiveContainer>

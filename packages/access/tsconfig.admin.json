@@ -1,0 +1,25 @@
+{
+	// Typechecks the admin dashboard sources, which the server config (`tsconfig.json`) excludes.
+	// They are bundled by Vite rather than tsc, and they need module settings the server build
+	// must not have: `import.meta.env` in `src/admin/lib/sdk.ts` requires `module: Preserve`, and
+	// applying that to the server config flips its emitted output from CommonJS to ESM — which this
+	// package, having no `"type": "module"`, would then fail to load. Hence two configs.
+	//
+	// Never emits: this exists purely to typecheck. `yarn typecheck` runs it alongside the other two
+	// (tsconfig.json for the server, tsconfig.integration.json for integration-tests/).
+	"extends": "../../_tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"rootDir": "./",
+		"module": "Preserve",
+		"moduleResolution": "Bundler",
+		// `types` OVERRIDES the base's ["node", "framework", "jest"] rather than merging with it.
+		// That is deliberate: the admin bundle is browser code, so it wants `vite/client` (for
+		// `import.meta.env`) and has no business seeing Medusa's server ambients or Jest's globals
+		// — the browser tests import vitest's explicitly. If a future admin file needs a
+		// `framework` ambient type, add it here rather than wondering why it is missing.
+		"types": ["node", "vite/client"]
+	},
+	"include": ["src/admin/**/*", "vitest.config.ts"],
+	"exclude": ["node_modules", ".medusa", ".cache"]
+}

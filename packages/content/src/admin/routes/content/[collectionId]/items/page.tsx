@@ -108,7 +108,10 @@ const ContentItemsPage = () => {
 	const { collectionId } = useParams<{ collectionId: string }>()
 	const navigate = useNavigate()
 	const prompt = usePrompt()
-	const limit = 20
+	// The `AdminGetContentItems` validator and this route's `queryConfig.defaultLimit` both
+	// already agree on 15 (see src/api/validators.ts / middlewares.ts) -- this hardcoded page
+	// size was the odd one out at 20, disagreeing with both for no reason.
+	const limit = 15
 	const [pagination, setPagination] = useState<DataTablePaginationState>({
 		pageSize: limit,
 		pageIndex: 0

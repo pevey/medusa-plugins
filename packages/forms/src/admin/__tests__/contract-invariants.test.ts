@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { assertContractInvariants } from 'admin-test-utils'
+import { assertContractInvariants } from 'medusa-admin-test-utils'
 import * as validators from '../../api/validators'
 import { contracts } from './setup.js'
 

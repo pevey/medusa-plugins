@@ -11,7 +11,11 @@ export const AdminRemoveUserRoles = z.object({
 	roles: z.array(z.string().min(1)).min(1)
 })
 
-export const AdminGetUserRolesParamsFields = z.object({
+// Not exported: a merge-only building block, never itself wired to a route as a query schema
+// (the invariant harness's "every exported schema is wired to a route" check would otherwise
+// flag it as dead contract surface — see `AdminGetUserRolesParams` below, which is the schema
+// actually wired).
+const AdminGetUserRolesParamsFields = z.object({
 	role_id: z.union([z.string(), z.array(z.string())]).optional()
 })
 

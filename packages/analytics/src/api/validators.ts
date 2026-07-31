@@ -189,7 +189,7 @@ export const AdminGetSegmentMembers = createFindParams({ limit: 50, offset: 0 })
 // ── Store Track ─────────────────────────────────────────────────────────────
 
 export type StoreTrackEventType = z.infer<typeof StoreTrackEvent>
-export const StoreTrackEvent = z.object({
+const StoreTrackEvent = z.object({
 	event: z.string().min(1),
 	actor_id: z.string().optional(),
 	session_id: z.uuid().optional(),
@@ -197,6 +197,8 @@ export const StoreTrackEvent = z.object({
 })
 
 // Accepts either a single event or a bare array of events (no wrapper object),
-// so existing single-object clients keep working unchanged.
+// so existing single-object clients keep working unchanged. `StoreTrackEvent` itself is never
+// wired to a route directly -- only merged into this union -- so it's unexported (the admin test
+// harness's invariant #1 flags an exported-but-unwired validator as dead contract surface).
 export type StoreTrackEventBatchType = z.infer<typeof StoreTrackEventBatch>
 export const StoreTrackEventBatch = z.union([StoreTrackEvent, z.array(StoreTrackEvent).min(1).max(100)])

@@ -17,7 +17,7 @@ export default defineMiddlewares([
 			validateAndTransformQuery(AdminGetCustomerTags, {
 				defaults: ['id', 'value', 'created_at', 'updated_at'],
 				isList: true,
-				defaultLimit: 20
+				defaultLimit: 15
 			})
 		]
 	},

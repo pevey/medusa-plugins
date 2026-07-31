@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { z } from 'zod'
 import { defineMiddlewares, validateAndTransformBody, validateAndTransformQuery, authenticate } from '../shims/framework-http.js'
-import { createFindParams } from '../shims/medusa-validators.js'
+import { createFindParams, createSelectParams, createOperatorMap } from '../shims/medusa-validators.js'
+import { applyAndAndOrOperators } from '../shims/medusa-common-validators.js'
 
 describe('framework-http shim', () => {
 	it('normalizes `method` to `methods` and preserves unknown keys', () => {
@@ -89,5 +90,40 @@ describe('createFindParams shim', () => {
 		const parsed = createFindParams().parse({ fields: 'id,name', order: '-created_at' })
 		expect(parsed.fields).toBe('id,name')
 		expect(parsed.order).toBe('-created_at')
+	})
+})
+
+describe('createSelectParams shim', () => {
+	it('accepts a bare fields string and nothing else', () => {
+		expect(createSelectParams().parse({ fields: 'id,name' })).toEqual({ fields: 'id,name' })
+		expect(createSelectParams().parse({}).fields).toBeUndefined()
+	})
+})
+
+describe('createOperatorMap shim', () => {
+	it('accepts a bare value or array of values', () => {
+		const schema = createOperatorMap()
+		expect(schema.parse('active')).toBe('active')
+		expect(schema.parse(['active', 'restricted'])).toEqual(['active', 'restricted'])
+	})
+
+	it('accepts the operator object form', () => {
+		const schema = createOperatorMap()
+		expect(schema.parse({ $gte: '2026-01-01' })).toEqual({ $gte: '2026-01-01' })
+	})
+})
+
+describe('applyAndAndOrOperators shim', () => {
+	it('merges $and/$or array-of-self operators onto the schema', () => {
+		const base = z.object({ status: z.string().optional() })
+		const withOperators = applyAndAndOrOperators(base)
+		const parsed = withOperators.parse({
+			status: 'active',
+			$and: [{ status: 'restricted' }],
+			$or: [{ status: 'inactive' }]
+		})
+		expect(parsed.status).toBe('active')
+		expect(parsed.$and).toEqual([{ status: 'restricted' }])
+		expect(parsed.$or).toEqual([{ status: 'inactive' }])
 	})
 })

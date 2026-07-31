@@ -125,6 +125,12 @@ export const ITEM_DETAIL_FIELDS = [
 	'metadata',
 	'created_at',
 	'updated_at',
+	// The flat FK column, distinct from the nested `content_collection.id` a few lines below.
+	// `EditContentItemDrawer` reads it directly (`useUpdateContentItem(item.content_collection_id,
+	// item.id)`) to build the update URL. It was missing here, so every fetched item's
+	// `content_collection_id` was silently `undefined`, sending every edit-drawer save to
+	// `/admin/content/undefined/items/:itemId` and failing outright.
+	'content_collection_id',
 	'content_collection.id',
 	'content_collection.label',
 	'content_collection.slug',

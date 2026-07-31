@@ -106,7 +106,7 @@ export default defineMiddlewares([
 					'tags.*'
 				],
 				isList: true,
-				defaultLimit: 20
+				defaultLimit: 15
 			})
 		]
 	},
@@ -147,7 +147,8 @@ export default defineMiddlewares([
 					'tags.*',
 					'customer.*',
 					'order.*',
-					'product.*'
+					'product.*',
+					'metadata'
 				],
 				isList: false
 			})
@@ -175,7 +176,7 @@ export default defineMiddlewares([
 			validateAndTransformQuery(AdminGetComplaintTags, {
 				defaults: ['id', 'value', 'created_at', 'updated_at'],
 				isList: true,
-				defaultLimit: 20
+				defaultLimit: 15
 			})
 		]
 	},
@@ -211,7 +212,7 @@ export default defineMiddlewares([
 			validateAndTransformQuery(AdminGetComplaintActivities, {
 				defaults: ['id', 'complaint_id', 'user_id', 'type', 'note', 'metadata', 'created_at', 'updated_at', 'user.*'],
 				isList: true,
-				defaultLimit: 20
+				defaultLimit: 15
 			})
 		]
 	},

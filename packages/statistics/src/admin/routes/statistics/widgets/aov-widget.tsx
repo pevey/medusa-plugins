@@ -31,7 +31,7 @@ export const AovWidget = ({ statistics, totals, period }: WidgetProps) => {
 						<LineChart data={chartData}>
 							<XAxis dataKey="date" tick={{ fontSize: 11 }} />
 							<YAxis tick={{ fontSize: 11 }} width={50} tickFormatter={(v: number) => `$${v}`} />
-							<Tooltip formatter={(v: number) => [`$${v.toFixed(2)}`, 'AOV']} />
+							<Tooltip formatter={v => [`$${Number(v).toFixed(2)}`, 'AOV']} />
 							<Line type="monotone" dataKey="aov" stroke="#f59e0b" strokeWidth={2} dot={false} />
 						</LineChart>
 					</ResponsiveContainer>

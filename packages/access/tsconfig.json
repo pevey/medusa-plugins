@@ -5,6 +5,11 @@
 		"rootDir": "./",
 		"declaration": true
 	},
+	// The SERVER build config. `src/admin` stays out of it: admin sources are bundled by Vite,
+	// not tsc, and they need `module: Preserve` / `moduleResolution: Bundler` for `import.meta.env`
+	// — settings that would flip this package's emitted output from CommonJS to ESM. This package
+	// has no `"type": "module"`, so that output would be loaded as CJS and break at runtime.
+	// The admin sources are typechecked by `tsconfig.admin.json` instead; `yarn typecheck` runs all three.
 	"include": ["**/*", ".medusa/types/*"],
-	"exclude": ["node_modules", ".medusa/server", ".medusa/admin", "src/admin", ".cache", "**/__tests__/**", "integration-tests"]
+	"exclude": ["node_modules", ".medusa/server", ".medusa/admin", "src/admin", ".cache", "**/__tests__/**", "integration-tests", "vitest.config.ts"]
 }

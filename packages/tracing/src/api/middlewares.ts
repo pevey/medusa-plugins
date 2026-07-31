@@ -1,5 +1,4 @@
 import { defineMiddlewares, validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework/http'
-import { createFindParams } from '@medusajs/medusa/api/utils/validators'
 import {
 	AdminCreateInvalidationReason,
 	AdminCreateSerialNumber,
@@ -13,6 +12,7 @@ import {
 	AdminGetSerialNumbers,
 	AdminGetStockLot,
 	AdminGetStockLots,
+	AdminGetStockLotSerialNumbers,
 	AdminUpdateInvalidationReason,
 	AdminUpdateSerialNumber,
 	AdminUpdateStockLot
@@ -26,7 +26,7 @@ export default defineMiddlewares([
 			validateAndTransformQuery(AdminGetStockLots, {
 				defaults: ['id', 'inventory_item_id', 'stock_location_id', 'lot_number', 'description', 'enabled', 'stocked_quantity', 'created_at', 'updated_at'],
 				isList: true,
-				defaultLimit: 20
+				defaultLimit: 15
 			})
 		]
 	},
@@ -81,7 +81,7 @@ export default defineMiddlewares([
 		matcher: '/admin/stock-lots/:id/serial-numbers',
 		method: ['GET'],
 		middlewares: [
-			validateAndTransformQuery(createFindParams(), {
+			validateAndTransformQuery(AdminGetStockLotSerialNumbers, {
 				defaults: ['id', 'stock_lot_id', 'order_id', 'value', 'invalidated', 'created_at', 'updated_at'],
 				isList: true,
 				defaultLimit: 10
@@ -95,7 +95,7 @@ export default defineMiddlewares([
 			validateAndTransformQuery(AdminGetSerialNumbers, {
 				defaults: ['id', 'stock_lot_id', 'order_id', 'value', 'invalidated', 'created_at', 'updated_at'],
 				isList: true,
-				defaultLimit: 20
+				defaultLimit: 15
 			})
 		]
 	},
@@ -131,7 +131,7 @@ export default defineMiddlewares([
 			validateAndTransformQuery(AdminGetInvalidationReasons, {
 				defaults: ['id', 'value', 'created_at', 'updated_at'],
 				isList: true,
-				defaultLimit: 20
+				defaultLimit: 15
 			})
 		]
 	},

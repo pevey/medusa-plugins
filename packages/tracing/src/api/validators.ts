@@ -21,6 +21,17 @@ export type AdminGetStockLotsType = z.infer<typeof AdminGetStockLots>
 export const AdminGetStockLot = createFindParams()
 export type AdminGetStockLotType = z.infer<typeof AdminGetStockLot>
 
+// Nested GET /admin/stock-lots/:id/serial-numbers -- limit 10 matches the table's own
+// hardcoded page size (`src/admin/components/serial-numbers-table.tsx`) and the route's
+// `defaultLimit: 10` in middlewares.ts. It used to be an inline `createFindParams()` call
+// (no options), which silently defaulted to 20 -- three numbers that were supposed to agree
+// but didn't.
+export const AdminGetStockLotSerialNumbers = createFindParams({
+	limit: 10,
+	offset: 0
+})
+export type AdminGetStockLotSerialNumbersType = z.infer<typeof AdminGetStockLotSerialNumbers>
+
 export const AdminCreateStockLot = z
 	.object({
 		inventory_item_id: z.string(),

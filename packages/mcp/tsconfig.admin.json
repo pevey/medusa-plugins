@@ -1,0 +1,34 @@
+{
+	// Typechecks the admin dashboard sources, which the server config (`tsconfig.json`) excludes.
+	// They are bundled by Vite rather than tsc, and they need module settings the server build
+	// must not have: `import.meta.env` in `src/admin/lib/sdk.ts` requires `module: Preserve`, and
+	// applying that to the server config flips its emitted output from CommonJS to ESM — which this
+	// package, having no `"type": "module"`, would then fail to load. Hence two configs.
+	//
+	// Never emits: this exists purely to typecheck. `yarn typecheck` runs it alongside the server one.
+	"extends": "../../_tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"rootDir": "./",
+		"module": "Preserve",
+		"moduleResolution": "Bundler",
+		// `types` OVERRIDES the base's ["node", "framework", "jest"] rather than merging with it.
+		// That is deliberate: the admin bundle is browser code, so it wants `vite/client` (for
+		// `import.meta.env`) and has no business seeing Medusa's server ambients or Jest's globals
+		// — the browser tests import vitest's explicitly. If a future admin file needs a
+		// `framework` ambient type, add it here rather than wondering why it is missing.
+		"types": ["node", "vite/client"]
+	},
+	"include": ["src/admin/**/*", "vitest.config.ts"],
+	// DEVIATES from the plain template: `src/admin/lib/__tests__/chat-messages.unit.spec.ts` is a
+	// LIVE, pre-existing Jest unit test (not part of this rollout's vitest suite -- the vitest
+	// `include` glob is `src/admin/__tests__/**/*.test.{ts,tsx}`, which can't match a `*.unit.spec.ts`
+	// file, so the two coexist without collision). But `src/admin/**/*` above still pulls the spec
+	// file into THIS typecheck, and it uses Jest globals (`describe`/`it`/`expect`) that aren't
+	// declared here (`types` above is `["node", "vite/client"]`, no `"jest"`) -- adding `"jest"` back
+	// would reintroduce the very Node/browser-ambient mixing this config exists to avoid. Excluding
+	// the file is the correct fix: the plugin's SERVER `tsconfig.json` also excludes `**/__tests__/**`
+	// (so it never typechecks this file either), and the file is exercised by its own `test:unit`
+	// Jest run instead of either tsc pass.
+	"exclude": ["node_modules", ".medusa", ".cache", "**/*.unit.spec.ts"]
+}

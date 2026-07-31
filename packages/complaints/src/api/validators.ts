@@ -156,7 +156,13 @@ export const AdminUpdateComplaintTag = z.object({
 })
 export type AdminUpdateComplaintTagType = z.infer<typeof AdminUpdateComplaintTag>
 
-export const AdminAddComplaintTag = z
+// Not wired to any route — no admin UI or route handler references the
+// tag/product/customer-tag/stock-lot/stock-location "stats" query params or
+// the single-tag-add schema below. Kept unexported so they stay available if
+// a future route needs the shape, without presenting as live contract
+// surface (the admin test harness's invariant #1 flags an exported-but-unwired
+// validator as dead contract surface).
+const AdminAddComplaintTag = z
 	.object({
 		tag_id: z.string().optional(),
 		tag: z.string().optional()
@@ -241,11 +247,22 @@ export const AdminUpdateComplaintActivity = z.object({
 export type AdminUpdateComplaintActivityType = z.infer<typeof AdminUpdateComplaintActivity>
 
 // ── Complaint Stats ───────────────────────────────────────────────────────────
+// The `AdminGetComplaintStat`/`...Stats` schemas below (other than the singular
+// `AdminGetComplaintProductStat`, which IS wired in middlewares.ts) are not
+// wired to any route — kept unexported so they don't present as live contract
+// surface (the admin test harness's invariant #1 flags an exported-but-unwired
+// validator as dead contract surface). `AdminGetComplaintProductStatsType` (the
+// plural one) is still referenced, mistakenly, as a type-only annotation in
+// `src/api/admin/complaint-stats/products/[id]/route.ts` — that route is
+// actually validated by the singular `AdminGetComplaintProductStat`, so the
+// annotation doesn't match the real runtime schema. Left alone: it's a stray
+// type-only mismatch with no runtime effect (the handler never reads
+// `req.validatedQuery`), outside this harness-onboarding task's scope.
 
-export const AdminGetComplaintStat = createFindParams()
+const AdminGetComplaintStat = createFindParams()
 export type AdminGetComplaintStatType = z.infer<typeof AdminGetComplaintStat>
 
-export const AdminGetComplaintProductStats = createFindParams({
+const AdminGetComplaintProductStats = createFindParams({
 	limit: 15,
 	offset: 0
 }).extend({
@@ -256,7 +273,7 @@ export type AdminGetComplaintProductStatsType = z.infer<typeof AdminGetComplaint
 export const AdminGetComplaintProductStat = createFindParams()
 export type AdminGetComplaintProductStatType = z.infer<typeof AdminGetComplaintProductStat>
 
-export const AdminGetComplaintTagStats = createFindParams({
+const AdminGetComplaintTagStats = createFindParams({
 	limit: 15,
 	offset: 0
 }).extend({
@@ -264,7 +281,7 @@ export const AdminGetComplaintTagStats = createFindParams({
 })
 export type AdminGetComplaintTagStatsType = z.infer<typeof AdminGetComplaintTagStats>
 
-export const AdminGetComplaintStockLotStats = createFindParams({
+const AdminGetComplaintStockLotStats = createFindParams({
 	limit: 15,
 	offset: 0
 }).extend({
@@ -272,7 +289,7 @@ export const AdminGetComplaintStockLotStats = createFindParams({
 })
 export type AdminGetComplaintStockLotStatsType = z.infer<typeof AdminGetComplaintStockLotStats>
 
-export const AdminGetComplaintStockLocationStats = createFindParams({
+const AdminGetComplaintStockLocationStats = createFindParams({
 	limit: 15,
 	offset: 0
 }).extend({
@@ -280,7 +297,7 @@ export const AdminGetComplaintStockLocationStats = createFindParams({
 })
 export type AdminGetComplaintStockLocationStatsType = z.infer<typeof AdminGetComplaintStockLocationStats>
 
-export const AdminGetComplaintCustomerTagStats = createFindParams({
+const AdminGetComplaintCustomerTagStats = createFindParams({
 	limit: 15,
 	offset: 0
 }).extend({

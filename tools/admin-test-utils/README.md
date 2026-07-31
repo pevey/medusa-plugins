@@ -41,14 +41,14 @@ Wired today: `packages/ratings`, `packages/forms`.
 
 ## Adding a plugin
 
-1. devDependencies: `"admin-test-utils": "workspace:*"` and `"vitest"` (exact-pinned). **Add nothing
+1. devDependencies: `"medusa-admin-test-utils": "workspace:*"` and `"vitest"` (exact-pinned). **Add nothing
    else** — `@tanstack/react-query`, `react-router-dom` and `@medusajs/*` come from the hoisted
    root, and a second copy breaks the shared React Query and router contexts.
 2. scripts: `"test:admin": "vitest run"`.
 3. `vitest.config.ts`:
 
    ```ts
-   import { defineAdminTestConfig } from 'admin-test-utils/config'
+   import { defineAdminTestConfig } from 'medusa-admin-test-utils/config'
 
    export default defineAdminTestConfig({ root: import.meta.dirname })
    ```

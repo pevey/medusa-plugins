@@ -5,7 +5,11 @@ import { createFindParams, createOperatorMap, createSelectParams } from '@medusa
 export type AdminGetAccessPolicyParamsType = z.infer<typeof AdminGetAccessPolicyParams>
 export const AdminGetAccessPolicyParams = createSelectParams()
 
-export const AdminGetAccessPoliciesParamsFields = z.object({
+// Not exported: a merge-only building block, never itself wired to a route as a query schema
+// (the invariant harness's "every exported schema is wired to a route" check would otherwise
+// flag it as dead contract surface — see `AdminGetAccessPoliciesParams` below, which is the
+// schema actually wired).
+const AdminGetAccessPoliciesParamsFields = z.object({
 	q: z.string().optional(),
 	id: z.union([z.string(), z.array(z.string())]).optional(),
 	key: z.union([z.string(), z.array(z.string())]).optional(),

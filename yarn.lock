@@ -16246,36 +16246,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"admin-test-utils@workspace:*, admin-test-utils@workspace:tools/admin-test-utils":
-  version: 0.0.0-use.local
-  resolution: "admin-test-utils@workspace:tools/admin-test-utils"
-  dependencies:
-    "@medusajs/medusa": "npm:2.18.0"
-    "@medusajs/ui": "npm:4.2.0"
-    "@tanstack/react-query": "npm:5.64.2"
-    "@types/node": "npm:22.20.1"
-    "@types/react": "npm:18.3.31"
-    "@types/react-dom": "npm:18.3.7"
-    "@vitejs/plugin-react": "npm:6.0.4"
-    "@vitest/browser-playwright": "npm:4.1.10"
-    playwright: "npm:1.62.0"
-    react: "npm:18.3.1"
-    react-dom: "npm:18.3.1"
-    react-router-dom: "npm:6.30.4"
-    typescript: "npm:6.0.3"
-    vite: "npm:8.1.5"
-    vitest: "npm:4.1.10"
-    vitest-browser-react: "npm:2.2.0"
-    zod: "npm:4.4.3"
-  peerDependencies:
-    "@medusajs/ui": ">=4"
-    "@tanstack/react-query": ">=5"
-    react: ">=18"
-    react-dom: ">=18"
-    react-router-dom: ">=6"
-  languageName: unknown
-  linkType: soft
-
 "agent-base@npm:6":
   version: 6.0.2
   resolution: "agent-base@npm:6.0.2"
@@ -25011,6 +24981,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"medusa-admin-test-utils@workspace:*, medusa-admin-test-utils@workspace:tools/admin-test-utils":
+  version: 0.0.0-use.local
+  resolution: "medusa-admin-test-utils@workspace:tools/admin-test-utils"
+  dependencies:
+    "@medusajs/medusa": "npm:2.18.0"
+    "@medusajs/ui": "npm:4.2.0"
+    "@tanstack/react-query": "npm:5.64.2"
+    "@types/node": "npm:22.20.1"
+    "@types/react": "npm:18.3.31"
+    "@types/react-dom": "npm:18.3.7"
+    "@vitejs/plugin-react": "npm:6.0.4"
+    "@vitest/browser-playwright": "npm:4.1.10"
+    playwright: "npm:1.62.0"
+    react: "npm:18.3.1"
+    react-dom: "npm:18.3.1"
+    react-router-dom: "npm:6.30.4"
+    typescript: "npm:6.0.3"
+    vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
+    vitest-browser-react: "npm:2.2.0"
+    zod: "npm:4.4.3"
+  peerDependencies:
+    "@medusajs/ui": ">=4"
+    "@tanstack/react-query": ">=5"
+    react: ">=18"
+    react-dom: ">=18"
+    react-router-dom: ">=6"
+  languageName: unknown
+  linkType: soft
+
 "medusa-js-sdk@workspace:*, medusa-js-sdk@workspace:packages/js-sdk":
   version: 0.0.0-use.local
   resolution: "medusa-js-sdk@workspace:packages/js-sdk"
@@ -25038,12 +25038,14 @@ __metadata:
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
     "@medusajs/js-sdk": ^2.17.2
@@ -25067,12 +25069,14 @@ __metadata:
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
@@ -25097,6 +25101,7 @@ __metadata:
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
@@ -25104,6 +25109,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
@@ -25143,6 +25149,7 @@ __metadata:
     "@types/react-dom": "npm:18.3.7"
     ipaddr.js: "npm:^2.4.0"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
@@ -25150,6 +25157,7 @@ __metadata:
     typescript: "npm:6.0.3"
     undici: "npm:^8.9.0"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
@@ -25238,6 +25246,7 @@ __metadata:
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
     jimp: "npm:^1.6.1"
+    medusa-admin-test-utils: "workspace:*"
     medusa-plugin-access: "workspace:*"
     pdf-lib: "npm:^1.17.1"
     prop-types: "npm:15.8.1"
@@ -25246,6 +25255,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
@@ -25277,6 +25287,7 @@ __metadata:
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     multer: "npm:^2.2.0"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
@@ -25292,6 +25303,7 @@ __metadata:
     unified: "npm:^11.0.5"
     unist-util-visit: "npm:^5.1.0"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
@@ -25316,12 +25328,14 @@ __metadata:
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
@@ -25345,8 +25359,8 @@ __metadata:
     "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
-    admin-test-utils: "workspace:*"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
@@ -25381,6 +25395,7 @@ __metadata:
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     medusa-plugin-automation: "npm:0.3.2"
     medusa-plugin-statistics: "npm:0.2.2"
     openai: "npm:^6.49.0"
@@ -25391,6 +25406,7 @@ __metadata:
     remark-gfm: "npm:^4.0.1"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
     "@medusajs/js-sdk": ^2.17.2
@@ -25421,12 +25437,14 @@ __metadata:
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
@@ -25481,8 +25499,8 @@ __metadata:
     "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
-    admin-test-utils: "workspace:*"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
@@ -25583,6 +25601,7 @@ __metadata:
     "@types/react-dom": "npm:18.3.7"
     "@types/react-grid-layout": "npm:2.1.0"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
@@ -25591,6 +25610,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
@@ -25645,12 +25665,14 @@ __metadata:
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2
@@ -25676,12 +25698,14 @@ __metadata:
     "@types/react-dom": "npm:18.3.7"
     async-sema: "npm:^3.1.1"
     jest: "npm:29.7.0"
+    medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     ts-node: "npm:10.9.2"
     typescript: "npm:6.0.3"
     vite: "npm:8.1.5"
+    vitest: "npm:4.1.10"
     yalc: "npm:1.0.0-pre.53"
   peerDependencies:
     "@medusajs/framework": ^2.17.2

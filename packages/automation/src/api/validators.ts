@@ -142,7 +142,13 @@ export type AdminUpdateAutomationActionType = z.infer<typeof AdminUpdateAutomati
 
 // ─── Automation Secrets ──────────────────────────────────────────────────────
 
-export const AdminGetAutomationSecrets = createFindParams()
+// `limit: 100` matches this route's `queryConfig.defaultLimit` (`middlewares.ts`) and the route
+// handler's own `req.validatedQuery?.limit ?? 100` fallback (`secrets/route.ts`) — both already
+// intended "list up to 100 secrets by default" (the admin UI never paginates this list), but
+// `createFindParams()`'s own zod default of 20 silently won every time since `validatedQuery.limit`
+// is never actually `undefined`. Was `createFindParams()` (bare, defaulting to 20) — a real
+// three-way-agreement gap the admin test harness's defaultLimit invariant caught.
+export const AdminGetAutomationSecrets = createFindParams({ limit: 100, offset: 0 })
 export type AdminGetAutomationSecretsType = z.infer<typeof AdminGetAutomationSecrets>
 
 export const AdminCreateAutomationSecret = z.object({

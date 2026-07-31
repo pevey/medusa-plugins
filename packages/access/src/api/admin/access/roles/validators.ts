@@ -9,7 +9,11 @@ export const AdminGetAccessRoleParams = createSelectParams().merge(
 	})
 )
 
-export const AdminGetAccessRolesParamsFields = z.object({
+// Not exported: a merge-only building block, never itself wired to a route as a query schema
+// (the invariant harness's "every exported schema is wired to a route" check would otherwise
+// flag it as dead contract surface — see `AdminGetAccessRolesParams` below, which is the schema
+// actually wired).
+const AdminGetAccessRolesParamsFields = z.object({
 	q: z.string().optional(),
 	id: z.union([z.string(), z.array(z.string())]).optional(),
 	name: z.union([z.string(), z.array(z.string())]).optional(),
@@ -54,7 +58,8 @@ export const AdminAddRolePoliciesType = z.object({
 
 export type AdminAddRolePoliciesType = z.infer<typeof AdminAddRolePoliciesType>
 
-export const AdminGetRoleUsersParamsFields = z.object({
+// Not exported: same reason as `AdminGetAccessRolesParamsFields` above.
+const AdminGetRoleUsersParamsFields = z.object({
 	user_id: z.union([z.string(), z.array(z.string())]).optional()
 })
 
