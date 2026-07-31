@@ -9,9 +9,7 @@
     "bits-ui"
   ],
   "devDependencies": [
-    "bits-ui@2.18.1",
-    "@internationalized/date@^3.12.2",
-    "@lucide/svelte@^1.27.0"
+    "@internationalized/date@^3.12.2"
   ],
   "registryDependencies": [
     "accordion"

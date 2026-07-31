@@ -8,9 +8,6 @@
     "@lucide/svelte",
     "sveltekit-medusa-sdk"
   ],
-  "devDependencies": [
-    "@lucide/svelte@^1.27.0"
-  ],
   "files": [
     {
       "content": "<script lang=\"ts\">\n\timport { untrack } from 'svelte'\n\timport { cn } from '$UTILS$.js'\n\timport { SearchState, setSearchContext } from './ctx.svelte.js'\n\timport type { Snippet } from 'svelte'\n\n\tinterface Props {\n\t\t// minLength / debounce have no defaults here on purpose: `undefined` flows\n\t\t// through to SearchState, which owns the single canonical default (2 / 200)\n\t\t// so this and <SearchBox> can never drift apart.\n\t\tminLength?: number\n\t\tdebounce?: number\n\t\tlimit?: number\n\t\tclass?: string\n\t\tchildren: Snippet\n\t}\n\tlet { minLength, debounce, limit, class: className = '', children }: Props = $props()\n\n\tconst uid = $props.id()\n\tconst state = untrack(() => new SearchState({ minLength, debounce, limit, baseId: uid }))\n\tsetSearchContext(state)\n\n\tfunction closeOnOutside(node: HTMLElement) {\n\t\tconst handler = (e: MouseEvent) => {\n\t\t\tif (!node.contains(e.target as Node)) state.close()\n\t\t}\n\t\tdocument.addEventListener('click', handler)\n\t\treturn () => document.removeEventListener('click', handler)\n\t}\n</script>\n\n<div {@attach closeOnOutside} class={cn('relative', className)}>\n\t{@render children()}\n</div>\n",

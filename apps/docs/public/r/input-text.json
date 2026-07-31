@@ -7,9 +7,6 @@
   "dependencies": [
     "@lucide/svelte"
   ],
-  "devDependencies": [
-    "@lucide/svelte@^1.27.0"
-  ],
   "registryDependencies": [
     "field"
   ],

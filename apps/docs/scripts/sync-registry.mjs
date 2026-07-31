@@ -103,6 +103,20 @@ const normalizeDep = (dep, item) => {
 	return dep
 }
 
+// Why the dedupe step: `registry build` stamps EVERY detected import into devDependencies, so any
+// package also named in registry.json's hand-written `dependencies` ends up in both arrays. The
+// shadcn-svelte CLI unions each array across the items being installed and runs `add <pkgs>` then
+// `add -D <pkgs>` — with a package.json snapshot taken before either runs, so nothing reconciles
+// them. Yarn then rejects the second command ("already listed as a regular dependency") and the CLI
+// exits, AFTER writing the component files, silently skipping every remaining devDependency.
+// Dependencies win, matching the order the CLI installs in.
+const dedupeDevDeps = node => {
+	if (!Array.isArray(node?.dependencies) || !Array.isArray(node?.devDependencies)) return
+	const prod = new Set(node.dependencies.map(dep => splitDep(dep)[0]))
+	node.devDependencies = node.devDependencies.filter(dep => !prod.has(splitDep(dep)[0]))
+	if (node.devDependencies.length === 0) delete node.devDependencies
+}
+
 const rewriteDeps = node => {
 	if (Array.isArray(node?.registryDependencies)) {
 		node.registryDependencies = node.registryDependencies.map(toFullUrl)
@@ -112,6 +126,7 @@ const rewriteDeps = node => {
 			node[key] = node[key].map(dep => normalizeDep(dep, `${node.name ?? 'index'}.${key}`))
 		}
 	}
+	dedupeDevDeps(node)
 }
 
 // 3. Copy each built JSON into public/r, rewriting internal deps to absolute URLs.

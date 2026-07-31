@@ -12,11 +12,7 @@
     "@lucide/svelte"
   ],
   "devDependencies": [
-    "@medusajs/types@2.18.0",
-    "@lucide/svelte@^1.27.0",
-    "sveltekit-braintree@>=0.1",
-    "sveltekit-stripe@>=4",
-    "@stripe/stripe-js@9.12.1"
+    "@medusajs/types@2.18.0"
   ],
   "registryDependencies": [
     "https://pevey.com/r/address.json",

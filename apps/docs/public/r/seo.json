@@ -7,9 +7,6 @@
   "dependencies": [
     "schema-dts"
   ],
-  "devDependencies": [
-    "schema-dts@2.0.0"
-  ],
   "files": [
     {
       "content": "<script lang=\"ts\">\n\timport { setSiteMetaContext } from './ctx.svelte.js'\n\timport type { SiteMeta } from './types.js'\n\timport type { Snippet } from 'svelte'\n\tlet { site = {}, children }: { site?: SiteMeta; children: Snippet } = $props()\n\tsetSiteMetaContext({\n\t\tget site() {\n\t\t\treturn site\n\t\t}\n\t})\n</script>\n\n{@render children()}\n",
