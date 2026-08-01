@@ -6,8 +6,7 @@
 
 	interface Props {
 		// minLength / debounce have no defaults here on purpose: `undefined` flows
-		// through to SearchState, which owns the single canonical default (2 / 200)
-		// so this and <SearchBox> can never drift apart.
+		// through to SearchState, which owns the single canonical default (2 / 200).
 		minLength?: number
 		debounce?: number
 		limit?: number

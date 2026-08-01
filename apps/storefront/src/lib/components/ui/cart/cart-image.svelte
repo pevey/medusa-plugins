@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { cn } from '$lib/utils.js'
-	import { getCartContext, getCartLineContext } from './ctx.svelte.js'
+	import { getCartContext, getCartLineContext, getCartSheetContextOptional } from './ctx.svelte.js'
 	let { class: className = '', fallback }: { class?: string; fallback?: string } = $props()
 	const ctx = getCartContext()
 	const { item } = getCartLineContext()
+	const sheet = getCartSheetContextOptional()
 	const src = $derived(item.thumbnail || fallback || '')
 </script>
 
-<a href={ctx.lineHref(item)} data-cart-image class="flex-shrink-0">
+<a {@attach sheet?.closeOnClick ?? false} href={ctx.lineHref(item)} data-cart-image class="flex-shrink-0">
 	{#if src}
 		<img
 			{src}

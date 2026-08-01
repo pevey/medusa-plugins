@@ -13,5 +13,5 @@
 {#if children}
 	{@render children()}
 {:else}
-	<SearchIcon class={cn('size-5', className)} />
+	<SearchIcon class={cn('size-8', className)} />
 {/if}

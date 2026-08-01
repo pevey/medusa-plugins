@@ -21,7 +21,7 @@
 		<span class="font-medium">Storefront Dev</span>
 		<div>
 			<Customer.SignedOut>
-				<Customer.SignInButton />
+				<Customer.SignIn />
 			</Customer.SignedOut>
 			<Customer.SignedIn>
 				<Customer.Menu>

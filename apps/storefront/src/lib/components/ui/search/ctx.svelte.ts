@@ -26,8 +26,8 @@ const GROUP_LABELS: Record<string, string> = {
 const GROUP_ORDER = ['category', 'collection', 'content']
 const titleCase = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
 
-// Single source of the tunable defaults — Root/search-box pass `undefined` through
-// rather than re-declaring these, so the preset can never drift from the compound path.
+// Single source of the tunable defaults — Root passes `undefined` through rather than
+// re-declaring these.
 const DEFAULT_MIN_LENGTH = 2
 const DEFAULT_DEBOUNCE = 200
 

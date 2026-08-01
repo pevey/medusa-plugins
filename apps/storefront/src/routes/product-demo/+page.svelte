@@ -4,7 +4,7 @@
 	import Review from '$lib/components/ui/review'
 	import { Metadata } from '$lib/components/ui/seo'
 	import { AddToCartButton, AddToCartToggle } from '$lib/components/ui/cta'
-	import { CartDrawer } from '$lib/components/ui/cart'
+	import * as Cart from '$lib/components/ui/cart'
 	import { getCart, getProduct } from 'sveltekit-medusa-sdk'
 	import ThemeButton from '$lib/components/ui/theme/theme-button.svelte'
 	import { SignedIn } from '$lib/components/ui/customer'
@@ -33,7 +33,35 @@
 
 <div class="mx-auto max-w-2xl space-y-8 p-8" data-testid="product-demo">
 	<ThemeButton />
-	<CartDrawer onupdate={c => console.log('cart updated', c)} onremove={c => console.log('item removed', c)} onerror={e => console.error('cart error', e)} />
+	<!-- The drawer, composed from the Cart parts. Drop <Cart.Sheet>/<Cart.Trigger>/<Cart.Content>
+	     and the same parts render inline as a /cart page. -->
+	<Cart.Root onupdate={c => console.log('cart updated', c)} onremove={c => console.log('item removed', c)} onerror={e => console.error('cart error', e)}>
+		<Cart.Sheet>
+			<Cart.Trigger />
+			<Cart.Content>
+				<Cart.Header />
+				<Cart.Items class="border-t">
+					<div class="flex flex-1 gap-4">
+						<Cart.Image />
+						<div class="flex min-w-0 flex-1 flex-col">
+							<div class="flex justify-between gap-2">
+								<Cart.Title />
+								<Cart.Price />
+							</div>
+							<div class="mt-4 flex items-end justify-between">
+								<Cart.Quantity />
+								<Cart.Remove />
+							</div>
+						</div>
+					</div>
+				</Cart.Items>
+				<div class="sticky bottom-0 mt-auto border-t bg-popover py-4">
+					<Cart.Subtotal class="px-2" />
+					<div class="mt-4 px-2"><Cart.Checkout /></div>
+				</div>
+			</Cart.Content>
+		</Cart.Sheet>
+	</Cart.Root>
 
 	<!-- 1. In-context flow: options + quantity + add all read from Product context.
 	     URL carries ?v= (variant) and ?quantity=; refresh/share reproduces the selection. -->

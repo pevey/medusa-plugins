@@ -1,6 +1,5 @@
 <script lang="ts">
 	import * as Search from '$lib/components/ui/search'
-	import SearchBox from '$lib/components/ui/search/search-box.svelte'
 	import SearchDialog from '$lib/components/ui/search/search-dialog.svelte'
 	import ThemeButton from '$lib/components/ui/theme/theme-button.svelte'
 	import ThemeToggle from '$lib/components/ui/theme/theme-toggle.svelte'
@@ -31,10 +30,16 @@
 		</SearchDialog>
 	</section>
 
-	<!-- Drop-in preset (default breakpoint). Resize the window below `md` to see the collapse. -->
-	<section data-testid="search-box-default">
-		<h2 class="mb-4 text-lg font-semibold">Search Box — drop-in preset</h2>
-		<SearchBox searchUrl="/search-demo" />
+	<!-- Navbar pair: input above `md`, icon link below. Resize the window to see it swap. -->
+	<section data-testid="search-navbar">
+		<h2 class="mb-4 text-lg font-semibold">Navbar — responsive input / icon</h2>
+		<Search.Root class="relative mx-auto hidden w-full max-w-xl md:block">
+			<Search.Input />
+			<Search.Results />
+		</Search.Root>
+		<a href="/search-demo" class="flex justify-end md:hidden">
+			<Search.Icon />
+		</a>
 	</section>
 
 	<!-- Hand-composed compound primitives. -->

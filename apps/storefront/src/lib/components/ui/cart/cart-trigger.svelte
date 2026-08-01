@@ -8,11 +8,11 @@
 	let { class: className = '', children }: { class?: string; children?: Snippet } = $props()
 </script>
 
-<Sheet.Trigger class={cn('relative inline-flex items-center', className)}>
+<Sheet.Trigger data-cart-trigger class={cn('relative inline-flex cursor-pointer items-center', className)}>
 	{#if children}
 		{@render children()}
 	{:else}
-		<ShoppingBag class="size-7" />
+		<ShoppingBag class="size-8" />
 		<Badge />
 		<span class="sr-only">Cart</span>
 	{/if}

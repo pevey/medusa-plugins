@@ -17,8 +17,13 @@ export type CartContext = {
 }
 export type CartLineContext = { readonly item: CartLine }
 
+export type CartSheetContext = {
+	closeOnClick: (node: HTMLElement) => () => void
+}
+
 const CART = Symbol('cart')
 const LINE = Symbol('cart-line')
+const SHEET = Symbol('cart-sheet')
 
 export function setCartContext(ctx: CartContext) {
 	setContext(CART, ctx)
@@ -32,6 +37,16 @@ export function getCartContext(): CartContext {
 
 export function getCartContextOptional(): CartContext | null {
 	return getContext<CartContext>(CART) ?? null
+}
+
+export function setCartSheetContext(ctx: CartSheetContext) {
+	setContext(SHEET, ctx)
+}
+
+// Absent when the cart parts render outside <Cart.Sheet> (an inline /cart page), which is why
+// callers spread it as a falsy attachment rather than branching.
+export function getCartSheetContextOptional(): CartSheetContext | null {
+	return getContext<CartSheetContext>(SHEET) ?? null
 }
 
 export function setCartLineContext(ctx: CartLineContext) {

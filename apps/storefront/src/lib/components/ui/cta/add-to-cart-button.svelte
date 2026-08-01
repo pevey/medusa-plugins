@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { cn } from '$lib/utils.js'
 	import { goto } from '$app/navigation'
-	import { Button } from '$lib/components/ui/button/index.js'
+	import { Button, type ButtonSize, type ButtonVariant } from '$lib/components/ui/button/index.js'
 	import { getProductContextOptional } from '$lib/components/ui/product/ctx.svelte.js'
 	import { isPurchasable } from '$lib/components/ui/product/product-logic.js'
 	import { addToCart } from 'sveltekit-medusa-sdk'
@@ -17,7 +17,10 @@
 		showMessage?: boolean
 		messagePlacement?: 'below' | 'right'
 		messageClass?: string
+		variant?: ButtonVariant
+		size?: ButtonSize
 		class?: string
+		wrapperClass?: string
 		onadd?: (cart: StoreCart) => void
 		onerror?: (err: unknown) => void
 		navigate?: (href: string) => Promise<void> | void
@@ -41,7 +44,10 @@
 		showMessage = true,
 		messagePlacement = 'below',
 		messageClass = '',
+		variant = 'default',
+		size = 'default',
 		class: className = '',
+		wrapperClass = '',
 		onadd,
 		onerror,
 		navigate = goto,
@@ -101,9 +107,11 @@
 	const showStatus = $derived(showMessage && !redirectTo && status !== 'idle')
 </script>
 
-<div class={cn('flex', messagePlacement === 'right' ? 'flex-row items-center gap-3' : 'flex-col gap-2')}>
+<div class={cn('flex grow', messagePlacement === 'right' ? 'flex-row items-center gap-3' : 'flex-col items-start gap-2', wrapperClass)}>
 	<Button
 		type="button"
+		{variant}
+		{size}
 		class={className}
 		disabled={isDisabled}
 		aria-busy={pending}

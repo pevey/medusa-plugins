@@ -4,7 +4,7 @@
 	import { setCartContext } from './ctx.svelte.js'
 	import * as logic from './cart-logic.js'
 	import { defaultLineHref } from './cart-logic.js'
-	import type { CartQuery, LineHrefFn } from './types.js'
+	import type { CartQuery, CartLine, LineHrefFn } from './types.js'
 	import type { StoreCart } from '@medusajs/types'
 	import type { Snippet } from 'svelte'
 
@@ -15,7 +15,25 @@
 		checkoutUrl?: string
 		lineHref?: LineHrefFn
 		class?: string
-		children: Snippet
+		/**
+		 * Either compose the `Cart.*` parts (they read the cart off context), or take the cart
+		 * straight off the snippet argument and render it however you like:
+		 *   `{#snippet children({ cart, count })}…{/snippet}`
+		 */
+		children: Snippet<
+			[
+				{
+					cart: StoreCart | null | undefined
+					items: CartLine[]
+					count: number
+					lineCount: number
+					subtotal: number | undefined
+					loading: boolean
+					error: unknown
+					pending: boolean
+				}
+			]
+		>
 	}
 	let { onupdate, onremove, onerror, checkoutUrl = '/checkout', lineHref = defaultLineHref, class: className = '', children }: Props = $props()
 
@@ -81,8 +99,19 @@
 		updateItem,
 		removeItem
 	})
+
+	const payload = $derived({
+		cart: q.current,
+		items: (q.current?.items ?? []) as CartLine[],
+		count: logic.totalQuantity(q.current),
+		lineCount: logic.lineCount(q.current),
+		subtotal: logic.subtotal(q.current),
+		loading: q.loading ?? false,
+		error: q.error,
+		pending
+	})
 </script>
 
-<div class={cn('', className)}>
-	{@render children()}
+<div data-cart class={cn('', className)}>
+	{@render children(payload)}
 </div>

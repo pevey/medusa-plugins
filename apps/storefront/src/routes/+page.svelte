@@ -3,6 +3,7 @@
 </script>
 
 <p><a href="/product-demo" class="text-lg font-medium text-primary underline">→ Product demo</a></p>
+<p><a href="/cart-demo" class="text-lg font-medium text-primary underline">→ Cart demo (page, not drawer)</a></p>
 
 <h1>Regions</h1>
 <ul>
