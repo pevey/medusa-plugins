@@ -486,7 +486,7 @@ matters passes `req.scope`.
 | 1 | `POST /admin/access/roles` had no `policies` key — any authenticated admin could create roles | high | **done** |
 | 2 | `parent_id` (validator) vs `parent_ids` (workflow) — inheritance was unreachable via API | high | **done** |
 | 3 | `DELETE /admin/complaints/:id` unguarded — policy registered on `^/admin/complaints$`, cannot match | high | **done** |
-| 4 | `useCache` called without `enable` — permission cache never engages | high | **deferred, see below** |
+| 4 | `useCache` called without `enable` — permission cache never engages | high | **open — attempt reverted, see below** |
 | 5 | Public `/content/*` — cache key omitted `fields`; fixed by rejecting `fields` at the validator | medium | **done** |
 | 6 | `access-policies/index.ts` self-referential `export * from './index'` | low | **done** |
 | 7 | `store` / `store_locale` declared twice | low | **done** |
@@ -497,21 +497,62 @@ Two integration cases were added with #2, since inheritance had never been teste
 with `parent_ids` resolving an inherited policy through `hasPermission`, and self-parenting
 returning 400.
 
-### #4 is larger than it looks — do not half-fix
+### #4 — still open. A short-TTL attempt was made, reviewed, and reverted.
 
-Adding `enable: true` alone would be a **security regression**. Two further things are required:
+The cache is inert (`useCache` short-circuits without `enable`), so every permission check is a
+fresh query. An attempt to fix this with `enable: true` plus a 5s TTL was reviewed adversarially
+and found unsound. **Its three premises were each false**, and they had been recorded in this
+document as fact — correcting them here:
 
-1. **Tag format mismatch.** The caching strategy derives tags as
-   `` `${upperCaseFirst(toCamelCase(entityType))}:${id}` `` from event names — i.e.
-   `AccessRole:<id>`. Our hand-built tags are `access_role:<id>`. They would never match, so
-   entries would never be cleared.
-2. **No events are emitted.** Auto-invalidation fires from an event-bus subscription on `*`.
-   Nothing in the access module emits on role/policy/role-policy/role-parent mutation (only the
-   bootstrap event), so no invalidation would occur at all.
+1. **"Nothing in the module emits mutation events."** Wrong. `MedusaService` decorates every
+   generated method with `@EmitEvents` and installs a global MikroORM subscriber, so
+   `AccessRole` / `AccessPolicy` / `AccessRolePolicy` / `AccessRoleParent` mutations **already**
+   emit `access.access-role.created` and friends. **Zero service methods need overriding.**
+2. **"Matching core's tag derivation is fragile."** It is four lines of deterministic string
+   manipulation over names we control (`eventName.split('.').slice(-2).shift()` →
+   `upperCaseFirst(toCamelCase(...))`), and unit-testable.
+3. **"A TTL cannot fail silently."** `Number('')` is `0`, and node-cache treats a `0` TTL as
+   **never expires**. A declared-but-empty `ACCESS_ROLE_CACHE_TTL` would have produced an
+   unbounded cache, silently — the exact failure mode the TTL was chosen to avoid. A typo
+   yielding `NaN` falls through to a 3600s default just as quietly.
 
-With a 7-day TTL and neither fixed, a revoked role would stay effective for a week. The complete
-fix is: rename tags, emit mutation events, shorten the TTL, enable, and add a test proving a role
-change invalidates. Its own task, with its own verification.
+The attempt also shipped two defects:
+
+- **Tags were always empty.** `tags: Array.from(new Set(tags))` is an argument, evaluated before
+  the callback that populates `tags` runs. The original code passed the array by reference, which
+  `useCache` re-reads after the callback resolves — so the "dedupe improvement" broke working
+  behaviour. Silent.
+- **A production regression.** `providers: ['cache-memory']` only resolves when a config sets
+  `in_memory.enable`. `apps/backend` configures Redis only, so the provider was unregistered
+  there: no caching at all, plus error/warn logs on every check — and the field filter calls
+  `hasPermission` once per entity path per response.
+
+Reverted to inert. The caching module added to the access test app is retained (harmless, and
+needed whenever this is taken up).
+
+**Also learned:** the hardcoded `cache-memory` provider is load-bearing and undocumented. The
+cached value is a `Map`, which `JSON.stringify`s to `{}` — on a Redis-backed hit, `policyAllows`
+would call `.get()` on a plain object and throw, 500-ing every permission check.
+
+### The correct fix, when taken up
+
+1. **Request-scoped memoization first — this may be the whole answer.** The dominant cost is
+   *intra-request* fan-out: the field filter calls `hasPermission` once per entity path, and on a
+   cold cache those fire concurrently so no cross-request cache collapses them anyway. Memoizing
+   the in-flight promise on `req.scope` collapses N×R queries to R per request with **zero**
+   staleness. Note the storefront motivation cited for the TTL does not exist yet — there is no
+   customer↔role link and the guard is mounted only at `/admin/*`.
+2. **Only then, if a cross-request cache is still wanted:** cache a JSON-serializable shape (not
+   a `Map`), drop the hardcoded provider so the configured default is used, and tag coarsely
+   (`AccessRole:list:*`, `AccessPolicy:list:*`, `AccessRolePolicy:list:*`,
+   `AccessRoleParent:list:*`) so the events that already fire do the invalidating. Keep a modest
+   TTL as a backstop, not as the mechanism.
+3. **Validate the env var** regardless: reject non-finite/non-positive, clamp, log the effective
+   value at boot.
+
+Note for whoever does this: role *assignment* changes (revoking a user's role) are already
+immediate — `accessGuard` resolves `access_roles.id` with a fresh uncached query per request. The
+cache is keyed by role and holds role→policies, so only policy/inheritance edits are affected.
 
 ### Adjacent findings, not fixed
 
@@ -599,17 +640,47 @@ only clean source (it fires for every route at registration with `{ route, metho
 traceRoute hook gets installed in Phase 1 for route discovery, and Phase 2 extends the same hook
 to read handler identity. Same seam, two increments.
 
-**Phase 2 — binding.** `withPolicies` + handler identity via the Phase 1 `traceRoute` hook.
-Retire `compileMatcher` and the pinned `core-route-policies.ts` in favour of matchers from the
-running app.
+*Testing note — where enforcement is provable, and where it isn't.* Sibling plugins' test apps
+register no plugins, so their `require('medusa-plugin-access')` throws and every route runs
+ungated. Their suites prove the soft-dependency contract holds; they prove nothing about the
+guard. Enforcement tests therefore live in **access's own spec**, which is the only app with
+access installed — currently covering sealing (404 unsealed → 403 sealed, sibling prefixes
+untouched) and AND-layering with a partially-granted, non-super admin.
+
+What that leaves untested: whether a consuming plugin picked the *right* policy for a given route.
+The coverage report proves a declaration exists, not that it is correct. Closing that needs a test
+app with two plugins installed — a harness change, deliberately deferred.
+
+**Phase 2 — binding.** `withPolicies` + handler identity via the Phase 1 `traceRoute` hook, plus
+a boot-time drift report.
+
+*Correction to the original plan.* This phase was written as "retire `compileMatcher` and the
+pinned `core-route-policies.ts` in favour of matchers from the running app." That is not
+achievable: `traceRoute` yields authoritative **matchers**, but nothing at runtime yields
+**policies** — core declares those on middleware descriptors, which `traceRoute` never sees (it
+fires for routes only). The resource→operation mapping still has to come from the generated file.
+
+What is achievable, and what shipped instead: `withPolicies` removes hand-written matchers for
+routes we own (the matcher comes from Medusa's own registration), and `getStaleGuards()` reports
+declarations matching no registered route — which is the actual failure mode of a pinned file.
+`compileMatcher` stays; `guardResource` emits `/prefix/*` wildcards that inherently need pattern
+matching.
+
+*Provenance matters in the drift report.* `guardResource` emits a complete CRUD surface on
+purpose, so its unmatched entries are protective, not rotted. Reporting them made the check noisy
+enough to ignore, so guards carry a `source` and only hand-written ones are flagged. Against
+`apps/backend` this cut the report from 27 entries to 20 real ones — including the 14
+`/admin/rbac/*` leftovers a manual audit had previously found, plus `DELETE /admin/claims/:id`,
+`DELETE /admin/exchanges/:id`, `POST /admin/inventory-items/batch`, and two wildcards that match
+nothing.
 
 **Phase 3 — scope, gate half.** Grant/scope model, `owner` + `sales_channel`,
 `defineOwnership`. Gate enforcement only.
 
-> **Blocked on defect #4.** Customer actors resolve roles through groups
-> (customer → groups → roles → channels), which is two or three graph hops on every storefront
-> request against a cache that does not currently engage. #4 must be fixed — properly, per §6 —
-> before this phase ships.
+> **Blocked on defect #4** (§6), which remains open — a short-TTL attempt was reviewed and
+> reverted. Customer actors resolving roles through groups puts several graph hops on every
+> storefront request against a cache that does not engage. Request-scoped memoization is the
+> likely fix and may be sufficient on its own.
 
 **Phase 4 — scope, filter half.** Query interceptor in `req.scope`. All hazards in §5 apply.
 Affiliate portal is the natural first consumer — root-scoped, our own routes.
@@ -658,3 +729,26 @@ Notes already established, so the plan doesn't rediscover them:
   [UPSTREAM.md](./UPSTREAM.md), retained for reference only).
 - Admin cross-channel row scoping as a hard boundary.
 - The 14 packages with no access declarations yet. Known, tracked separately, not a design input.
+
+---
+
+## 10. TODO
+
+- **Prune stale entries from `core-route-policies.ts` via the generator.** The Phase 2 drift
+  report flags 20 declarations matching no registered route — 14 `/admin/rbac/*` leftovers from
+  the fork origin, `DELETE /admin/claims/:id`, `DELETE /admin/exchanges/:id`,
+  `POST /admin/inventory-items/batch`, and the `/admin/product-variants/*` and
+  `/admin/tax-providers/*` wildcards. The file is generated, so hand-edits are lost on the next
+  run: the fix belongs in `scripts/gen-core-route-policies.cjs`. Harmless today (a guard for a
+  path that does not exist never fires), so this is hygiene, not a defect.
+- **A test app with two plugins installed**, so a consuming plugin's *choice* of policy per route
+  can be tested — coverage proves a declaration exists, not that it is correct (§8).
+- **`export` as a fifth operation**, and the decision about moving export routes outside their
+  resource prefix. Until then `/admin/complaints/pdf-export` picks up `complaint:update` from the
+  subtree floor: stricter than intended, not wrong.
+- **`AdminUpdateAccessRole.policy_ids`** — the workflow reads it, the validator does not accept
+  it. Expose it, or drop it from the workflow (§6).
+- **Dead list filter `parent_id`** on `AdminGetAccessRolesParamsFields` — `access_role` has no
+  such column (§6).
+- **Inherited policies are invisible in the admin UI** — `GET /admin/access/roles/:id/policies`
+  returns direct links only. Newly relevant now that inheritance is reachable (§6, Phase 6).

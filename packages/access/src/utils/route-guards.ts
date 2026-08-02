@@ -8,9 +8,17 @@ import { PermissionAction } from './has-permission'
  * core-route mappings, and third-party plugins all share one registry.
  */
 type RouteGuard = {
+	/** Source pattern, retained so drift against real routes can be reported. */
+	matcher: string
 	regex: RegExp
 	methods: string[]
 	policies: PermissionAction[]
+	/**
+	 * How this guard was declared. `guardResource` emits a complete CRUD surface
+	 * on purpose, so its entries matching no route are expected — protective
+	 * rather than rotted — and are excluded from drift reporting.
+	 */
+	source: 'explicit' | 'guardResource'
 }
 
 declare global {
@@ -46,15 +54,22 @@ function compileMatcher(matcher: string): RegExp {
  * Declare the policies required to access a route. Any plugin can call this to
  * make our global guard enforce their route.
  */
-export function requirePolicies(input: { matcher: string; method?: string | string[]; policies: PermissionAction | PermissionAction[] }): void {
+export function requirePolicies(input: {
+	matcher: string
+	method?: string | string[]
+	policies: PermissionAction | PermissionAction[]
+	source?: 'explicit' | 'guardResource'
+}): void {
 	const methods = (Array.isArray(input.method) ? input.method : input.method ? [input.method] : ALL_METHODS).map(m => m.toUpperCase())
 
 	const policies = Array.isArray(input.policies) ? input.policies : [input.policies]
 
 	global.AccessRouteGuards!.push({
+		matcher: input.matcher,
 		regex: compileMatcher(input.matcher),
 		methods,
-		policies
+		policies,
+		source: input.source ?? 'explicit'
 	})
 }
 
@@ -105,14 +120,16 @@ export function guardResource(input: { resource: string; prefix: string }): void
 	const prefix = normalizePrefix(input.prefix)
 	const subtree = `${prefix}/*`
 
-	requirePolicies({ matcher: prefix, method: ['GET'], policies: [{ resource, operation: 'read' }] })
-	requirePolicies({ matcher: prefix, method: ['POST'], policies: [{ resource, operation: 'create' }] })
-	requirePolicies({ matcher: prefix, method: ['PUT', 'PATCH'], policies: [{ resource, operation: 'update' }] })
-	requirePolicies({ matcher: prefix, method: ['DELETE'], policies: [{ resource, operation: 'delete' }] })
+	const source = 'guardResource' as const
 
-	requirePolicies({ matcher: subtree, method: ['GET'], policies: [{ resource, operation: 'read' }] })
-	requirePolicies({ matcher: subtree, method: ['POST', 'PUT', 'PATCH'], policies: [{ resource, operation: 'update' }] })
-	requirePolicies({ matcher: subtree, method: ['DELETE'], policies: [{ resource, operation: 'delete' }] })
+	requirePolicies({ matcher: prefix, method: ['GET'], policies: [{ resource, operation: 'read' }], source })
+	requirePolicies({ matcher: prefix, method: ['POST'], policies: [{ resource, operation: 'create' }], source })
+	requirePolicies({ matcher: prefix, method: ['PUT', 'PATCH'], policies: [{ resource, operation: 'update' }], source })
+	requirePolicies({ matcher: prefix, method: ['DELETE'], policies: [{ resource, operation: 'delete' }], source })
+
+	requirePolicies({ matcher: subtree, method: ['GET'], policies: [{ resource, operation: 'read' }], source })
+	requirePolicies({ matcher: subtree, method: ['POST', 'PUT', 'PATCH'], policies: [{ resource, operation: 'update' }], source })
+	requirePolicies({ matcher: subtree, method: ['DELETE'], policies: [{ resource, operation: 'delete' }], source })
 }
 
 /**
@@ -142,6 +159,11 @@ export function sealNamespace(prefix: string): void {
  */
 export function isPathSealed(path: string): boolean {
 	return (global.AccessSealedNamespaces ?? []).some(prefix => path === prefix || path.startsWith(`${prefix}/`))
+}
+
+/** Every registered guard, for drift reporting. */
+export function listRouteGuards(): { matcher: string; methods: string[]; regex: RegExp; source: 'explicit' | 'guardResource' }[] {
+	return (global.AccessRouteGuards ?? []).map(({ matcher, methods, regex, source }) => ({ matcher, methods, regex, source }))
 }
 
 /**

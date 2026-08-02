@@ -599,6 +599,85 @@ medusaIntegrationTestRunner({
 					.catch((e: any) => e.response)
 				expect(denied.status).toBe(403)
 			})
+
+			it('an undeclared route passes when unsealed and is denied once its namespace is sealed', async () => {
+				const { sealNamespace } = require('medusa-plugin-access') as typeof import('medusa-plugin-access')
+
+				// A path with no route and no policy declaration. The guard is mounted at
+				// /admin/*, so it runs before route dispatch — unsealed this falls through
+				// to a 404, sealed it is refused outright.
+				const probePath = '/admin/seal-probe/thing'
+				const asSuper = { headers: { Authorization: `Bearer ${superToken}` } }
+
+				const beforeSeal = await api.get(probePath, asSuper).catch((e: any) => e.response)
+				expect(beforeSeal.status).toBe(404)
+
+				sealNamespace('/admin/seal-probe')
+
+				const afterSeal = await api.get(probePath, asSuper).catch((e: any) => e.response)
+				expect(afterSeal.status).toBe(403)
+
+				// Segment-boundary matching: a sibling sharing the string prefix is untouched.
+				const sibling = await api.get('/admin/seal-probe-other/thing', asSuper).catch((e: any) => e.response)
+				expect(sibling.status).toBe(404)
+			})
+		})
+
+		describe('layered declarations (guardResource floor + stricter override)', () => {
+			let floorOnlyToken: string
+
+			beforeAll(async () => {
+				const container = getContainer()
+				const { guardResource, requirePolicies } = require('medusa-plugin-access') as typeof import('medusa-plugin-access')
+
+				// A synthetic resource surface: a guardResource floor, plus a stricter
+				// declaration on one sub-path. Nothing routes here — the guard runs at
+				// /admin/*, before dispatch, so a pass shows up as 404 and a denial as 403.
+				guardResource({ resource: 'layer_probe', prefix: '/admin/layer-probe' })
+				requirePolicies({
+					method: ['POST'],
+					matcher: '/admin/layer-probe/:id/strict*',
+					policies: [{ resource: 'layer_strict', operation: 'update' }]
+				})
+
+				const accessService: any = container.resolve('access')
+				const floorPolicy = await accessService.createAccessPolicies({
+					key: 'layer_probe:update',
+					resource: 'layer_probe',
+					operation: 'update',
+					name: 'LayerProbeUpdate'
+				})
+				const role = await accessService.createAccessRoles({ name: 'LayerFloorOnly' })
+				await accessService.createAccessRolePolicies({
+					role_id: role.id,
+					policy_id: floorPolicy.id
+				})
+
+				// Deliberately NOT granted layer_strict:update.
+				const limited = await setupAdmin('layer-floor@example.com')
+				floorOnlyToken = limited.token
+				const link = container.resolve(ContainerRegistrationKeys.LINK)
+				await (link as any).create({
+					[Modules.USER]: { user_id: limited.userId },
+					access: { access_role_id: role.id }
+				})
+
+				await utils.waitWorkflowExecutions()
+				await dbUtils.snapshot()
+			})
+
+			it('satisfying the floor alone is not enough for a route with a stricter declaration', async () => {
+				const auth = { headers: { Authorization: `Bearer ${floorOnlyToken}` } }
+
+				// Floor satisfied -> guard passes -> falls through to 404 (no such route).
+				const onFloor = await api.post('/admin/layer-probe/lp_1', {}, auth).catch((e: any) => e.response)
+				expect(onFloor.status).toBe(404)
+
+				// Same actor, sub-path carrying an extra requirement it does not hold.
+				// Matching is AND across declarations, so this must be refused.
+				const onStrict = await api.post('/admin/layer-probe/lp_1/strict/s_1', {}, auth).catch((e: any) => e.response)
+				expect(onStrict.status).toBe(403)
+			})
 		})
 
 		describe('field-filter (link-pivot bypass)', () => {

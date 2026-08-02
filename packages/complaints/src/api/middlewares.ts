@@ -38,41 +38,35 @@ try {
 	// the access utils (so these calls are type-checked) but is erased at
 	// compile time, so it adds no runtime dependency. medusa-plugin-access is
 	// declared only as an OPTIONAL peer dependency.
-	const { definePolicies, generateResourcePolicies, requirePolicies } = require('medusa-plugin-access') as typeof import('medusa-plugin-access')
+	const { definePolicies, generateResourcePolicies, guardResource, requirePolicies, sealNamespace } = require('medusa-plugin-access') as typeof import('medusa-plugin-access')
 
-	definePolicies(generateResourcePolicies(['complaint']))
+	definePolicies(generateResourcePolicies(['complaint', 'complaint_tag', 'complaint_activity']))
 
+	// One call per resource covers the collection AND every depth beneath it,
+	// which is what the previous per-route declarations could not do: anchored
+	// matchers meant `/admin/complaints/:id` never covered `/admin/complaints/:id/notes`,
+	// leaving activities, documents, notes and the stats routes silently ungated.
+	guardResource({ resource: 'complaint', prefix: '/admin/complaints' })
+	guardResource({ resource: 'complaint_tag', prefix: '/admin/complaint-tags' })
+	// Aggregates over complaints; recalculate is a POST, so it lands on complaint:update.
+	guardResource({ resource: 'complaint', prefix: '/admin/complaint-stats' })
+
+	// Activity entries are the regulatory action history. Holding complaint:update
+	// should not imply the ability to rewrite or delete that history, so these
+	// routes require an additional grant on top of the subtree floor (matching is
+	// AND across declarations, so this is strictly stricter).
 	requirePolicies({
-		method: ['GET'],
-		matcher: '/admin/complaints',
-		policies: [{ resource: 'complaint', operation: 'read' }]
+		method: ['POST', 'DELETE'],
+		matcher: '/admin/complaints/:id/activities*',
+		policies: [{ resource: 'complaint_activity', operation: 'update' }]
 	})
-	requirePolicies({
-		method: ['GET'],
-		matcher: '/admin/complaints/:id',
-		policies: [{ resource: 'complaint', operation: 'read' }]
-	})
-	requirePolicies({
-		method: ['POST'],
-		matcher: '/admin/complaints',
-		policies: [{ resource: 'complaint', operation: 'create' }]
-	})
-	requirePolicies({
-		method: ['POST'],
-		matcher: '/admin/complaints/:id',
-		policies: [{ resource: 'complaint', operation: 'update' }]
-	})
-	requirePolicies({
-		method: ['DELETE'],
-		matcher: '/admin/complaints',
-		policies: [{ resource: 'complaint', operation: 'delete' }]
-	})
-	// Matchers are anchored, so '/admin/complaints' does not cover '/admin/complaints/:id'.
-	requirePolicies({
-		method: ['DELETE'],
-		matcher: '/admin/complaints/:id',
-		policies: [{ resource: 'complaint', operation: 'delete' }]
-	})
+
+	// Fail closed for the prefixes this plugin owns: an undeclared route here is
+	// an oversight, not an opt-out. The global default stays fail-open for routes
+	// we do not own.
+	sealNamespace('/admin/complaints')
+	sealNamespace('/admin/complaint-tags')
+	sealNamespace('/admin/complaint-stats')
 } catch {
 	// medusa-plugin-access not installed — complaints routes remain ungated.
 }

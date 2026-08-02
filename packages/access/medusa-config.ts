@@ -14,9 +14,22 @@ module.exports = defineConfig({
 			cookieSecret: process.env.COOKIE_SECRET
 		}
 	},
+	// The permission cache is only exercisable when the caching module is loaded
+	// AND the `caching` flag is on — `useCache` no-ops otherwise. The in-memory
+	// provider needs no external service, so enabling it here makes cache
+	// invalidation testable without infrastructure.
+	featureFlags: {
+		caching: true
+	},
 	modules: [
 		{
 			resolve: './src/modules/access'
+		},
+		{
+			resolve: '@medusajs/medusa/caching',
+			options: {
+				in_memory: { enable: true }
+			}
 		}
 	]
 })

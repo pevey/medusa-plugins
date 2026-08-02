@@ -99,23 +99,38 @@ export async function resolvePermissions(input: ResolvePermissionsInput): Promis
  * `listAccessRoles` override, so `policy.resource`/`policy.operation` are present.
  *
  * ---------------------------------------------------------------------------
- * DEFECT #4 — the cache below is INERT and must not be naively enabled.
- * See REDESIGN.md §6 ("#4 is larger than it looks"). Blocks Phase 3.
+ * DEFECT #4 — cache deliberately left OFF. See REDESIGN.md §6.
  *
- * `useCache` short-circuits without `enable: true`, so today every permission
- * check is a fresh query. Adding `enable: true` ALONE is a security regression:
+ * A previous attempt enabled this with a short TTL. An adversarial review found
+ * that attempt unsound, on premises that were checked and are false:
  *
- *   1. Tag mismatch. The caching strategy derives tags as `AccessRole:<id>`
- *      (upperCaseFirst(toCamelCase(entityType)) from the event name). The tags
- *      built below are `access_role:<id>` — they would never match, so nothing
- *      would ever be cleared.
- *   2. No events. Auto-invalidation fires from an event-bus subscription on
- *      `*`. Nothing in this module emits on role / policy / role-policy /
- *      role-parent mutation, so no invalidation would occur at all.
+ *   - "Events would have to be written." They already exist. `MedusaService`
+ *     decorates every generated method with `@EmitEvents` and installs a global
+ *     MikroORM subscriber, so AccessRole / AccessPolicy / AccessRolePolicy /
+ *     AccessRoleParent mutations already emit `access.access-role.created` etc.
+ *     Zero service methods need overriding.
+ *   - "Matching core's tag derivation is fragile." It is four lines of
+ *     deterministic string manipulation over names we control, and unit-testable.
+ *   - "A TTL cannot fail silently." `Number('')` is 0, and node-cache treats a
+ *     0 TTL as NEVER EXPIRES — so a declared-but-empty env var yields an
+ *     unbounded cache, silently. The exact failure mode the TTL was chosen to
+ *     avoid.
  *
- * With the 7-day TTL below and neither addressed, a revoked role would stay
- * effective for a week. Complete fix: rename tags, emit mutation events,
- * shorten the TTL, enable, and test that a role change invalidates.
+ * It also shipped a regression: `providers: ['cache-memory']` is only
+ * registered when a config sets `in_memory.enable`. apps/backend configures
+ * Redis only, so the provider was unresolvable there — no caching at all, plus
+ * error/warn logs on every check.
+ *
+ * The correct fix, when taken up:
+ *   1. Request-scoped memoization first. The dominant cost is intra-request
+ *      fan-out (the field filter calls hasPermission once per entity path), and
+ *      memoizing the in-flight promise on `req.scope` collapses that with ZERO
+ *      staleness. This may be the whole answer.
+ *   2. Only then, if a cross-request cache is still wanted: cache a
+ *      JSON-serializable shape (not a Map — it stringifies to `{}` and would
+ *      500 on a Redis hit), drop the hardcoded provider so the configured
+ *      default is used, and tag coarsely (`AccessRole:list:*` and friends) so
+ *      the events that already fire do the invalidating.
  * ---------------------------------------------------------------------------
  */
 async function fetchSingleRolePolicies(roleId: string, container: MedusaContainer): Promise<Map<string, Set<string>>> {
@@ -133,7 +148,7 @@ async function fetchSingleRolePolicies(roleId: string, container: MedusaContaine
 			const role = roles[0]
 			const resourceMap = new Map<string, Set<string>>()
 
-			tags.push(`access_role:${roleId}`)
+			tags.push(`AccessRole:${roleId}`)
 			if (role?.policies && Array.isArray(role.policies)) {
 				for (const policy of role.policies) {
 					if (!resourceMap.has(policy.resource)) {
@@ -141,7 +156,14 @@ async function fetchSingleRolePolicies(roleId: string, container: MedusaContaine
 					}
 					resourceMap.get(policy.resource)!.add(policy.operation)
 
-					tags.push(`access_policy:${policy.id}`)
+					tags.push(`AccessPolicy:${policy.id}`)
+
+					// A grant reaching this role through inheritance means an edit to the
+					// ANCESTOR invalidates this entry too. `inherited_from_role_id` is
+					// NULL for directly-held policies.
+					if (policy.inherited_from_role_id) {
+						tags.push(`AccessRole:${policy.inherited_from_role_id}`)
+					}
 				}
 			}
 
@@ -150,6 +172,10 @@ async function fetchSingleRolePolicies(roleId: string, container: MedusaContaine
 		{
 			container,
 			key: roleId,
+			// Passed by reference on purpose: `useCache` reads options.tags again
+			// after the callback resolves, and the pushes above happen inside it.
+			// Snapshotting here (e.g. `Array.from(new Set(tags))`) yields an empty
+			// list, because arguments are evaluated before the callback runs.
 			tags,
 			ttl: 60 * 60 * 24 * 7,
 			providers: ['cache-memory']

@@ -1,5 +1,6 @@
 import { ApiLoader } from '@medusajs/framework/http'
-import { matchRoutePolicies } from './route-guards'
+import { getHandlerPolicies } from './route-binding'
+import { listRouteGuards, matchRoutePolicies, requirePolicies } from './route-guards'
 
 export type RegisteredRoute = {
 	matcher: string
@@ -48,10 +49,18 @@ export function installRouteRegistry(): void {
 	const prev = ApiLoader.traceRoute
 
 	ApiLoader.traceRoute = (handler, route) => {
-		global.AccessRegisteredRoutes!.push({
-			matcher: String(route.route),
-			method: route.method
-		})
+		const matcher = String(route.route)
+
+		global.AccessRegisteredRoutes!.push({ matcher, method: route.method })
+
+		// Handler-bound declarations (see `withPolicies`) are resolved here, where
+		// the original function reference and Medusa's own matcher are both in
+		// hand — so the author never writes the path themselves.
+		const bound = getHandlerPolicies(handler)
+		if (bound?.length) {
+			requirePolicies({ matcher, method: route.method, policies: bound })
+		}
+
 		return prev ? prev(handler, route) : handler
 	}
 }
@@ -98,6 +107,39 @@ export function getRouteCoverage(prefix = '/admin'): RouteCoverage {
 }
 
 /**
+ * Guards that match no route the app actually registered.
+ *
+ * These are declarations that have rotted — a route renamed or removed upstream,
+ * or a matcher that never matched anything. They are silent by nature: a guard
+ * for a path that does not exist simply never fires, so nothing surfaces until
+ * someone audits by hand. (The pinned core-route map has produced exactly this:
+ * an earlier audit found 22 `/admin/rbac/**` matchers left over from the fork
+ * origin, guarding paths this plugin never serves.)
+ *
+ * Wildcard guards are included: a `/prefix/*` that matches nothing is as stale
+ * as a literal one.
+ */
+export function getStaleGuards(prefix = '/admin'): { matcher: string; methods: string[] }[] {
+	const routes = (global.AccessRegisteredRoutes ?? []).map(route => ({
+		probe: toProbePath(route.matcher),
+		method: route.method
+	}))
+
+	if (!routes.length) {
+		return []
+	}
+
+	return listRouteGuards()
+		.filter(guard => guard.matcher.startsWith(prefix))
+		// guardResource emits a full CRUD surface deliberately, so its unmatched
+		// entries are protective (a route added later is already covered), not
+		// rotted. Only hand-written declarations are evidence of drift.
+		.filter(guard => guard.source !== 'guardResource')
+		.filter(guard => !routes.some(route => guard.methods.includes(route.method) && guard.regex.test(route.probe)))
+		.map(({ matcher, methods }) => ({ matcher, methods }))
+}
+
+/**
  * Log a one-line coverage summary, plus the uncovered routes at debug level.
  * Called on application start; silent when everything is covered.
  */
@@ -116,5 +158,13 @@ export function reportRouteCoverage(logger: { info?: Function; warn?: Function; 
 	logger.warn?.(`[access] route coverage: ${covered}/${total} admin routes declared — ${uncovered.length} undeclared (these pass unguarded)`)
 	for (const route of uncovered) {
 		logger.debug?.(`[access]   undeclared: ${route.method} ${route.matcher}`)
+	}
+
+	const stale = getStaleGuards()
+	if (stale.length) {
+		logger.warn?.(`[access] ${stale.length} policy declaration(s) match no registered route — likely rotted`)
+		for (const guard of stale) {
+			logger.debug?.(`[access]   stale: ${guard.methods.join(',')} ${guard.matcher}`)
+		}
 	}
 }
