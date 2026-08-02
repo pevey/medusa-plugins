@@ -30,7 +30,7 @@ export const listTransformQueryConfig = {
 // directly as `{p.policy}` on the role detail page). The route flattens
 // `policy.key` back onto a `policy` string field before responding -- see
 // `roles/[id]/policies/route.ts`.
-export const defaultAdminRolePoliciesFields = ['id', 'role_id', 'policy_id', 'policy.key', 'metadata', 'created_at', 'updated_at', 'deleted_at']
+export const defaultAdminRolePoliciesFields = ['id', 'role_id', 'policy_id', 'policy.key', 'scope', 'metadata', 'created_at', 'updated_at', 'deleted_at']
 
 export const retrieveRolePoliciesTransformQueryConfig = {
 	defaults: defaultAdminRolePoliciesFields,

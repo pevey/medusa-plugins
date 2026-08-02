@@ -1,4 +1,5 @@
 import { MiddlewareRoute } from '@medusajs/framework/http'
+import { MedusaError } from '@medusajs/framework/utils'
 import { PermissionAction } from './has-permission'
 
 /**
@@ -33,10 +34,11 @@ global.AccessSealedNamespaces ??= []
 
 const ALL_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
 
-
 /**
- * Compile an Express-style matcher (`/admin/access/roles/:id`, `/admin/*`) into
- * an anchored RegExp for request-path matching.
+ * Compile an Express-style matcher (`/admin/access/roles/:id`, `/*`) into
+ * an anchored RegExp for request-path matching. The guard itself mounts on
+ * `/*` (every request the app serves); matchers declared against it can
+ * target any prefix, not only `/admin`.
  *
  * Case-insensitive on purpose. Express is configured with neither
  * `case sensitive routing` nor `strict routing`, so it happily routes
@@ -174,9 +176,29 @@ export function guardResource(input: { resource: string; prefix: string }): void
  */
 export function sealNamespace(prefix: string): void {
 	const normalized = normalizePath(prefix)
+	if (normalized === '' || normalized === '/') {
+		throw new MedusaError(MedusaError.Types.INVALID_DATA, `sealNamespace: "${prefix}" is not a valid prefix. Seal a specific path such as /admin or /store.`)
+	}
 	if (!global.AccessSealedNamespaces!.includes(normalized)) {
 		global.AccessSealedNamespaces!.push(normalized)
 	}
+}
+
+/**
+ * Prefixes a seal can never cover. Sealing `/auth` would 403 the login
+ * endpoints, locking every actor out with no in-band recovery.
+ */
+export const SEAL_EXEMPT_PREFIXES = ['/auth'] as const
+
+/**
+ * Whether `candidate` falls under `prefix` on a segment boundary rather than
+ * string prefix — `/admin/order` must not also match `/admin/orders`. Shared
+ * by `isPathSealed`, {@link route-coverage.ts}'s coverage matching, and the
+ * guard's actor-authenticator dispatch, so the boundary rule lives in exactly
+ * one place.
+ */
+export function matchesPrefixOnSegmentBoundary(candidate: string, prefix: string): boolean {
+	return prefix === '/' || candidate === prefix || candidate.startsWith(`${prefix}/`)
 }
 
 /**
@@ -187,15 +209,83 @@ export function sealNamespace(prefix: string): void {
  */
 export function isPathSealed(path: string): boolean {
 	const candidate = normalizePath(path).toLowerCase()
-	return (global.AccessSealedNamespaces ?? []).some(prefix => {
-		const p = prefix.toLowerCase()
-		return candidate === p || candidate.startsWith(`${p}/`)
-	})
+
+	if (SEAL_EXEMPT_PREFIXES.some(exempt => matchesPrefixOnSegmentBoundary(candidate, exempt))) {
+		return false
+	}
+
+	return (global.AccessSealedNamespaces ?? []).some(prefix => matchesPrefixOnSegmentBoundary(candidate, prefix.toLowerCase()))
 }
 
 /** Every registered guard, for drift reporting. */
 export function listRouteGuards(): { matcher: string; methods: string[]; regex: RegExp; source: 'explicit' | 'guardResource' }[] {
 	return (global.AccessRouteGuards ?? []).map(({ matcher, methods, regex, source }) => ({ matcher, methods, regex, source }))
+}
+
+type GuardIndex = { bySegment: Map<string, RouteGuard[]>; unindexed: RouteGuard[] }
+
+let indexCache: GuardIndex | undefined
+let indexedRef: RouteGuard[] | undefined
+let indexedCount = -1
+
+/**
+ * The literal first path segment of a matcher, or undefined when the segment
+ * contains a wildcard or a param and therefore cannot be bucketed.
+ *
+ * `includes(':')`, not `startsWith(':')`: compileMatcher replaces `:param`
+ * anywhere in the string, so `/user:id/x` compiles to `^/user[^/]+/x$`. Bucketing
+ * that under the literal `user:id` would hide it from every request that matches
+ * it — a fail-open miss the unindexed list exists to prevent.
+ *
+ * `.toUpperCase()`, not `.toLowerCase()`: `guard.regex` matches with the `i`
+ * flag, and RegExp's case-insensitive canonicalization is `toUpperCase`-based.
+ * The two fold different character sets for some non-ASCII code points (e.g.
+ * U+00B5 MICRO SIGN vs U+03BC GREEK SMALL LETTER MU both uppercase to U+039C
+ * but lowercase to themselves) — a `.toLowerCase()` bucket key could diverge
+ * from what `guard.regex.test` considers equal and silently miss a guard.
+ * `.toUpperCase()` makes the bucket a conservative superset of what the regex
+ * matches: it may over-include (harmless — `guard.regex.test` still filters
+ * the candidates) but can never under-include and fail open.
+ */
+function indexableSegment(matcher: string): string | undefined {
+	const normalized = normalizePath(matcher)
+	if (!normalized.startsWith('/')) {
+		return undefined
+	}
+	const segment = normalized.slice(1).split('/')[0]
+	if (!segment || segment.includes('*') || segment.includes(':')) {
+		return undefined
+	}
+	return segment.toUpperCase()
+}
+
+function getIndex(): GuardIndex {
+	const guards = global.AccessRouteGuards!
+	if (indexCache && indexedRef === guards && indexedCount === guards.length) {
+		return indexCache
+	}
+
+	const bySegment = new Map<string, RouteGuard[]>()
+	const unindexed: RouteGuard[] = []
+
+	for (const guard of guards) {
+		const segment = indexableSegment(guard.matcher)
+		if (!segment) {
+			unindexed.push(guard)
+			continue
+		}
+		const bucket = bySegment.get(segment)
+		if (bucket) {
+			bucket.push(guard)
+		} else {
+			bySegment.set(segment, [guard])
+		}
+	}
+
+	indexCache = { bySegment, unindexed }
+	indexedRef = guards
+	indexedCount = guards.length
+	return indexCache
 }
 
 /**
@@ -208,13 +298,38 @@ export function matchRoutePolicies(path: string, method: string): PermissionActi
 	// the GET requirement or it is an unauthenticated existence oracle.
 	const upper = method.toUpperCase() === 'HEAD' ? 'GET' : method.toUpperCase()
 	const candidate = normalizePath(path)
-	for (const guard of global.AccessRouteGuards ?? []) {
+	const index = getIndex()
+	const segment = indexableSegment(candidate)
+
+	const collect = (guard: RouteGuard) => {
 		if (!guard.methods.includes(upper)) {
-			continue
+			return
 		}
 		if (guard.regex.test(candidate)) {
 			out.push(...guard.policies)
 		}
 	}
+
+	if (segment) {
+		// Two sequential loops instead of spreading both lists into a fresh
+		// array — this runs on every request after the mount widened to `/*`,
+		// so the per-call allocation of a 351-element array is worth avoiding.
+		// Order still matters: bucketed guards must be checked before
+		// unindexed ones, matching the old concatenation order.
+		const bucket = index.bySegment.get(segment)
+		if (bucket) {
+			for (const guard of bucket) {
+				collect(guard)
+			}
+		}
+		for (const guard of index.unindexed) {
+			collect(guard)
+		}
+	} else {
+		for (const guard of global.AccessRouteGuards ?? []) {
+			collect(guard)
+		}
+	}
+
 	return out
 }

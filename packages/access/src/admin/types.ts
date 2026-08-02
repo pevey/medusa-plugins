@@ -64,6 +64,7 @@ export type AdminAccessRolePolicy = {
 	role_id: string
 	policy_id: string
 	policy: string
+	scope?: string | null
 	metadata?: Record<string, unknown> | null
 	created_at?: string
 	updated_at?: string
@@ -137,6 +138,13 @@ export type AdminAssignUserRolesResponse = { roles: AdminAccessRole[] }
 // GET /admin/access/me/permissions — the authenticated actor's effective,
 // wildcard-expanded permission set as flat "resource:operation" strings.
 // Consumed by OTHER plugins' admin widgets to detect whether access is
-// installed and to read the caller's effective permissions, so this shape is
-// a cross-plugin contract, not just an internal one.
-export type AdminAccessMePermissionsResponse = { permissions: string[] }
+// installed and to read the caller's effective permissions, so `permissions`
+// is a cross-plugin contract, not just an internal one -- it lists ONLY
+// actions granted outright (unrestricted). `scoped` is additive: actions the
+// actor can perform but only within a scope, which a consumer that can't
+// apply a filter should treat as "not granted" the same way `hasPermission`
+// now does.
+export type AdminAccessMePermissionsResponse = {
+	permissions: string[]
+	scoped: { resource: string; operation: string; scope: string }[]
+}

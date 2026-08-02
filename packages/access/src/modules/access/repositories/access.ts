@@ -51,6 +51,7 @@ export class AccessRepository extends MikroOrmBase {
         p.metadata,
         p.created_at,
         p.updated_at,
+        rp.scope,
         CASE WHEN rp.role_id = rh.original_role_id THEN NULL ELSE rp.role_id END as inherited_from_role_id
       FROM access_policy p
       INNER JOIN access_role_policy rp ON rp.policy_id = p.id

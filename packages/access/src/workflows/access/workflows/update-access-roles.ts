@@ -1,7 +1,7 @@
 import { isDefined } from '@medusajs/framework/utils'
 import { WorkflowData, WorkflowResponse, createWorkflow, transform, when } from '@medusajs/framework/workflows-sdk'
 import { UpdateAccessRoleDTO } from '../../../modules/access/types'
-import { createAccessRolePoliciesStep, setRoleParentStep } from '../steps'
+import { createAccessRolePoliciesStep, resolveInheritedActionsStep, setRoleParentStep } from '../steps'
 import { updateAccessRolesStep } from '../steps/update-access-roles'
 import { validateUserPermissionsStep } from '../steps/validate-user-permissions'
 
@@ -30,17 +30,26 @@ export const updateAccessRolesWorkflowId = 'update-access-roles'
  * @featureFlag access
  */
 export const updateAccessRolesWorkflow = createWorkflow(updateAccessRolesWorkflowId, (input: WorkflowData<UpdateAccessRolesWorkflowInput>) => {
-	const validationData = transform({ input }, ({ input }) => {
+	// A new parent confers everything in ITS chain (parent-of-parent included, since
+	// listPoliciesForRole walks the same recursive CTE), so attaching one without this
+	// check is a privilege escalation: the actor need only hold `access_role:update` to
+	// inherit any other role's full policy set, including `*:*`.
+	const parentIds = transform({ input }, ({ input }) => input.update.parent_ids || [])
+
+	const inheritedActions = resolveInheritedActionsStep({ role_ids: parentIds })
+
+	const validationData = transform({ input, inheritedActions }, ({ input, inheritedActions }) => {
 		const policyIds = input.update.policy_ids || []
 		return {
 			actor_id: input.actor_id!,
-			policy_ids: policyIds,
-			actor: input.actor
+			policies: policyIds.map(policy_id => ({ policy_id })),
+			actor: input.actor,
+			actions: inheritedActions
 		}
 	})
 
 	when({ validationData }, ({ validationData }) => {
-		return !!validationData?.actor_id && !!validationData?.policy_ids?.length
+		return !!validationData?.actor_id && (!!validationData?.policies?.length || !!validationData?.actions?.length)
 	}).then(() => {
 		validateUserPermissionsStep(validationData)
 	})

@@ -7,6 +7,7 @@ const AccessRolePolicy = model
 		id: model.id({ prefix: 'acrlpl' }).primaryKey(),
 		role: model.belongsTo(() => AccessRole),
 		policy: model.belongsTo(() => AccessPolicy),
+		scope: model.text().nullable(),
 		metadata: model.json().nullable()
 	})
 	.indexes([

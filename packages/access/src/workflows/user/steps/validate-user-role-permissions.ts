@@ -1,4 +1,4 @@
-import { hasPermission } from '../../../utils'
+import { canGrantScope, resolveActorRoles, resolvePermissions } from '../../../utils'
 import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils'
 import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
 
@@ -37,16 +37,17 @@ export const validateUserRolePermissionsStep = createStep(
 
 		const { data: targetRoles } = await query.graph({
 			entity: 'access_role',
-			fields: ['id', 'policies.resource', 'policies.operation'],
+			fields: ['id', 'policies.resource', 'policies.operation', 'policies.scope'],
 			filters: { id: role_ids }
 		})
 
-		const actionsToCheck: { resource: string; operation: string }[] = []
+		const actionsToCheck: { resource: string; operation: string; scope?: string }[] = []
 		for (const role of targetRoles) {
 			for (const policy of role.policies ?? []) {
 				actionsToCheck.push({
 					resource: policy.resource,
-					operation: policy.operation
+					operation: policy.operation,
+					scope: policy.scope ?? undefined
 				})
 			}
 		}
@@ -55,25 +56,31 @@ export const validateUserRolePermissionsStep = createStep(
 			return new StepResponse(void 0)
 		}
 
-		const { data: actors } = await query.graph({
-			entity: actor ?? 'user',
-			fields: ['access_roles.id'],
-			filters: { id: actor_id }
-		})
+		// Route through the resolver registry rather than querying `access_roles`
+		// directly: a `customer` holds roles through customer groups as well as
+		// directly, and `api-key`'s actor type is not its Query entity name.
+		const actorRoleIds = await resolveActorRoles(actor ?? 'user', actor_id, container)
 
-		const actorRoleIds: string[] = actors?.[0]?.access_roles?.map((r: any) => r.id).filter(Boolean) ?? []
+		if (actorRoleIds === null) {
+			throw new MedusaError(MedusaError.Types.FORBIDDEN, `No role resolver is registered for actor type "${actor ?? 'user'}".`)
+		}
 
 		if (!actorRoleIds.length) {
 			throw new MedusaError(MedusaError.Types.FORBIDDEN, 'You do not have permission to assign these roles')
 		}
 
-		const allowed = await hasPermission({
+		const granted = await resolvePermissions({
 			roles: actorRoleIds,
-			actions: actionsToCheck,
+			universe: actionsToCheck.map(a => ({ resource: a.resource, operation: a.operation })),
 			container
 		})
 
-		if (!allowed) {
+		// An actor may grant a policy at scope S only if they hold it unrestricted,
+		// or hold it at exactly scope S -- see `canGrantScope`. Every policy on
+		// every target role must clear this, or the actor escalates in one hop.
+		const escalates = actionsToCheck.some(a => !canGrantScope(granted, a.resource, a.operation, a.scope))
+
+		if (escalates) {
 			throw new MedusaError(MedusaError.Types.FORBIDDEN, 'You do not have permission to assign these roles')
 		}
 

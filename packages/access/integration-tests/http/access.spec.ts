@@ -1,7 +1,7 @@
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
-import { hasPermission, resolvePermissions } from '../../src/utils'
+import { authorize, defineScope, hasPermission, hasScope, resolveActorRoles, resolvePermissions } from '../../src/utils'
 import {
 	bootstrapSuperAdminWorkflow,
 	createAccessPoliciesWorkflow,
@@ -273,8 +273,13 @@ medusaIntegrationTestRunner({
 					],
 					container
 				})
-				expect(granted.has('order:delete')).toBe(true)
-				expect(granted.has('product:read')).toBe(true)
+				// A *:* grant is unrestricted, so neither entry carries a `scope`.
+				expect(granted).toEqual(
+					expect.arrayContaining([
+						{ resource: 'order', operation: 'delete' },
+						{ resource: 'product', operation: 'read' }
+					])
+				)
 			})
 		})
 
@@ -565,6 +570,127 @@ medusaIntegrationTestRunner({
 			})
 		})
 
+		describe('scoped role-policy assignment route', () => {
+			let token: string
+			beforeAll(async () => {
+				const admin = await setupAdmin('admin-scoped-policy-route@example.com', { superAdmin: true })
+				token = admin.token
+
+				// `jest.retryTimes(1)` is set globally, so a retried run must not
+				// re-throw on `defineScope`'s duplicate-registration guard.
+				if (!hasScope('customer', 'company')) {
+					defineScope({ name: 'company', resource: 'customer', filter: async () => ({}) })
+				}
+
+				await utils.waitWorkflowExecutions()
+				await dbUtils.snapshot()
+			})
+
+			const auth = () => ({ headers: { Authorization: `Bearer ${token}` } })
+
+			it('round-trips a scope on a role-policy assignment', async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+				const [customerDeletePolicy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
+
+				const roleRes = await api.post('/admin/access/roles', { name: 'ScopedPolicyRole' }, auth())
+				const roleId = roleRes.data.role.id
+
+				const addPolicy = await api.post(
+					`/admin/access/roles/${roleId}/policies`,
+					{ policies: [{ id: customerDeletePolicy.id, scope: 'company' }] },
+					auth()
+				)
+				expect(addPolicy.status).toBe(200)
+				expect(addPolicy.data.policies[0].scope).toBe('company')
+				// verifies: AdminAddRolePoliciesResponse (POST /admin/access/roles/:id/policies, scoped)
+				expect(() => AdminAddRolePoliciesResponseSchema.parse(addPolicy.data)).not.toThrow()
+
+				const rpGet = await api.get(`/admin/access/roles/${roleId}/policies`, auth())
+				const row = rpGet.data.policies.find((p: any) => p.policy_id === customerDeletePolicy.id)
+				expect(row.scope).toBe('company')
+				// verifies: AdminAccessRolePoliciesResponse (GET /admin/access/roles/:id/policies, scoped)
+				expect(() => AdminAccessRolePoliciesResponseSchema.parse(rpGet.data)).not.toThrow()
+			})
+
+			it('still accepts a bare policy id (unrestricted assignment) alongside the scoped shape', async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+				const [customerReadPolicy] = await accessService.listAccessPolicies({ key: 'customer:read' })
+
+				const roleRes = await api.post('/admin/access/roles', { name: 'UnrestrictedPolicyRole' }, auth())
+				const roleId = roleRes.data.role.id
+
+				const addPolicy = await api.post(`/admin/access/roles/${roleId}/policies`, { policies: [customerReadPolicy.id] }, auth())
+				expect(addPolicy.status).toBe(200)
+				expect(addPolicy.data.policies[0].scope ?? null).toBeNull()
+			})
+
+			it('rejects a scope on a wildcard policy', async () => {
+				const wildcardPolicy = await api.post(
+					'/admin/access/policies',
+					{ key: 'wildcard_probe:*', resource: 'wildcard_probe', operation: '*', name: 'WildcardProbe' },
+					auth()
+				)
+
+				const roleRes = await api.post('/admin/access/roles', { name: 'WildcardScopeRole' }, auth())
+				const roleId = roleRes.data.role.id
+
+				const res = await api
+					.post(`/admin/access/roles/${roleId}/policies`, { policies: [{ id: wildcardPolicy.data.policy.id, scope: 'company' }] }, auth())
+					.catch((e: any) => e.response)
+
+				expect(res.status).toBe(400)
+				expect(res.data.message).toMatch(/wildcard/i)
+			})
+
+			it('rejects a scope with no registered defineScope entry for the resource', async () => {
+				const policyRes = await api.post(
+					'/admin/access/policies',
+					{ key: 'unscoped_probe:read', resource: 'unscoped_probe', operation: 'read', name: 'UnscopedProbeRead' },
+					auth()
+				)
+
+				const roleRes = await api.post('/admin/access/roles', { name: 'UnregisteredScopeRole' }, auth())
+				const roleId = roleRes.data.role.id
+
+				const res = await api
+					.post(`/admin/access/roles/${roleId}/policies`, { policies: [{ id: policyRes.data.policy.id, scope: 'nonexistent_scope' }] }, auth())
+					.catch((e: any) => e.response)
+
+				expect(res.status).toBe(400)
+				expect(res.data.message).toMatch(/not.*registered|no scope/i)
+			})
+
+			// The unique index on `access_role_policy` is `(role_id, policy_id)` --
+			// it has no `scope` column -- so two entries for the same policy in one
+			// request (here: unscoped + `@company`) can never both be inserted.
+			// Without `validateRolePolicyScopesStep`'s duplicate check this would
+			// hit the DB constraint directly instead of failing cleanly. There is
+			// no route to CHANGE an existing assignment's scope -- DELETE it
+			// (`DELETE /admin/access/roles/:id/policies/:policy_id`) and re-POST
+			// with the new scope.
+			it('rejects the same policy id assigned more than once in one request', async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+				const [customerDeletePolicy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
+
+				const roleRes = await api.post('/admin/access/roles', { name: 'DuplicatePolicyRole' }, auth())
+				const roleId = roleRes.data.role.id
+
+				const res = await api
+					.post(
+						`/admin/access/roles/${roleId}/policies`,
+						{ policies: [{ id: customerDeletePolicy.id }, { id: customerDeletePolicy.id, scope: 'company' }] },
+						auth()
+					)
+					.catch((e: any) => e.response)
+
+				expect(res.status).toBe(400)
+				expect(res.data.message).toMatch(/more than once/i)
+			})
+		})
+
 		describe('me/permissions + user-roles routes', () => {
 			let token: string
 			let adminUserId: string
@@ -671,7 +797,7 @@ medusaIntegrationTestRunner({
 				const { sealNamespace } = require('medusa-plugin-access') as typeof import('medusa-plugin-access')
 
 				// A path with no route and no policy declaration. The guard is mounted at
-				// /admin/*, so it runs before route dispatch — unsealed this falls through
+				// /*, so it runs before route dispatch — unsealed this falls through
 				// to a 404, sealed it is refused outright.
 				const probePath = '/admin/seal-probe/thing'
 				const asSuper = { headers: { Authorization: `Bearer ${superToken}` } }
@@ -699,7 +825,7 @@ medusaIntegrationTestRunner({
 
 				// A synthetic resource surface: a guardResource floor, plus a stricter
 				// declaration on one sub-path. Nothing routes here — the guard runs at
-				// /admin/*, before dispatch, so a pass shows up as 404 and a denial as 403.
+				// /*, before dispatch, so a pass shows up as 404 and a denial as 403.
 				guardResource({ resource: 'layer_probe', prefix: '/admin/layer-probe' })
 				requirePolicies({
 					method: ['POST'],
@@ -827,6 +953,476 @@ medusaIntegrationTestRunner({
 				// … but the linked customer_group data is stripped (no group ids leak)
 				const limitedGroupIds = (limitedRes.data.customer.groups ?? []).map((g: any) => g.id).filter(Boolean)
 				expect(limitedGroupIds.length).toBe(0)
+			})
+		})
+
+		describe('customer group role resolution', () => {
+			it('resolves a customer to the roles held by their group', async () => {
+				const container = getContainer()
+				const link = container.resolve(ContainerRegistrationKeys.LINK)
+				const query = container.resolve(ContainerRegistrationKeys.QUERY)
+				const customerService: any = container.resolve(Modules.CUSTOMER)
+
+				const group = await customerService.createCustomerGroups({ name: 'Wholesale' })
+				const customer = await customerService.createCustomers({ email: 'wholesale@example.com' })
+				await customerService.addCustomerToGroup({ customer_id: customer.id, customer_group_id: group.id })
+
+				await (link as any).create({
+					[Modules.CUSTOMER]: { customer_group_id: group.id },
+					access: { access_role_id: 'acrl_super_admin' }
+				})
+
+				const { data } = await query.graph({
+					entity: 'customer',
+					fields: ['groups.access_roles.id'],
+					filters: { id: customer.id }
+				})
+
+				expect(data[0].groups[0].access_roles).toEqual([{ id: 'acrl_super_admin' }])
+			})
+
+			it('unions a directly-linked role with a role held through a group', async () => {
+				const container = getContainer()
+				const link = container.resolve(ContainerRegistrationKeys.LINK)
+				const query = container.resolve(ContainerRegistrationKeys.QUERY)
+				const accessService: any = container.resolve('access')
+				const customerService: any = container.resolve(Modules.CUSTOMER)
+
+				const directRole = await accessService.createAccessRoles({ name: 'Direct Role' })
+				const group = await customerService.createCustomerGroups({ name: 'Group Role Holders' })
+				const customer = await customerService.createCustomers({ email: 'direct-and-group@example.com' })
+				await customerService.addCustomerToGroup({ customer_id: customer.id, customer_group_id: group.id })
+
+				await (link as any).create({
+					[Modules.CUSTOMER]: { customer_id: customer.id },
+					access: { access_role_id: directRole.id }
+				})
+				await (link as any).create({
+					[Modules.CUSTOMER]: { customer_group_id: group.id },
+					access: { access_role_id: 'acrl_super_admin' }
+				})
+
+				// Assert on the raw query result before the resolver's Set collapses it --
+				// the union+dedupe would pass identically whether the two paths are
+				// actually isolated or whether the joiner cross-contaminates them.
+				const { data } = await query.graph({
+					entity: 'customer',
+					fields: ['access_roles.id', 'groups.access_roles.id'],
+					filters: { id: customer.id }
+				})
+
+				expect(data[0].access_roles).toEqual([{ id: directRole.id }])
+				expect(data[0].groups[0].access_roles).toEqual([{ id: 'acrl_super_admin' }])
+
+				const roleIds = await resolveActorRoles('customer', customer.id, container)
+
+				expect(roleIds).toEqual(expect.arrayContaining([directRole.id, 'acrl_super_admin']))
+				expect(roleIds).toHaveLength(2)
+			})
+		})
+
+		describe('api key role resolution', () => {
+			it('resolves an api key to its linked access role', async () => {
+				const container = getContainer()
+				const link = container.resolve(ContainerRegistrationKeys.LINK)
+				const query = container.resolve(ContainerRegistrationKeys.QUERY)
+				const apiKeyService: any = container.resolve(Modules.API_KEY)
+
+				const apiKey = await apiKeyService.createApiKeys({
+					title: 'CI key',
+					type: 'secret',
+					created_by: 'test'
+				})
+
+				await (link as any).create({
+					[Modules.API_KEY]: { api_key_id: apiKey.id },
+					access: { access_role_id: 'acrl_super_admin' }
+				})
+
+				const { data } = await query.graph({
+					entity: 'api_key',
+					fields: ['access_roles.id'],
+					filters: { id: apiKey.id }
+				})
+
+				expect(data[0].access_roles).toEqual([{ id: 'acrl_super_admin' }])
+			})
+		})
+
+		describe('scoped grants', () => {
+			it('persists a scope on a role policy and returns it through inheritance', async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+
+				const parent = await accessService.createAccessRoles({ name: 'Scoped Parent' })
+				const child = await accessService.createAccessRoles({ name: 'Scoped Child' })
+				// 'customer:delete' is one of the core policies synced on module boot
+				// (see "syncs the 14 core policy definitions" above), so it already
+				// exists -- fetch it rather than re-creating (would violate the
+				// unique `key` index), matching the `custRead` lookup pattern used
+				// by the field-filter tests above.
+				const [policy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
+
+				await accessService.createAccessRolePolicies({ role_id: parent.id, policy_id: policy.id, scope: 'company' })
+				await accessService.createAccessRoleParents([{ role_id: child.id, parent_id: parent.id }])
+
+				const [resolved] = await accessService.listAccessRoles({ id: child.id }, { relations: ['policies'] })
+				const inherited = resolved.policies.find((p: any) => p.resource === 'customer' && p.operation === 'delete')
+
+				expect(inherited.scope).toBe('company')
+			})
+
+			// The test above asserts through `accessService.listAccessRoles` only,
+			// which never touches `has-permission.ts`'s `query.graph` call -- it
+			// would not catch a regression there (e.g. `scope` silently dropped by
+			// a field-selection change). This pins the whole chain a real request
+			// actually uses: role -> query.graph -> authorize/hasPermission.
+			it('pins the query.graph -> authorize chain end to end for a scoped grant', async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+				const link = container.resolve(ContainerRegistrationKeys.LINK)
+
+				const role = await accessService.createAccessRoles({ name: 'Scoped Deleter' })
+				const [policy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
+				await accessService.createAccessRolePolicies({ role_id: role.id, policy_id: policy.id, scope: 'company' })
+
+				const authService: any = container.resolve(Modules.AUTH)
+				const { authIdentity } = await authService.register('emailpass', {
+					body: { email: 'scoped-chain@example.com', password: 'Sup3rSecret!' }
+				})
+				const { result: user } = await createUserAccountWorkflow(container).run({
+					input: {
+						authIdentityId: authIdentity!.id,
+						userData: {
+							email: 'scoped-chain@example.com',
+							first_name: 'Scoped',
+							last_name: 'Chain'
+						}
+					}
+				})
+
+				await (link as any).create({
+					[Modules.USER]: { user_id: user.id },
+					access: { access_role_id: role.id }
+				})
+
+				await expect(
+					hasPermission({
+						roles: [role.id],
+						actions: { resource: 'customer', operation: 'delete' },
+						container
+					})
+				).resolves.toBe(false)
+
+				const decision = await authorize({
+					roles: [role.id],
+					actions: { resource: 'customer', operation: 'delete' },
+					container
+				})
+
+				expect(decision).toEqual({ granted: true, scopes: [{ resource: 'customer', scope: 'company' }] })
+			})
+		})
+
+		describe('scoped assignability', () => {
+			// Floor role: unrestricted on everything these routes gate at the guard
+			// level (user:*, access_role:*, access_policy:read) so requests reach the
+			// workflow steps under test. The escalation under test is on
+			// `customer:delete`, a resource none of those route-level checks touch.
+			const grantFloorPolicy = async (accessService: any, roleId: string, key: string) => {
+				const [policy] = await accessService.listAccessPolicies({ key })
+				await accessService.createAccessRolePolicies({ role_id: roleId, policy_id: policy.id })
+			}
+
+			const setupActor = async (label: string, opts: { scope?: string } = {}) => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+				const link = container.resolve(ContainerRegistrationKeys.LINK)
+
+				// A retried test re-running setup must not collide with the previous
+				// attempt's role names or auth identity email.
+				const unique = `${label}-${Math.random().toString(36).slice(2)}`
+
+				const floorRole = await accessService.createAccessRoles({ name: `Floor-${unique}` })
+				for (const key of ['user:read', 'user:update', 'access_role:read', 'access_role:create', 'access_role:update', 'access_policy:read']) {
+					await grantFloorPolicy(accessService, floorRole.id, key)
+				}
+
+				const grantedRole = await accessService.createAccessRoles({ name: `Grant-${unique}` })
+				const [customerDeletePolicy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
+				await accessService.createAccessRolePolicies({
+					role_id: grantedRole.id,
+					policy_id: customerDeletePolicy.id,
+					...(opts.scope ? { scope: opts.scope } : {})
+				})
+
+				const actor = await setupAdmin(`${unique}@example.com`)
+				await (link as any).create({ [Modules.USER]: { user_id: actor.userId }, access: { access_role_id: floorRole.id } })
+				await (link as any).create({ [Modules.USER]: { user_id: actor.userId }, access: { access_role_id: grantedRole.id } })
+
+				await utils.waitWorkflowExecutions()
+				await dbUtils.snapshot()
+
+				return actor
+			}
+
+			const makeTargetRole = async (name: string, opts: { scope?: string } = {}) => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+				const [customerDeletePolicy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
+				const role = await accessService.createAccessRoles({ name: `${name}-${Math.random().toString(36).slice(2)}` })
+				await accessService.createAccessRolePolicies({
+					role_id: role.id,
+					policy_id: customerDeletePolicy.id,
+					...(opts.scope ? { scope: opts.scope } : {})
+				})
+				return role
+			}
+
+			it('does not let an actor grant an unrestricted policy they hold only scoped', async () => {
+				const actor = await setupActor('scoped-assign-1@example.com', { scope: 'company' })
+				const targetRole = await makeTargetRole('UnrestrictedDeleter-1')
+				const targetUser = await setupAdmin(`scoped-assign-target-1-${Math.random().toString(36).slice(2)}@example.com`)
+
+				const res = await api
+					.post(`/admin/users/${targetUser.userId}/access/roles`, { roles: [targetRole.id] }, { headers: { Authorization: `Bearer ${actor.token}` } })
+					.catch((e: any) => e.response)
+
+				expect(res.status).toBe(403)
+			})
+
+			it('lets an actor grant a policy at the same scope they hold', async () => {
+				const actor = await setupActor('scoped-assign-2@example.com', { scope: 'company' })
+				const targetRole = await makeTargetRole('CompanyScopedDeleter-2', { scope: 'company' })
+				const targetUser = await setupAdmin(`scoped-assign-target-2-${Math.random().toString(36).slice(2)}@example.com`)
+
+				const res = await api.post(
+					`/admin/users/${targetUser.userId}/access/roles`,
+					{ roles: [targetRole.id] },
+					{ headers: { Authorization: `Bearer ${actor.token}` } }
+				)
+
+				expect(res.status).toBe(200)
+				expect(res.data.roles.map((r: any) => r.id)).toContain(targetRole.id)
+			})
+
+			it('does not let an actor grant a policy at a different scope than they hold', async () => {
+				const actor = await setupActor('scoped-assign-3@example.com', { scope: 'company' })
+				const targetRole = await makeTargetRole('OwnScopedDeleter-3', { scope: 'own' })
+				const targetUser = await setupAdmin(`scoped-assign-target-3-${Math.random().toString(36).slice(2)}@example.com`)
+
+				const res = await api
+					.post(`/admin/users/${targetUser.userId}/access/roles`, { roles: [targetRole.id] }, { headers: { Authorization: `Bearer ${actor.token}` } })
+					.catch((e: any) => e.response)
+
+				expect(res.status).toBe(403)
+			})
+
+			it('lets an actor holding a policy unrestricted grant it at any scope, and unrestricted', async () => {
+				const actor = await setupActor('scoped-assign-4@example.com')
+				const unrestrictedTarget = await makeTargetRole('UnrestrictedDeleter-4')
+				const scopedTarget = await makeTargetRole('CompanyScopedDeleter-4', { scope: 'company' })
+				const targetUser = await setupAdmin(`scoped-assign-target-4-${Math.random().toString(36).slice(2)}@example.com`)
+
+				const auth = { headers: { Authorization: `Bearer ${actor.token}` } }
+
+				const res1 = await api.post(`/admin/users/${targetUser.userId}/access/roles`, { roles: [unrestrictedTarget.id] }, auth)
+				expect(res1.status).toBe(200)
+				expect(res1.data.roles.map((r: any) => r.id)).toContain(unrestrictedTarget.id)
+
+				const res2 = await api.post(`/admin/users/${targetUser.userId}/access/roles`, { roles: [scopedTarget.id] }, auth)
+				expect(res2.status).toBe(200)
+				expect(res2.data.roles.map((r: any) => r.id)).toContain(scopedTarget.id)
+			})
+
+			it('lists a policy the actor holds only scoped, since they can assign it at that scope', async () => {
+				const actor = await setupActor('scoped-assign-5@example.com', { scope: 'company' })
+
+				const res = await api.get('/admin/access/policies/assignable?limit=1000', { headers: { Authorization: `Bearer ${actor.token}` } })
+
+				expect(res.status).toBe(200)
+				const keys = res.data.policies.map((p: any) => p.key)
+				// The actor holds customer:delete@company and CAN assign it at that
+				// scope (see the role-policies route cases below), so the listing must
+				// offer it -- excluding it would be a dead end where the UI hides
+				// something the API accepts.
+				expect(keys).toContain('customer:delete')
+				expect(keys).toContain('user:update')
+				// A policy the actor holds at no scope at all is still excluded.
+				expect(keys).not.toContain('product:delete')
+			})
+
+			it('includes/excludes candidate roles from assignable-roles based on matching scope', async () => {
+				const actor = await setupActor('scoped-assign-6@example.com', { scope: 'company' })
+
+				const companyRole = await makeTargetRole('AssignableCompanyRole-6', { scope: 'company' })
+				const unrestrictedRole = await makeTargetRole('AssignableUnrestrictedRole-6')
+				const ownRole = await makeTargetRole('AssignableOwnRole-6', { scope: 'own' })
+
+				const res = await api.get('/admin/access/roles/assignable?limit=1000', { headers: { Authorization: `Bearer ${actor.token}` } })
+
+				expect(res.status).toBe(200)
+				const ids = res.data.roles.map((r: any) => r.id)
+				expect(ids).toContain(companyRole.id)
+				expect(ids).not.toContain(unrestrictedRole.id)
+				expect(ids).not.toContain(ownRole.id)
+			})
+
+			// The brief's literal example is self-referential: `access_role:update`
+			// gates the very routes that would let us reach this actor's scoped grant
+			// over HTTP, so `accessGuard` denies before `validateUserRolePermissionsStep`
+			// ever runs (see the "customer:delete" substitution used above, and the
+			// report). But a job, subscriber, or MCP tool calls the workflow directly
+			// with a container, bypassing the guard entirely -- exactly as
+			// `assignUserRolesWorkflow(container).run(...)` is invoked elsewhere in
+			// this file (see "user role assignment workflows" above). That is a real
+			// path, so the literal escalation is pinned here.
+			it('does not let an actor grant access_role:update unrestricted when they hold it only @company (direct workflow invocation)', async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+				const authService: any = container.resolve(Modules.AUTH)
+				const link = container.resolve(ContainerRegistrationKeys.LINK)
+				const unique = Math.random().toString(36).slice(2)
+
+				const [accessRoleUpdatePolicy] = await accessService.listAccessPolicies({ key: 'access_role:update' })
+
+				const actorRole = await accessService.createAccessRoles({ name: `SelfRefCompanyRole-${unique}` })
+				await accessService.createAccessRolePolicies({ role_id: actorRole.id, policy_id: accessRoleUpdatePolicy.id, scope: 'company' })
+
+				const targetRole = await accessService.createAccessRoles({ name: `SelfRefUnrestrictedRole-${unique}` })
+				await accessService.createAccessRolePolicies({ role_id: targetRole.id, policy_id: accessRoleUpdatePolicy.id })
+
+				const actorEmail = `self-ref-actor-${unique}@example.com`
+				const { authIdentity: actorAuthIdentity } = await authService.register('emailpass', {
+					body: { email: actorEmail, password: 'Sup3rSecret!' }
+				})
+				const { result: actorUser } = await createUserAccountWorkflow(container).run({
+					input: { authIdentityId: actorAuthIdentity!.id, userData: { email: actorEmail, first_name: 'Self', last_name: 'Ref' } }
+				})
+				await (link as any).create({ [Modules.USER]: { user_id: actorUser.id }, access: { access_role_id: actorRole.id } })
+
+				const targetEmail = `self-ref-target-${unique}@example.com`
+				const { authIdentity: targetAuthIdentity } = await authService.register('emailpass', {
+					body: { email: targetEmail, password: 'Sup3rSecret!' }
+				})
+				const { result: targetUser } = await createUserAccountWorkflow(container).run({
+					input: { authIdentityId: targetAuthIdentity!.id, userData: { email: targetEmail, first_name: 'Self', last_name: 'RefTarget' } }
+				})
+
+				await utils.waitWorkflowExecutions()
+				await dbUtils.snapshot()
+
+				// `expect(promise).rejects.toThrow(...)` does not observe this rejection
+				// reliably against the workflow engine's returned promise in this
+				// environment (a plain try/catch does) -- assert via try/catch instead.
+				let caught: any
+				try {
+					await assignUserRolesWorkflow(container).run({
+						input: { actor_id: actorUser.id, user_id: targetUser.id, role_id: targetRole.id }
+					})
+				} catch (e) {
+					caught = e
+				}
+
+				expect(caught).toBeDefined()
+				expect(caught.message).toMatch(/permission/i)
+			})
+
+			// Task 7's route (POST /admin/access/roles/:id/policies) is the
+			// policy->role counterpart to the assignments above, which all target
+			// the role->user route. Every case above runs the ACTOR through the
+			// role->user route; nothing until now proved `validateUserPermissionsStep`
+			// (rewired for scope-awareness in Task 7) is actually reached, in the
+			// right order, on THIS route -- the 4 cases added directly under
+			// "scoped role-policy assignment route" above all act as a super-admin,
+			// which trivially satisfies `canGrantScope` regardless of wiring.
+			it('does not let an actor grant customer:delete unrestricted via the role-policies route when they hold it only @company', async () => {
+				const actor = await setupActor('scoped-policy-route-1', { scope: 'company' })
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+				const [customerDeletePolicy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
+				const targetRole = await accessService.createAccessRoles({ name: `PolicyRouteTarget-1-${Math.random().toString(36).slice(2)}` })
+
+				const res = await api
+					.post(
+						`/admin/access/roles/${targetRole.id}/policies`,
+						{ policies: [{ id: customerDeletePolicy.id }] },
+						{ headers: { Authorization: `Bearer ${actor.token}` } }
+					)
+					.catch((e: any) => e.response)
+
+				expect(res.status).toBe(403)
+			})
+
+			it('lets an actor grant customer:delete via the role-policies route at the same scope they hold', async () => {
+				const actor = await setupActor('scoped-policy-route-2', { scope: 'company' })
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+				const [customerDeletePolicy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
+				const targetRole = await accessService.createAccessRoles({ name: `PolicyRouteTarget-2-${Math.random().toString(36).slice(2)}` })
+
+				const res = await api.post(
+					`/admin/access/roles/${targetRole.id}/policies`,
+					{ policies: [{ id: customerDeletePolicy.id, scope: 'company' }] },
+					{ headers: { Authorization: `Bearer ${actor.token}` } }
+				)
+
+				expect(res.status).toBe(200)
+				expect(res.data.policies[0].scope).toBe('company')
+			})
+
+			// Attaching a PARENT confers that parent's entire chain. Without a check,
+			// an actor holding only `access_role:update` could point any role they hold
+			// at the super-admin role and inherit `*:*` in one request -- an escalation
+			// entirely independent of scopes, which would make every rule above moot.
+			it('does not let an actor inherit a role whose policies they do not hold, via parent_ids', async () => {
+				const actor = await setupActor('parent-escalation-1', { scope: 'company' })
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+
+				const ownRole = await accessService.createAccessRoles({ name: `ParentEscalationOwn-1-${Math.random().toString(36).slice(2)}` })
+
+				const res = await api
+					.post(`/admin/access/roles/${ownRole.id}`, { parent_ids: ['acrl_super_admin'] }, { headers: { Authorization: `Bearer ${actor.token}` } })
+					.catch((e: any) => e.response)
+
+				expect(res.status).toBe(403)
+			})
+
+			it('does not let an actor create a role inheriting from one whose policies they do not hold', async () => {
+				const actor = await setupActor('parent-escalation-2', { scope: 'company' })
+
+				const res = await api
+					.post(
+						'/admin/access/roles',
+						{ name: `ParentEscalationCreate-2-${Math.random().toString(36).slice(2)}`, parent_ids: ['acrl_super_admin'] },
+						{ headers: { Authorization: `Bearer ${actor.token}` } }
+					)
+					.catch((e: any) => e.response)
+
+				expect(res.status).toBe(403)
+			})
+
+			it('lets an actor attach a parent whose policies they already hold', async () => {
+				const actor = await setupActor('parent-escalation-3', { scope: 'company' })
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+
+				// The actor holds customer:delete@company (from setupActor) plus the
+				// floor policies; a parent granting exactly that is within their reach.
+				const [customerDeletePolicy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
+				const parentRole = await accessService.createAccessRoles({ name: `ParentAllowed-3-${Math.random().toString(36).slice(2)}` })
+				await accessService.createAccessRolePolicies({ role_id: parentRole.id, policy_id: customerDeletePolicy.id, scope: 'company' })
+
+				const ownRole = await accessService.createAccessRoles({ name: `ParentEscalationOwn-3-${Math.random().toString(36).slice(2)}` })
+
+				const res = await api.post(
+					`/admin/access/roles/${ownRole.id}`,
+					{ parent_ids: [parentRole.id] },
+					{ headers: { Authorization: `Bearer ${actor.token}` } }
+				)
+
+				expect(res.status).toBe(200)
 			})
 		})
 	}

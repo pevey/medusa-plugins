@@ -1,5 +1,5 @@
 import { createWorkflow, transform, when, WorkflowData, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
-import { createAccessRoleParentsStep, createAccessRolePoliciesStep, createAccessRolesStep } from '../steps'
+import { createAccessRoleParentsStep, createAccessRolePoliciesStep, createAccessRolesStep, resolveInheritedActionsStep } from '../steps'
 import { validateUserPermissionsStep } from '../steps/validate-user-permissions'
 
 /**
@@ -29,7 +29,20 @@ export const createAccessRolesWorkflowId = 'create-access-roles'
  * @featureFlag access
  */
 export const createAccessRolesWorkflow = createWorkflow(createAccessRolesWorkflowId, (input: WorkflowData<CreateAccessRolesWorkflowInput>) => {
-	const validationData = transform({ input }, ({ input }) => {
+	// A parent confers its whole chain (parent-of-parent included), so the actor must
+	// already hold everything the requested parents would grant -- otherwise attaching
+	// one is a privilege escalation independent of any policy_ids check.
+	const parentIds = transform({ input }, ({ input }) => {
+		const allParentIds = new Set<string>()
+		input.roles.forEach(role => {
+			role.parent_ids?.forEach(parentId => allParentIds.add(parentId))
+		})
+		return Array.from(allParentIds)
+	})
+
+	const inheritedActions = resolveInheritedActionsStep({ role_ids: parentIds })
+
+	const validationData = transform({ input, inheritedActions }, ({ input, inheritedActions }) => {
 		const allPolicyIds = new Set<string>()
 		input.roles.forEach(role => {
 			role.policy_ids?.forEach(policyId => allPolicyIds.add(policyId))
@@ -37,12 +50,13 @@ export const createAccessRolesWorkflow = createWorkflow(createAccessRolesWorkflo
 		return {
 			actor_id: input.actor_id!,
 			actor: input.actor,
-			policy_ids: Array.from(allPolicyIds)
+			policies: Array.from(allPolicyIds).map(policy_id => ({ policy_id })),
+			actions: inheritedActions
 		}
 	})
 
 	when({ validationData }, ({ validationData }) => {
-		return !!validationData?.actor_id && !!validationData?.policy_ids?.length
+		return !!validationData?.actor_id && (!!validationData?.policies?.length || !!validationData?.actions?.length)
 	}).then(() => {
 		validateUserPermissionsStep(validationData)
 	})

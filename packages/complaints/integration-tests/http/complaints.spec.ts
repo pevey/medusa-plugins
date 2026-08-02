@@ -89,7 +89,7 @@ medusaIntegrationTestRunner({
 			})
 
 			// medusa-plugin-access is installed (see medusa-config.ts), so its global
-			// /admin/* guard is live and these routes are gated by the guardResource
+			// /* guard is live and these routes are gated by the guardResource
 			// declarations in src/api/middlewares.ts. Grant the seeded super-admin role
 			// so this suite exercises the happy path.
 			//

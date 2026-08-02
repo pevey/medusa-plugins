@@ -152,6 +152,7 @@ export const AdminAccessRolePolicySchema = z.strictObject({
 	role_id: z.string(),
 	policy_id: z.string(),
 	policy: z.string(),
+	scope: z.string().nullable().optional(),
 	metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 	created_at: z.string().optional(),
 	updated_at: z.string().optional(),
@@ -247,7 +248,8 @@ const _policyRolesResponseTypeMatchesSchema: z.infer<typeof AdminAccessPolicyRol
 // permission set -- a cross-plugin contract, not just an internal one, so its
 // shape is covered here even though it has no list/detail counterpart.
 export const AdminAccessMePermissionsResponseSchema = z.strictObject({
-	permissions: z.array(z.string())
+	permissions: z.array(z.string()),
+	scoped: z.array(z.object({ resource: z.string(), operation: z.string(), scope: z.string() }))
 })
 const _mePermissionsSchemaMatchesType: AdminAccessMePermissionsResponse = {} as z.infer<typeof AdminAccessMePermissionsResponseSchema>
 const _mePermissionsTypeMatchesSchema: z.infer<typeof AdminAccessMePermissionsResponseSchema> = {} as AdminAccessMePermissionsResponse

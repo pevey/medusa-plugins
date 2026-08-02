@@ -29,7 +29,7 @@ import {
 // Optional integration with medusa-plugin-access. When that plugin is
 // installed we (1) declare the `complaint` resource's policies so they become
 // assignable in the roles UI, and (2) gate the complaints admin routes behind
-// the matching permission — the access plugin's global /admin/* guard enforces
+// the matching permission — the access plugin's global /* guard enforces
 // them. When the plugin is NOT installed, the require throws and we no-op: the
 // complaints routes stay ungated. This keeps access as a soft dependency (no
 // entry in package.json, no error when absent).
@@ -38,7 +38,8 @@ try {
 	// the access utils (so these calls are type-checked) but is erased at
 	// compile time, so it adds no runtime dependency. medusa-plugin-access is
 	// declared only as an OPTIONAL peer dependency.
-	const { definePolicies, generateResourcePolicies, guardResource, requirePolicies, sealNamespace } = require('medusa-plugin-access') as typeof import('medusa-plugin-access')
+	const { definePolicies, generateResourcePolicies, guardResource, requirePolicies, sealNamespace } =
+		require('medusa-plugin-access') as typeof import('medusa-plugin-access')
 
 	definePolicies(generateResourcePolicies(['complaint', 'complaint_tag', 'complaint_activity']))
 

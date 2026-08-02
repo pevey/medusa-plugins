@@ -40,6 +40,7 @@ export type AccessRolePolicyDTO = {
 	id: string
 	role_id: string
 	policy_id: string
+	scope?: string | null
 	metadata?: Record<string, unknown> | null
 	deleted_at?: Date | string | null
 }
@@ -88,6 +89,7 @@ export type UpdateAccessPolicyDTO = Partial<CreateAccessPolicyDTO> & {
 export type CreateAccessRolePolicyDTO = {
 	role_id: string
 	policy_id: string
+	scope?: string | null
 	metadata?: Record<string, unknown> | null
 }
 

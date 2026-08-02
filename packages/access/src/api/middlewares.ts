@@ -25,7 +25,7 @@ for (const route of coreRoutePolicies) {
 
 export default defineMiddlewares({
 	routes: [
-		{ matcher: '/admin/*', middlewares: [accessGuard] },
+		{ matcher: '/*', middlewares: [accessGuard] },
 		...adminAccessRoleRoutesMiddlewares,
 		...adminAccessPolicyRoutesMiddlewares,
 		...adminUserAccessRoleRoutesMiddlewares

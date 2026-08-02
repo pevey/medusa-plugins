@@ -404,6 +404,13 @@ export class AccessFieldFilter implements IFieldFilter {
 			}
 		}
 
+		// Strict for every path, root included: no query interceptor narrows rows
+		// yet, so a scoped grant strips the field the same as an outright denial
+		// would. A root carve-out (keep fields when the guard already narrowed the
+		// rows) only becomes correct once that interceptor exists -- and even then
+		// it must also confirm the root entity is among the route's declared
+		// resources, since a route can require `complaint:read` while its response
+		// root is `complaint_activity` (see guardResource's subtree policies).
 		const permissionResults = await promiseAll(
 			pathsNeedingCheck.map(async ({ path, entityName }) => {
 				const hasAccess = await hasPermission({

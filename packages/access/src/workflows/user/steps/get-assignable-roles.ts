@@ -1,4 +1,4 @@
-import { resolvePermissions } from '../../../utils'
+import { canGrantScope, resolveActorRoles, resolvePermissions } from '../../../utils'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
 
@@ -63,15 +63,12 @@ export const getAssignableRolesStep = createStep(
 
 		const query = container.resolve(ContainerRegistrationKeys.QUERY)
 
-		const { data: actors } = await query.graph({
-			entity: actor ?? 'user',
-			fields: ['access_roles.id'],
-			filters: { id: actor_id }
-		})
+		// Route through the resolver registry rather than querying `access_roles`
+		// directly: a `customer` holds roles through customer groups as well as
+		// directly, and `api-key`'s actor type is not its Query entity name.
+		const actorRoleIds = await resolveActorRoles(actor ?? 'user', actor_id, container)
 
-		const actorRoleIds: string[] = actors?.[0]?.access_roles?.map((r: any) => r.id).filter(Boolean) ?? []
-
-		if (!actorRoleIds.length) {
+		if (!actorRoleIds?.length) {
 			return new StepResponse({ roles: [], count: 0 })
 		}
 
@@ -80,17 +77,17 @@ export const getAssignableRolesStep = createStep(
 		// `getAssignablePoliciesStep`.
 		const { data: candidates } = await query.graph({
 			entity: 'access_role',
-			fields: ['id', 'name', 'description', 'policies.resource', 'policies.operation'],
+			fields: ['id', 'name', 'description', 'policies.resource', 'policies.operation', 'policies.scope'],
 			filters: filters ?? {}
 		})
 
-		const roleActions = new Map<string, { resource: string; operation: string }[]>()
+		const roleActions = new Map<string, { resource: string; operation: string; scope?: string }[]>()
 		const universe: { resource: string; operation: string }[] = []
 
 		for (const role of candidates ?? []) {
 			const actions = (role.policies ?? [])
 				.filter((p: any) => p.resource != null && p.operation != null)
-				.map((p: any) => ({ resource: p.resource as string, operation: p.operation as string }))
+				.map((p: any) => ({ resource: p.resource as string, operation: p.operation as string, scope: p.scope ?? undefined }))
 
 			roleActions.set(role.id, actions)
 			universe.push(...actions)
@@ -104,7 +101,9 @@ export const getAssignableRolesStep = createStep(
 
 		for (const role of candidates ?? []) {
 			const actions = roleActions.get(role.id) ?? []
-			const allowed = actions.every(a => granted.has(`${a.resource}:${a.operation}`))
+			// A role is only assignable if the actor may grant EVERY one of its
+			// policies at the scope that policy is held at -- see `canGrantScope`.
+			const allowed = actions.every(a => canGrantScope(granted, a.resource, a.operation, a.scope))
 
 			if (allowed) {
 				assignable.push({

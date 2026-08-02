@@ -120,3 +120,45 @@ describe('getStaleGuards', () => {
 		expect(logged.some(m => m.includes('/admin/gone'))).toBe(true)
 	})
 })
+
+describe('prefix filtering is segment-aware (I1 regression)', () => {
+	it('does not count a sibling prefix that shares a string prefix as covered/uncovered', () => {
+		reset([
+			{ method: 'GET', matcher: '/store/a' },
+			{ method: 'GET', matcher: '/storefront/b' }
+		])
+		requirePolicies({ matcher: '/store/a', method: ['GET'], policies: [{ resource: 'a', operation: 'read' }] })
+		// deliberately no declaration for /storefront/b
+
+		const store = getRouteCoverage('/store')
+		expect(store.total).toBe(1)
+		expect(store.uncovered).toEqual([])
+
+		const storefront = getRouteCoverage('/storefront')
+		expect(storefront.total).toBe(1)
+		expect(storefront.uncovered).toEqual([{ method: 'GET', matcher: '/storefront/b' }])
+	})
+
+	it('does not report a stale guard registered under a sibling prefix', () => {
+		reset([{ method: 'GET', matcher: '/admin/widgets' }])
+		requirePolicies({ matcher: '/storefront/gone', method: ['GET'], policies: [{ resource: 'gone', operation: 'read' }] })
+
+		expect(getStaleGuards('/store')).toEqual([])
+	})
+})
+
+describe('drift reporting runs even with zero routes under a prefix (I2 regression)', () => {
+	it('reports a stale guard under a prefix that has no registered routes at all', () => {
+		reset([{ method: 'GET', matcher: '/admin/widgets' }])
+		requirePolicies({ matcher: '/hooks/legacy', method: ['GET'], policies: [{ resource: 'hooks', operation: 'read' }] })
+
+		const logged: string[] = []
+		reportRouteCoverage({
+			info: (m: string) => logged.push(m),
+			warn: (m: string) => logged.push(m),
+			debug: (m: string) => logged.push(m)
+		})
+
+		expect(logged.some(m => m.includes('/hooks/legacy'))).toBe(true)
+	})
+})

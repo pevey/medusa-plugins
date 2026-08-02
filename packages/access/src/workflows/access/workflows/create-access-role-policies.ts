@@ -1,5 +1,5 @@
 import { WorkflowData, WorkflowResponse, createWorkflow, transform, when } from '@medusajs/framework/workflows-sdk'
-import { createAccessRolePoliciesStep } from '../steps'
+import { createAccessRolePoliciesStep, validateRolePolicyScopesStep } from '../steps'
 import { validateUserPermissionsStep } from '../steps/validate-user-permissions'
 
 /**
@@ -12,6 +12,7 @@ export type CreateAccessRolePoliciesWorkflowInput = {
 	policies: {
 		role_id: string
 		policy_id: string
+		scope?: string
 	}[]
 }
 
@@ -28,23 +29,32 @@ export const createAccessRolePoliciesWorkflowId = 'create-access-role-policies'
 export const createAccessRolePoliciesWorkflow = createWorkflow(
 	createAccessRolePoliciesWorkflowId,
 	(input: WorkflowData<CreateAccessRolePoliciesWorkflowInput>) => {
-		const validationData = transform({ input }, ({ input }) => {
+		// Data-integrity check (wildcard / unregistered scope / duplicate policy
+		// id in one request): unconditional, independent of who the actor is --
+		// see `validateRolePolicyScopesStep`. Deliberately NOT deduped here: a
+		// repeated `policy_id` (same or different scope) is itself the error the
+		// step reports, since the unique index is `(role_id, policy_id)` with no
+		// `scope` column.
+		const scopeCheckData = transform({ input }, ({ input }) => ({
+			policies: input.policies.map(rp => ({ policy_id: rp.policy_id, scope: rp.scope }))
+		}))
+
+		validateRolePolicyScopesStep(scopeCheckData)
+
+		const validationData = transform({ input, scopeCheckData }, ({ input, scopeCheckData }) => {
 			if (!input.actor_id) {
 				return null
 			}
 
-			const policyIds = new Set<string>()
-			input.policies.forEach(rp => policyIds.add(rp.policy_id))
-
 			return {
 				actor_id: input.actor_id,
 				actor: input.actor,
-				policy_ids: Array.from(policyIds)
+				policies: scopeCheckData.policies
 			}
 		})
 
 		when({ validationData }, ({ validationData }) => {
-			return !!validationData?.actor_id && !!validationData?.policy_ids?.length
+			return !!validationData?.actor_id && !!validationData?.policies?.length
 		}).then(() => {
 			validateUserPermissionsStep(validationData)
 		})

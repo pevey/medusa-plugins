@@ -181,3 +181,90 @@ describe('hasPermission with no roles', () => {
 		await expect(hasPermission({ roles: [], actions: [], container: {} as any })).resolves.toBe(true)
 	})
 })
+
+describe('guard registry indexing', () => {
+	beforeEach(resetRegistries)
+
+	it('does not return a guard from a different top-level segment', () => {
+		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+		requirePolicies({ matcher: '/store/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'export' }] })
+
+		expect(matchRoutePolicies('/admin/widgets', 'GET')).toEqual([{ resource: 'widget', operation: 'read' }])
+		expect(matchRoutePolicies('/store/widgets', 'GET')).toEqual([{ resource: 'widget', operation: 'export' }])
+	})
+
+	it('still applies a root-level wildcard guard to every segment', () => {
+		requirePolicies({ matcher: '/*', method: ['GET'], policies: [{ resource: 'everything', operation: 'read' }] })
+
+		expect(matchRoutePolicies('/admin/widgets', 'GET')).toEqual([{ resource: 'everything', operation: 'read' }])
+		expect(matchRoutePolicies('/store/things', 'GET')).toEqual([{ resource: 'everything', operation: 'read' }])
+	})
+
+	it('picks up guards registered after a previous lookup built the index', () => {
+		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+		expect(matchRoutePolicies('/admin/widgets', 'GET')).toHaveLength(1)
+
+		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'update' }] })
+		expect(matchRoutePolicies('/admin/widgets', 'GET')).toHaveLength(2)
+	})
+
+	it('rebuilds when the registry array is replaced wholesale', () => {
+		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+		expect(matchRoutePolicies('/admin/widgets', 'GET')).toHaveLength(1)
+
+		resetRegistries()
+		requirePolicies({ matcher: '/admin/gadgets', method: ['GET'], policies: [{ resource: 'gadget', operation: 'read' }] })
+
+		expect(matchRoutePolicies('/admin/widgets', 'GET')).toEqual([])
+		expect(matchRoutePolicies('/admin/gadgets', 'GET')).toEqual([{ resource: 'gadget', operation: 'read' }])
+	})
+
+	it('is case-insensitive on the indexed segment', () => {
+		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+
+		expect(matchRoutePolicies('/Admin/Widgets', 'GET')).toEqual([{ resource: 'widget', operation: 'read' }])
+	})
+
+	it('does not bucket a matcher whose first segment embeds a param', () => {
+		requirePolicies({ matcher: '/user:id/x', method: ['GET'], policies: [{ resource: 'user', operation: 'read' }] })
+
+		expect(matchRoutePolicies('/user123/x', 'GET')).toEqual([{ resource: 'user', operation: 'read' }])
+	})
+
+	it('buckets a non-ASCII first segment so a case-variant request still matches (toLowerCase/regex-i folding divergence)', () => {
+		// U+00B5 MICRO SIGN ('µ') and U+03BC GREEK SMALL LETTER MU ('μ') both
+		// uppercase to U+039C (Greek capital mu), so guard.regex's 'i' flag
+		// (which canonicalizes via toUpperCase) treats them as equal — but
+		// they lowercase to themselves, staying distinct. A bucket key built
+		// with toLowerCase would put this guard under 'µapi' while a request
+		// for the greek-mu variant looks up 'μapi': a miss, even though
+		// Express would route the request straight to the guarded handler.
+		requirePolicies({ matcher: '/µapi/secret', method: ['GET'], policies: [{ resource: 'secret', operation: 'read' }] })
+
+		expect(matchRoutePolicies('/μapi/secret', 'GET')).toEqual([{ resource: 'secret', operation: 'read' }])
+	})
+})
+
+describe('seal exemptions', () => {
+	beforeEach(resetRegistries)
+
+	it('never seals /auth even when explicitly sealed', () => {
+		sealNamespace('/auth')
+
+		expect(isPathSealed('/auth')).toBe(false)
+		expect(isPathSealed('/auth/user/emailpass')).toBe(false)
+	})
+
+	it('rejects an empty or root prefix as invalid', () => {
+		expect(() => sealNamespace('/')).toThrow(/not a valid prefix/i)
+		expect(() => sealNamespace('')).toThrow(/not a valid prefix/i)
+		expect(isPathSealed('/admin/anything')).toBe(false)
+	})
+
+	it('still seals a sibling that merely starts with the same characters', () => {
+		sealNamespace('/authoring')
+
+		expect(isPathSealed('/authoring/drafts')).toBe(true)
+		expect(isPathSealed('/auth/session')).toBe(false)
+	})
+})

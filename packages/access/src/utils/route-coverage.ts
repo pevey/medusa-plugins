@@ -1,6 +1,6 @@
 import { ApiLoader } from '@medusajs/framework/http'
 import { getHandlerPolicies } from './route-binding'
-import { listRouteGuards, matchRoutePolicies, requirePolicies } from './route-guards'
+import { listRouteGuards, matchesPrefixOnSegmentBoundary, matchRoutePolicies, requirePolicies } from './route-guards'
 
 export type RegisteredRoute = {
 	matcher: string
@@ -26,7 +26,7 @@ global.AccessRegisteredRoutes ??= []
  * Record every route the app registers, so coverage can be reported at boot.
  *
  * `ApiLoader.traceRoute` is the only hook that sees every route — core's, every
- * plugin's, and the project's — at registration time, which a `/admin/*`
+ * plugin's, and the project's — at registration time, which a `/*` guard
  * middleware cannot do (it only ever sees routes that are actually requested).
  *
  * Caveats this deliberately accepts:
@@ -86,7 +86,7 @@ export function getRouteCoverage(prefix = '/admin'): RouteCoverage {
 	let total = 0
 
 	for (const route of global.AccessRegisteredRoutes ?? []) {
-		if (!route.matcher.startsWith(prefix)) {
+		if (!matchesPrefixOnSegmentBoundary(route.matcher, prefix)) {
 			continue
 		}
 
@@ -129,14 +129,16 @@ export function getStaleGuards(prefix = '/admin'): { matcher: string; methods: s
 		return []
 	}
 
-	return listRouteGuards()
-		.filter(guard => guard.matcher.startsWith(prefix))
-		// guardResource emits a full CRUD surface deliberately, so its unmatched
-		// entries are protective (a route added later is already covered), not
-		// rotted. Only hand-written declarations are evidence of drift.
-		.filter(guard => guard.source !== 'guardResource')
-		.filter(guard => !routes.some(route => guard.methods.includes(route.method) && guard.regex.test(route.probe)))
-		.map(({ matcher, methods }) => ({ matcher, methods }))
+	return (
+		listRouteGuards()
+			.filter(guard => matchesPrefixOnSegmentBoundary(guard.matcher, prefix))
+			// guardResource emits a full CRUD surface deliberately, so its unmatched
+			// entries are protective (a route added later is already covered), not
+			// rotted. Only hand-written declarations are evidence of drift.
+			.filter(guard => guard.source !== 'guardResource')
+			.filter(guard => !routes.some(route => guard.methods.includes(route.method) && guard.regex.test(route.probe)))
+			.map(({ matcher, methods }) => ({ matcher, methods }))
+	)
 }
 
 /**
@@ -144,30 +146,41 @@ export function getStaleGuards(prefix = '/admin'): { matcher: string; methods: s
  * Called on application start; silent when everything is covered.
  */
 export function reportRouteCoverage(logger: { info?: Function; warn?: Function; debug?: Function } = console): void {
-	const { total, covered, uncovered } = getRouteCoverage()
-
-	if (!total) {
-		return
-	}
-
-	if (!uncovered.length) {
-		logger.info?.(`[access] route coverage: ${covered}/${total} admin routes declared`)
-	} else {
-		logger.warn?.(`[access] route coverage: ${covered}/${total} admin routes declared — ${uncovered.length} undeclared (these pass unguarded)`)
-		for (const route of uncovered) {
-			logger.debug?.(`[access]   undeclared: ${route.method} ${route.matcher}`)
+	const declaredPrefixes = new Set<string>()
+	for (const guard of listRouteGuards()) {
+		const segment = guard.matcher.split('/')[1]
+		if (segment && !segment.includes('*') && !segment.startsWith(':')) {
+			declaredPrefixes.add(`/${segment}`)
 		}
 	}
 
-	// Drift is reported regardless of coverage. These are independent signals:
-	// coverage asks "is every route declared", drift asks "does every declaration
-	// still point at a route". A fully-covered app can still carry rotted
-	// declarations, and returning early on 100% coverage silenced exactly that case.
-	const stale = getStaleGuards()
-	if (stale.length) {
-		logger.warn?.(`[access] ${stale.length} policy declaration(s) match no registered route — likely rotted`)
-		for (const guard of stale) {
-			logger.debug?.(`[access]   stale: ${guard.methods.join(',')} ${guard.matcher}`)
+	for (const prefix of [...declaredPrefixes].sort()) {
+		const { total, covered, uncovered } = getRouteCoverage(prefix)
+
+		if (total) {
+			if (!uncovered.length) {
+				logger.info?.(`[access] route coverage: ${covered}/${total} ${prefix} routes declared`)
+			} else {
+				logger.warn?.(`[access] route coverage: ${covered}/${total} ${prefix} routes declared — ${uncovered.length} undeclared (these pass unguarded)`)
+				for (const route of uncovered) {
+					logger.debug?.(`[access]   undeclared: ${route.method} ${route.matcher}`)
+				}
+			}
+		}
+
+		// Drift is reported regardless of coverage — and regardless of whether this
+		// prefix has any registered routes at all. These are independent signals:
+		// coverage asks "is every route declared", drift asks "does every
+		// declaration still point at a route". A prefix with zero routes is the
+		// most extreme case of drift (100% of its declarations are rotted), and
+		// gating this on `total` silenced exactly that case, along with the
+		// fully-covered-but-still-rotted case.
+		const stale = getStaleGuards(prefix)
+		if (stale.length) {
+			logger.warn?.(`[access] ${stale.length} policy declaration(s) under ${prefix} match no registered route — likely rotted`)
+			for (const guard of stale) {
+				logger.debug?.(`[access]   stale: ${guard.methods.join(',')} ${guard.matcher}`)
+			}
 		}
 	}
 }

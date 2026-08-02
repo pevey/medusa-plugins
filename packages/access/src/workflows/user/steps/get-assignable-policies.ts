@@ -1,4 +1,4 @@
-import { resolvePermissions } from '../../../utils'
+import { canGrantScope, resolveActorRoles, resolvePermissions } from '../../../utils'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
 
@@ -65,15 +65,12 @@ export const getAssignablePoliciesStep = createStep(
 
 		const query = container.resolve(ContainerRegistrationKeys.QUERY)
 
-		const { data: actors } = await query.graph({
-			entity: actor ?? 'user',
-			fields: ['access_roles.id'],
-			filters: { id: actor_id }
-		})
+		// Route through the resolver registry rather than querying `access_roles`
+		// directly: a `customer` holds roles through customer groups as well as
+		// directly, and `api-key`'s actor type is not its Query entity name.
+		const actorRoleIds = await resolveActorRoles(actor ?? 'user', actor_id, container)
 
-		const actorRoleIds: string[] = actors?.[0]?.access_roles?.map((r: any) => r.id).filter(Boolean) ?? []
-
-		if (!actorRoleIds.length) {
+		if (!actorRoleIds?.length) {
 			return new StepResponse({ policies: [], count: 0 })
 		}
 
@@ -96,9 +93,18 @@ export const getAssignablePoliciesStep = createStep(
 			container
 		})
 
+		// `POST /admin/access/roles/:id/policies` accepts either a bare policy id
+		// (unrestricted) or `{ id, scope }`, so a policy is assignable if the actor
+		// can grant it at ANY scope they hold -- unrestricted, or at one of their
+		// own scopes. Listing only unrestricted-grantable policies would hide a
+		// policy the actor can legitimately assign scoped, since `canGrantScope`
+		// on the assignment path allows exactly that.
 		const assignable: AssignablePolicy[] = []
 		for (const policy of candidates ?? []) {
-			if (granted.has(`${policy.resource}:${policy.operation}`)) {
+			const scopesHeld = granted.filter(g => g.resource === policy.resource && g.operation === policy.operation).map(g => g.scope)
+			const grantable = scopesHeld.some(scope => canGrantScope(granted, policy.resource, policy.operation, scope))
+
+			if (grantable) {
 				assignable.push({
 					id: policy.id,
 					key: policy.key,

@@ -49,10 +49,9 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminAddRolePoliciesT
 	const { policies } = req.validatedBody
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
-	const rolePolicies = policies.map(policyId => ({
-		role_id: roleId,
-		policy_id: policyId
-	}))
+	const rolePolicies = policies.map(policy =>
+		typeof policy === 'string' ? { role_id: roleId, policy_id: policy, scope: undefined } : { role_id: roleId, policy_id: policy.id, scope: policy.scope }
+	)
 
 	const { result } = await createAccessRolePoliciesWorkflow(req.scope).run({
 		input: {
