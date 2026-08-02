@@ -126,12 +126,12 @@
       "target": "reviews/reviews-form-body.svelte"
     },
     {
-      "content": "<script lang=\"ts\">\n\timport type { Snippet } from 'svelte'\n\timport { Button } from '$lib/components/ui/button/index.js'\n\timport { cn } from '$UTILS$.js'\n\timport { getReviewFormContext } from './review-form-ctx.svelte.js'\n\tlet { class: className = '', children }: { class?: string; children: Snippet } = $props()\n\tconst ctx = getReviewFormContext()\n</script>\n\n<Button type=\"submit\" disabled={ctx.submitting} class={cn('', className)}>{@render children()}</Button>\n",
+      "content": "<script lang=\"ts\">\n\timport type { Snippet } from 'svelte'\n\timport { Button, type ButtonSize, type ButtonVariant } from '$lib/components/ui/button/index.js'\n\timport { cn } from '$UTILS$.js'\n\timport { getReviewFormContext } from './review-form-ctx.svelte.js'\n\tlet {\n\t\tclass: className = '',\n\t\tvariant = 'default',\n\t\tsize = 'default',\n\t\tchildren\n\t}: { class?: string; variant?: ButtonVariant; size?: ButtonSize; children: Snippet } = $props()\n\tconst ctx = getReviewFormContext()\n</script>\n\n<Button type=\"submit\" {variant} {size} disabled={ctx.submitting} class={cn('', className)}>{@render children()}</Button>\n",
       "type": "registry:ui",
       "target": "reviews/reviews-form-submit.svelte"
     },
     {
-      "content": "<script lang=\"ts\">\n\timport type { Snippet } from 'svelte'\n\timport { Button } from '$lib/components/ui/button/index.js'\n\timport { cn } from '$UTILS$.js'\n\timport { getReviewFormContext } from './review-form-ctx.svelte.js'\n\tlet { class: className = '', children }: { class?: string; children: Snippet } = $props()\n\tconst ctx = getReviewFormContext()\n</script>\n\n<Button type=\"button\" variant=\"secondary\" onclick={() => ctx.setOpen(false)} class={cn('', className)}>{@render children()}</Button>\n",
+      "content": "<script lang=\"ts\">\n\timport type { Snippet } from 'svelte'\n\timport { Button, type ButtonSize, type ButtonVariant } from '$lib/components/ui/button/index.js'\n\timport { cn } from '$UTILS$.js'\n\timport { getReviewFormContext } from './review-form-ctx.svelte.js'\n\tlet {\n\t\tclass: className = '',\n\t\tvariant = 'secondary',\n\t\tsize = 'default',\n\t\tchildren\n\t}: { class?: string; variant?: ButtonVariant; size?: ButtonSize; children: Snippet } = $props()\n\tconst ctx = getReviewFormContext()\n</script>\n\n<Button type=\"button\" {variant} {size} onclick={() => ctx.setOpen(false)} class={cn('', className)}>{@render children()}</Button>\n",
       "type": "registry:ui",
       "target": "reviews/reviews-form-cancel.svelte"
     },

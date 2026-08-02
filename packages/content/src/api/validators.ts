@@ -243,21 +243,30 @@ export type AdminRemoveContentTagsType = z.infer<typeof AdminRemoveContentTags>
 
 // ── Store ─────────────────────────────────────��──────────────────────────────
 
-export const StoreGetContentCollections = createFindParams({ limit: 50, offset: 0 }).extend({
-	q: z.string().optional()
-})
+// These routes are public and cached. `fields` is omitted so the response shape is fixed by the
+// middleware `defaults` alone — a client-supplied `?fields=` would otherwise vary the body while
+// the cache key does not, letting one anonymous request poison the entry for every later visitor.
+export const StoreGetContentCollections = createFindParams({ limit: 50, offset: 0 })
+	.omit({ fields: true })
+	.extend({
+		q: z.string().optional()
+	})
 export type StoreGetContentCollectionsType = z.infer<typeof StoreGetContentCollections>
 
-export const StoreGetContentCollection = createFindParams()
+export const StoreGetContentCollection = createFindParams().omit({ fields: true })
 export type StoreGetContentCollectionType = z.infer<typeof StoreGetContentCollection>
 
-export const StoreGetContentItems = createFindParams({ limit: 15, offset: 0 }).extend({
-	tag: z.string().optional(),
-	q: z.string().optional()
-})
+export const StoreGetContentItems = createFindParams({ limit: 15, offset: 0 })
+	.omit({ fields: true })
+	.extend({
+		tag: z.string().optional(),
+		q: z.string().optional()
+	})
 export type StoreGetContentItemsType = z.infer<typeof StoreGetContentItems>
 
-export const StoreGetContentItem = createFindParams().extend({
-	render: z.enum(['html']).optional()
-})
+export const StoreGetContentItem = createFindParams()
+	.omit({ fields: true })
+	.extend({
+		render: z.enum(['html']).optional()
+	})
 export type StoreGetContentItemType = z.infer<typeof StoreGetContentItem>

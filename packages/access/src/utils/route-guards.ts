@@ -16,11 +16,19 @@ type RouteGuard = {
 declare global {
 	// eslint-disable-next-line no-var
 	var AccessRouteGuards: RouteGuard[] | undefined
+	// eslint-disable-next-line no-var
+	var AccessSealedNamespaces: string[] | undefined
 }
 
 global.AccessRouteGuards ??= []
+global.AccessSealedNamespaces ??= []
 
 const ALL_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
+
+/** Strip trailing slashes so `/admin/x` and `/admin/x/` behave identically. */
+function normalizePrefix(prefix: string): string {
+	return prefix.replace(/\/+$/, '')
+}
 
 /**
  * Compile an Express-style matcher (`/admin/access/roles/:id`, `/admin/*`) into
@@ -69,6 +77,71 @@ export function registerRoutePolicies(routes: MiddlewareRoute[]): void {
 			policies: policies as PermissionAction[]
 		})
 	}
+}
+
+/**
+ * Declare the whole CRUD surface of a resource in one call.
+ *
+ * Generates a collection-level rule per method plus a `/*` subtree floor, so
+ * sub-resources (`/admin/complaints/:id/notes`) are covered by default instead
+ * of silently failing open. Matchers are anchored, so a declaration on
+ * `/admin/complaints/:id` would NOT cover anything deeper — that asymmetry is
+ * what this exists to remove.
+ *
+ * POST on the subtree maps to `update`, not `create`: `POST /x/:id/notes`
+ * creates a note but is modifying the parent. `create` is reserved for
+ * `POST /x` — creating the resource itself.
+ *
+ * Because {@link matchRoutePolicies} returns the union of every matching guard
+ * and all of them must pass, a more specific `requirePolicies` layered on top
+ * makes a route STRICTER, never looser. Coarse→fine tightening is safe;
+ * fine→coarse would be a silent widening.
+ *
+ * Do not apply this over routes where ownership is a valid alternative
+ * satisfier — the subtree floor is AND-ed, so it would defeat the OR.
+ */
+export function guardResource(input: { resource: string; prefix: string }): void {
+	const { resource } = input
+	const prefix = normalizePrefix(input.prefix)
+	const subtree = `${prefix}/*`
+
+	requirePolicies({ matcher: prefix, method: ['GET'], policies: [{ resource, operation: 'read' }] })
+	requirePolicies({ matcher: prefix, method: ['POST'], policies: [{ resource, operation: 'create' }] })
+	requirePolicies({ matcher: prefix, method: ['PUT', 'PATCH'], policies: [{ resource, operation: 'update' }] })
+	requirePolicies({ matcher: prefix, method: ['DELETE'], policies: [{ resource, operation: 'delete' }] })
+
+	requirePolicies({ matcher: subtree, method: ['GET'], policies: [{ resource, operation: 'read' }] })
+	requirePolicies({ matcher: subtree, method: ['POST', 'PUT', 'PATCH'], policies: [{ resource, operation: 'update' }] })
+	requirePolicies({ matcher: subtree, method: ['DELETE'], policies: [{ resource, operation: 'delete' }] })
+}
+
+/**
+ * Opt a prefix you own into fail-closed: any request under it with no matching
+ * guard is denied instead of passing through.
+ *
+ * The global default stays fail-open, because third-party routes cannot be
+ * assumed access-aware. Sealing is a statement about a namespace you control —
+ * and it is binding on anyone who later extends that prefix, who will get a 403
+ * until they declare a policy.
+ *
+ * Order-independent: this writes to its own registry and the check happens
+ * per-request, so module load order across plugins cannot affect it.
+ */
+export function sealNamespace(prefix: string): void {
+	const normalized = normalizePrefix(prefix)
+	if (!global.AccessSealedNamespaces!.includes(normalized)) {
+		global.AccessSealedNamespaces!.push(normalized)
+	}
+}
+
+/**
+ * Whether `path` falls under a sealed namespace.
+ *
+ * Matching is on segment boundaries, not string prefix: sealing `/admin/order`
+ * must not also seal `/admin/orders`.
+ */
+export function isPathSealed(path: string): boolean {
+	return (global.AccessSealedNamespaces ?? []).some(prefix => path === prefix || path.startsWith(`${prefix}/`))
 }
 
 /**

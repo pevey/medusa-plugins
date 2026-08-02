@@ -97,6 +97,26 @@ export async function resolvePermissions(input: ResolvePermissionsInput): Promis
  * Fetches a single role's effective policies (incl. inherited) from cache or DB.
  * `access_role.policies` is replaced by real policy rows by the module service's
  * `listAccessRoles` override, so `policy.resource`/`policy.operation` are present.
+ *
+ * ---------------------------------------------------------------------------
+ * DEFECT #4 — the cache below is INERT and must not be naively enabled.
+ * See REDESIGN.md §6 ("#4 is larger than it looks"). Blocks Phase 3.
+ *
+ * `useCache` short-circuits without `enable: true`, so today every permission
+ * check is a fresh query. Adding `enable: true` ALONE is a security regression:
+ *
+ *   1. Tag mismatch. The caching strategy derives tags as `AccessRole:<id>`
+ *      (upperCaseFirst(toCamelCase(entityType)) from the event name). The tags
+ *      built below are `access_role:<id>` — they would never match, so nothing
+ *      would ever be cleared.
+ *   2. No events. Auto-invalidation fires from an event-bus subscription on
+ *      `*`. Nothing in this module emits on role / policy / role-policy /
+ *      role-parent mutation, so no invalidation would occur at all.
+ *
+ * With the 7-day TTL below and neither addressed, a revoked role would stay
+ * effective for a week. Complete fix: rename tags, emit mutation events,
+ * shorten the TTL, enable, and test that a role change invalidates.
+ * ---------------------------------------------------------------------------
  */
 async function fetchSingleRolePolicies(roleId: string, container: MedusaContainer): Promise<Map<string, Set<string>>> {
 	const query = container.resolve(ContainerRegistrationKeys.QUERY)

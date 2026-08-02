@@ -26,7 +26,8 @@ module.exports = defineConfig({
 		index_engine: true, //https://docs.medusajs.com/learn/fundamentals/module-links/index-module#content
 		// rbac: true,
 		// rbac_filter_fields: true,
-		translation: true
+		translation: true,
+		view_configurations: true
 	},
 	admin: {
 		disable: process.env.ADMIN_DISABLED === 'true' || false,

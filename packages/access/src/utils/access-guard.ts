@@ -2,7 +2,7 @@ import { AuthenticatedMedusaRequest, MedusaNextFunction, MedusaResponse } from '
 import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils'
 import { AccessFieldFilter } from './access-field-filter'
 import { PermissionAction, hasPermission } from './has-permission'
-import { matchRoutePolicies } from './route-guards'
+import { isPathSealed, matchRoutePolicies } from './route-guards'
 
 /** Recursively delete a dotted field path from an object/array tree. */
 function deletePath(node: any, segments: string[]): void {
@@ -124,6 +124,12 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 		const fullPath = ((req as any).originalUrl ?? req.path).split('?')[0]
 		const required = matchRoutePolicies(fullPath, req.method)
 		if (!required.length) {
+			// Fail-open is the global default: third-party routes cannot be assumed
+			// access-aware. A namespace its owner has explicitly sealed is the
+			// exception — there, an undeclared route is a mistake, not an opt-out.
+			if (isPathSealed(fullPath)) {
+				throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
+			}
 			return next()
 		}
 

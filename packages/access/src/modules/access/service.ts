@@ -1,6 +1,7 @@
 import { Context, FindConfig, InferEntityType, ModulesSdkTypes } from '@medusajs/framework/types'
-import { InjectManager, InjectTransactionManager, MedusaContext, MedusaService, Modules, promiseAll } from '@medusajs/framework/utils'
+import { InjectManager, InjectTransactionManager, MedusaContext, MedusaError, MedusaService, Modules, promiseAll } from '@medusajs/framework/utils'
 import { Policy, WILDCARD } from '../../utils'
+import { reportRouteCoverage } from '../../utils/route-coverage'
 import {
 	AccessRoleDTO,
 	CreateAccessRoleParentDTO,
@@ -60,6 +61,11 @@ export class AccessModuleService
 			// First-load bootstrap: grant super-admin to existing users so installing
 			// the plugin (which gates the whole admin) does not lock out the operator.
 			const logger = (this.container_ as any).logger ?? console
+
+			// Runs after entrypoints load, so every route has registered by now.
+			// Advisory only — undeclared routes still pass unless sealed.
+			reportRouteCoverage(logger)
+
 			try {
 				const eventBus = (this.container_ as any)[Modules.EVENT_BUS]
 				if (!eventBus) {
@@ -196,13 +202,19 @@ export class AccessModuleService
 			const { role_id, parent_id } = parent
 
 			if (role_id === parent_id) {
-				throw new Error(`Cannot create role parent relationship: a role cannot be its own parent (role_id: ${role_id})`)
+				throw new MedusaError(
+					MedusaError.Types.INVALID_DATA,
+					`Cannot create role parent relationship: a role cannot be its own parent (role_id: ${role_id})`
+				)
 			}
 
 			const wouldCreateCycle = await this.accessRepository_.checkForCycle(role_id, parent_id, sharedContext)
 
 			if (wouldCreateCycle) {
-				throw new Error(`Cannot create role parent relationship: this would create a circular dependency (role_id: ${role_id}, parent_id: ${parent_id})`)
+				throw new MedusaError(
+					MedusaError.Types.INVALID_DATA,
+					`Cannot create role parent relationship: this would create a circular dependency (role_id: ${role_id}, parent_id: ${parent_id})`
+				)
 			}
 		}
 
@@ -217,13 +229,19 @@ export class AccessModuleService
 
 			if (parent_id) {
 				if (role_id === parent_id) {
-					throw new Error(`Cannot update role parent relationship: a role cannot be its own parent (role_id: ${role_id})`)
+					throw new MedusaError(
+						MedusaError.Types.INVALID_DATA,
+						`Cannot update role parent relationship: a role cannot be its own parent (role_id: ${role_id})`
+					)
 				}
 
 				const wouldCreateCycle = await this.accessRepository_.checkForCycle(role_id!, parent_id, sharedContext)
 
 				if (wouldCreateCycle) {
-					throw new Error(`Cannot update role parent relationship: this would create a circular dependency (role_id: ${role_id}, parent_id: ${parent_id})`)
+					throw new MedusaError(
+						MedusaError.Types.INVALID_DATA,
+						`Cannot update role parent relationship: this would create a circular dependency (role_id: ${role_id}, parent_id: ${parent_id})`
+					)
 				}
 			}
 		}

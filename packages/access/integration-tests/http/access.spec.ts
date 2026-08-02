@@ -394,6 +394,43 @@ medusaIntegrationTestRunner({
 				expect(() => AdminAccessRoleResponseSchema.parse(one.data)).not.toThrow()
 			})
 
+			it('creates a role with parent_ids and inherits the parent policies', async () => {
+				const parentPolicy = await api.post(
+					'/admin/access/policies',
+					{ key: 'inherit_probe:read', resource: 'inherit_probe', operation: 'read', name: 'InheritProbeRead' },
+					auth()
+				)
+				const parentPolicyId = parentPolicy.data.policy.id
+
+				const parent = await api.post('/admin/access/roles', { name: 'ParentRole', policy_ids: [parentPolicyId] }, auth())
+				expect(parent.status).toBe(200)
+				const parentId = parent.data.role.id
+
+				// parent_ids is the field the workflows read; it was previously declared as
+				// singular `parent_id` in the validator and silently dropped.
+				const child = await api.post('/admin/access/roles', { name: 'ChildRole', parent_ids: [parentId] }, auth())
+				expect(child.status).toBe(200)
+
+				// The /policies route lists DIRECT links only (it filters access_role_policy by
+				// role_id), so inheritance is asserted through the resolution path that actually
+				// gates requests — hasPermission, which goes via the recursive CTE.
+				await expect(
+					hasPermission({
+						roles: [child.data.role.id],
+						actions: { resource: 'inherit_probe', operation: 'read' },
+						container: getContainer()
+					})
+				).resolves.toBe(true)
+			})
+
+			it('rejects a role that would be its own parent', async () => {
+				const role = await api.post('/admin/access/roles', { name: 'SelfParentRole' }, auth())
+				const roleId = role.data.role.id
+
+				const res = await api.post(`/admin/access/roles/${roleId}`, { parent_ids: [roleId] }, auth()).catch((e: any) => e.response)
+				expect(res.status).toBe(400)
+			})
+
 			it('attaches a policy and assigns a user to a role, and both link routes reflect it', async () => {
 				const roleRes = await api.post('/admin/access/roles', { name: 'DebugRole' }, auth())
 				const roleId = roleRes.data.role.id

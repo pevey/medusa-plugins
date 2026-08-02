@@ -67,6 +67,12 @@ try {
 		matcher: '/admin/complaints',
 		policies: [{ resource: 'complaint', operation: 'delete' }]
 	})
+	// Matchers are anchored, so '/admin/complaints' does not cover '/admin/complaints/:id'.
+	requirePolicies({
+		method: ['DELETE'],
+		matcher: '/admin/complaints/:id',
+		policies: [{ resource: 'complaint', operation: 'delete' }]
+	})
 } catch {
 	// medusa-plugin-access not installed — complaints routes remain ungated.
 }

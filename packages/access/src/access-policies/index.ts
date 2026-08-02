@@ -1,5 +1,4 @@
 export * from './customer'
-export * from './index'
 export * from './inventory'
 export * from './order'
 export * from './payment'

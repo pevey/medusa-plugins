@@ -12,9 +12,9 @@ export const GET = async (req: MedusaRequest<StoreGetContentCollectionsType>, re
 	} catch {
 		/* noop */
 	}
-	const { q } = req.validatedQuery
+	const { q, limit, offset } = req.validatedQuery
 
-	const cacheKey = `store:content-collections:${q ?? 'all'}`
+	const cacheKey = `store:content-collections:${q ?? 'all'}:${limit}:${offset}`
 	const cached = caching ? await caching.get({ key: cacheKey }) : null
 	if (cached) {
 		res.json(cached)

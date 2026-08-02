@@ -31,11 +31,14 @@ export const AdminGetAccessRolesParams = createFindParams({
 	.merge(AdminGetAccessRolesParamsFields)
 	.merge(applyAndAndOrOperators(AdminGetAccessRolesParamsFields))
 
+// `parent_ids` is plural to match the workflows and the many-to-many `access_role_parent` model.
+// It was previously `parent_id`, which the workflows never read — role inheritance was
+// unreachable over HTTP as a result.
 export type AdminCreateAccessRoleType = z.infer<typeof AdminCreateAccessRole>
 export const AdminCreateAccessRole = z
 	.object({
 		name: z.string(),
-		parent_id: z.string().nullish(),
+		parent_ids: z.array(z.string().min(1)).optional(),
 		description: z.string().nullish(),
 		metadata: z.record(z.string(), z.unknown()).nullish(),
 		policy_ids: z.array(z.string().min(1)).optional()
@@ -46,7 +49,7 @@ export type AdminUpdateAccessRoleType = z.infer<typeof AdminUpdateAccessRole>
 export const AdminUpdateAccessRole = z
 	.object({
 		name: z.string().optional(),
-		parent_id: z.string().nullish(),
+		parent_ids: z.array(z.string().min(1)).optional(),
 		description: z.string().nullish(),
 		metadata: z.record(z.string(), z.unknown()).nullish()
 	})

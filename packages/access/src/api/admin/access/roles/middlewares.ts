@@ -56,6 +56,12 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 		middlewares: [
 			validateAndTransformBody(AdminCreateAccessRole),
 			validateAndTransformQuery(AdminGetAccessRoleParams, QueryConfig.retrieveTransformQueryConfig)
+		],
+		policies: [
+			{
+				resource: Entities.access_role,
+				operation: PolicyOperation.create
+			}
 		]
 	},
 	{

@@ -1,4 +1,4 @@
-import { hasPermission } from '../../../utils'
+import { resolvePermissions } from '../../../utils'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
 
@@ -75,23 +75,36 @@ export const getAssignableRolesStep = createStep(
 			return new StepResponse({ roles: [], count: 0 })
 		}
 
+		// Candidates are fetched unpaginated so `count` reflects the whole assignable set rather
+		// than the assignable subset of one page; pagination is applied after filtering, matching
+		// `getAssignablePoliciesStep`.
 		const { data: candidates } = await query.graph({
 			entity: 'access_role',
 			fields: ['id', 'name', 'description', 'policies.resource', 'policies.operation'],
-			filters: filters ?? {},
-			pagination: pagination ?? {}
+			filters: filters ?? {}
 		})
+
+		const roleActions = new Map<string, { resource: string; operation: string }[]>()
+		const universe: { resource: string; operation: string }[] = []
+
+		for (const role of candidates ?? []) {
+			const actions = (role.policies ?? [])
+				.filter((p: any) => p.resource != null && p.operation != null)
+				.map((p: any) => ({ resource: p.resource as string, operation: p.operation as string }))
+
+			roleActions.set(role.id, actions)
+			universe.push(...actions)
+		}
+
+		// One resolution over the union of every candidate's actions, rather than a
+		// `hasPermission` call per candidate.
+		const granted = await resolvePermissions({ roles: actorRoleIds, universe, container })
 
 		const assignable: AssignableRole[] = []
 
 		for (const role of candidates ?? []) {
-			const actions = (role.policies ?? []).filter((p: any) => p.resource != null && p.operation != null)
-
-			const allowed = await hasPermission({
-				roles: actorRoleIds,
-				actions,
-				container
-			})
+			const actions = roleActions.get(role.id) ?? []
+			const allowed = actions.every(a => granted.has(`${a.resource}:${a.operation}`))
 
 			if (allowed) {
 				assignable.push({
@@ -102,6 +115,9 @@ export const getAssignableRolesStep = createStep(
 			}
 		}
 
-		return new StepResponse({ roles: assignable, count: assignable.length })
+		const { skip = 0, take } = pagination ?? {}
+		const page = typeof take === 'number' ? assignable.slice(skip, skip + take) : assignable.slice(skip)
+
+		return new StepResponse({ roles: page, count: assignable.length })
 	}
 )

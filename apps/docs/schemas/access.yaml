@@ -430,8 +430,12 @@ paths:
               properties:
                 name:
                   type: string
-                parent_id:
-                  type: string
+                parent_ids:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  minItems: 1
                 description:
                   type: string
                 metadata:
@@ -445,7 +449,6 @@ paths:
                   minItems: 1
               required:
                 - name
-                - parent_id
                 - description
                 - metadata
       responses:
@@ -542,15 +545,18 @@ paths:
               properties:
                 name:
                   type: string
-                parent_id:
-                  type: string
+                parent_ids:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  minItems: 1
                 description:
                   type: string
                 metadata:
                   type: object
                   additionalProperties: true
               required:
-                - parent_id
                 - description
                 - metadata
       responses:
