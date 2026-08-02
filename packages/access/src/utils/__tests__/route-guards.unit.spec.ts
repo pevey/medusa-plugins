@@ -64,6 +64,53 @@ describe('guardResource', () => {
 	})
 })
 
+describe('request-path normalization (Express routes these; the guard must too)', () => {
+	beforeEach(resetRegistries)
+
+	it('matches case-insensitively', () => {
+		guardResource({ resource: 'complaint', prefix: '/admin/complaints' })
+
+		// Express sets neither `case sensitive routing` nor `strict routing`, so it
+		// dispatches /admin/Complaints/abc to the /admin/complaints/:id handler.
+		// A case-sensitive guard would miss it and fail open.
+		expect(matchRoutePolicies('/admin/Complaints/abc', 'GET')).toEqual([{ resource: 'complaint', operation: 'read' }])
+		expect(matchRoutePolicies('/admin/COMPLAINTS', 'GET')).toEqual([{ resource: 'complaint', operation: 'read' }])
+	})
+
+	it('matches a trailing slash on the request path', () => {
+		requirePolicies({
+			matcher: '/admin/access/roles',
+			method: ['POST'],
+			policies: [{ resource: 'access_role', operation: 'create' }]
+		})
+
+		// One trailing character previously re-opened an unguarded role-creation route.
+		expect(matchRoutePolicies('/admin/access/roles/', 'POST')).toEqual([{ resource: 'access_role', operation: 'create' }])
+	})
+
+	it('does not let a trailing slash fall through to the subtree rule', () => {
+		guardResource({ resource: 'complaint', prefix: '/admin/complaints' })
+
+		// '/admin/complaints/' must be the COLLECTION (create), not the subtree
+		// (update) — otherwise an update grant would let you create.
+		expect(matchRoutePolicies('/admin/complaints/', 'POST')).toEqual([{ resource: 'complaint', operation: 'create' }])
+	})
+
+	it('treats HEAD as GET', () => {
+		guardResource({ resource: 'complaint', prefix: '/admin/complaints' })
+
+		// Express dispatches HEAD to the GET handler; an unguarded HEAD is an
+		// existence oracle.
+		expect(matchRoutePolicies('/admin/complaints/cmp_1', 'HEAD')).toEqual([{ resource: 'complaint', operation: 'read' }])
+	})
+
+	it('collapses duplicate slashes', () => {
+		guardResource({ resource: 'complaint', prefix: '/admin/complaints' })
+
+		expect(matchRoutePolicies('/admin//complaints', 'GET')).toEqual([{ resource: 'complaint', operation: 'read' }])
+	})
+})
+
 describe('sealNamespace', () => {
 	beforeEach(resetRegistries)
 
@@ -102,5 +149,35 @@ describe('sealNamespace', () => {
 
 	it('seals nothing by default', () => {
 		expect(isPathSealed('/admin/anything')).toBe(false)
+	})
+
+	it('seals case-insensitively and ignores a trailing slash', () => {
+		sealNamespace('/admin/complaints')
+
+		// Capitalisation previously walked straight past the seal.
+		expect(isPathSealed('/admin/Complaints/abc')).toBe(true)
+		expect(isPathSealed('/admin/COMPLAINTS')).toBe(true)
+		expect(isPathSealed('/admin/complaints/')).toBe(true)
+	})
+})
+
+describe('hasPermission with no roles', () => {
+	it('denies rather than allows', async () => {
+		const { hasPermission } = await import('../has-permission')
+
+		// Returns before touching the container, so a stub is sufficient.
+		await expect(
+			hasPermission({
+				roles: [],
+				actions: { resource: 'mcp', operation: 'write' },
+				container: {} as any
+			})
+		).resolves.toBe(false)
+	})
+
+	it('allows when nothing is required', async () => {
+		const { hasPermission } = await import('../has-permission')
+
+		await expect(hasPermission({ roles: [], actions: [], container: {} as any })).resolves.toBe(true)
 	})
 })

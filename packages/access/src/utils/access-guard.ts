@@ -1,7 +1,7 @@
 import { AuthenticatedMedusaRequest, MedusaNextFunction, MedusaResponse } from '@medusajs/framework/http'
 import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils'
 import { AccessFieldFilter } from './access-field-filter'
-import { PermissionAction, hasPermission } from './has-permission'
+import { PermissionAction, hasPermission, markRequestScope } from './has-permission'
 import { isPathSealed, matchRoutePolicies } from './route-guards'
 
 /** Recursively delete a dotted field path from an object/array tree. */
@@ -139,6 +139,12 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 		if (!actorId) {
 			throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Forbidden')
 		}
+
+		// Opt this request's scope into memoized role resolution. Everything
+		// downstream that resolves permissions — this guard, the response field
+		// filter, workflow steps invoked with req.scope — then shares one lookup
+		// per role for the life of the request, with no staleness window.
+		markRequestScope(req.scope)
 
 		const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 		const { data: actors } = await query.graph({

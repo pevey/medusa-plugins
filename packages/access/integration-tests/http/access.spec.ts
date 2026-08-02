@@ -186,6 +186,73 @@ medusaIntegrationTestRunner({
 				).resolves.toBe(false)
 			})
 
+			it('resolves each role once per request scope, collapsing concurrent lookups', async () => {
+				const { asValue } = require('awilix')
+				const { markRequestScope } = require('../../src/utils/has-permission') as typeof import('../../src/utils/has-permission')
+
+				const scope = (getContainer() as any).createScope()
+				const real = scope.resolve(ContainerRegistrationKeys.QUERY)
+				let graphCalls = 0
+				scope.register(
+					ContainerRegistrationKeys.QUERY,
+					asValue({
+						...real,
+						graph: (...args: any[]) => {
+							graphCalls++
+							return (real as any).graph(...args)
+						}
+					})
+				)
+				markRequestScope(scope)
+
+				const check = () =>
+					hasPermission({
+						roles: ['acrl_super_admin'],
+						actions: { resource: 'order', operation: 'read' },
+						container: scope
+					})
+
+				// Concurrent, as the field filter issues them: without in-flight
+				// memoization each would start its own query.
+				await Promise.all([check(), check(), check()])
+				expect(graphCalls).toBe(1)
+
+				// And a later sequential call within the same request reuses it.
+				await check()
+				expect(graphCalls).toBe(1)
+			})
+
+			it('does not memoize on an unmarked (non-request) container', async () => {
+				const { asValue } = require('awilix')
+
+				const scope = (getContainer() as any).createScope()
+				const real = scope.resolve(ContainerRegistrationKeys.QUERY)
+				let graphCalls = 0
+				scope.register(
+					ContainerRegistrationKeys.QUERY,
+					asValue({
+						...real,
+						graph: (...args: any[]) => {
+							graphCalls++
+							return (real as any).graph(...args)
+						}
+					})
+				)
+
+				// Unmarked: jobs, subscribers and CLI callers get the root container,
+				// where memoizing would be an unbounded process-lifetime cache.
+				const check = () =>
+					hasPermission({
+						roles: ['acrl_super_admin'],
+						actions: { resource: 'order', operation: 'read' },
+						container: scope
+					})
+
+				await check()
+				await check()
+				expect(graphCalls).toBe(2)
+			})
+
 			it('super admin (*:*) grants everything; resolvePermissions expands the universe', async () => {
 				const container = getContainer()
 

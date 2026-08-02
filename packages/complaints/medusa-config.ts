@@ -15,6 +15,13 @@ module.exports = defineConfig({
 			cookieSecret: process.env.COOKIE_SECRET
 		}
 	},
+	// medusa-plugin-access is an OPTIONAL peer of this plugin, and without it installed, guardResource/sealNamespace/definePolicies would never execute in a test
+	plugins: [
+		{
+			resolve: 'medusa-plugin-access',
+			options: {}
+		}
+	],
 	modules: [
 		{
 			resolve: './src/modules/complaint'

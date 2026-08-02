@@ -1,4 +1,4 @@
-import { getRouteCoverage, getStaleGuards } from '../route-coverage'
+import { getRouteCoverage, getStaleGuards, reportRouteCoverage } from '../route-coverage'
 import { guardResource, requirePolicies } from '../route-guards'
 
 const reset = (routes: { method: string; matcher: string }[] = []) => {
@@ -93,5 +93,30 @@ describe('getStaleGuards', () => {
 		// Without a route list there is no evidence either way — stay silent
 		// rather than flag every declaration.
 		expect(getStaleGuards()).toEqual([])
+	})
+
+	it('is reported even when coverage is 100%', () => {
+		reset([{ method: 'GET', matcher: '/admin/widgets' }])
+		guardResource({ resource: 'widget', prefix: '/admin/widgets' })
+		requirePolicies({
+			matcher: '/admin/gone',
+			method: ['GET'],
+			policies: [{ resource: 'gone', operation: 'read' }]
+		})
+
+		// Coverage and drift are independent: every route is declared, AND a
+		// declaration points at nothing. Reporting used to return early on full
+		// coverage, silencing this.
+		expect(getRouteCoverage().uncovered).toEqual([])
+
+		const logged: string[] = []
+		reportRouteCoverage({
+			info: (m: string) => logged.push(m),
+			warn: (m: string) => logged.push(m),
+			debug: (m: string) => logged.push(m)
+		})
+
+		expect(logged.some(m => m.includes('match no registered route'))).toBe(true)
+		expect(logged.some(m => m.includes('/admin/gone'))).toBe(true)
 	})
 })

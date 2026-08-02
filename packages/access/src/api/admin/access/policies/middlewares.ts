@@ -1,8 +1,7 @@
 import * as QueryConfig from './query-config'
 
 import { validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework'
-import { MiddlewareRoute } from '@medusajs/framework/http'
-import { PolicyOperation } from '../../../../utils'
+import { AccessMiddlewareRoute, PolicyOperation } from '../../../../utils'
 
 import {
 	AdminCreateAccessPolicy,
@@ -15,30 +14,30 @@ import {
 const RBAC_POLICY_RESOURCE = 'access_policy'
 const RBAC_ROLE_RESOURCE = 'access_role'
 
-export const adminAccessPolicyRoutesMiddlewares: MiddlewareRoute[] = [
+export const adminAccessPolicyRoutesMiddlewares: AccessMiddlewareRoute[] = [
 	{
 		method: ['GET'],
 		matcher: '/admin/access/policies',
 		middlewares: [validateAndTransformQuery(AdminGetAccessPoliciesParams, QueryConfig.listTransformQueryConfig)],
-		policies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.read }]
+		accessPolicies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.read }]
 	},
 	{
 		method: ['GET'],
 		matcher: '/admin/access/policies/assignable',
 		middlewares: [validateAndTransformQuery(AdminGetAccessPoliciesParams, QueryConfig.listTransformQueryConfig)],
-		policies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.read }]
+		accessPolicies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.read }]
 	},
 	{
 		method: ['GET'],
 		matcher: '/admin/access/policies/:id',
 		middlewares: [validateAndTransformQuery(AdminGetAccessPolicyParams, QueryConfig.retrieveTransformQueryConfig)],
-		policies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.read }]
+		accessPolicies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.read }]
 	},
 	{
 		method: ['GET'],
 		matcher: '/admin/access/policies/:id/roles',
 		middlewares: [validateAndTransformQuery(AdminGetAccessPolicyRolesParams, QueryConfig.listAccessPolicyRolesTransformQueryConfig)],
-		policies: [
+		accessPolicies: [
 			{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.read },
 			{ resource: RBAC_ROLE_RESOURCE, operation: PolicyOperation.read }
 		]
@@ -50,7 +49,7 @@ export const adminAccessPolicyRoutesMiddlewares: MiddlewareRoute[] = [
 			validateAndTransformBody(AdminCreateAccessPolicy),
 			validateAndTransformQuery(AdminGetAccessPolicyParams, QueryConfig.retrieveTransformQueryConfig)
 		],
-		policies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.create }]
+		accessPolicies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.create }]
 	},
 	{
 		method: ['POST'],
@@ -59,12 +58,12 @@ export const adminAccessPolicyRoutesMiddlewares: MiddlewareRoute[] = [
 			validateAndTransformBody(AdminUpdateAccessPolicy),
 			validateAndTransformQuery(AdminGetAccessPolicyParams, QueryConfig.retrieveTransformQueryConfig)
 		],
-		policies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.update }]
+		accessPolicies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.update }]
 	},
 	{
 		method: ['DELETE'],
 		matcher: '/admin/access/policies/:id',
 		middlewares: [],
-		policies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.delete }]
+		accessPolicies: [{ resource: RBAC_POLICY_RESOURCE, operation: PolicyOperation.delete }]
 	}
 ]

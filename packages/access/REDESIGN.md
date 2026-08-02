@@ -10,6 +10,10 @@ Everything in "Verified constraints" was checked against the shipped 2.18.0 buil
 
 ## 1. Model
 
+> **STATUS: grants and roles implemented; scope NOT implemented.** The Grant, Roles, and
+> two-axes subsections describe shipped behaviour. Scope and Actors do not — see the status note
+> on Scope below and Phase 3 in §8.
+
 ### Grant
 
 A grant is `(resource, operation)`. Operations are a **closed, universally-applicable set**:
@@ -17,6 +21,11 @@ A grant is `(resource, operation)`. Operations are a **closed, universally-appli
 ```
 read | create | update | delete | export
 ```
+
+`export` is present in `defaultOperations` as of Phase 0. **"Closed" is not yet enforced**:
+`definePolicies` still appends any operation a caller passes to the global registry, and
+`default-policy-operations.ts` snapshots that global at import time, making
+`generateResourcePolicies` output load-order dependent. Tracked in §10.
 
 The set is closed deliberately. Domain verbs (`approve`, `publish`, `sync`) are not operations —
 they are `update` on the resource. `export` earns inclusion because it applies to essentially
@@ -26,6 +35,13 @@ Grants are what get assigned to roles and rendered in the admin UI. The policy m
 `resources × 5 operations`.
 
 ### Scope
+
+> **STATUS: NOT IMPLEMENTED, AND NOT IMPLEMENTABLE AS WRITTEN.** Everything in this subsection is
+> design intent that two adversarial reviews found unsound — see Phase 3 in §8 for the specific
+> false claims and structural problems. The most immediate: **`owner`-as-OR cannot be expressed**,
+> because `PermissionAction` is a flat `{ resource, operation }` and `matchRoutePolicies` returns
+> an array that `hasPermission` ANDs. Read the rest of this subsection as a starting point to be
+> revised, not as a specification.
 
 A scope determines **which instances** are reachable. Scopes are code-declared and
 plugin-registerable. Two ship built in, and they attach at **different levels with different
@@ -90,11 +106,37 @@ must hand-check — their own docs concede that forgetting the check makes the e
 to `Public`. A filter cannot be forgotten: list routes narrow, single-resource routes 404, MCP
 tools and workflow steps inherit it.
 
+### Install-time behaviour — the most consequential thing the plugin does
+
+This shipped long before this document existed and was never written down here. It belongs in §1
+because it determines who holds what the moment the plugin is installed.
+
+- **A `*:*` super-admin role is seeded on every boot.** `loaders/initial-data.ts` upserts
+  `acrl_super_admin`, the `acpol_super_admin` policy (`*:*`), and the join between them, with
+  fixed IDs. Deleting them via the API gets them recreated on restart.
+- **On first load, every existing user is granted that role.** `bootstrap-super-admin.ts` runs via
+  an event the module emits on `onApplicationStart`. `get-users-to-bootstrap.ts` returns the full
+  user list — but only if **no** `user_access_role` link exists yet. One link anywhere disables
+  the bootstrap permanently.
+
+The rationale is lockout avoidance: enforcement is on the moment the module loads, so without this
+an operator installs the plugin and immediately 403s out of their own admin. The consequences are
+worth stating plainly:
+
+- Existing users become super admins, silently.
+- Users created *after* that first boot get **no** roles and are denied everywhere.
+- A partially-bootstrapped store (one manual link created early) never gets the safety net.
+
+- **Policies sync from code to DB on every boot.** `syncRegisteredPolicies` reconciles the global
+  registry against `access_policy`: creates missing, restores soft-deleted, updates changed
+  name/description, and **soft-deletes any DB policy with no code declaration** (`*:*` exempt). So
+  a policy created through the API survives exactly until the next restart.
+
 ### Roles
 
 - Roles hold grants. Multiple roles per actor; `hasPermission` unions across them.
-- **Inheritance stays.** Fix the `parent_id` / `parent_ids` mismatch that currently makes it
-  unreachable via API and UI.
+- **Inheritance stays.** The `parent_id` / `parent_ids` mismatch that made it unreachable over
+  HTTP is fixed (defect #2, §6).
 - **No deny rules.** Any finite role set is expressible additively; deny only wins for
   "wildcard minus one thing". Vendure and Medusa core RBAC both landed additive-only
   independently.
@@ -168,6 +210,26 @@ blocker rather than housekeeping.
 
 ## 2. Declaration and binding
 
+> **STATUS: IMPLEMENTED, but this section is not an accurate description of the code.** The
+> mechanisms all ship — `guardResource`, `sealNamespace`, `withPolicies`, the `traceRoute` route
+> registry, the coverage report, the drift report. Read it as design intent, and note these
+> divergences:
+>
+> - **The `guardResource` table below is incomplete.** The code emits **seven** guards, not six:
+>   `PUT`/`PATCH` → `update` on the prefix, and `POST`/`PUT`/`PATCH` → `update` on the subtree.
+> - **The `traceRoute` code sketch below does not match the implementation.** It shows the hook
+>   wrapping the handler to enforce. It does not: it calls `requirePolicies` into the same
+>   path-keyed registry, and enforcement stays in the `/admin/*` middleware. See §3 Layer 1.
+> - **"replaces … `compileMatcher` … and the pinned `core-route-policies.ts`" is retracted.**
+>   See Phase 2 in §8. `compileMatcher` is still in use and all 352 pinned declarations still load.
+> - **`withPolicies` has no production call site** in either in-scope package. The capability
+>   ships; no route uses it yet.
+> - Guards carry a `source` (`explicit` | `guardResource`) so drift reporting ignores deliberate
+>   over-generation. Note `source` is a public parameter on `requirePolicies`, so a caller can
+>   self-exempt.
+> - Request paths are normalized (case-insensitive, trailing/duplicate slashes collapsed,
+>   HEAD→GET) — defects 10–13 in §6. Percent-encoding and `..` segments are **not** normalized.
+
 ### `guardResource`
 
 Collapses a resource's whole HTTP surface into one call:
@@ -181,8 +243,9 @@ guardResource({ resource: 'complaint', prefix: '/admin/complaints' })
 | `/admin/complaints` | GET | `complaint:read` |
 | `/admin/complaints` | POST | `complaint:create` |
 | `/admin/complaints` | DELETE | `complaint:delete` |
+| `/admin/complaints` | PUT, PATCH | `complaint:update` |
 | `/admin/complaints/*` | GET | `complaint:read` |
-| `/admin/complaints/*` | POST | `complaint:update` |
+| `/admin/complaints/*` | POST, PUT, PATCH | `complaint:update` |
 | `/admin/complaints/*` | DELETE | `complaint:delete` |
 
 POST on a subtree maps to `update`, not `create` — `POST /admin/complaints/:id/activities`
@@ -275,27 +338,38 @@ any equivalent; there is no prior art to borrow.
 
 ## 3. Enforcement
 
-Three layers, each with a different reach.
+Three layers, each with a different reach. **Layer 1 is built; Layer 3 is partial; Layer 2 is not built.**
 
-### Layer 1 — Gate (handler)
+### Layer 1 — Gate — IMPLEMENTED
 
-"Does this actor hold `(resource, operation)` at all?" Wrapped at registration via `traceRoute`.
-403 on failure. This is what exists today, relocated from path-matching to handler-binding.
+"Does this actor hold `(resource, operation)` at all?" A global `/admin/*` middleware
+(`accessGuard`) matches the request against the route→policy registry and 403s when the actor's
+roles do not grant every required policy. Declarations reach the registry three ways:
+`guardResource` (whole CRUD surface + subtree floor), `requirePolicies` (explicit, for stricter
+overrides), and `withPolicies` (handler-bound, matcher supplied by Medusa's own registration via
+`ApiLoader.traceRoute`). `sealNamespace` opts a prefix into fail-closed; the global default stays
+fail-open.
 
-### Layer 2 — Row filter (query interceptor)
+Note this is still **matcher-keyed** at enforcement time. `withPolicies` removes hand-written
+matchers for routes we own, but policies land in the same path-keyed registry — so a
+`guardResource` subtree floor still applies on top. Handler binding fixes authoring, not
+composition.
 
-"Which rows?" Injected into `query.graph` / `query.index`, below the route, so it applies to
-every caller — routes, MCP tools, workflow steps invoked with `req.scope`.
+### Layer 2 — Row filter (query interceptor) — NOT BUILT
 
-Seam: a global middleware registers a wrapped query into `req.scope`. Verified supported —
-`query` is registered with `asValue` as a plain callable with `.graph`/`.index`/`.gql` bound on,
-and Awilix scope registration shadows the parent.
+Deferred with Phase 3/4. "Which rows?" would be injected into `query.graph` / `query.index`,
+below the route, so it applies to every caller. The seam is verified to exist (`query` is
+registered with `asValue` as a plain callable; Awilix scope registration shadows the parent), but
+the hazards in §5 and the argument-shape problems noted in Phase 3 remain unresolved.
 
-### Layer 3 — Field pruning
+### Layer 3 — Field pruning — PARTIALLY BUILT
 
-Same interceptor as Layer 2, which sees `queryOptions.fields` before normalization. Prune paths
-that reach entities the actor cannot read. Post-query `res.json` pass retained as the final
-attempt, covering only responses not built from `query.graph`. See §4.
+The **post-query** pass exists: `installFieldFilter` patches `res.json` and strips paths whose
+terminal entity the actor cannot `read`. It is entity-grain (never scalars), fails open on error,
+and only covers responses that go through `res.json` with a populated `queryConfig`.
+
+The **pre-query** half is not built. It was to live in the Layer 2 interceptor, so it is blocked
+on the same deferral. `queryConfig.allowed/restricted/disallowed` are off limits (§4).
 
 ---
 
@@ -381,6 +455,7 @@ module.
 | `rbac` / `rbac_filter_fields` flags | | |
 | `wrapWithPoliciesCheck`, `checkPermissions` | | |
 | core `has-permission.ts`, `rbac_role` / `rbac_policy` | | |
+| **`MiddlewareRoute.policies`** — core's field; we use `accessPolicies` (defect 15, §6) | | |
 
 All nested-filtering analysis comes from the query column.
 
@@ -471,6 +546,23 @@ Guard the assignment for idempotence — HMR re-invokes `apiLoader.load()`, whic
 stack wrappers on every reload. Duplicate-copy concerns do not apply: Medusa hard-fails on
 duplicate core packages during workflow registration, so `@medusajs/*` is always deduped.
 
+### The build artifact is what consumers load — and it goes stale silently
+
+`package.json` exports the package root as `./.medusa/server/src/index.js`. **Nothing a consumer
+resolves comes from `src/`.** `packages/complaints` resolves `medusa-plugin-access` through the
+workspace symlink to `packages/access`, and therefore to `.medusa/server`.
+
+Access's own jest suites compile `src/` directly, so they pass against code no consumer runs. This
+has already produced a false result once: a full green run — including complaints' 72 tests and a
+coverage measurement cited as proof the mechanism works — was recorded while `.medusa/server` was
+90 minutes stale and still contained the fail-open `hasPermission`, case-sensitive matchers, and
+the core-RBAC `policies` key. The security fixes existed only in the working tree.
+
+**Rule: `yarn build` in `packages/access` before running any consumer's tests, and before trusting
+any cross-package measurement.** Note access's own integration spec is itself mixed — it imports
+utils from `../../src/utils` but workflows from `../../.medusa/server/...` — so it can pass with a
+half-stale build.
+
 ### Workflows without `req.scope`
 
 Scope shadowing propagates into workflows invoked as `wf(req.scope)`. Workflows launched with no
@@ -486,23 +578,63 @@ matters passes `req.scope`.
 | 1 | `POST /admin/access/roles` had no `policies` key — any authenticated admin could create roles | high | **done** |
 | 2 | `parent_id` (validator) vs `parent_ids` (workflow) — inheritance was unreachable via API | high | **done** |
 | 3 | `DELETE /admin/complaints/:id` unguarded — policy registered on `^/admin/complaints$`, cannot match | high | **done** |
-| 4 | `useCache` called without `enable` — permission cache never engages | high | **open — attempt reverted, see below** |
+| 4 | Permission resolution repeated per call — the cross-request cache was inert | high | **done — request-scoped memoization, see below** |
 | 5 | Public `/content/*` — cache key omitted `fields`; fixed by rejecting `fields` at the validator | medium | **done** |
 | 6 | `access-policies/index.ts` self-referential `export * from './index'` | low | **done** |
 | 7 | `store` / `store_locale` declared twice | low | **done** |
 | 8 | Role-parent cycle errors threw plain `Error` → 500 instead of 400 | low | **done** |
 | 9 | `getAssignableRoles` paginated before filtering (wrong `count`) | low | **done** |
 
+### Found later, during adversarial review — all fixed
+
+| # | Item | Severity | Status |
+|---|---|---|---|
+| 10 | **Guard bypass via path casing.** Express sets neither `case sensitive routing` nor `strict routing`, so it dispatches `/admin/Complaints/abc` to the `/admin/complaints/:id` handler while our case-sensitive matchers missed it — bypassing both the policy check and `sealNamespace` | high | **done** |
+| 11 | **Guard bypass via trailing slash.** `/admin/access/roles/` missed `/admin/access/roles`, silently re-opening defect #1 | high | **done** |
+| 12 | **Wrong operation via trailing slash.** `/admin/complaints/` matched the `/*` subtree rule, so creating required `update` rather than `create` | medium | **done** |
+| 13 | **HEAD unguarded.** Express dispatches HEAD to the GET handler; `guardResource` declared no HEAD, making it an existence oracle | medium | **done** |
+| 14 | **`hasPermission` failed OPEN on an empty role set.** `accessGuard` compensated with its own length check, but direct callers did not | high | **done** |
+| 15 | **Policies declared via core RBAC's `MiddlewareRoute.policies` field.** Predates both redesign commits. Enabling `MEDUSA_FF_RBAC` would have made core wrap our routes with `wrapWithPoliciesCheck`, which reads roles from JWT `app_metadata` we never write — 403 on every access route | medium | **done** |
+
+10–13 are fixed by normalizing the request path (case-insensitive matchers, trailing/duplicate
+slash collapse) and mapping HEAD→GET in `matchRoutePolicies`. 14 by failing closed on empty roles.
+15 by renaming our declaration key to `accessPolicies` (`AccessMiddlewareRoute`), so core never
+sees a `policies` key on our routes.
+
 Two integration cases were added with #2, since inheritance had never been tested: role creation
 with `parent_ids` resolving an inherited policy through `hasPermission`, and self-parenting
 returning 400.
 
-### #4 — still open. A short-TTL attempt was made, reviewed, and reverted.
+### #4 — resolved by request-scoped memoization
 
-The cache is inert (`useCache` short-circuits without `enable`), so every permission check is a
-fresh query. An attempt to fix this with `enable: true` plus a 5s TTL was reviewed adversarially
-and found unsound. **Its three premises were each false**, and they had been recorded in this
-document as fact — correcting them here:
+**What shipped.** `fetchSingleRolePolicies` memoizes the **in-flight promise** per
+(request scope, role). The in-flight part matters: the response field filter calls
+`hasPermission` once per entity path and those fire concurrently, so memoizing only on completion
+would still let N identical queries start.
+
+Memoization is **opt-in**, keyed on a marker (`Symbol.for('access.requestScope')`) that
+`accessGuard` stamps on `req.scope`. `hasPermission` is also called with the ROOT container by
+jobs, subscribers and CLI code; memoizing there would persist for the process lifetime — an
+unbounded stale cache, the exact failure mode being avoided. Unmarked containers are never
+memoized.
+
+**Staleness window: zero.** The memo lives and dies with one request.
+
+Tested: three concurrent `hasPermission` calls against a marked scope collapse to one
+`query.graph`, and a later sequential call in the same request reuses it; an unmarked scope
+issues two queries for two calls.
+
+The cross-request `useCache` block remains **inert** and is left in place with its rationale. It
+is not needed — the cost was intra-request fan-out, not repeated resolution across requests.
+
+---
+
+#### For the record: a short-TTL attempt was made first, reviewed, and reverted
+
+An earlier attempt set `enable: true` with a 5s TTL. Adversarial review found it unsound.
+**Its three premises were each false**, and they had been recorded in this document as fact —
+correcting them here, because the same mistakes would otherwise be repeated if the cross-request
+cache is ever revisited:
 
 1. **"Nothing in the module emits mutation events."** Wrong. `MedusaService` decorates every
    generated method with `@EmitEvents` and installs a global MikroORM subscriber, so
@@ -534,25 +666,22 @@ needed whenever this is taken up).
 cached value is a `Map`, which `JSON.stringify`s to `{}` — on a Redis-backed hit, `policyAllows`
 would call `.get()` on a plain object and throw, 500-ing every permission check.
 
-### The correct fix, when taken up
+#### If a cross-request cache is ever wanted on top
 
-1. **Request-scoped memoization first — this may be the whole answer.** The dominant cost is
-   *intra-request* fan-out: the field filter calls `hasPermission` once per entity path, and on a
-   cold cache those fire concurrently so no cross-request cache collapses them anyway. Memoizing
-   the in-flight promise on `req.scope` collapses N×R queries to R per request with **zero**
-   staleness. Note the storefront motivation cited for the TTL does not exist yet — there is no
-   customer↔role link and the guard is mounted only at `/admin/*`.
-2. **Only then, if a cross-request cache is still wanted:** cache a JSON-serializable shape (not
-   a `Map`), drop the hardcoded provider so the configured default is used, and tag coarsely
-   (`AccessRole:list:*`, `AccessPolicy:list:*`, `AccessRolePolicy:list:*`,
-   `AccessRoleParent:list:*`) so the events that already fire do the invalidating. Keep a modest
-   TTL as a backstop, not as the mechanism.
-3. **Validate the env var** regardless: reject non-finite/non-positive, clamp, log the effective
+Not currently needed. If it is:
+
+1. Cache a JSON-serializable shape (not a `Map` — it `JSON.stringify`s to `{}`, so a Redis-backed
+   hit would call `.get()` on a plain object and 500 every permission check).
+2. Drop the hardcoded `providers: ['cache-memory']` so the configured default is used, and so
+   core's `clear({ tags })` reaches the same store.
+3. Tag coarsely — `AccessRole:list:*`, `AccessPolicy:list:*`, `AccessRolePolicy:list:*`,
+   `AccessRoleParent:list:*` — so the mutation events that **already fire** do the invalidating.
+4. Validate any env-configurable TTL: reject non-finite/non-positive, clamp, log the effective
    value at boot.
 
-Note for whoever does this: role *assignment* changes (revoking a user's role) are already
-immediate — `accessGuard` resolves `access_roles.id` with a fresh uncached query per request. The
-cache is keyed by role and holds role→policies, so only policy/inheritance edits are affected.
+Note: role *assignment* changes (revoking a user's role) are already immediate —
+`accessGuard` resolves `access_roles.id` with a fresh uncached query per request. Only
+policy/inheritance edits would ever be affected by a role→policies cache.
 
 ### Adjacent findings, not fixed
 
@@ -629,30 +758,45 @@ plugins for copied `requirePolicies` blocks once Phase 1 lands.
 
 ## 8. Sequencing
 
-**Phase 0 — defects.** Items 1–5 above. Independent of everything else.
+| phase | status |
+|---|---|
+| 0 — defects | **done** (all of 1–15, §6) |
+| 1 — declaration | **done** |
+| 2 — binding | **done** |
+| 3 — scope, gate half | **deferred — found unsound as designed, see below** |
+| 4 — scope, filter half | deferred (depends on 3) |
+| 5 — field pruning | not started |
+| 6 — admin UI restructure | not started |
+| §7 documentation | **not started** — README still describes the pre-Phase-1 API |
 
-**Phase 1 — declaration.** `guardResource`, segment-aware `sealNamespace`, boot-time coverage
-report. Validate against `complaints` as the POC: coverage report before → apply `guardResource`
-→ report goes to zero → seal. Repeatable check for other packages later.
+**Phase 0 — defects. DONE.** Items 1–9 above, plus 10–15 found during adversarial review.
+
+**Phase 1 — declaration. DONE.** `guardResource`, segment-aware `sealNamespace`, boot-time
+coverage report. Validated against `complaints` as the POC: three `guardResource` calls replaced
+six hand-written declarations and covered 21 more routes (398 → 419 of 638 in `apps/backend`),
+with zero `/admin/complaint*` routes left undeclared, then sealed.
 
 *Note:* the coverage report needs to know which routes exist, and `ApiLoader.traceRoute` is the
 only clean source (it fires for every route at registration with `{ route, method }`). So the
 traceRoute hook gets installed in Phase 1 for route discovery, and Phase 2 extends the same hook
 to read handler identity. Same seam, two increments.
 
-*Testing note — where enforcement is provable, and where it isn't.* Sibling plugins' test apps
-register no plugins, so their `require('medusa-plugin-access')` throws and every route runs
-ungated. Their suites prove the soft-dependency contract holds; they prove nothing about the
-guard. Enforcement tests therefore live in **access's own spec**, which is the only app with
-access installed — currently covering sealing (404 unsealed → 403 sealed, sibling prefixes
-untouched) and AND-layering with a partially-granted, non-super admin.
+*Testing note — RESOLVED.* This originally recorded that no test app had a consumer plugin
+installed, so `require('medusa-plugin-access')` threw in complaints and its 72 tests ran entirely
+ungated — proving the soft-dependency contract but nothing about the guard.
 
-What that leaves untested: whether a consuming plugin picked the *right* policy for a given route.
-The coverage report proves a declaration exists, not that it is correct. Closing that needs a test
-app with two plugins installed — a harness change, deliberately deferred.
+`packages/complaints/medusa-config.ts` now installs `medusa-plugin-access`, so the registration
+path (`definePolicies` → `guardResource` → `sealNamespace` from a consuming plugin) executes under
+test for the first time. Its coverage report reads `405/431 admin routes declared`. Granting the
+test admin the seeded super-admin role was required to make the suite pass, which is itself
+evidence the guard enforces. The 401-without-token cases still pass, confirming Medusa's auth
+still runs ahead of the guard.
 
-**Phase 2 — binding.** `withPolicies` + handler identity via the Phase 1 `traceRoute` hook, plus
-a boot-time drift report.
+Enforcement behaviour is covered in access's own spec: sealing (404 unsealed → 403 sealed, sibling
+prefixes untouched) and AND-layering with a partially-granted, non-super admin.
+
+**Phase 2 — binding. DONE.** `withPolicies` + handler identity via the Phase 1 `traceRoute` hook,
+plus a boot-time drift report.
 
 *Correction to the original plan.* This phase was written as "retire `compileMatcher` and the
 pinned `core-route-policies.ts` in favour of matchers from the running app." That is not
@@ -669,31 +813,81 @@ matching.
 *Provenance matters in the drift report.* `guardResource` emits a complete CRUD surface on
 purpose, so its unmatched entries are protective, not rotted. Reporting them made the check noisy
 enough to ignore, so guards carry a `source` and only hand-written ones are flagged. Against
-`apps/backend` this cut the report from 27 entries to 20 real ones — including the 14
-`/admin/rbac/*` leftovers a manual audit had previously found, plus `DELETE /admin/claims/:id`,
-`DELETE /admin/exchanges/:id`, `POST /admin/inventory-items/batch`, and two wildcards that match
-nothing.
+`apps/backend` this removed the `guardResource` noise and left only hand-written declarations —
+dominated by the `/admin/rbac/*` leftovers from the fork origin (this plugin serves
+`/admin/access/**`, and core's rbac routes are flag-disabled so never register), plus a handful of
+core routes that no longer exist and two wildcards matching nothing.
 
-**Phase 3 — scope, gate half.** Grant/scope model, `owner` + `sales_channel`,
-`defineOwnership`. Gate enforcement only.
+*Counts deliberately omitted.* Earlier drafts cited specific totals that disagreed with each other
+and with the code. Any number here is a runtime observation against one app at one commit — run
+the report rather than trusting a figure in this document.
 
-> **Blocked on defect #4** (§6), which remains open — a short-TTL attempt was reviewed and
-> reverted. Customer actors resolving roles through groups puts several graph hops on every
-> storefront request against a cache that does not engage. Request-scoped memoization is the
-> likely fix and may be sufficient on its own.
+**Phase 3 — scope, gate half. DEFERRED.** Two independent adversarial reviews found the model in
+§1 unsound as designed. Deferring is not a scheduling call — the design needs revision before it
+is worth building.
 
-**Phase 4 — scope, filter half.** Query interceptor in `req.scope`. All hazards in §5 apply.
-Affiliate portal is the natural first consumer — root-scoped, our own routes.
+**Claims in §1 that are false against the code:**
+
+1. *"Single-resource routes 404."* **64 of 72 core admin DELETE routes never call `query.graph`**
+   (`DELETE /admin/products/:id` runs `deleteProductsWorkflow(ids)` with no fetch). A scope filter
+   never runs, and the row is deleted.
+2. *"A filter cannot be forgotten … never a post-hoc row test."* §1's own worked example
+   (`DELETE /store/reviews/:id`) is implemented as a module-service `retrieve` plus
+   `if (customer_id === actorId)` plus a 403 — precisely the pattern the design cites Vendure for
+   as unsafe, already in the tree and working.
+3. *"They compose where needed … filters OR together."* `(grant AND channel) OR owner` puts the
+   owner branch **outside** the channel constraint, so `owner` is a `sales_channel` bypass.
+4. *"The operation set is closed."* `definePolicies` appends any operation to a global registry,
+   and `default-policy-operations.ts` snapshots that global at import time — so what
+   `generateResourcePolicies` emits is load-order dependent. (`export` has since been added to
+   the default set; the appending behaviour remains.)
+
+**Structural problems, independent of those claims:**
+
+- **OR is not expressible.** `PermissionAction` is `{ resource, operation }` with no grouping, and
+  `matchRoutePolicies` returns a flat array that `hasPermission` ANDs. `operation: string[]`
+  already means AND (four core declarations rely on it), so it cannot be reused for alternation.
+  Adding `owner`-OR requires changing the return shape consumed by `requirePolicies`,
+  `registerRoutePolicies`, `withPolicies`, and every consumer's declaration block.
+- **A route can carry two resources with different owners.** `POST /admin/complaints/:id/activities`
+  requires `complaint:update` (subtree floor) **and** `complaint_activity:update`. "Ownership"
+  means `complaint.customer_id` on one and `complaint_activity.user_id` — the authoring admin — on
+  the other. One scope name, two predicates, one flat list, no disambiguation.
+- **Gate-only `owner` is worse than no `owner`.** Phase 3 as scoped delivers the gate without the
+  filter, so an `OR owner` route would let every authenticated actor past and narrow nothing —
+  shipping the exact Vendure failure mode the design exists to avoid.
+- **A column predicate cannot express most ownership here.** `form_submission` has no owner column
+  at all; `complaint_document`/`complaint_note` are owned only through the parent complaint;
+  `review.customer_id` is nullable with `author_email` alongside for imported reviews.
+- **Union vs intersection is unspecified** for a customer in multiple groups. Grants must union;
+  an AND-scope must intersect. The design uses one word ("role") for both axes.
+- **The `guardResource`-floor-defeats-OR mitigation is advisory only.** Nothing enforces it,
+  `getRouteCoverage` reports such a route as covered, `getStaleGuards` excludes `guardResource`
+  entries, and a super admin never sees the failure.
+
+**Before revisiting, settle:** the grouping structure for `PermissionAction`; whether `owner`
+binds to a resource rather than a route; whether `owner` escapes the channel constraint (default:
+it should not); union-vs-intersection; and an honest enumeration of which handlers a filter can
+actually reach.
+
+**Phase 4 — scope, filter half.** Deferred with Phase 3. Query interceptor in `req.scope`; all
+hazards in §5 apply, plus: the callable query accepts three argument shapes (`{entity}`,
+`{entryPoint, variables}`, `{__value}` — the last being what all `REMOTE_QUERY` call sites
+produce), and `.gql()` takes a GraphQL string that cannot be filtered without parsing.
+`.index()` also deletes and replaces `queryOptions.filters` before re-entering `.graph` on the
+prototype.
 
 **Phase 5 — field pruning.** Extend the Phase 4 interceptor to prune `queryOptions.fields`.
 Single layer — `queryConfig.disallowed` is off limits along with the rest of the core field
 filters. Post-query `res.json` pass retained as the final attempt. Requires the clean-room
 path→entity resolver (see §4 provenance note). No core flags, no core-RBAC dependency.
 
-**Docs are not a phase.** Each phase carries its own README changes per §7 — Phase 1 rewrites
-"Guarding your own API routes", Phase 3 adds "Scoping access to rows" and the Concepts additions,
-and `hasPermission` gets promoted whenever MCP tool gating lands. A phase is not done until its
-examples are true.
+**Docs are not a phase — and this rule has already been broken.** §7 says each phase carries its
+own README changes and that "a phase is not done until its examples are true." Phases 1 and 2 have
+shipped and **the README has not been touched**, so it still teaches the per-route
+`requirePolicies` API as the primary mechanism and does not mention `guardResource`,
+`sealNamespace`, `withPolicies`, the coverage report, or `export`. That is now the largest
+outstanding gap in this document.
 
 **Phase 6 — admin UI restructure.** Separate plan, after the backend work. Target is a single
 root path `/settings/access`, replacing today's two top-level entries (`/settings/access-roles`,
@@ -726,7 +920,7 @@ Notes already established, so the plan doesn't rediscover them:
   actively expanding. "Reduce noise in this list" is never the justification for a feature here.
 - Field-level (scalar) access control.
 - Nested row filtering. Would require a core change we are not pursuing (see
-  [UPSTREAM.md](./UPSTREAM.md), retained for reference only).
+  [docs/UPSTREAM - access.md](../../docs/UPSTREAM%20-%20access.md), retained for reference only).
 - Admin cross-channel row scoping as a hard boundary.
 - The 14 packages with no access declarations yet. Known, tracked separately, not a design input.
 
@@ -735,17 +929,25 @@ Notes already established, so the plan doesn't rediscover them:
 ## 10. TODO
 
 - **Prune stale entries from `core-route-policies.ts` via the generator.** The Phase 2 drift
-  report flags 20 declarations matching no registered route — 14 `/admin/rbac/*` leftovers from
-  the fork origin, `DELETE /admin/claims/:id`, `DELETE /admin/exchanges/:id`,
+  report flags declarations matching no registered route — mostly `/admin/rbac/*` leftovers from
+  the fork origin, plus `DELETE /admin/claims/:id`, `DELETE /admin/exchanges/:id`,
   `POST /admin/inventory-items/batch`, and the `/admin/product-variants/*` and
   `/admin/tax-providers/*` wildcards. The file is generated, so hand-edits are lost on the next
   run: the fix belongs in `scripts/gen-core-route-policies.cjs`. Harmless today (a guard for a
   path that does not exist never fires), so this is hygiene, not a defect.
-- **A test app with two plugins installed**, so a consuming plugin's *choice* of policy per route
-  can be tested — coverage proves a declaration exists, not that it is correct (§8).
-- **`export` as a fifth operation**, and the decision about moving export routes outside their
-  resource prefix. Until then `/admin/complaints/pdf-export` picks up `complaint:update` from the
-  subtree floor: stricter than intended, not wrong.
+- **README rewrite for Phases 1 and 2** — the largest outstanding gap. Per §7 the docs should have
+  shipped with those phases; they did not. The README still teaches per-route `requirePolicies`
+  and mentions none of `guardResource`, `sealNamespace`, `withPolicies`, the coverage report, or
+  `export`.
+- **Close the operation set for real.** `export` has been added to `defaultOperations`, but
+  `definePolicies` still appends any operation a caller passes to the global registry, and
+  `default-policy-operations.ts` snapshots that global at import time — so what
+  `generateResourcePolicies` emits is load-order dependent. "Closed" means plugins cannot define
+  operations ad hoc; that is not enforced yet.
+- **Export routes under a resource prefix inherit the subtree operation.**
+  `/admin/complaints/pdf-export` picks up `complaint:update` from the `/*` floor rather than
+  `complaint:export` — stricter than intended, not wrong. Resolving it means either moving export
+  routes outside the prefix or teaching `guardResource` about them.
 - **`AdminUpdateAccessRole.policy_ids`** — the workflow reads it, the validator does not accept
   it. Expose it, or drop it from the workflow (§6).
 - **Dead list filter `parent_id`** on `AdminGetAccessRolesParamsFields` — `access_role` has no

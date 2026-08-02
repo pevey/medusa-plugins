@@ -1,8 +1,7 @@
 import * as QueryConfig from './query-config'
 
 import { validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework'
-import { MiddlewareRoute } from '@medusajs/framework/http'
-import { PolicyOperation } from '../../../../utils'
+import { AccessMiddlewareRoute, PolicyOperation } from '../../../../utils'
 
 import { Entities } from './query-config'
 import {
@@ -16,12 +15,12 @@ import {
 	AdminUpdateAccessRole
 } from './validators'
 
-export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
+export const adminAccessRoleRoutesMiddlewares: AccessMiddlewareRoute[] = [
 	{
 		method: ['GET'],
 		matcher: '/admin/access/roles',
 		middlewares: [validateAndTransformQuery(AdminGetAccessRolesParams, QueryConfig.listTransformQueryConfig)],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.access_role,
 				operation: PolicyOperation.read
@@ -32,7 +31,7 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 		method: ['GET'],
 		matcher: '/admin/access/roles/assignable',
 		middlewares: [validateAndTransformQuery(AdminGetAccessRolesParams, QueryConfig.listTransformQueryConfig)],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.access_role,
 				operation: PolicyOperation.read
@@ -43,7 +42,7 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 		method: ['GET'],
 		matcher: '/admin/access/roles/:id',
 		middlewares: [validateAndTransformQuery(AdminGetAccessRoleParams, QueryConfig.retrieveTransformQueryConfig)],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.access_role,
 				operation: PolicyOperation.read
@@ -57,7 +56,7 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 			validateAndTransformBody(AdminCreateAccessRole),
 			validateAndTransformQuery(AdminGetAccessRoleParams, QueryConfig.retrieveTransformQueryConfig)
 		],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.access_role,
 				operation: PolicyOperation.create
@@ -71,7 +70,7 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 			validateAndTransformBody(AdminUpdateAccessRole),
 			validateAndTransformQuery(AdminGetAccessRoleParams, QueryConfig.retrieveTransformQueryConfig)
 		],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.access_role,
 				operation: PolicyOperation.update
@@ -82,7 +81,7 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 		method: ['GET'],
 		matcher: '/admin/access/roles/:id/policies',
 		middlewares: [validateAndTransformQuery(AdminGetAccessRoleParams, QueryConfig.retrieveRolePoliciesTransformQueryConfig)],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.access_role,
 				operation: PolicyOperation.read
@@ -96,7 +95,7 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 			validateAndTransformBody(AdminAddRolePoliciesType),
 			validateAndTransformQuery(AdminGetAccessRoleParams, QueryConfig.retrieveRolePoliciesTransformQueryConfig)
 		],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.access_role,
 				operation: PolicyOperation.update
@@ -107,7 +106,7 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 		method: ['DELETE'],
 		matcher: '/admin/access/roles/:id/policies/:policy_id',
 		middlewares: [],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.access_role,
 				operation: PolicyOperation.update
@@ -118,7 +117,7 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 		method: ['GET'],
 		matcher: '/admin/access/roles/:id/users',
 		middlewares: [validateAndTransformQuery(AdminGetRoleUsersParams, QueryConfig.listRoleUsersTransformQueryConfig)],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.user,
 				operation: PolicyOperation.read
@@ -129,7 +128,7 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 		method: ['POST'],
 		matcher: '/admin/access/roles/:id/users',
 		middlewares: [validateAndTransformBody(AdminAssignRoleUsers)],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.user,
 				operation: PolicyOperation.update
@@ -144,7 +143,7 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 		method: ['DELETE'],
 		matcher: '/admin/access/roles/:id/users',
 		middlewares: [validateAndTransformBody(AdminRemoveRoleUsers)],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.user,
 				operation: PolicyOperation.update
@@ -159,7 +158,7 @@ export const adminAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 		method: ['DELETE'],
 		matcher: '/admin/access/roles/:id',
 		middlewares: [],
-		policies: [
+		accessPolicies: [
 			{
 				resource: Entities.access_role,
 				operation: PolicyOperation.delete

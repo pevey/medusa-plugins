@@ -34,7 +34,7 @@ type DefaultPolicyResources = Record<string, string>
 const PolicyResource: DefaultPolicyResources & Record<string, string> = global.AccessPolicyResource ?? {}
 global.AccessPolicyResource ??= PolicyResource
 
-const defaultOperations = ['read', 'create', 'update', 'delete', WILDCARD]
+const defaultOperations = ['read', 'create', 'update', 'delete', 'export', WILDCARD]
 
 const PolicyOperation: Record<string, string> & {
 	readonly read: 'read'

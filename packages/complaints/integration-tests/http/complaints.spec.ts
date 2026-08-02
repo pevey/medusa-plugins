@@ -32,7 +32,7 @@
 
 import fs from 'fs/promises'
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
-import { Modules } from '@medusajs/framework/utils'
+import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
 import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
 import { ComplaintService } from '../../src/modules/complaint/service'
 import {
@@ -77,7 +77,7 @@ medusaIntegrationTestRunner({
 				body: { email: 'complaint-test@example.com', password: 'Sup3rSecret!' }
 			})
 
-			await createUserAccountWorkflow(container).run({
+			const { result: user } = await createUserAccountWorkflow(container).run({
 				input: {
 					authIdentityId: authIdentity!.id,
 					userData: {
@@ -86,6 +86,22 @@ medusaIntegrationTestRunner({
 						last_name: 'Tester'
 					}
 				}
+			})
+
+			// medusa-plugin-access is installed (see medusa-config.ts), so its global
+			// /admin/* guard is live and these routes are gated by the guardResource
+			// declarations in src/api/middlewares.ts. Grant the seeded super-admin role
+			// so this suite exercises the happy path.
+			//
+			// NOTE: this suite asserts no 403s — it proves the declarations do not BLOCK
+			// a fully-privileged actor, not that they deny an under-privileged one.
+			// Enforcement semantics (sealing, AND-layering, partially-granted actors)
+			// are covered in the access plugin's own spec. Adding a denial case here
+			// would be the natural way to prove complaints' specific policy choices.
+			const link = container.resolve(ContainerRegistrationKeys.LINK)
+			await (link as any).create({
+				[Modules.USER]: { user_id: user.id },
+				access: { access_role_id: 'acrl_super_admin' }
 			})
 
 			const loginRes = await api.post('/auth/user/emailpass', {

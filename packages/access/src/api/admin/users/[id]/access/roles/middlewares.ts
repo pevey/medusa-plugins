@@ -1,15 +1,15 @@
 import { validateAndTransformBody, validateAndTransformQuery } from '@medusajs/framework'
-import { MiddlewareRoute } from '@medusajs/framework/http'
+import { AccessMiddlewareRoute } from '../../../../../../utils'
 import { PolicyOperation } from 'medusa-plugin-access/utils'
 import * as QueryConfig from './query-config'
 import { AdminAssignUserRoles, AdminGetUserRolesParams, AdminRemoveUserRoles } from './validators'
 
-export const adminUserAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
+export const adminUserAccessRoleRoutesMiddlewares: AccessMiddlewareRoute[] = [
 	{
 		method: ['GET'],
 		matcher: '/admin/users/:id/access/roles',
 		middlewares: [validateAndTransformQuery(AdminGetUserRolesParams, QueryConfig.listUserRolesTransformQueryConfig)],
-		policies: [
+		accessPolicies: [
 			{ resource: 'user', operation: PolicyOperation.read },
 			{ resource: 'access_role', operation: PolicyOperation.read }
 		]
@@ -18,7 +18,7 @@ export const adminUserAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 		method: ['POST'],
 		matcher: '/admin/users/:id/access/roles',
 		middlewares: [validateAndTransformBody(AdminAssignUserRoles)],
-		policies: [
+		accessPolicies: [
 			{ resource: 'user', operation: PolicyOperation.update },
 			{ resource: 'access_role', operation: PolicyOperation.update }
 		]
@@ -26,7 +26,7 @@ export const adminUserAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 	{
 		method: ['DELETE'],
 		matcher: '/admin/users/:id/access/roles/:role_id',
-		policies: [
+		accessPolicies: [
 			{ resource: 'user', operation: PolicyOperation.update },
 			{ resource: 'access_role', operation: PolicyOperation.update }
 		]
@@ -35,7 +35,7 @@ export const adminUserAccessRoleRoutesMiddlewares: MiddlewareRoute[] = [
 		method: ['DELETE'],
 		matcher: '/admin/users/:id/access/roles',
 		middlewares: [validateAndTransformBody(AdminRemoveUserRoles)],
-		policies: [
+		accessPolicies: [
 			{ resource: 'user', operation: PolicyOperation.update },
 			{ resource: 'access_role', operation: PolicyOperation.update }
 		]

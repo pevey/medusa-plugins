@@ -26,6 +26,37 @@ export type ResolvePermissionsInput = {
 type RolePoliciesCache = Map<string, Map<string, Set<string>>>
 
 /**
+ * Marks a container as request-scoped, opting it into per-request memoization
+ * of role→policy resolution.
+ *
+ * Opt-in rather than automatic because `hasPermission` is also called with the
+ * ROOT container (jobs, subscribers, CLI). Memoizing there would persist for the
+ * process lifetime — an unbounded stale cache, which is the failure mode we are
+ * explicitly avoiding.
+ */
+const REQUEST_SCOPE = Symbol.for('access.requestScope')
+
+/** In-flight promise per (request scope, role). */
+const requestMemo = new WeakMap<object, Map<string, Promise<Map<string, Set<string>>>>>()
+
+/** Called once per request by the guard; see {@link REQUEST_SCOPE}. */
+export function markRequestScope(container: MedusaContainer): void {
+	;(container as any)[REQUEST_SCOPE] = true
+}
+
+function memoFor(container: MedusaContainer): Map<string, Promise<Map<string, Set<string>>>> | undefined {
+	if (!(container as any)?.[REQUEST_SCOPE]) {
+		return undefined
+	}
+	let memo = requestMemo.get(container as unknown as object)
+	if (!memo) {
+		memo = new Map()
+		requestMemo.set(container as unknown as object, memo)
+	}
+	return memo
+}
+
+/**
  * Wildcard-aware matching: does any of the roles grant `(resource, operation)`?
  * Single source of truth for `*:*` / `resource:*` / `*:op` semantics.
  */
@@ -49,8 +80,18 @@ export async function hasPermission(input: HasPermissionInput): Promise<boolean>
 	const roleIds = Array.isArray(roles) ? roles : [roles]
 	const actionList = Array.isArray(actions) ? actions : [actions]
 
-	if (!roleIds?.length || !actionList?.length) {
+	// Nothing required => nothing to check.
+	if (!actionList?.length) {
 		return true
+	}
+
+	// No roles => no grants => cannot satisfy a requirement. This previously
+	// returned true, which `accessGuard` happened to compensate for but callers
+	// using `hasPermission` directly did not: the MCP write gate resolved an
+	// actor's roles, got an empty list for a role-less admin, and was handed
+	// `true`. Fail closed here so every caller inherits the safe default.
+	if (!roleIds?.length) {
+		return false
 	}
 
 	const rolePoliciesMap = await fetchRolePolicies(roleIds, container)
@@ -134,6 +175,21 @@ export async function resolvePermissions(input: ResolvePermissionsInput): Promis
  * ---------------------------------------------------------------------------
  */
 async function fetchSingleRolePolicies(roleId: string, container: MedusaContainer): Promise<Map<string, Set<string>>> {
+	// Store the in-flight PROMISE, not the result: the field filter calls
+	// hasPermission once per entity path and those fire concurrently, so caching
+	// only on completion would still let N identical queries start.
+	const memo = memoFor(container)
+	const inFlight = memo?.get(roleId)
+	if (inFlight) {
+		return inFlight
+	}
+
+	const pending = fetchSingleRolePoliciesUncached(roleId, container)
+	memo?.set(roleId, pending)
+	return pending
+}
+
+async function fetchSingleRolePoliciesUncached(roleId: string, container: MedusaContainer): Promise<Map<string, Set<string>>> {
 	const query = container.resolve(ContainerRegistrationKeys.QUERY)
 
 	const tags: string[] = []

@@ -152,14 +152,17 @@ export function reportRouteCoverage(logger: { info?: Function; warn?: Function; 
 
 	if (!uncovered.length) {
 		logger.info?.(`[access] route coverage: ${covered}/${total} admin routes declared`)
-		return
+	} else {
+		logger.warn?.(`[access] route coverage: ${covered}/${total} admin routes declared — ${uncovered.length} undeclared (these pass unguarded)`)
+		for (const route of uncovered) {
+			logger.debug?.(`[access]   undeclared: ${route.method} ${route.matcher}`)
+		}
 	}
 
-	logger.warn?.(`[access] route coverage: ${covered}/${total} admin routes declared — ${uncovered.length} undeclared (these pass unguarded)`)
-	for (const route of uncovered) {
-		logger.debug?.(`[access]   undeclared: ${route.method} ${route.matcher}`)
-	}
-
+	// Drift is reported regardless of coverage. These are independent signals:
+	// coverage asks "is every route declared", drift asks "does every declaration
+	// still point at a route". A fully-covered app can still carry rotted
+	// declarations, and returning early on 100% coverage silenced exactly that case.
 	const stale = getStaleGuards()
 	if (stale.length) {
 		logger.warn?.(`[access] ${stale.length} policy declaration(s) match no registered route — likely rotted`)

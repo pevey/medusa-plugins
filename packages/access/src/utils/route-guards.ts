@@ -33,21 +33,36 @@ global.AccessSealedNamespaces ??= []
 
 const ALL_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
 
-/** Strip trailing slashes so `/admin/x` and `/admin/x/` behave identically. */
-function normalizePrefix(prefix: string): string {
-	return prefix.replace(/\/+$/, '')
-}
 
 /**
  * Compile an Express-style matcher (`/admin/access/roles/:id`, `/admin/*`) into
  * an anchored RegExp for request-path matching.
+ *
+ * Case-insensitive on purpose. Express is configured with neither
+ * `case sensitive routing` nor `strict routing`, so it happily routes
+ * `/admin/Complaints/abc` to the `/admin/complaints/:id` handler. A
+ * case-sensitive guard would miss that and fail open — capitalisation alone
+ * would bypass both the policy check and `sealNamespace`.
  */
 function compileMatcher(matcher: string): RegExp {
-	const pattern = matcher
+	const pattern = normalizePath(matcher)
 		.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
 		.replace(/:[A-Za-z0-9_]+/g, '[^/]+')
 		.replace(/\*/g, '.*')
-	return new RegExp(`^${pattern}$`)
+	return new RegExp(`^${pattern}$`, 'i')
+}
+
+/**
+ * Canonical form of a request path or matcher for comparison.
+ *
+ * Strips a trailing slash (Express routes `/admin/access/roles/` to the
+ * `/admin/access/roles` handler; a guard that misses it fails open) and
+ * collapses duplicate slashes. Case is handled by the `i` flag rather than
+ * lowercasing, so matcher text stays readable in drift reports.
+ */
+export function normalizePath(path: string): string {
+	const collapsed = path.replace(/\/{2,}/g, '/')
+	return collapsed.length > 1 ? collapsed.replace(/\/+$/, '') : collapsed
 }
 
 /**
@@ -74,16 +89,29 @@ export function requirePolicies(input: {
 }
 
 /**
- * Bulk-register the `policies` declared on a `MiddlewareRoute[]` (e.g. the array
- * a plugin passes to `defineMiddlewares`) into the guard registry — so the
- * co-located `policies:[]` declarations become live enforcement.
+ * A `MiddlewareRoute` carrying this plugin's own co-located policy declaration.
+ *
+ * Deliberately NOT core's `policies` field: that one belongs to core RBAC, and
+ * its only consumer is `wrapWithPoliciesCheck`, which reads roles from the JWT's
+ * `app_metadata`. This plugin resolves roles live from links instead, so if core's
+ * `rbac` flag were ever enabled it would wrap these routes and 403 every one of
+ * them. Using our own key keeps the two systems from colliding.
  */
-export function registerRoutePolicies(routes: MiddlewareRoute[]): void {
+export type AccessMiddlewareRoute = MiddlewareRoute & {
+	accessPolicies?: PermissionAction | PermissionAction[]
+}
+
+/**
+ * Bulk-register the `accessPolicies` declared on a `MiddlewareRoute[]` (e.g. the
+ * array a plugin passes to `defineMiddlewares`) into the guard registry — so the
+ * co-located declarations become live enforcement.
+ */
+export function registerRoutePolicies(routes: AccessMiddlewareRoute[]): void {
 	for (const route of routes) {
-		if (!route.policies) {
+		if (!route.accessPolicies) {
 			continue
 		}
-		const policies = Array.isArray(route.policies) ? route.policies : [route.policies]
+		const policies = Array.isArray(route.accessPolicies) ? route.accessPolicies : [route.accessPolicies]
 		const method = (route as { method?: string | string[] }).method ?? (route as { methods?: string | string[] }).methods
 
 		requirePolicies({
@@ -117,7 +145,7 @@ export function registerRoutePolicies(routes: MiddlewareRoute[]): void {
  */
 export function guardResource(input: { resource: string; prefix: string }): void {
 	const { resource } = input
-	const prefix = normalizePrefix(input.prefix)
+	const prefix = normalizePath(input.prefix)
 	const subtree = `${prefix}/*`
 
 	const source = 'guardResource' as const
@@ -145,7 +173,7 @@ export function guardResource(input: { resource: string; prefix: string }): void
  * per-request, so module load order across plugins cannot affect it.
  */
 export function sealNamespace(prefix: string): void {
-	const normalized = normalizePrefix(prefix)
+	const normalized = normalizePath(prefix)
 	if (!global.AccessSealedNamespaces!.includes(normalized)) {
 		global.AccessSealedNamespaces!.push(normalized)
 	}
@@ -158,7 +186,11 @@ export function sealNamespace(prefix: string): void {
  * must not also seal `/admin/orders`.
  */
 export function isPathSealed(path: string): boolean {
-	return (global.AccessSealedNamespaces ?? []).some(prefix => path === prefix || path.startsWith(`${prefix}/`))
+	const candidate = normalizePath(path).toLowerCase()
+	return (global.AccessSealedNamespaces ?? []).some(prefix => {
+		const p = prefix.toLowerCase()
+		return candidate === p || candidate.startsWith(`${p}/`)
+	})
 }
 
 /** Every registered guard, for drift reporting. */
@@ -172,12 +204,15 @@ export function listRouteGuards(): { matcher: string; methods: string[]; regex: 
  */
 export function matchRoutePolicies(path: string, method: string): PermissionAction[] {
 	const out: PermissionAction[] = []
-	const upper = method.toUpperCase()
+	// Express dispatches HEAD to the GET handler, so a HEAD request must carry
+	// the GET requirement or it is an unauthenticated existence oracle.
+	const upper = method.toUpperCase() === 'HEAD' ? 'GET' : method.toUpperCase()
+	const candidate = normalizePath(path)
 	for (const guard of global.AccessRouteGuards ?? []) {
 		if (!guard.methods.includes(upper)) {
 			continue
 		}
-		if (guard.regex.test(path)) {
+		if (guard.regex.test(candidate)) {
 			out.push(...guard.policies)
 		}
 	}
