@@ -8,6 +8,14 @@ import { PermissionAction } from './has-permission'
  * by the access guard middleware. Stored on `global` so our own routes, ported
  * core-route mappings, and third-party plugins all share one registry.
  */
+/**
+ * Where a declaration came from, which decides whether it can be reported as
+ * rotted. Only `explicit` can: `guardResource` emits a whole CRUD surface and
+ * the core-route map spans more than one Medusa version, so unmatched entries
+ * from either are protective rather than stale.
+ */
+export type GuardSource = 'explicit' | 'guardResource' | 'core-map'
+
 type RouteGuard = {
 	/** Source pattern, retained so drift against real routes can be reported. */
 	matcher: string
@@ -19,7 +27,13 @@ type RouteGuard = {
 	 * on purpose, so its entries matching no route are expected — protective
 	 * rather than rotted — and are excluded from drift reporting.
 	 */
-	source: 'explicit' | 'guardResource'
+	source: GuardSource
+	/**
+	 * Opt-in for a mutating route whose policies already account for row-level
+	 * scope, so a scoped actor is admitted instead of blocked outright. Read by
+	 * the request guard; this module only stores and matches it.
+	 */
+	assertsScope?: boolean
 }
 
 declare global {
@@ -46,12 +60,26 @@ const ALL_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
  * case-sensitive guard would miss that and fail open — capitalisation alone
  * would bypass both the policy check and `sealNamespace`.
  */
-function compileMatcher(matcher: string): RegExp {
-	const pattern = normalizePath(matcher)
+function toPattern(matcher: string): string {
+	return normalizePath(matcher)
 		.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
 		.replace(/:[A-Za-z0-9_]+/g, '[^/]+')
 		.replace(/\*/g, '.*')
-	return new RegExp(`^${pattern}$`, 'i')
+}
+
+/**
+ * `exclude` compiles to leading negative lookaheads, which is what lets a guard
+ * cover a subtree *except* for named paths beneath it. Layering a second guard
+ * on the exception cannot express this: {@link matchRoutePolicies} unions every
+ * match and the guard ANDs them, so the excepted path would require both the
+ * subtree's operation and its own. The exclusion has to come out of the floor.
+ *
+ * `(?:/|$)` bounds each exclusion on a segment, so excluding `pdf-export` does
+ * not also exclude `pdf-export-log`.
+ */
+function compileMatcher(matcher: string, exclude: string[] = []): RegExp {
+	const lookaheads = exclude.map(path => `(?!${toPattern(path)}(?:/|$))`).join('')
+	return new RegExp(`^${lookaheads}${toPattern(matcher)}$`, 'i')
 }
 
 /**
@@ -67,15 +95,13 @@ export function normalizePath(path: string): string {
 	return collapsed.length > 1 ? collapsed.replace(/\/+$/, '') : collapsed
 }
 
-/**
- * Declare the policies required to access a route. Any plugin can call this to
- * make our global guard enforce their route.
- */
-export function requirePolicies(input: {
+function registerGuard(input: {
 	matcher: string
 	method?: string | string[]
 	policies: PermissionAction | PermissionAction[]
-	source?: 'explicit' | 'guardResource'
+	source: GuardSource
+	assertsScope?: boolean
+	exclude?: string[]
 }): void {
 	const methods = (Array.isArray(input.method) ? input.method : input.method ? [input.method] : ALL_METHODS).map(m => m.toUpperCase())
 
@@ -83,11 +109,44 @@ export function requirePolicies(input: {
 
 	global.AccessRouteGuards!.push({
 		matcher: input.matcher,
-		regex: compileMatcher(input.matcher),
+		regex: compileMatcher(input.matcher, input.exclude),
 		methods,
 		policies,
-		source: input.source ?? 'explicit'
+		source: input.source,
+		assertsScope: input.assertsScope
 	})
+}
+
+/**
+ * Declare the policies required to access a route. Any plugin can call this to
+ * make our global guard enforce their route.
+ *
+ * `source` is deliberately not an input: it drives drift reporting, and a
+ * declaration that could label itself `guardResource` could exempt itself from
+ * being reported as rotted.
+ */
+export function requirePolicies(input: {
+	matcher: string
+	method?: string | string[]
+	policies: PermissionAction | PermissionAction[]
+	assertsScope?: boolean
+}): void {
+	registerGuard({ ...input, source: 'explicit' })
+}
+
+/**
+ * Register declarations about Medusa's own admin routes — the pinned core map
+ * and the hand-written supplements that fill its gaps.
+ *
+ * Separate from {@link requirePolicies} so these carry a `core-map` source:
+ * both describe routes this package does not own, across a peer range spanning
+ * more than one Medusa version, so an entry matching no route in the installed
+ * version is expected rather than rotted and must not be reported as drift.
+ */
+export function registerCoreRoutePolicies(entries: { matcher: string; methods?: string[]; policies: PermissionAction[] }[]): void {
+	for (const entry of entries) {
+		registerGuard({ matcher: entry.matcher, method: entry.methods, policies: entry.policies, source: 'core-map' })
+	}
 }
 
 /**
@@ -101,6 +160,13 @@ export function requirePolicies(input: {
  */
 export type AccessMiddlewareRoute = MiddlewareRoute & {
 	accessPolicies?: PermissionAction | PermissionAction[]
+	/**
+	 * Opt a scoped mutation in from the co-located declaration. Without it a
+	 * scoped actor is denied at the door on any mutating method, so a route
+	 * declared this way had no way to express intent short of a second,
+	 * free-standing {@link requirePolicies} call.
+	 */
+	assertsScope?: boolean
 }
 
 /**
@@ -119,7 +185,8 @@ export function registerRoutePolicies(routes: AccessMiddlewareRoute[]): void {
 		requirePolicies({
 			matcher: String(route.matcher),
 			method,
-			policies: policies as PermissionAction[]
+			policies: policies as PermissionAction[],
+			assertsScope: route.assertsScope
 		})
 	}
 }
@@ -144,22 +211,38 @@ export function registerRoutePolicies(routes: AccessMiddlewareRoute[]): void {
  *
  * Do not apply this over routes where ownership is a valid alternative
  * satisfier — the subtree floor is AND-ed, so it would defeat the OR.
+ *
+ * `exports` names subtree paths, relative to the prefix, that require the
+ * `export` operation *instead of* the method-derived floor — so an actor
+ * holding `complaint:export` but not `complaint:update` can reach
+ * `POST /admin/complaints/pdf-export`. An explicit list rather than sniffing
+ * names for `export`: a convention would guess, a list states intent.
  */
-export function guardResource(input: { resource: string; prefix: string }): void {
-	const { resource } = input
+export function guardResource(input: { resource: string; prefix: string; assertsScope?: boolean; exports?: string[] }): void {
+	const { resource, assertsScope } = input
 	const prefix = normalizePath(input.prefix)
 	const subtree = `${prefix}/*`
 
 	const source = 'guardResource' as const
 
-	requirePolicies({ matcher: prefix, method: ['GET'], policies: [{ resource, operation: 'read' }], source })
-	requirePolicies({ matcher: prefix, method: ['POST'], policies: [{ resource, operation: 'create' }], source })
-	requirePolicies({ matcher: prefix, method: ['PUT', 'PATCH'], policies: [{ resource, operation: 'update' }], source })
-	requirePolicies({ matcher: prefix, method: ['DELETE'], policies: [{ resource, operation: 'delete' }], source })
+	const exportPaths = (input.exports ?? []).map(path => normalizePath(`${prefix}/${path.replace(/^\//, '')}`))
+	const exclude = exportPaths.length ? exportPaths : undefined
 
-	requirePolicies({ matcher: subtree, method: ['GET'], policies: [{ resource, operation: 'read' }], source })
-	requirePolicies({ matcher: subtree, method: ['POST', 'PUT', 'PATCH'], policies: [{ resource, operation: 'update' }], source })
-	requirePolicies({ matcher: subtree, method: ['DELETE'], policies: [{ resource, operation: 'delete' }], source })
+	registerGuard({ matcher: prefix, method: ['GET'], policies: [{ resource, operation: 'read' }], source, assertsScope })
+	registerGuard({ matcher: prefix, method: ['POST'], policies: [{ resource, operation: 'create' }], source, assertsScope })
+	registerGuard({ matcher: prefix, method: ['PUT', 'PATCH'], policies: [{ resource, operation: 'update' }], source, assertsScope })
+	registerGuard({ matcher: prefix, method: ['DELETE'], policies: [{ resource, operation: 'delete' }], source, assertsScope })
+
+	registerGuard({ matcher: subtree, method: ['GET'], policies: [{ resource, operation: 'read' }], source, assertsScope, exclude })
+	registerGuard({ matcher: subtree, method: ['POST', 'PUT', 'PATCH'], policies: [{ resource, operation: 'update' }], source, assertsScope, exclude })
+	registerGuard({ matcher: subtree, method: ['DELETE'], policies: [{ resource, operation: 'delete' }], source, assertsScope, exclude })
+
+	for (const path of exportPaths) {
+		// Every method: the carve-out removed this path from the floor entirely,
+		// so anything not declared here would fail open rather than fall back.
+		registerGuard({ matcher: `${path}/*`, policies: [{ resource, operation: 'export' }], source, assertsScope })
+		registerGuard({ matcher: path, policies: [{ resource, operation: 'export' }], source, assertsScope })
+	}
 }
 
 /**
@@ -218,8 +301,32 @@ export function isPathSealed(path: string): boolean {
 }
 
 /** Every registered guard, for drift reporting. */
-export function listRouteGuards(): { matcher: string; methods: string[]; regex: RegExp; source: 'explicit' | 'guardResource' }[] {
+export function listRouteGuards(): { matcher: string; methods: string[]; regex: RegExp; source: GuardSource }[] {
 	return (global.AccessRouteGuards ?? []).map(({ matcher, methods, regex, source }) => ({ matcher, methods, regex, source }))
+}
+
+/**
+ * Declarations requiring this exact `(resource, operation)` grant.
+ *
+ * Exact only: a wildcard declaration does not count as requiring a specific
+ * operation, because it is satisfied by any grant on the resource and so is not
+ * affected when one particular operation turns out to be unholdable.
+ *
+ * Exists so a policy that was refused registration can be reported against the
+ * routes it leaves stranded — the registry lives here, so the matching does too.
+ */
+export function findGuardsRequiring(resource: string, operation: string): { matcher: string; methods: string[] }[] {
+	return (global.AccessRouteGuards ?? [])
+		.filter(guard =>
+			guard.policies.some(action => {
+				if (action.resource !== resource) {
+					return false
+				}
+				const operations = Array.isArray(action.operation) ? action.operation : [action.operation]
+				return operations.includes(operation)
+			})
+		)
+		.map(({ matcher, methods }) => ({ matcher, methods }))
 }
 
 type GuardIndex = { bySegment: Map<string, RouteGuard[]>; unindexed: RouteGuard[] }
@@ -289,11 +396,11 @@ function getIndex(): GuardIndex {
 }
 
 /**
- * Return the union of policies required for `path`+`method` across all
- * registered guards (empty ⇒ the route is unguarded).
+ * Yield every registered guard matching `path`+`method`, in the same order
+ * `matchRoutePolicies` has always checked them. Shared so it and
+ * `routeAssertsScopes` cannot drift onto different matching rules.
  */
-export function matchRoutePolicies(path: string, method: string): PermissionAction[] {
-	const out: PermissionAction[] = []
+function* matchingGuards(path: string, method: string): Generator<RouteGuard> {
 	// Express dispatches HEAD to the GET handler, so a HEAD request must carry
 	// the GET requirement or it is an unauthenticated existence oracle.
 	const upper = method.toUpperCase() === 'HEAD' ? 'GET' : method.toUpperCase()
@@ -301,14 +408,7 @@ export function matchRoutePolicies(path: string, method: string): PermissionActi
 	const index = getIndex()
 	const segment = indexableSegment(candidate)
 
-	const collect = (guard: RouteGuard) => {
-		if (!guard.methods.includes(upper)) {
-			return
-		}
-		if (guard.regex.test(candidate)) {
-			out.push(...guard.policies)
-		}
-	}
+	const matches = (guard: RouteGuard) => guard.methods.includes(upper) && guard.regex.test(candidate)
 
 	if (segment) {
 		// Two sequential loops instead of spreading both lists into a fresh
@@ -319,17 +419,45 @@ export function matchRoutePolicies(path: string, method: string): PermissionActi
 		const bucket = index.bySegment.get(segment)
 		if (bucket) {
 			for (const guard of bucket) {
-				collect(guard)
+				if (matches(guard)) {
+					yield guard
+				}
 			}
 		}
 		for (const guard of index.unindexed) {
-			collect(guard)
+			if (matches(guard)) {
+				yield guard
+			}
 		}
 	} else {
 		for (const guard of global.AccessRouteGuards ?? []) {
-			collect(guard)
+			if (matches(guard)) {
+				yield guard
+			}
 		}
 	}
+}
 
+/**
+ * Return the union of policies required for `path`+`method` across all
+ * registered guards (empty ⇒ the route is unguarded).
+ */
+export function matchRoutePolicies(path: string, method: string): PermissionAction[] {
+	const out: PermissionAction[] = []
+	for (const guard of matchingGuards(path, method)) {
+		out.push(...guard.policies)
+	}
 	return out
+}
+
+/**
+ * Whether any guard matching `path`+`method` opted into `assertsScope`.
+ */
+export function routeAssertsScopes(path: string, method: string): boolean {
+	for (const guard of matchingGuards(path, method)) {
+		if (guard.assertsScope) {
+			return true
+		}
+	}
+	return false
 }

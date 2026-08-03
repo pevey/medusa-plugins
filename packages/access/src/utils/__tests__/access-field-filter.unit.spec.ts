@@ -1,4 +1,4 @@
-jest.mock('@medusajs/modules-sdk', () => ({
+jest.mock('@medusajs/framework/modules-sdk', () => ({
 	MedusaModule: {
 		getAllJoinerConfigs: () => [
 			{
@@ -35,8 +35,8 @@ beforeAll(() => {
 	definePolicies({ name: 'ReadOrder', resource: 'order', operation: 'read' })
 })
 
-describe('AccessFieldFilter -- strict everywhere until a query interceptor exists', () => {
-	it('keeps root fields for an unrestricted root grant', async () => {
+describe('AccessFieldFilter -- read access, scoped or not', () => {
+	it('keeps fields for an unrestricted grant', async () => {
 		const filter = new AccessFieldFilter({
 			policies: [{ resource: 'customer', operation: 'read' }] as any,
 			userRoles: ['role_1'],
@@ -51,7 +51,10 @@ describe('AccessFieldFilter -- strict everywhere until a query interceptor exist
 		expect(notAllowed).toEqual([])
 	})
 
-	it('strips root fields for a scoped root grant -- nothing has narrowed the rows yet', async () => {
+	it('keeps fields for a grant held only at a scope', async () => {
+		// A scoped grant IS read access. `hasPermission` reports false for one
+		// because a boolean caller cannot narrow rows -- irrelevant here, where the
+		// question is whether the field path survives, not which rows come back.
 		const filter = new AccessFieldFilter({
 			policies: [{ resource: 'customer', operation: 'read' }] as any,
 			userRoles: ['role_1'],
@@ -63,14 +66,14 @@ describe('AccessFieldFilter -- strict everywhere until a query interceptor exist
 			parsedFields: { fields: new Set(['id']), starFields: new Set() }
 		})
 
-		expect(notAllowed).toEqual(['id'])
+		expect(notAllowed).toEqual([])
 	})
 
-	it('strips root fields for an outright denial', async () => {
+	it('strips fields for an outright denial', async () => {
 		const filter = new AccessFieldFilter({
 			policies: [{ resource: 'customer', operation: 'read' }] as any,
 			userRoles: ['role_1'],
-			container: containerFor([])
+			container: containerFor([{ resource: 'order', operation: 'read', scope: null }])
 		})
 
 		const notAllowed = await filter.getNotAllowedFields({
@@ -81,21 +84,53 @@ describe('AccessFieldFilter -- strict everywhere until a query interceptor exist
 		expect(notAllowed).toEqual(['id'])
 	})
 
-	it('strips a nested scoped grant -- a nested collection cannot be row-filtered', async () => {
+	it('keeps a nested relation the actor holds only at a scope', async () => {
+		// The regression this suite exists for: an actor with order:read@channel
+		// asking for customers?fields=id,orders.* used to get no orders at all.
 		const filter = new AccessFieldFilter({
 			policies: [{ resource: 'customer', operation: 'read' }] as any,
 			userRoles: ['role_1'],
 			container: containerFor([
 				{ resource: 'customer', operation: 'read', scope: null },
-				{ resource: 'order', operation: 'read', scope: 'own' }
+				{ resource: 'order', operation: 'read', scope: 'sales_channel' }
 			])
 		})
 
 		const notAllowed = await filter.getNotAllowedFields({
 			entity: 'customer',
-			parsedFields: { fields: new Set(['orders.id']), starFields: new Set() }
+			parsedFields: { fields: new Set(['id', 'orders.id']), starFields: new Set() }
+		})
+
+		expect(notAllowed).toEqual([])
+	})
+
+	it('strips a nested relation the actor holds no grant on', async () => {
+		const filter = new AccessFieldFilter({
+			policies: [{ resource: 'customer', operation: 'read' }] as any,
+			userRoles: ['role_1'],
+			container: containerFor([{ resource: 'customer', operation: 'read', scope: null }])
+		})
+
+		const notAllowed = await filter.getNotAllowedFields({
+			entity: 'customer',
+			parsedFields: { fields: new Set(['id', 'orders.id']), starFields: new Set() }
 		})
 
 		expect(notAllowed).toEqual(['orders.id'])
+	})
+
+	it('leaves scalar columns alone -- gating is at entity grain only', async () => {
+		const filter = new AccessFieldFilter({
+			policies: [{ resource: 'customer', operation: 'read' }] as any,
+			userRoles: ['role_1'],
+			container: containerFor([{ resource: 'customer', operation: 'read', scope: null }])
+		})
+
+		const notAllowed = await filter.getNotAllowedFields({
+			entity: 'customer',
+			parsedFields: { fields: new Set(['id', 'email']), starFields: new Set() }
+		})
+
+		expect(notAllowed).toEqual([])
 	})
 })

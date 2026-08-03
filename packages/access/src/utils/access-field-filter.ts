@@ -1,8 +1,9 @@
 import { GraphQLUtils, promiseAll, toSnakeCase } from '@medusajs/framework/utils'
-import { MedusaModule } from '@medusajs/modules-sdk'
+import { MedusaModule } from '@medusajs/framework/modules-sdk'
 import type { MedusaContainer } from '@medusajs/framework/types'
-import { hasPermission } from './has-permission'
+import { authorize } from './has-permission'
 import { PolicyDefinition, PolicyResource } from './define-policies'
+import { graphqlTypeForAlias, joinerConfigCount } from './query-roots'
 
 export interface ParsedFields {
 	fields: Set<string>
@@ -15,7 +16,22 @@ export interface FieldFilterContext {
 }
 
 export interface IFieldFilter {
-	getNotAllowedFields(context: FieldFilterContext): Promise<string[]> | string[]
+	resolveFieldAccess(context: FieldFilterContext): Promise<FieldAccess>
+}
+
+/** A kept path whose read grant is held only within a scope. */
+export type ScopedFieldPath = {
+	/** Path as the caller wrote it, relative to the query root. */
+	path: string
+	resource: string
+	scopes: string[]
+}
+
+export type FieldAccess = {
+	/** Paths to drop outright — no read grant at all. */
+	notAllowed: string[]
+	/** Paths kept, but whose rows still need narrowing to the actor's scopes. */
+	scoped: ScopedFieldPath[]
 }
 
 /**
@@ -30,10 +46,22 @@ const baseGraphqlSchema = `
 
 const primitiveTypes = new Set(['String', 'Int', 'Float', 'Boolean', 'ID', 'DateTime', 'JSON'])
 
-// Cache for the schema and entity mappings to avoid re-parsing the GraphQL
+// Parsing the joiner schemas is expensive, so both derived structures are
+// cached — keyed on the module count, so a module registering after the first
+// lookup rebuilds them instead of resolving forever against a stale schema.
 let cachedSchema: GraphQLUtils.GraphQLSchema | null = null
 let cachedEntityMap: Map<string, EntityMapping> | null = null
-let cachedEntityAliasMap: Map<string, string> | null = null
+let cachedBuiltFrom = -1
+
+function invalidateStaleCaches(): void {
+	const count = joinerConfigCount()
+	if (cachedBuiltFrom === count) {
+		return
+	}
+	cachedBuiltFrom = count
+	cachedSchema = null
+	cachedEntityMap = null
+}
 
 interface EntityMapping {
 	entityName: string
@@ -78,42 +106,6 @@ function getExecutableSchema(): GraphQLUtils.GraphQLSchema | null {
  * Builds entity alias map from joiner configs
  * Maps all possible aliases (e.g., "variant", "variants") to canonical entity names (e.g., "ProductVariant")
  */
-function buildEntityAliasMap(): Map<string, string> {
-	const moduleJoinerConfigs = MedusaModule.getAllJoinerConfigs()
-	const aliasMap = new Map<string, string>()
-
-	for (const config of moduleJoinerConfigs) {
-		if (!config.alias) {
-			continue
-		}
-
-		const aliases = Array.isArray(config.alias) ? config.alias : [config.alias]
-		for (const alias of aliases) {
-			const aliasNames = Array.isArray(alias.name) ? alias.name : [alias.name]
-			if (!alias.entity) {
-				continue
-			}
-
-			const targetEntity = alias.entity
-			for (const aliasName of aliasNames) {
-				aliasMap.set(aliasName, targetEntity)
-			}
-		}
-	}
-
-	return aliasMap
-}
-
-/**
- * Gets the entity alias map, building it if necessary
- */
-function getEntityAliasMap(): Map<string, string> {
-	if (!cachedEntityAliasMap) {
-		cachedEntityAliasMap = buildEntityAliasMap()
-	}
-	return cachedEntityAliasMap
-}
-
 function getSchemaFromJoinerConfigs(moduleJoinerConfigs: any[]): string {
 	const schemaParts: string[] = []
 
@@ -273,6 +265,8 @@ function buildExecutableSchema(): GraphQLUtils.GraphQLSchema | null {
  * e.g., "product.variants.prices" -> "Price" (from resolved alias path)
  */
 function getActualEntityName(fieldPath: string): string | null {
+	invalidateStaleCaches()
+
 	const schema = getExecutableSchema()
 
 	if (!schema) {
@@ -281,11 +275,10 @@ function getActualEntityName(fieldPath: string): string | null {
 
 	const entitiesMap = schema.getTypeMap()
 	const entityMap = getEntityMap()
-	const entityAliasMap = getEntityAliasMap()
 	const parts = fieldPath.split('.')
 
 	const entryPoint = parts[0]!
-	const resolvedEntityName = entityAliasMap.get(entryPoint)
+	const resolvedEntityName = graphqlTypeForAlias(entryPoint)
 
 	if (!resolvedEntityName) {
 		return null
@@ -372,8 +365,15 @@ function collectUniqueEntityPaths(entity: string, fields: string[]): Map<string,
 }
 
 /**
- * RBAC Field Filter using the Strategy pattern
- * Optimized for parallel permission checks
+ * Decides which of a query's requested field paths the actor may not read.
+ *
+ * Exists to close the link-expansion bypass: the route guard gates routes, but
+ * `fields=` lets one route reach other entities, so `GET /admin/customers?
+ * fields=orders.*` would read orders while holding only `customer:read`.
+ *
+ * Entity grain only. A path is checked only when it resolves to a registered
+ * policy resource, so scalar columns are never gated — column-level control is
+ * deliberately out of scope.
  */
 export class AccessFieldFilter implements IFieldFilter {
 	private policies: PolicyDefinition[]
@@ -386,13 +386,22 @@ export class AccessFieldFilter implements IFieldFilter {
 		this.container = container
 	}
 
-	async getNotAllowedFields(context: FieldFilterContext): Promise<string[]> {
+	/**
+	 * Returns the requested field paths to drop, as the caller wrote them
+	 * (relative to `entity`), so an empty array means everything is readable.
+	 *
+	 * Two callers, on either side of the query:
+	 *  - `installFieldFilter` (access-guard) strips them from the response body;
+	 *  - `makeFieldPruner` (access-guard) removes them from the selection before
+	 *    the query runs, so the data is never fetched.
+	 */
+	async resolveFieldAccess(context: FieldFilterContext): Promise<FieldAccess> {
 		const { entity, parsedFields } = context
 		const { fields, starFields } = parsedFields
 		const fieldsToCheck = [...fields, ...Array.from(starFields)]
 
 		if (!fieldsToCheck.length || !this.policies.length || !entity) {
-			return []
+			return { notAllowed: [], scoped: [] }
 		}
 
 		const uniquePaths = collectUniqueEntityPaths(entity, fieldsToCheck)
@@ -404,55 +413,80 @@ export class AccessFieldFilter implements IFieldFilter {
 			}
 		}
 
-		// Strict for every path, root included: no query interceptor narrows rows
-		// yet, so a scoped grant strips the field the same as an outright denial
-		// would. A root carve-out (keep fields when the guard already narrowed the
-		// rows) only becomes correct once that interceptor exists -- and even then
-		// it must also confirm the root entity is among the route's declared
-		// resources, since a route can require `complaint:read` while its response
-		// root is `complaint_activity` (see guardResource's subtree policies).
+		// `authorize`, not `hasPermission`. The strict boolean reports `false` for a
+		// grant held only at a scope, which is right for a caller that would
+		// otherwise hand a scoped actor unnarrowed rows — and wrong here. This
+		// decides whether a field path survives, not which rows come back, so a
+		// scoped `order:read` is read access to orders and the branch stays.
 		const permissionResults = await promiseAll(
 			pathsNeedingCheck.map(async ({ path, entityName }) => {
-				const hasAccess = await hasPermission({
+				const decision = await authorize({
 					roles: this.userRoles,
 					actions: { resource: entityName, operation: 'read' },
 					container: this.container
 				})
-				return { path, hasAccess }
+				if (!decision.granted) {
+					return { path, entityName, hasAccess: false, scopes: [] as string[] }
+				}
+				return {
+					path,
+					entityName,
+					hasAccess: true,
+					scopes: decision.scopes.filter(scope => scope.resource === entityName).map(scope => scope.scope)
+				}
 			})
 		)
 
 		const accessMap = new Map<string, boolean>()
+		const scopeMap = new Map<string, { resource: string; scopes: string[] }>()
 		for (const result of permissionResults) {
 			accessMap.set(result.path, result.hasAccess)
+			if (result.hasAccess && result.scopes.length) {
+				scopeMap.set(result.path, { resource: result.entityName, scopes: result.scopes })
+			}
 		}
 
-		const notAllowedFields: string[] = []
+		const notAllowed: string[] = []
+		const scoped: ScopedFieldPath[] = []
+
 		for (const field of fieldsToCheck) {
 			const fullFieldPath = entity + '.' + field
 			const pathSegments = fullFieldPath.split('.')
 
 			let currentPath = ''
 			let fieldAllowed = true
+			let narrowing: { resource: string; scopes: string[] } | undefined
+			let narrowingPath = ''
 
 			for (let i = 0; i < pathSegments.length; i++) {
 				currentPath = i === 0 ? pathSegments[i] : currentPath + '.' + pathSegments[i]
 
-				// Check if this path was in our permission check results
-				if (accessMap.has(currentPath)) {
-					const hasAccess = accessMap.get(currentPath)!
-					if (!hasAccess) {
-						fieldAllowed = false
-						break
-					}
+				if (accessMap.has(currentPath) && !accessMap.get(currentPath)) {
+					fieldAllowed = false
+					break
+				}
+				// The outermost scoped ancestor wins: narrowing `orders` already
+				// decides which `orders.items` come back with it.
+				if (!narrowing && scopeMap.has(currentPath) && currentPath !== entity) {
+					narrowing = scopeMap.get(currentPath)
+					narrowingPath = currentPath.slice(entity.length + 1)
 				}
 			}
 
 			if (!fieldAllowed) {
-				notAllowedFields.push(field)
+				notAllowed.push(field)
+				continue
+			}
+			if (narrowing && !scoped.some(entry => entry.path === narrowingPath)) {
+				scoped.push({ path: narrowingPath, resource: narrowing.resource, scopes: narrowing.scopes })
 			}
 		}
 
-		return notAllowedFields
+		return { notAllowed, scoped }
+	}
+
+	/** Just the paths to drop, for callers with no rows to narrow. */
+	async getNotAllowedFields(context: FieldFilterContext): Promise<string[]> {
+		return (await this.resolveFieldAccess(context)).notAllowed
 	}
 }

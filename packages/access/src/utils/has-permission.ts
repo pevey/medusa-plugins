@@ -1,6 +1,7 @@
 import { MedusaContainer } from '@medusajs/framework/types'
-import { ContainerRegistrationKeys, useCache } from '@medusajs/framework/utils'
+import { useCache } from '@medusajs/framework/utils'
 import { WILDCARD } from './define-policies'
+import { resolveUnscopedQuery } from './scoped-query'
 
 export type PermissionAction = {
 	resource: string
@@ -347,7 +348,7 @@ async function fetchSingleRolePolicies(roleId: string, container: MedusaContaine
 }
 
 async function fetchSingleRolePoliciesUncached(roleId: string, container: MedusaContainer): Promise<Map<string, Map<string, Set<string | null>>>> {
-	const query = container.resolve(ContainerRegistrationKeys.QUERY)
+	const query = resolveUnscopedQuery(container)
 
 	const tags: string[] = []
 	return await useCache<Map<string, Map<string, Set<string | null>>>>(

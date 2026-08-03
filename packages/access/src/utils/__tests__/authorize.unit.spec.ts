@@ -140,3 +140,18 @@ describe('hasPermission is strict', () => {
 		)
 	})
 })
+
+describe('permission lookups bypass a scoped query', () => {
+	it('resolves ACCESS_UNSCOPED_QUERY in preference to QUERY when registered', async () => {
+		const unscopedGraph = jest.fn().mockResolvedValue({ data: [{ id: 'acrl_1', policies: [{ resource: 'customer', operation: 'delete', scope: null }] }] })
+		const scopedGraph = jest.fn().mockResolvedValue({ data: [{ id: 'acrl_1', policies: [] }] })
+		const container = {
+			hasRegistration: (key: string) => key === 'access_unscoped_query',
+			resolve: (key: string) => (key === 'access_unscoped_query' ? { graph: unscopedGraph } : { graph: scopedGraph })
+		} as any
+
+		await expect(hasPermission({ roles: 'acrl_1', actions: { resource: 'customer', operation: 'delete' }, container })).resolves.toBe(true)
+		expect(unscopedGraph).toHaveBeenCalled()
+		expect(scopedGraph).not.toHaveBeenCalled()
+	})
+})

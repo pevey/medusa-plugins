@@ -1,7 +1,7 @@
 import { Context, FindConfig, InferEntityType, ModulesSdkTypes } from '@medusajs/framework/types'
 import { InjectManager, InjectTransactionManager, MedusaContext, MedusaError, MedusaService, Modules, promiseAll } from '@medusajs/framework/utils'
 import { Policy, WILDCARD } from '../../utils'
-import { reportRouteCoverage } from '../../utils/route-coverage'
+import { reportDiscardedPolicies, reportRouteCoverage } from '../../utils/route-coverage'
 import {
 	AccessRoleDTO,
 	CreateAccessRoleParentDTO,
@@ -65,6 +65,10 @@ export class AccessModuleService
 			// Runs after entrypoints load, so every route has registered by now.
 			// Advisory only — undeclared routes still pass unless sealed.
 			reportRouteCoverage(logger)
+
+			// Not advisory: a discarded policy strands every route requiring it, so
+			// this runs where routes are known and can be named alongside it.
+			reportDiscardedPolicies(logger)
 
 			try {
 				const eventBus = (this.container_ as any)[Modules.EVENT_BUS]

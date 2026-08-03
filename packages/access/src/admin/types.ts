@@ -71,8 +71,22 @@ export type AdminAccessRolePolicy = {
 	deleted_at?: string | null
 }
 
+// Grants this role holds through a parent role. Separate from `policies`
+// because they are not this role's own link rows: they have no link id and
+// cannot be detached here, only from the role named in `inherited_from_role_id`.
+export type AdminInheritedRolePolicy = {
+	policy_id: string
+	policy: string
+	resource: string
+	operation: string
+	scope: string | null
+	inherited_from_role_id: string
+	inherited_from_role_name: string | null
+}
+
 export type AdminAccessRolePoliciesResponse = {
 	policies: AdminAccessRolePolicy[]
+	inherited: AdminInheritedRolePolicy[]
 	count: number
 	offset: number
 	limit: number

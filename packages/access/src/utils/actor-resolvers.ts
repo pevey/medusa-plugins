@@ -1,7 +1,9 @@
 import { MedusaContainer } from '@medusajs/framework/types'
-import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils'
+import { MedusaError } from '@medusajs/framework/utils'
 import type { RequestHandler } from 'express'
 import { normalizePath } from './route-guards'
+import { resolveUnscopedQuery } from './scoped-query'
+import { rearmWarnings } from './warn-once'
 
 export type ActorRoleResolver = (actorId: string, container: MedusaContainer) => Promise<string[]>
 
@@ -98,6 +100,11 @@ export function registerActorResolver(input: { actorType: string; resolve: Actor
 	if (authenticate && prefixes) {
 		global.AccessActorAuthenticators!.set(actorType, { authenticate, prefixes })
 	}
+
+	// Registering a resolver is how the "no resolver for actor type" warning
+	// gets fixed, so let it warn again rather than stay silent on the strength
+	// of a warning emitted before the fix.
+	rearmWarnings('actor-type')
 }
 
 /**
@@ -143,7 +150,7 @@ export async function resolveActorRoles(actorType: string, actorId: string, cont
 const linkedAccessRoles =
 	(entity: string): ActorRoleResolver =>
 	async (actorId, container) => {
-		const query = container.resolve(ContainerRegistrationKeys.QUERY)
+		const query = resolveUnscopedQuery(container)
 		const { data } = await query.graph({
 			entity,
 			fields: ['access_roles.id'],
@@ -155,7 +162,7 @@ const linkedAccessRoles =
 registerBuiltinActorResolver({ actorType: 'user', resolve: linkedAccessRoles('user') })
 
 const customerAccessRoles: ActorRoleResolver = async (actorId, container) => {
-	const query = container.resolve(ContainerRegistrationKeys.QUERY)
+	const query = resolveUnscopedQuery(container)
 	const { data } = await query.graph({
 		entity: 'customer',
 		fields: ['access_roles.id', 'groups.access_roles.id'],

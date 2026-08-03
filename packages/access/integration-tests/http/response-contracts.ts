@@ -51,6 +51,7 @@ import type {
 	AdminAccessRole,
 	AdminAccessRoleResponse,
 	AdminAccessRolePolicy,
+	AdminInheritedRolePolicy,
 	AdminAccessRolePoliciesResponse,
 	AdminAccessRoleUser,
 	AdminAccessRoleUsersResponse,
@@ -161,8 +162,21 @@ export const AdminAccessRolePolicySchema = z.strictObject({
 const _rolePolicySchemaMatchesType: AdminAccessRolePolicy = {} as z.infer<typeof AdminAccessRolePolicySchema>
 const _rolePolicyTypeMatchesSchema: z.infer<typeof AdminAccessRolePolicySchema> = {} as AdminAccessRolePolicy
 
+export const AdminInheritedRolePolicySchema = z.strictObject({
+	policy_id: z.string(),
+	policy: z.string(),
+	resource: z.string(),
+	operation: z.string(),
+	scope: z.string().nullable(),
+	inherited_from_role_id: z.string(),
+	inherited_from_role_name: z.string().nullable()
+})
+const _inheritedSchemaMatchesType: AdminInheritedRolePolicy = {} as z.infer<typeof AdminInheritedRolePolicySchema>
+const _inheritedTypeMatchesSchema: z.infer<typeof AdminInheritedRolePolicySchema> = {} as AdminInheritedRolePolicy
+
 export const AdminAccessRolePoliciesResponseSchema = z.strictObject({
 	policies: z.array(AdminAccessRolePolicySchema),
+	inherited: z.array(AdminInheritedRolePolicySchema),
 	count: z.number(),
 	offset: z.number(),
 	limit: z.number()

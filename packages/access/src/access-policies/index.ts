@@ -1,3 +1,4 @@
+export * from './admin-surfaces'
 export * from './customer'
 export * from './inventory'
 export * from './order'

@@ -52,10 +52,12 @@ export class AccessRepository extends MikroOrmBase {
         p.created_at,
         p.updated_at,
         rp.scope,
-        CASE WHEN rp.role_id = rh.original_role_id THEN NULL ELSE rp.role_id END as inherited_from_role_id
+        CASE WHEN rp.role_id = rh.original_role_id THEN NULL ELSE rp.role_id END as inherited_from_role_id,
+        CASE WHEN rp.role_id = rh.original_role_id THEN NULL ELSE gr.name END as inherited_from_role_name
       FROM access_policy p
       INNER JOIN access_role_policy rp ON rp.policy_id = p.id
       INNER JOIN role_hierarchy rh ON rh.id = rp.role_id
+      INNER JOIN access_role gr ON gr.id = rp.role_id AND gr.deleted_at IS NULL
       WHERE p.deleted_at IS NULL AND rp.deleted_at IS NULL
       ORDER BY rh.original_role_id, p.resource, p.operation, p.key
     `

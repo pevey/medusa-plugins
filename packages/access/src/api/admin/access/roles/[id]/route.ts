@@ -2,6 +2,7 @@ import { deleteAccessRolesWorkflow, updateAccessRolesWorkflow } from 'medusa-plu
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
 import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils'
 
+import { assertScope } from '../../../../../utils'
 import { AdminUpdateAccessRoleType } from '../validators'
 
 /**
@@ -41,6 +42,10 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAccessRole
 	if (!existingRole) {
 		throw new MedusaError(MedusaError.Types.NOT_FOUND, `Role with id "${req.params.id}" not found`)
 	}
+
+	// The workflow below writes by selector through the module service, which the
+	// interceptor cannot narrow — so the scope has to be proven here.
+	await assertScope(req, { resource: 'access_role', id: req.params.id })
 
 	const { result } = await updateAccessRolesWorkflow(req.scope).run({
 		input: {

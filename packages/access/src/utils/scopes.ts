@@ -1,5 +1,6 @@
 import { MedusaContainer } from '@medusajs/framework/types'
 import { MedusaError } from '@medusajs/framework/utils'
+import { rearmWarnings } from './warn-once'
 
 export type ScopeActor = { id: string; type: string }
 
@@ -28,6 +29,13 @@ export function defineScope(input: { name: string; resource: string; filter: Sco
 		throw new MedusaError(MedusaError.Types.INVALID_DATA, `defineScope: "${input.resource}:${input.name}" is already registered.`)
 	}
 	byName.set(input.name, input.filter)
+
+	// Registering a scope is how an operator fixes an unenforceable or
+	// non-canonical scope warning, so let those warn again — otherwise a
+	// process-lifetime dedupe leaves a fixed configuration indistinguishable
+	// from an unfixed one until restart.
+	rearmWarnings('unenforceable-scope')
+	rearmWarnings('non-canonical-scope')
 }
 
 export function getScope(resource: string, name: string): ScopeFilter | undefined {

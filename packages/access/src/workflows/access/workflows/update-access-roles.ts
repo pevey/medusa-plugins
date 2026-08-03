@@ -1,7 +1,7 @@
 import { isDefined } from '@medusajs/framework/utils'
 import { WorkflowData, WorkflowResponse, createWorkflow, transform, when } from '@medusajs/framework/workflows-sdk'
 import { UpdateAccessRoleDTO } from '../../../modules/access/types'
-import { createAccessRolePoliciesStep, resolveInheritedActionsStep, setRoleParentStep } from '../steps'
+import { resolveInheritedActionsStep, setRoleParentStep } from '../steps'
 import { updateAccessRolesStep } from '../steps/update-access-roles'
 import { validateUserPermissionsStep } from '../steps/validate-user-permissions'
 
@@ -15,7 +15,6 @@ export type UpdateAccessRolesWorkflowInput = {
 	selector: Record<string, any>
 	update: Omit<UpdateAccessRoleDTO, 'id'> & {
 		parent_ids?: string[]
-		policy_ids?: string[]
 	}
 }
 
@@ -38,18 +37,17 @@ export const updateAccessRolesWorkflow = createWorkflow(updateAccessRolesWorkflo
 
 	const inheritedActions = resolveInheritedActionsStep({ role_ids: parentIds })
 
-	const validationData = transform({ input, inheritedActions }, ({ input, inheritedActions }) => {
-		const policyIds = input.update.policy_ids || []
-		return {
-			actor_id: input.actor_id!,
-			policies: policyIds.map(policy_id => ({ policy_id })),
-			actor: input.actor,
-			actions: inheritedActions
-		}
-	})
+	// Grants are assigned through the role-policies endpoint, not here — a second
+	// write path onto the same link table is the bug class this workflow already
+	// paid for once with `parent_id`/`parent_ids`.
+	const validationData = transform({ input, inheritedActions }, ({ input, inheritedActions }) => ({
+		actor_id: input.actor_id!,
+		actor: input.actor,
+		actions: inheritedActions
+	}))
 
 	when({ validationData }, ({ validationData }) => {
-		return !!validationData?.actor_id && (!!validationData?.policies?.length || !!validationData?.actions?.length)
+		return !!validationData?.actor_id && !!validationData?.actions?.length
 	}).then(() => {
 		validateUserPermissionsStep(validationData)
 	})
@@ -77,26 +75,6 @@ export const updateAccessRolesWorkflow = createWorkflow(updateAccessRolesWorkflo
 	})
 
 	setRoleParentStep(parentUpdateData)
-
-	const policiesUpdateData = transform({ input, updatedRoles }, ({ input, updatedRoles }) => {
-		if (!isDefined(input.update.policy_ids)) {
-			return { policies: [] }
-		}
-
-		const allPolicies: any[] = []
-		updatedRoles.forEach(role => {
-			const policyIds = input.update.policy_ids || []
-			policyIds.forEach(policyId => {
-				allPolicies.push({
-					role_id: role.id,
-					policy_id: policyId
-				})
-			})
-		})
-		return { policies: allPolicies }
-	})
-
-	createAccessRolePoliciesStep(policiesUpdateData)
 
 	return new WorkflowResponse(updatedRoles)
 })

@@ -29,7 +29,7 @@ export const useAccessRole = (id: string | undefined) => {
 export const useCreateAccessRole = () => {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: { name: string; description?: string; parent_id?: string; policy_ids?: string[] }) =>
+		mutationFn: (data: { name: string; description?: string; parent_ids?: string[]; policy_ids?: string[] }) =>
 			sdk.client.fetch<AdminAccessRoleResponse>('/admin/access/roles', {
 				method: 'POST',
 				body: data

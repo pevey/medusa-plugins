@@ -1,6 +1,6 @@
 import { ApiLoader } from '@medusajs/framework/http'
-import { getHandlerPolicies } from './route-binding'
-import { listRouteGuards, matchesPrefixOnSegmentBoundary, matchRoutePolicies, requirePolicies } from './route-guards'
+import { CLOSED_OPERATIONS, DiscardedPolicy, listDiscardedPolicies } from './define-policies'
+import { findGuardsRequiring, listRouteGuards, matchesPrefixOnSegmentBoundary, matchRoutePolicies, normalizePath } from './route-guards'
 
 export type RegisteredRoute = {
 	matcher: string
@@ -49,17 +49,7 @@ export function installRouteRegistry(): void {
 	const prev = ApiLoader.traceRoute
 
 	ApiLoader.traceRoute = (handler, route) => {
-		const matcher = String(route.route)
-
-		global.AccessRegisteredRoutes!.push({ matcher, method: route.method })
-
-		// Handler-bound declarations (see `withPolicies`) are resolved here, where
-		// the original function reference and Medusa's own matcher are both in
-		// hand — so the author never writes the path themselves.
-		const bound = getHandlerPolicies(handler)
-		if (bound?.length) {
-			requirePolicies({ matcher, method: route.method, policies: bound })
-		}
+		global.AccessRegisteredRoutes!.push({ matcher: String(route.route), method: route.method })
 
 		return prev ? prev(handler, route) : handler
 	}
@@ -70,7 +60,11 @@ export function installRouteRegistry(): void {
  * can be tested against the guard registry, which matches request *paths*.
  */
 function toProbePath(matcher: string): string {
-	return matcher.replace(/:[A-Za-z0-9_]+/g, '__probe__')
+	// Normalized the same way the guard normalizes a request path. Without it a
+	// route registered as `/admin/widgets/` probes as a string the anchored
+	// matcher `/admin/widgets` cannot match, and the report fabricates a finding
+	// (uncovered here, stale in `getStaleGuards`) out of a trailing slash.
+	return normalizePath(matcher.replace(/:[A-Za-z0-9_]+/g, '__probe__'))
 }
 
 /**
@@ -132,10 +126,12 @@ export function getStaleGuards(prefix = '/admin'): { matcher: string; methods: s
 	return (
 		listRouteGuards()
 			.filter(guard => matchesPrefixOnSegmentBoundary(guard.matcher, prefix))
-			// guardResource emits a full CRUD surface deliberately, so its unmatched
-			// entries are protective (a route added later is already covered), not
-			// rotted. Only hand-written declarations are evidence of drift.
-			.filter(guard => guard.source !== 'guardResource')
+			// `guardResource` emits a full CRUD surface deliberately and the pinned
+			// core map is an upstream snapshot spanning more than one Medusa
+			// version, so unmatched entries from either are protective (a route
+			// added later is already covered), not rotted. Only hand-written
+			// declarations are evidence of drift.
+			.filter(guard => guard.source === 'explicit')
 			.filter(guard => !routes.some(route => guard.methods.includes(route.method) && guard.regex.test(route.probe)))
 			.map(({ matcher, methods }) => ({ matcher, methods }))
 	)
@@ -181,6 +177,68 @@ export function reportRouteCoverage(logger: { info?: Function; warn?: Function; 
 			for (const guard of stale) {
 				logger.debug?.(`[access]   stale: ${guard.methods.join(',')} ${guard.matcher}`)
 			}
+		}
+	}
+}
+
+/**
+ * Every route whose declaration requires a grant that was discarded.
+ *
+ * Matched against both the operation as written and its normalized form: the
+ * policy registry normalizes (`approveOrder` → `approve_order`) but a route
+ * declaration is a hand-written literal, so the two can legitimately differ.
+ */
+function routesStrandedBy(discarded: DiscardedPolicy): { matcher: string; methods: string[] }[] {
+	const separator = discarded.key.lastIndexOf(':')
+	const resources = new Set([discarded.resource, discarded.key.slice(0, separator)])
+	const operations = new Set([discarded.operation, discarded.key.slice(separator + 1)])
+
+	const found = new Map<string, { matcher: string; methods: string[] }>()
+	for (const resource of resources) {
+		for (const operation of operations) {
+			for (const guard of findGuardsRequiring(resource, operation)) {
+				found.set(`${guard.methods.join(',')} ${guard.matcher}`, guard)
+			}
+		}
+	}
+	return [...found.values()]
+}
+
+/**
+ * Report policies refused registration for using an operation outside the
+ * closed set. Called on application start; silent when there are none.
+ *
+ * Detail lines are `warn`, not `debug` as the coverage report uses: that list
+ * can run to dozens of core routes, whereas every line here is a declaration
+ * bug someone has to fix.
+ *
+ * The failure this exists to prevent is a silent one. A discarded policy is a
+ * grant no role can hold, so a route requiring it denies everyone but a
+ * wildcard holder — which presents as "permissions are broken on this route",
+ * not as "someone typed `updte`". Naming the stranded routes is what closes
+ * that gap, so the report leads with them rather than with the policy alone.
+ */
+export function reportDiscardedPolicies(logger: { info?: Function; warn?: Function; debug?: Function } = console): void {
+	const discarded = listDiscardedPolicies()
+	if (!discarded.length) {
+		return
+	}
+
+	logger.warn?.(
+		`[access] ${discarded.length} policy declaration(s) discarded — operation outside the closed set (${CLOSED_OPERATIONS.join(', ')}). Domain verbs such as approve or publish are modelled as update.`
+	)
+
+	for (const policy of discarded) {
+		const origin = policy.declaredIn ? `, declared in ${policy.declaredIn}` : ''
+		logger.warn?.(`[access]   discarded: ${policy.key} (policy "${policy.name}"${origin}) — not registered, so no role can hold this grant`)
+
+		const stranded = routesStrandedBy(policy)
+		if (!stranded.length) {
+			logger.warn?.('[access]     required by: no route — nothing is denied by this until a declaration references it')
+			continue
+		}
+		for (const route of stranded) {
+			logger.warn?.(`[access]     required by: ${route.methods.join(',')} ${route.matcher} — which now denies every actor without a wildcard grant`)
 		}
 	}
 }

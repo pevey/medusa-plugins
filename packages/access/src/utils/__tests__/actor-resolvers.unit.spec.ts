@@ -206,3 +206,18 @@ describe('customer resolves direct and group roles', () => {
 		})
 	})
 })
+
+describe('actor lookups bypass a scoped query', () => {
+	it('resolves ACCESS_UNSCOPED_QUERY in preference to QUERY when registered', async () => {
+		const unscopedGraph = jest.fn().mockResolvedValue({ data: [{ access_roles: [{ id: 'acrl_1' }] }] })
+		const scopedGraph = jest.fn().mockResolvedValue({ data: [{ access_roles: [] }] })
+		const container = {
+			hasRegistration: (key: string) => key === 'access_unscoped_query',
+			resolve: (key: string) => (key === 'access_unscoped_query' ? { graph: unscopedGraph } : { graph: scopedGraph })
+		} as any
+
+		await expect(resolveActorRoles('user', 'usr_1', container)).resolves.toEqual(['acrl_1'])
+		expect(unscopedGraph).toHaveBeenCalled()
+		expect(scopedGraph).not.toHaveBeenCalled()
+	})
+})

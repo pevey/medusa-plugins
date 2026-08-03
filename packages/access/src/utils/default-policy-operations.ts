@@ -1,4 +1,9 @@
-import { PolicyOperation, WILDCARD } from './define-policies'
+import { CLOSED_OPERATIONS, WILDCARD } from './define-policies'
 
-// Default operations for all resources, sourced from our own operation registry.
-export const defaultPolicyOperations = Object.keys(PolicyOperation).filter(key => key !== 'ALL' && key !== WILDCARD)
+/**
+ * Default operations generated for every resource. Derived from the closed set
+ * rather than from the `PolicyOperation` registry: reading the registry at
+ * import time snapshotted whatever had been declared by that point, which made
+ * generated policies depend on module load order.
+ */
+export const defaultPolicyOperations = CLOSED_OPERATIONS.filter(operation => operation !== WILDCARD)

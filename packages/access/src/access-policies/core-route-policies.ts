@@ -1,7 +1,14 @@
-// AUTO-GENERATED from the pinned @medusajs/medusa core admin route policy
-// declarations (the last-MIT snapshot). 351 entries. Regenerate with
-// scripts/gen-core-route-policies.cjs if the pinned Medusa version changes. Feeds
-// the access guard so core admin routes are gated with full parity.
+// AUTO-GENERATED — do not edit by hand.
+//
+// The `policies:[]` declarations @medusajs/medusa ships on its core admin
+// routes, harvested from the installed package. 352 entries.
+//
+// Generated from @medusajs/medusa@2.18.0.
+//
+// Regenerate with scripts/gen-core-route-policies.cjs. Hand-written additions
+// belong in supplemental-route-policies.ts, which this never overwrites.
+
+export const CORE_ROUTE_POLICIES_MEDUSA_VERSION = '2.18.0'
 
 type CoreRoutePolicy = {
 	matcher: string
@@ -1528,6 +1535,16 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 	},
 	{
 		matcher: '/admin/orders/:id/transfer',
+		methods: ['POST'],
+		policies: [
+			{
+				resource: 'order',
+				operation: 'update'
+			}
+		]
+	},
+	{
+		matcher: '/admin/orders/:id/transfer/guest',
 		methods: ['POST'],
 		policies: [
 			{

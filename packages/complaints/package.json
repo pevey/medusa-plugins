@@ -58,7 +58,7 @@
 		"typecheck": "tsc --noEmit -p tsconfig.json && tsc -p tsconfig.admin.json",
 		"test:admin": "vitest run",
 		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests",
-		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit"
+		"test:integration:http": "yarn --cwd ../access build && TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit"
 	},
 	"devDependencies": {
 		"@medusajs/admin-sdk": "2.18.0",

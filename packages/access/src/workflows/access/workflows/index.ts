@@ -8,5 +8,6 @@ export * from './update-access-policies'
 
 export * from './create-access-role-policies'
 export * from './delete-access-role-policies'
+export * from './update-access-role-policies'
 
 export * from './bootstrap-super-admin'

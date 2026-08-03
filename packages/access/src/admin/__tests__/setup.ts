@@ -24,7 +24,7 @@ const routeModules = import.meta.glob('../../api/admin/**/route.ts', { eager: tr
 // three together -- but every one of those middlewares.ts files also imports `PolicyOperation`
 // from the plugin's own `../../../../utils` barrel, to declare each route's `policies: [...]`
 // requirement. That barrel (`src/utils/index.ts`) re-exports `access-guard.ts`,
-// `has-permission.ts`, `define-policies.ts`, `discover-policies.ts`, and `access-field-filter.ts`,
+// `has-permission.ts`, `define-policies.ts`, and `access-field-filter.ts`,
 // which between them import `@medusajs/framework/utils` (-> jsonwebtoken -> jws -> util.inherits,
 // same crash class as a route.ts), `fs/promises`, and `@medusajs/modules-sdk` -- none of it
 // aliased, none of it something a browser bundle can load. Executing any of the three
@@ -75,7 +75,7 @@ const routes = [
 	{
 		matcher: '/admin/access/roles/:id/policies',
 		methods: ['GET'],
-		middlewares: [validateAndTransformQuery(RoleValidators.AdminGetAccessRoleParams, RoleQueryConfig.retrieveRolePoliciesTransformQueryConfig)]
+		middlewares: [validateAndTransformQuery(RoleValidators.AdminGetRolePoliciesParams, RoleQueryConfig.retrieveRolePoliciesTransformQueryConfig)]
 	},
 	{
 		matcher: '/admin/access/roles/:id/policies',
@@ -84,6 +84,11 @@ const routes = [
 			validateAndTransformBody(RoleValidators.AdminAddRolePoliciesType),
 			validateAndTransformQuery(RoleValidators.AdminGetAccessRoleParams, RoleQueryConfig.retrieveRolePoliciesTransformQueryConfig)
 		]
+	},
+	{
+		matcher: '/admin/access/roles/:id/policies/:policy_id',
+		methods: ['POST'],
+		middlewares: [validateAndTransformBody(RoleValidators.AdminUpdateRolePolicyScope)]
 	},
 	{ matcher: '/admin/access/roles/:id/policies/:policy_id', methods: ['DELETE'], middlewares: [] },
 	{

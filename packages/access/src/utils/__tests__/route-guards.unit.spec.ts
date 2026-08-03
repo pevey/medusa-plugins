@@ -1,4 +1,4 @@
-import { guardResource, isPathSealed, matchRoutePolicies, requirePolicies, sealNamespace } from '../route-guards'
+import { guardResource, isPathSealed, matchRoutePolicies, registerRoutePolicies, requirePolicies, routeAssertsScopes, sealNamespace } from '../route-guards'
 
 const resetRegistries = () => {
 	;(global as any).AccessRouteGuards = []
@@ -266,5 +266,112 @@ describe('seal exemptions', () => {
 
 		expect(isPathSealed('/authoring/drafts')).toBe(true)
 		expect(isPathSealed('/auth/session')).toBe(false)
+	})
+})
+
+describe('assertsScope declarations', () => {
+	beforeEach(resetRegistries)
+
+	it('reports true when a matching declaration opts in', () => {
+		requirePolicies({
+			matcher: '/admin/widgets/:id',
+			method: ['DELETE'],
+			policies: [{ resource: 'widget', operation: 'delete' }],
+			assertsScope: true
+		})
+
+		expect(routeAssertsScopes('/admin/widgets/w_1', 'DELETE')).toBe(true)
+	})
+
+	it('reports false when no matching declaration opts in', () => {
+		requirePolicies({ matcher: '/admin/widgets/:id', method: ['DELETE'], policies: [{ resource: 'widget', operation: 'delete' }] })
+
+		expect(routeAssertsScopes('/admin/widgets/w_1', 'DELETE')).toBe(false)
+	})
+
+	it('propagates from guardResource to its subtree declarations', () => {
+		guardResource({ resource: 'widget', prefix: '/admin/widgets', assertsScope: true })
+
+		expect(routeAssertsScopes('/admin/widgets/w_1/parts', 'POST')).toBe(true)
+	})
+})
+
+describe('registerRoutePolicies (co-located declarations)', () => {
+	beforeEach(resetRegistries)
+
+	it('registers the accessPolicies of a co-located route', () => {
+		registerRoutePolicies([{ matcher: '/admin/widgets/:id', method: 'DELETE', accessPolicies: { resource: 'widget', operation: 'delete' } } as any])
+
+		expect(matchRoutePolicies('/admin/widgets/w_1', 'DELETE')).toEqual([{ resource: 'widget', operation: 'delete' }])
+	})
+
+	it('forwards assertsScope, so a scoped mutation can be opted in from the co-located declaration', () => {
+		registerRoutePolicies([
+			{
+				matcher: '/admin/widgets/:id',
+				method: 'DELETE',
+				accessPolicies: { resource: 'widget', operation: 'delete' },
+				assertsScope: true
+			} as any
+		])
+
+		expect(routeAssertsScopes('/admin/widgets/w_1', 'DELETE')).toBe(true)
+	})
+
+	it('leaves assertsScope off when the declaration does not set it', () => {
+		registerRoutePolicies([{ matcher: '/admin/widgets/:id', method: 'DELETE', accessPolicies: { resource: 'widget', operation: 'delete' } } as any])
+
+		expect(routeAssertsScopes('/admin/widgets/w_1', 'DELETE')).toBe(false)
+	})
+})
+
+describe('guardResource export carve-out', () => {
+	beforeEach(resetRegistries)
+
+	it('requires export instead of the subtree floor operation on a declared export path', () => {
+		guardResource({ resource: 'complaint', prefix: '/admin/complaints', exports: ['pdf-export'] })
+
+		expect(matchRoutePolicies('/admin/complaints/pdf-export', 'POST')).toEqual([{ resource: 'complaint', operation: 'export' }])
+		expect(matchRoutePolicies('/admin/complaints/pdf-export', 'GET')).toEqual([{ resource: 'complaint', operation: 'export' }])
+	})
+
+	it('carves the export path out of the floor rather than layering on top of it', () => {
+		guardResource({ resource: 'complaint', prefix: '/admin/complaints', exports: ['pdf-export'] })
+
+		// AND-ing the floor in would mean an actor needed complaint:update as well,
+		// which is exactly the tightening this carve-out exists to undo.
+		const required = matchRoutePolicies('/admin/complaints/pdf-export', 'POST')
+		expect(required).not.toContainEqual({ resource: 'complaint', operation: 'update' })
+	})
+
+	it('carves out the export path subtree too', () => {
+		guardResource({ resource: 'complaint', prefix: '/admin/complaints', exports: ['pdf-export'] })
+
+		expect(matchRoutePolicies('/admin/complaints/pdf-export/status', 'GET')).toEqual([{ resource: 'complaint', operation: 'export' }])
+	})
+
+	it('leaves every other subtree path on the floor', () => {
+		guardResource({ resource: 'complaint', prefix: '/admin/complaints', exports: ['pdf-export'] })
+
+		expect(matchRoutePolicies('/admin/complaints/cmp_1', 'POST')).toEqual([{ resource: 'complaint', operation: 'update' }])
+		expect(matchRoutePolicies('/admin/complaints/cmp_1', 'GET')).toEqual([{ resource: 'complaint', operation: 'read' }])
+	})
+
+	it('does not carve out a sibling that merely shares a string prefix', () => {
+		guardResource({ resource: 'complaint', prefix: '/admin/complaints', exports: ['pdf-export'] })
+
+		expect(matchRoutePolicies('/admin/complaints/pdf-export-log', 'GET')).toEqual([{ resource: 'complaint', operation: 'read' }])
+	})
+
+	it('accepts a leading slash on the declared path', () => {
+		guardResource({ resource: 'complaint', prefix: '/admin/complaints', exports: ['/pdf-export'] })
+
+		expect(matchRoutePolicies('/admin/complaints/pdf-export', 'GET')).toEqual([{ resource: 'complaint', operation: 'export' }])
+	})
+
+	it('leaves the collection root untouched', () => {
+		guardResource({ resource: 'complaint', prefix: '/admin/complaints', exports: ['pdf-export'] })
+
+		expect(matchRoutePolicies('/admin/complaints', 'POST')).toEqual([{ resource: 'complaint', operation: 'create' }])
 	})
 })

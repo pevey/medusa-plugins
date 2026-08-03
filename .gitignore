@@ -12,7 +12,7 @@ yarn-error.log
 .snapshot-*
 /docs
 .idea
-.superpowers
+.remember
 .claude
 CLAUDE.md
 HANDOFF.md

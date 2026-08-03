@@ -17,7 +17,6 @@ const AdminGetAccessRolesParamsFields = z.object({
 	q: z.string().optional(),
 	id: z.union([z.string(), z.array(z.string())]).optional(),
 	name: z.union([z.string(), z.array(z.string())]).optional(),
-	parent_id: z.union([z.string(), z.array(z.string())]).optional(),
 	created_at: createOperatorMap().optional(),
 	updated_at: createOperatorMap().optional(),
 	deleted_at: createOperatorMap().optional()
@@ -78,6 +77,27 @@ export const AdminAddRolePoliciesType = z
 	.strict()
 
 export type AdminAddRolePoliciesType = z.infer<typeof AdminAddRolePoliciesType>
+
+// `GET /admin/access/roles/:id/policies` returns inherited grants alongside
+// direct ones by default; this opts back out to direct links only.
+export type AdminGetRolePoliciesParamsType = z.infer<typeof AdminGetRolePoliciesParams>
+export const AdminGetRolePoliciesParams = createSelectParams().merge(
+	z.object({
+		direct_only: z
+			.union([z.boolean(), z.enum(['true', 'false'])])
+			.transform(value => value === true || value === 'true')
+			.optional()
+	})
+)
+
+// `null` clears the scope, making the grant unrestricted -- which requires the
+// actor to hold the policy unrestricted themselves.
+export type AdminUpdateRolePolicyScopeType = z.infer<typeof AdminUpdateRolePolicyScope>
+export const AdminUpdateRolePolicyScope = z
+	.object({
+		scope: z.string().min(1).nullable()
+	})
+	.strict()
 
 // Not exported: same reason as `AdminGetAccessRolesParamsFields` above.
 const AdminGetRoleUsersParamsFields = z.object({

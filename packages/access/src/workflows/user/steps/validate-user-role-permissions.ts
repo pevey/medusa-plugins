@@ -1,5 +1,5 @@
 import { canGrantScope, resolveActorRoles, resolvePermissions } from '../../../utils'
-import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils'
+import { arrayDifference, ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils'
 import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
 
 /**
@@ -35,11 +35,25 @@ export const validateUserRolePermissionsStep = createStep(
 
 		const query = container.resolve(ContainerRegistrationKeys.QUERY)
 
+		const uniqueRoleIds = [...new Set(role_ids)]
+
 		const { data: targetRoles } = await query.graph({
 			entity: 'access_role',
 			fields: ['id', 'policies.resource', 'policies.operation', 'policies.scope'],
-			filters: { id: role_ids }
+			filters: { id: uniqueRoleIds }
 		})
+
+		// A role narrowed away by a scoped actor's own query (or one that never
+		// existed) must fail closed, not silently skip the anti-escalation check
+		// below by falling through with an empty/partial `actionsToCheck` -- see
+		// `validateUserPermissionsStep` for the sibling pattern.
+		if (targetRoles.length !== uniqueRoleIds.length) {
+			const missingRoleIds = arrayDifference(
+				uniqueRoleIds,
+				targetRoles.map((role: any) => role.id)
+			)
+			throw new MedusaError(MedusaError.Types.NOT_FOUND, `The following roles do not exist: ${missingRoleIds.join(', ')}`)
+		}
 
 		const actionsToCheck: { resource: string; operation: string; scope?: string }[] = []
 		for (const role of targetRoles) {

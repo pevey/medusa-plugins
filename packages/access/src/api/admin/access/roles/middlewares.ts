@@ -10,9 +10,11 @@ import {
 	AdminCreateAccessRole,
 	AdminGetAccessRoleParams,
 	AdminGetAccessRolesParams,
+	AdminGetRolePoliciesParams,
 	AdminGetRoleUsersParams,
 	AdminRemoveRoleUsers,
-	AdminUpdateAccessRole
+	AdminUpdateAccessRole,
+	AdminUpdateRolePolicyScope
 } from './validators'
 
 export const adminAccessRoleRoutesMiddlewares: AccessMiddlewareRoute[] = [
@@ -70,6 +72,10 @@ export const adminAccessRoleRoutesMiddlewares: AccessMiddlewareRoute[] = [
 			validateAndTransformBody(AdminUpdateAccessRole),
 			validateAndTransformQuery(AdminGetAccessRoleParams, QueryConfig.retrieveTransformQueryConfig)
 		],
+		// The handler looks the role up through the scoped query and then calls
+		// `assertScope`, so a scoped `access_role:update` grant can be admitted
+		// here rather than denied at the door as every unopted mutation is.
+		assertsScope: true,
 		accessPolicies: [
 			{
 				resource: Entities.access_role,
@@ -80,7 +86,7 @@ export const adminAccessRoleRoutesMiddlewares: AccessMiddlewareRoute[] = [
 	{
 		method: ['GET'],
 		matcher: '/admin/access/roles/:id/policies',
-		middlewares: [validateAndTransformQuery(AdminGetAccessRoleParams, QueryConfig.retrieveRolePoliciesTransformQueryConfig)],
+		middlewares: [validateAndTransformQuery(AdminGetRolePoliciesParams, QueryConfig.retrieveRolePoliciesTransformQueryConfig)],
 		accessPolicies: [
 			{
 				resource: Entities.access_role,
@@ -95,6 +101,17 @@ export const adminAccessRoleRoutesMiddlewares: AccessMiddlewareRoute[] = [
 			validateAndTransformBody(AdminAddRolePoliciesType),
 			validateAndTransformQuery(AdminGetAccessRoleParams, QueryConfig.retrieveRolePoliciesTransformQueryConfig)
 		],
+		accessPolicies: [
+			{
+				resource: Entities.access_role,
+				operation: PolicyOperation.update
+			}
+		]
+	},
+	{
+		method: ['POST'],
+		matcher: '/admin/access/roles/:id/policies/:policy_id',
+		middlewares: [validateAndTransformBody(AdminUpdateRolePolicyScope)],
 		accessPolicies: [
 			{
 				resource: Entities.access_role,

@@ -1,4 +1,5 @@
-import { getRouteCoverage, getStaleGuards, reportRouteCoverage } from '../route-coverage'
+import { definePolicies } from '../define-policies'
+import { getRouteCoverage, getStaleGuards, reportDiscardedPolicies, reportRouteCoverage } from '../route-coverage'
 import { guardResource, requirePolicies } from '../route-guards'
 
 const reset = (routes: { method: string; matcher: string }[] = []) => {
@@ -160,5 +161,135 @@ describe('drift reporting runs even with zero routes under a prefix (I2 regressi
 		})
 
 		expect(logged.some(m => m.includes('/hooks/legacy'))).toBe(true)
+	})
+})
+
+describe('reportDiscardedPolicies', () => {
+	const capture = () => {
+		const logged: string[] = []
+		const logger = {
+			info: (m: string) => logged.push(m),
+			warn: (m: string) => logged.push(m),
+			debug: (m: string) => logged.push(m)
+		}
+		return { logged, logger }
+	}
+
+	beforeEach(() => {
+		reset()
+		;(global as any).AccessDiscardedPolicies = []
+	})
+
+	afterAll(() => {
+		;(global as any).AccessDiscardedPolicies = []
+	})
+
+	it('is silent when nothing was discarded', () => {
+		const { logged, logger } = capture()
+
+		reportDiscardedPolicies(logger)
+
+		expect(logged).toEqual([])
+	})
+
+	it('names the resource, the operation as written, and the closed set', () => {
+		definePolicies({ name: 'ReportTypo', resource: 'report_thing', operation: 'updte' })
+		const { logged, logger } = capture()
+
+		reportDiscardedPolicies(logger)
+
+		const all = logged.join('\n')
+		expect(all).toContain('report_thing:updte')
+		expect(all).toContain('ReportTypo')
+		// the operator has to be told the set to compare the typo against
+		expect(all).toContain('export')
+	})
+
+	it('states the consequence — that no role can hold the grant', () => {
+		definePolicies({ name: 'ConsequenceTypo', resource: 'consequence_thing', operation: 'updte' })
+		const { logged, logger } = capture()
+
+		reportDiscardedPolicies(logger)
+
+		expect(logged.join('\n')).toMatch(/no role can hold/i)
+	})
+
+	it('names the full route — matcher and methods — of every declaration requiring the discarded grant', () => {
+		definePolicies({ name: 'RoutedTypo', resource: 'routed_thing', operation: 'updte' })
+		requirePolicies({
+			matcher: '/admin/routed-things/:id',
+			method: ['POST', 'PUT'],
+			policies: [{ resource: 'routed_thing', operation: 'updte' }]
+		})
+		const { logged, logger } = capture()
+
+		reportDiscardedPolicies(logger)
+
+		const all = logged.join('\n')
+		expect(all).toContain('/admin/routed-things/:id')
+		expect(all).toContain('POST')
+		expect(all).toContain('PUT')
+	})
+
+	it('matches a declaration that lists the operation among several', () => {
+		definePolicies({ name: 'MultiOpTypo', resource: 'multi_thing', operation: 'updte' })
+		requirePolicies({
+			matcher: '/admin/multi-things',
+			method: ['POST'],
+			policies: [{ resource: 'multi_thing', operation: ['read', 'updte'] }]
+		})
+		const { logged, logger } = capture()
+
+		reportDiscardedPolicies(logger)
+
+		expect(logged.join('\n')).toContain('/admin/multi-things')
+	})
+
+	it('says so when no registered declaration requires the discarded grant', () => {
+		definePolicies({ name: 'OrphanTypo', resource: 'orphan_thing', operation: 'updte' })
+		const { logged, logger } = capture()
+
+		reportDiscardedPolicies(logger)
+
+		expect(logged.join('\n')).toMatch(/no route/i)
+	})
+
+	it('does not attribute a wildcard declaration to the discarded operation', () => {
+		definePolicies({ name: 'WildcardTypo', resource: 'wildcard_thing', operation: 'updte' })
+		requirePolicies({
+			matcher: '/admin/wildcard-things',
+			method: ['POST'],
+			policies: [{ resource: 'wildcard_thing', operation: '*' }]
+		})
+		const { logged, logger } = capture()
+
+		reportDiscardedPolicies(logger)
+
+		expect(logged.join('\n')).not.toContain('/admin/wildcard-things')
+	})
+})
+
+describe('probe normalization', () => {
+	beforeEach(() => reset())
+
+	it('counts a trailing-slash route as covered', () => {
+		reset([{ method: 'GET', matcher: '/admin/widgets/' }])
+		guardResource({ resource: 'widget', prefix: '/admin/widgets' })
+
+		expect(getRouteCoverage().uncovered).toEqual([])
+	})
+
+	it('does not report a declaration stale against a trailing-slash route', () => {
+		reset([{ method: 'GET', matcher: '/admin/widgets/' }])
+		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+
+		expect(getStaleGuards()).toEqual([])
+	})
+
+	it('does not report a declaration stale against a route differing only in case', () => {
+		reset([{ method: 'GET', matcher: '/admin/Widgets' }])
+		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+
+		expect(getStaleGuards()).toEqual([])
 	})
 })

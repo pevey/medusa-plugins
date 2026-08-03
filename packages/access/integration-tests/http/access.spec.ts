@@ -749,6 +749,16 @@ medusaIntegrationTestRunner({
 				const listAfter = await api.get(`/admin/users/${adminUserId}/access/roles`, auth())
 				expect(listAfter.data.roles.map((r: any) => r.id)).not.toContain(roleId)
 			})
+
+			// Assigning a nonexistent role 400s instead (a separate, pre-existing
+			// validateRolesExistStep check in assignUserRolesWorkflow catches it
+			// first) -- removal has no such step, so this is what pins the
+			// narrowed-away/missing-role fail-closed check in
+			// validateUserRolePermissionsStep.
+			it('404s removing a role id that does not exist', async () => {
+				const res = await api.delete(`/admin/users/${adminUserId}/access/roles/acrl_does_not_exist`, auth()).catch((e: any) => e.response)
+				expect(res.status).toBe(404)
+			})
 		})
 
 		describe('enforcement guard', () => {
@@ -818,6 +828,8 @@ medusaIntegrationTestRunner({
 
 		describe('layered declarations (guardResource floor + stricter override)', () => {
 			let floorOnlyToken: string
+			let readOnlyToken: string
+			let exportOnlyToken: string
 
 			beforeAll(async () => {
 				const container = getContainer()
@@ -832,6 +844,7 @@ medusaIntegrationTestRunner({
 					matcher: '/admin/layer-probe/:id/strict*',
 					policies: [{ resource: 'layer_strict', operation: 'update' }]
 				})
+				guardResource({ resource: 'export_probe', prefix: '/admin/export-probe', exports: ['pdf-export'] })
 
 				const accessService: any = container.resolve('access')
 				const floorPolicy = await accessService.createAccessPolicies({
@@ -855,8 +868,61 @@ medusaIntegrationTestRunner({
 					access: { access_role_id: role.id }
 				})
 
+				const grant = async (roleName: string, key: string, resource: string, operation: string, email: string) => {
+					const [existingPolicy] = await accessService.listAccessPolicies({ key })
+					const policy = existingPolicy ?? (await accessService.createAccessPolicies({ key, resource, operation, name: key }))
+					const grantRole = await accessService.createAccessRoles({ name: roleName })
+					await accessService.createAccessRolePolicies({ role_id: grantRole.id, policy_id: policy.id })
+					const actor = await setupAdmin(email)
+					await (link as any).create({ [Modules.USER]: { user_id: actor.userId }, access: { access_role_id: grantRole.id } })
+					return actor.token
+				}
+
+				// Holds layer_probe:read and nothing else.
+				readOnlyToken = await grant('LayerReadOnly', 'layer_probe:read', 'layer_probe', 'read', 'layer-read@example.com')
+				// Holds export_probe:export and nothing else -- not export_probe:update,
+				// which is what the subtree floor would otherwise demand.
+				exportOnlyToken = await grant('ExportProbeExporter', 'export_probe:export', 'export_probe', 'export', 'export-only@example.com')
+
 				await utils.waitWorkflowExecutions()
 				await dbUtils.snapshot()
+			})
+
+			it('denies an under-privileged actor on a guardResource-declared write, and admits its read', async () => {
+				// `guardResource` is the mechanism the README teaches as the default,
+				// and this is its only proof that a read-only actor is refused a write:
+				// every other under-privileged denial here goes through the
+				// assignability workflows or the query interceptor instead.
+				const auth = { headers: { Authorization: `Bearer ${readOnlyToken}` } }
+
+				const onRead = await api.get('/admin/layer-probe', auth).catch((e: any) => e.response)
+				expect(onRead.status).toBe(404)
+
+				const onCreate = await api.post('/admin/layer-probe', {}, auth).catch((e: any) => e.response)
+				expect(onCreate.status).toBe(403)
+
+				const onUpdate = await api.post('/admin/layer-probe/lp_1', {}, auth).catch((e: any) => e.response)
+				expect(onUpdate.status).toBe(403)
+
+				const onDelete = await api.delete('/admin/layer-probe/lp_1', auth).catch((e: any) => e.response)
+				expect(onDelete.status).toBe(403)
+			})
+
+			it('requires the export operation on a declared export path instead of the subtree floor', async () => {
+				// The floor would demand `export_probe:update` on this POST. The
+				// carve-out replaces it, so an actor holding only `export_probe:export`
+				// gets through while the same actor is refused elsewhere in the subtree.
+				const auth = { headers: { Authorization: `Bearer ${exportOnlyToken}` } }
+
+				const onExport = await api.post('/admin/export-probe/pdf-export', {}, auth).catch((e: any) => e.response)
+				expect(onExport.status).toBe(404)
+
+				const onSibling = await api.post('/admin/export-probe/ep_1', {}, auth).catch((e: any) => e.response)
+				expect(onSibling.status).toBe(403)
+
+				// Segment-bounded: a sibling sharing the string prefix stays on the floor.
+				const onPrefixSibling = await api.post('/admin/export-probe/pdf-export-log', {}, auth).catch((e: any) => e.response)
+				expect(onPrefixSibling.status).toBe(403)
 			})
 
 			it('satisfying the floor alone is not enough for a route with a stricter declaration', async () => {
@@ -1423,6 +1489,295 @@ medusaIntegrationTestRunner({
 				)
 
 				expect(res.status).toBe(200)
+			})
+		})
+
+		describe('role-policy admin API (inheritance visibility + scope editing)', () => {
+			const bearer = (token: string) => ({ headers: { Authorization: `Bearer ${token}` } })
+			let superToken: string
+			let parentRoleId: string
+			let childRoleId: string
+			let readPolicyId: string
+
+			beforeAll(async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+
+				const unique = Math.random().toString(36).slice(2)
+				const superAdmin = await setupAdmin(`rp-admin-${unique}@example.com`, { superAdmin: true })
+				superToken = superAdmin.token
+
+				// Registered here rather than reused from another describe: scope
+				// registration is global and order-dependent, and this block must not
+				// depend on which describe ran first.
+				if (!hasScope('access_role', 'rp_probe')) {
+					defineScope({ name: 'rp_probe', resource: 'access_role', filter: async () => ({ id: [] }) })
+				}
+
+				const [readPolicy] = await accessService.listAccessPolicies({ key: 'access_role:read' })
+				readPolicyId = readPolicy.id
+				const [customerDelete] = await accessService.listAccessPolicies({ key: 'customer:delete' })
+
+				const parent = await accessService.createAccessRoles({ name: `RPParent-${unique}` })
+				await accessService.createAccessRolePolicies({ role_id: parent.id, policy_id: readPolicy.id })
+				parentRoleId = parent.id
+
+				const child = await accessService.createAccessRoles({ name: `RPChild-${unique}` })
+				await accessService.createAccessRolePolicies({ role_id: child.id, policy_id: customerDelete.id })
+				await accessService.createAccessRoleParents([{ role_id: child.id, parent_id: parent.id }])
+				childRoleId = child.id
+
+				await utils.waitWorkflowExecutions()
+				await dbUtils.snapshot()
+			})
+
+			it('returns inherited grants alongside direct ones, naming the role each comes from', async () => {
+				const res = await api.get(`/admin/access/roles/${childRoleId}/policies`, bearer(superToken))
+				expect(res.status).toBe(200)
+
+				// Direct grants keep their existing shape and their link id, so the
+				// detach action still has something to act on.
+				expect(res.data.policies.map((p: any) => p.policy)).toEqual(['customer:delete'])
+
+				const inherited = res.data.inherited
+				expect(inherited).toHaveLength(1)
+				expect(inherited[0]).toMatchObject({
+					policy: 'access_role:read',
+					inherited_from_role_id: parentRoleId
+				})
+				expect(inherited[0].inherited_from_role_name).toContain('RPParent')
+			})
+
+			it('omits inherited grants when direct_only is requested', async () => {
+				const res = await api.get(`/admin/access/roles/${childRoleId}/policies?direct_only=true`, bearer(superToken))
+				expect(res.status).toBe(200)
+				expect(res.data.inherited).toEqual([])
+				expect(res.data.policies).toHaveLength(1)
+			})
+
+			it('changes an existing grant scope in place, without detach and re-attach', async () => {
+				const res = await api.post(`/admin/access/roles/${parentRoleId}/policies/${readPolicyId}`, { scope: 'rp_probe' }, bearer(superToken))
+				expect(res.status).toBe(200)
+				expect(res.data.policy.scope).toBe('rp_probe')
+
+				const check = await api.get(`/admin/access/roles/${parentRoleId}/policies`, bearer(superToken))
+				expect(check.data.policies).toHaveLength(1)
+				expect(check.data.policies[0].scope).toBe('rp_probe')
+
+				// And back to unrestricted.
+				const cleared = await api.post(`/admin/access/roles/${parentRoleId}/policies/${readPolicyId}`, { scope: null }, bearer(superToken))
+				expect(cleared.status).toBe(200)
+				expect(cleared.data.policy.scope).toBeNull()
+			})
+
+			it('rejects a scope with no defineScope registration', async () => {
+				const res = await api
+					.post(`/admin/access/roles/${parentRoleId}/policies/${readPolicyId}`, { scope: 'not-registered-anywhere' }, bearer(superToken))
+					.catch((e: any) => e.response)
+				expect(res.status).toBeGreaterThanOrEqual(400)
+			})
+		})
+
+		describe('scoped enforcement (query interceptor)', () => {
+			let visibleARoleId: string
+			let visibleBRoleId: string
+			let visibleCRoleId: string
+			let visibleRoleIds: string[]
+			let hiddenRoleId: string
+			let listedToken: string
+			let unionToken: string
+			let mutationToken: string
+			let ghostToken: string
+			let superToken: string
+
+			beforeAll(async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+				const link = container.resolve(ContainerRegistrationKeys.LINK)
+
+				// Retry-safe: a `jest.retryTimes(1)` re-run of this beforeAll must reuse
+				// the same rows rather than collide with the fixed names the scope
+				// filters below close over.
+				const ensureRole = async (name: string) => {
+					const [existing] = await accessService.listAccessRoles({ name })
+					return existing ?? (await accessService.createAccessRoles({ name }))
+				}
+
+				const visibleA = await ensureRole('Visible A')
+				const visibleB = await ensureRole('Visible B')
+				// Outside `visibleRoleIds` on purpose -- `named_a` targets this role, so
+				// the union case (below) only passes if BOTH scopes actually contribute
+				// rows. `named_a` pointed at 'Visible A' (inside `listed`) would make the
+				// union indistinguishable from `listed` alone.
+				const visibleC = await ensureRole('Visible C')
+				const hidden = await ensureRole('Hidden')
+				visibleARoleId = visibleA.id
+				visibleBRoleId = visibleB.id
+				visibleCRoleId = visibleC.id
+				visibleRoleIds = [visibleARoleId, visibleBRoleId]
+				hiddenRoleId = hidden.id
+
+				// `jest.retryTimes(1)` is set globally, so a retried run must not
+				// re-throw on `defineScope`'s duplicate-registration guard.
+				if (!hasScope('access_role', 'listed')) {
+					defineScope({ name: 'listed', resource: 'access_role', filter: async () => ({ id: visibleRoleIds }) })
+				}
+				if (!hasScope('access_role', 'named_a')) {
+					defineScope({ name: 'named_a', resource: 'access_role', filter: async () => ({ name: ['Visible C'] }) })
+				}
+
+				const [readPolicy] = await accessService.listAccessPolicies({ key: 'access_role:read' })
+				const [updatePolicy] = await accessService.listAccessPolicies({ key: 'access_role:update' })
+
+				const unique = Math.random().toString(36).slice(2)
+
+				// Actor 1: holds access_role:read@listed only.
+				const listedRole = await accessService.createAccessRoles({ name: `ScopedListedReader-${unique}` })
+				await accessService.createAccessRolePolicies({ role_id: listedRole.id, policy_id: readPolicy.id, scope: 'listed' })
+				const listedActor = await setupAdmin(`scoped-listed-${unique}@example.com`)
+				await (link as any).create({ [Modules.USER]: { user_id: listedActor.userId }, access: { access_role_id: listedRole.id } })
+				listedToken = listedActor.token
+
+				// Actor 2: holds access_role:read@listed AND access_role:read@named_a,
+				// via two roles -- access_role_policy's unique index is
+				// (role_id, policy_id), so one role cannot hold the same policy at two
+				// different scopes.
+				const unionListedRole = await accessService.createAccessRoles({ name: `ScopedUnionListed-${unique}` })
+				await accessService.createAccessRolePolicies({ role_id: unionListedRole.id, policy_id: readPolicy.id, scope: 'listed' })
+				const unionNamedRole = await accessService.createAccessRoles({ name: `ScopedUnionNamedA-${unique}` })
+				await accessService.createAccessRolePolicies({ role_id: unionNamedRole.id, policy_id: readPolicy.id, scope: 'named_a' })
+				const unionActor = await setupAdmin(`scoped-union-${unique}@example.com`)
+				await (link as any).create({ [Modules.USER]: { user_id: unionActor.userId }, access: { access_role_id: unionListedRole.id } })
+				await (link as any).create({ [Modules.USER]: { user_id: unionActor.userId }, access: { access_role_id: unionNamedRole.id } })
+				unionToken = unionActor.token
+
+				// Actor 3: holds access_role:update@listed -- the mutation-gate case.
+				const mutationRole = await accessService.createAccessRoles({ name: `ScopedMutationUpdater-${unique}` })
+				await accessService.createAccessRolePolicies({ role_id: mutationRole.id, policy_id: updatePolicy.id, scope: 'listed' })
+				const mutationActor = await setupAdmin(`scoped-mutation-${unique}@example.com`)
+				await (link as any).create({ [Modules.USER]: { user_id: mutationActor.userId }, access: { access_role_id: mutationRole.id } })
+				mutationToken = mutationActor.token
+
+				// Actor 4: holds access_role:read@ghost, seeded directly through the
+				// module service -- bypassing the workflow's validateRolePolicyScopesStep
+				// (hasScope) check, exactly how a stale registration gap would arise. No
+				// defineScope for "ghost" is ever registered.
+				const ghostRole = await accessService.createAccessRoles({ name: `ScopedGhostReader-${unique}` })
+				await accessService.createAccessRolePolicies({ role_id: ghostRole.id, policy_id: readPolicy.id, scope: 'ghost' })
+				const ghostActor = await setupAdmin(`scoped-ghost-${unique}@example.com`)
+				await (link as any).create({ [Modules.USER]: { user_id: ghostActor.userId }, access: { access_role_id: ghostRole.id } })
+				ghostToken = ghostActor.token
+
+				const superAdmin = await setupAdmin(`scoped-super-${unique}@example.com`, { superAdmin: true })
+				superToken = superAdmin.token
+
+				await utils.waitWorkflowExecutions()
+				await dbUtils.snapshot()
+			})
+
+			const bearer = (token: string) => ({ headers: { Authorization: `Bearer ${token}` } })
+
+			it('narrows the list to the granted scope, excluding the out-of-scope row', async () => {
+				const res = await api.get('/admin/access/roles', bearer(listedToken))
+				expect(res.status).toBe(200)
+				const ids = res.data.roles.map((r: any) => r.id)
+				expect(res.data.roles).toHaveLength(2)
+				expect(new Set(ids)).toEqual(new Set(visibleRoleIds))
+				expect(ids).not.toContain(hiddenRoleId)
+				expect(res.data.count).toBe(2)
+			})
+
+			it('404s a foreign row that the scope filtered out', async () => {
+				const res = await api.get(`/admin/access/roles/${hiddenRoleId}`, bearer(listedToken)).catch((e: any) => e.response)
+				expect(res.status).toBe(404)
+			})
+
+			it('returns 200 with root fields present for an in-scope row (the field-filter carve-out)', async () => {
+				const res = await api.get(`/admin/access/roles/${visibleARoleId}`, bearer(listedToken))
+				expect(res.status).toBe(200)
+				expect(res.data.role.id).toBe(visibleARoleId)
+				expect(res.data.role.name).toBe('Visible A')
+				expect(Object.keys(res.data.role).sort()).toEqual(['created_at', 'deleted_at', 'description', 'id', 'metadata', 'name', 'updated_at'].sort())
+			})
+
+			// `POST /admin/access/roles/:id` declares `assertsScope`, so a scoped
+			// mutation is admitted at the door instead of refused there, and the
+			// handler's own `assertScope` call is what decides. These two cases are
+			// the framework's only end-to-end proof of a real handler asserting.
+			it('admits a scoped mutation on a row inside the scope, and applies it', async () => {
+				const res = await api
+					.post(`/admin/access/roles/${visibleBRoleId}`, { name: 'Renamed In Scope' }, bearer(mutationToken))
+					.catch((e: any) => e.response)
+				expect(res.status).toBe(200)
+
+				const check = await api.get(`/admin/access/roles/${visibleBRoleId}`, bearer(superToken))
+				expect(check.data.role.name).toBe('Renamed In Scope')
+
+				// Restore, so ordering against other cases in this describe cannot matter.
+				await api.post(`/admin/access/roles/${visibleBRoleId}`, { name: 'Visible B' }, bearer(superToken))
+			})
+
+			it('refuses a scoped mutation on a row outside the scope, and leaves it unchanged', async () => {
+				const res = await api
+					.post(`/admin/access/roles/${hiddenRoleId}`, { name: 'Renamed By Scoped Actor' }, bearer(mutationToken))
+					.catch((e: any) => e.response)
+				// 404, not 403: the scoped lookup narrows the row away entirely, so the
+				// handler cannot distinguish "exists but forbidden" from "absent" —
+				// which is the point, since a 403 here would confirm the row exists.
+				expect(res.status).toBe(404)
+
+				const check = await api.get(`/admin/access/roles/${hiddenRoleId}`, bearer(superToken))
+				expect(check.data.role.name).toBe('Hidden')
+			})
+
+			it('still denies a scoped mutation on a route that does not declare assertsScope', async () => {
+				// DELETE on the same path carries no `assertsScope`, so the door-level
+				// refusal that used to cover POST as well still applies here.
+				const res = await api.delete(`/admin/access/roles/${visibleARoleId}`, bearer(mutationToken)).catch((e: any) => e.response)
+				expect(res.status).toBe(403)
+
+				const check = await api.get(`/admin/access/roles/${visibleARoleId}`, bearer(superToken))
+				expect(check.data.role.name).toBe('Visible A')
+			})
+
+			it('unions two scopes granted at different names (the live $or probe)', async () => {
+				const res = await api.get('/admin/access/roles', bearer(unionToken))
+				expect(res.status).toBe(200)
+				const ids = res.data.roles.map((r: any) => r.id)
+				// `listed` alone would be exactly `visibleRoleIds` (2); `named_a` alone
+				// would be exactly `visibleCRoleId` (1). Only a real union of both
+				// branches yields all 3 -- losing either branch (a dropped role link, a
+				// failure to union scopes across roles, or `combineScopeFilters`
+				// collapsing to one survivor) would fail this exact assertion.
+				const expectedIds = [...visibleRoleIds, visibleCRoleId]
+				expect(res.data.roles).toHaveLength(3)
+				expect(new Set(ids)).toEqual(new Set(expectedIds))
+				expect(ids).not.toContain(hiddenRoleId)
+				expect(res.data.count).toBe(3)
+			})
+
+			it('withholds the response when the handler roots on a different resource than the declared scope', async () => {
+				const res = await api.get(`/admin/access/roles/${visibleARoleId}/policies`, bearer(listedToken)).catch((e: any) => e.response)
+				expect(res.status).toBe(403)
+				// Pins this to the ledger's replacement body specifically -- distinct
+				// from `deny()`'s "Insufficient permissions (<detail>)" shape elsewhere
+				// in the query interceptor, which also returns 403 but with a detail
+				// suffix.
+				expect(res.data.message).toBe('Insufficient permissions')
+			})
+
+			it('denies a grant whose scope has no defineScope registration', async () => {
+				const res = await api.get('/admin/access/roles', bearer(ghostToken)).catch((e: any) => e.response)
+				expect(res.status).toBe(403)
+				expect(res.data.message).toBe('Insufficient permissions')
+			})
+
+			it('leaves the super admin unaffected by the interceptor', async () => {
+				const res = await api.get('/admin/access/roles?limit=1000', bearer(superToken))
+				expect(res.status).toBe(200)
+				const ids = res.data.roles.map((r: any) => r.id)
+				expect(ids).toContain(hiddenRoleId)
+				expect(ids).toEqual(expect.arrayContaining(visibleRoleIds))
 			})
 		})
 	}
