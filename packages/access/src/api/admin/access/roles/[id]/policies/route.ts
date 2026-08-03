@@ -20,7 +20,6 @@ const flattenPolicy = (row: any) => ({ ...row, policy: row.policy?.key })
 
 /**
  * @ignore
- * @featureFlag rbac
  */
 export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const roleId = req.params.id
@@ -79,7 +78,6 @@ async function listInheritedPolicies(req: AuthenticatedMedusaRequest, roleId: st
 
 /**
  * @ignore
- * @featureFlag rbac
  */
 export const POST = async (req: AuthenticatedMedusaRequest<AdminAddRolePoliciesType>, res: MedusaResponse) => {
 	const roleId = req.params.id

@@ -666,10 +666,10 @@ medusaIntegrationTestRunner({
 			// it has no `scope` column -- so two entries for the same policy in one
 			// request (here: unscoped + `@company`) can never both be inserted.
 			// Without `validateRolePolicyScopesStep`'s duplicate check this would
-			// hit the DB constraint directly instead of failing cleanly. There is
-			// no route to CHANGE an existing assignment's scope -- DELETE it
-			// (`DELETE /admin/access/roles/:id/policies/:policy_id`) and re-POST
-			// with the new scope.
+			// hit the DB constraint directly instead of failing cleanly. Changing
+			// an existing assignment's scope is a separate route --
+			// `POST /admin/access/roles/:id/policies/:policy_id` -- exercised in
+			// the `role-policy admin API` describe below.
 			it('rejects the same policy id assigned more than once in one request', async () => {
 				const container = getContainer()
 				const accessService: any = container.resolve('access')

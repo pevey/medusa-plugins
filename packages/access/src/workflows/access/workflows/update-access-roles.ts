@@ -7,7 +7,6 @@ import { validateUserPermissionsStep } from '../steps/validate-user-permissions'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type UpdateAccessRolesWorkflowInput = {
 	actor_id?: string
@@ -20,13 +19,11 @@ export type UpdateAccessRolesWorkflowInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const updateAccessRolesWorkflowId = 'update-access-roles'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const updateAccessRolesWorkflow = createWorkflow(updateAccessRolesWorkflowId, (input: WorkflowData<UpdateAccessRolesWorkflowInput>) => {
 	// A new parent confers everything in ITS chain (parent-of-parent included, since

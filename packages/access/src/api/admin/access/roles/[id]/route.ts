@@ -7,7 +7,6 @@ import { AdminUpdateAccessRoleType } from '../validators'
 
 /**
  * @ignore
- * @featureFlag rbac
  */
 export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -28,7 +27,6 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 
 /**
  * @ignore
- * @featureFlag rbac
  */
 export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAccessRoleType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -69,7 +67,6 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAccessRole
 
 /**
  * @ignore
- * @featureFlag rbac
  */
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const id = req.params.id

@@ -4,7 +4,6 @@ import { IAccessModuleService, UpdateAccessRoleDTO } from '../../../modules/acce
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type UpdateAccessRolesStepInput = {
 	selector: Record<string, any>
@@ -13,13 +12,11 @@ export type UpdateAccessRolesStepInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const updateAccessRolesStepId = 'update-access-roles'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const updateAccessRolesStep = createStep(
 	updateAccessRolesStepId,

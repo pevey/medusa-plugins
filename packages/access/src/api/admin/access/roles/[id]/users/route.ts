@@ -5,7 +5,6 @@ import { AdminAssignRoleUsersType, AdminRemoveRoleUsersType } from '../../valida
 
 /**
  * @ignore
- * @featureFlag rbac
  */
 export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const roleId = req.params.id
@@ -30,7 +29,6 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 
 /**
  * @ignore
- * @featureFlag rbac
  */
 export const POST = async (req: AuthenticatedMedusaRequest<AdminAssignRoleUsersType>, res: MedusaResponse) => {
 	const roleId = req.params.id
@@ -71,7 +69,6 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminAssignRoleUsersT
 
 /**
  * @ignore
- * @featureFlag rbac
  */
 export const DELETE = async (req: AuthenticatedMedusaRequest<AdminRemoveRoleUsersType>, res: MedusaResponse) => {
 	const roleId = req.params.id

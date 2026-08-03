@@ -129,8 +129,8 @@ function scopesGranted(rolePoliciesMap: RolePoliciesCache, resource: string, ope
  * `(resource, operation)` — holding both `@own` and unrestricted is
  * unrestricted. Otherwise every distinct scope granted for the action is
  * reported; scopes from different actions/operations are unioned, never
- * "first match wins" (see Task 1: two ancestor roles can grant the same
- * policy at different scopes).
+ * "first match wins" — two ancestor roles can grant the same policy at
+ * different scopes, and both apply.
  */
 export async function authorize(input: HasPermissionInput): Promise<AccessDecision> {
 	const { roles, actions, container } = input
@@ -297,40 +297,17 @@ export function canGrantScope(granted: ResolvedPermission[], resource: string, o
  * `access_role.policies` is replaced by real policy rows by the module service's
  * `listAccessRoles` override, so `policy.resource`/`policy.operation` are present.
  *
- * ---------------------------------------------------------------------------
- * DEFECT #4 — cache deliberately left OFF. See REDESIGN.md §6.
+ * The only caching in effect is the request-scoped memo below: the in-flight
+ * promise is stored per `(container, roleId)`, so the field filter's fan-out —
+ * one permission check per entity path, fired concurrently — collapses to one
+ * query with zero staleness.
  *
- * A previous attempt enabled this with a short TTL. An adversarial review found
- * that attempt unsound, on premises that were checked and are false:
- *
- *   - "Events would have to be written." They already exist. `MedusaService`
- *     decorates every generated method with `@EmitEvents` and installs a global
- *     MikroORM subscriber, so AccessRole / AccessPolicy / AccessRolePolicy /
- *     AccessRoleParent mutations already emit `access.access-role.created` etc.
- *     Zero service methods need overriding.
- *   - "Matching core's tag derivation is fragile." It is four lines of
- *     deterministic string manipulation over names we control, and unit-testable.
- *   - "A TTL cannot fail silently." `Number('')` is 0, and node-cache treats a
- *     0 TTL as NEVER EXPIRES — so a declared-but-empty env var yields an
- *     unbounded cache, silently. The exact failure mode the TTL was chosen to
- *     avoid.
- *
- * It also shipped a regression: `providers: ['cache-memory']` is only
- * registered when a config sets `in_memory.enable`. apps/backend configures
- * Redis only, so the provider was unresolvable there — no caching at all, plus
- * error/warn logs on every check.
- *
- * The correct fix, when taken up:
- *   1. Request-scoped memoization first. The dominant cost is intra-request
- *      fan-out (the field filter calls hasPermission once per entity path), and
- *      memoizing the in-flight promise on `req.scope` collapses that with ZERO
- *      staleness. This may be the whole answer.
- *   2. Only then, if a cross-request cache is still wanted: cache a
- *      JSON-serializable shape (not a Map — it stringifies to `{}` and would
- *      500 on a Redis hit), drop the hardcoded provider so the configured
- *      default is used, and tag coarsely (`AccessRole:list:*` and friends) so
- *      the events that already fire do the invalidating.
- * ---------------------------------------------------------------------------
+ * The cross-request `useCache` wrapper further down is INERT: it passes no
+ * `enable`, and `useCache` returns the callback's result untouched when that is
+ * falsy. Two things must be fixed before enabling it, or it will misbehave
+ * rather than merely do nothing — it caches a `Map`, which stringifies to `{}`
+ * and would 500 on a Redis hit, and it pins `providers: ['cache-memory']`,
+ * which only resolves when a config sets `in_memory.enable`.
  */
 async function fetchSingleRolePolicies(roleId: string, container: MedusaContainer): Promise<Map<string, Map<string, Set<string | null>>>> {
 	// Store the in-flight PROMISE, not the result: the field filter calls

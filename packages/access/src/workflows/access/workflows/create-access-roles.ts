@@ -4,7 +4,6 @@ import { validateUserPermissionsStep } from '../steps/validate-user-permissions'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type CreateAccessRolesWorkflowInput = {
 	actor_id?: string
@@ -20,13 +19,11 @@ export type CreateAccessRolesWorkflowInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessRolesWorkflowId = 'create-access-roles'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessRolesWorkflow = createWorkflow(createAccessRolesWorkflowId, (input: WorkflowData<CreateAccessRolesWorkflowInput>) => {
 	// A parent confers its whole chain (parent-of-parent included), so the actor must

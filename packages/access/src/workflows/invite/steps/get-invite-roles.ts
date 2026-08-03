@@ -3,7 +3,6 @@ import { StepResponse, createStep } from '@medusajs/framework/workflows-sdk'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export interface GetInviteRolesStepInput {
 	invite_id: string
@@ -11,7 +10,6 @@ export interface GetInviteRolesStepInput {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const getInviteRolesStepId = 'get-invite-access-roles-step'
 /**
@@ -22,7 +20,6 @@ export const getInviteRolesStepId = 'get-invite-access-roles-step'
  *   invite_id: "invite_123"
  * })
  * @ignore
- * @featureFlag access
  */
 export const getInviteRolesStep = createStep(getInviteRolesStepId, async (input: GetInviteRolesStepInput, { container }) => {
 	const remoteLink = container.resolve(ContainerRegistrationKeys.LINK)

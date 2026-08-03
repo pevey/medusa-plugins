@@ -3,13 +3,11 @@ import { IAccessModuleService } from '../../../modules/access/types'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type DeleteAccessRolesStepInput = string[]
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const deleteAccessRolesStepId = 'delete-access-roles'
 
@@ -19,7 +17,6 @@ export const deleteAccessRolesStepId = 'delete-access-roles'
  * @param container - The workflow container
  * @returns A step response with the deleted role IDs
  * @ignore
- * @featureFlag access
  */
 export const deleteAccessRolesStep = createStep(
 	deleteAccessRolesStepId,

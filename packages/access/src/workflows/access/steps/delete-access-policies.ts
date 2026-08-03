@@ -3,19 +3,16 @@ import { IAccessModuleService } from '../../../modules/access/types'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type DeleteAccessPoliciesStepInput = string[]
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const deleteAccessPoliciesStepId = 'delete-access-policies'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const deleteAccessPoliciesStep = createStep(
 	{ name: deleteAccessPoliciesStepId, noCompensation: true },

@@ -3,7 +3,6 @@ import { createStep, StepResponse } from '@medusajs/framework/workflows-sdk'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const validateRolesExistStepId = 'validate-access-roles-exist-step'
 
@@ -14,7 +13,6 @@ export const validateRolesExistStepId = 'validate-access-roles-exist-step'
  * @example
  * validateRolesExistStep(["role_123", "role_456"])
  * @ignore
- * @featureFlag access
  */
 export const validateRolesExistStep = createStep(validateRolesExistStepId, async (roleIds: string[], { container }) => {
 	if (!roleIds.length) {

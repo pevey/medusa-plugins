@@ -8,7 +8,6 @@ import { AdminGetAccessRolesParamsType } from '../validators'
  * assign.
  *
  * @ignore
- * @featureFlag rbac
  */
 export const GET = async (req: AuthenticatedMedusaRequest<undefined, AdminGetAccessRolesParamsType>, res: MedusaResponse) => {
 	const { result } = await getAssignableRolesWorkflow(req.scope).run({

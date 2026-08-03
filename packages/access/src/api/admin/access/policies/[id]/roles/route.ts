@@ -5,7 +5,6 @@ import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
  * Lists the roles that include the given policy.
  *
  * @ignore
- * @featureFlag rbac
  */
 export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const policyId = req.params.id

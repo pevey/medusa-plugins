@@ -10,7 +10,6 @@ import { AdminUpdateRolePolicyScopeType } from '../../../validators'
  * DELETE then re-POST — two writes, with the grant briefly absent in between.
  *
  * @ignore
- * @featureFlag rbac
  */
 export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateRolePolicyScopeType>, res: MedusaResponse) => {
 	const { policy_id, id: role_id } = req.params
@@ -38,7 +37,6 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateRolePolicy
 
 /**
  * @ignore
- * @featureFlag rbac
  */
 export const DELETE = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
 	const { policy_id, id: role_id } = req.params

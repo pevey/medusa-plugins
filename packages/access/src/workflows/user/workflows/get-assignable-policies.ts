@@ -3,21 +3,18 @@ import { GetAssignablePoliciesStepInput, GetAssignablePoliciesStepOutput, getAss
 
 /**
  * @ignore
- * @featureFlag access
  * @since 2.16.0
  */
 export type GetAssignablePoliciesWorkflowInput = GetAssignablePoliciesStepInput
 
 /**
  * @ignore
- * @featureFlag access
  * @since 2.16.0
  */
 export type GetAssignablePoliciesWorkflowOutput = GetAssignablePoliciesStepOutput
 
 /**
  * @ignore
- * @featureFlag access
  * @since 2.16.0
  */
 export const getAssignablePoliciesWorkflowId = 'get-assignable-access-policies-workflow'
@@ -26,7 +23,6 @@ export const getAssignablePoliciesWorkflowId = 'get-assignable-access-policies-w
  * Returns the set of `access_policy` rows the actor is allowed to assign.
  *
  * @ignore
- * @featureFlag access
  * @since 2.16.0
  */
 export const getAssignablePoliciesWorkflow = createWorkflow(getAssignablePoliciesWorkflowId, (input: WorkflowData<GetAssignablePoliciesWorkflowInput>) => {

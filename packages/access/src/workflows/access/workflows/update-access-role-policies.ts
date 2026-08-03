@@ -4,7 +4,6 @@ import { validateUserPermissionsStep } from '../steps/validate-user-permissions'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type UpdateAccessRolePoliciesWorkflowInput = {
 	actor_id?: string
@@ -17,7 +16,6 @@ export type UpdateAccessRolePoliciesWorkflowInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const updateAccessRolePoliciesWorkflowId = 'update-access-role-policies'
 
@@ -29,7 +27,6 @@ export const updateAccessRolePoliciesWorkflowId = 'update-access-role-policies'
  * widen their own role's grant to unrestricted by editing it.
  *
  * @ignore
- * @featureFlag access
  */
 export const updateAccessRolePoliciesWorkflow = createWorkflow(
 	updateAccessRolePoliciesWorkflowId,

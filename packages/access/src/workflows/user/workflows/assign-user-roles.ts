@@ -5,7 +5,6 @@ import { validateUserRolePermissionsStep } from '../steps/validate-user-role-per
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type AssignUserRolesWorkflowInput = {
 	actor_id: string
@@ -18,7 +17,6 @@ export type AssignUserRolesWorkflowInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const assignUserRolesWorkflowId = 'assign-user-access-roles'
 
@@ -29,7 +27,6 @@ export const assignUserRolesWorkflowId = 'assign-user-access-roles'
  * - Assign multiple users to a single role: { user_ids, role_id }
  * It validates that the actor has all the policies from the roles being assigned.
  * @ignore
- * @featureFlag access
  */
 export const assignUserRolesWorkflow = createWorkflow(assignUserRolesWorkflowId, (input: WorkflowData<AssignUserRolesWorkflowInput>) => {
 	const roleIds = transform({ input }, ({ input }) => {

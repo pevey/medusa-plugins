@@ -4,7 +4,6 @@ import { createStep } from '@medusajs/framework/workflows-sdk'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type ValidateUserPermissionsStepInput = {
 	actor_id: string
@@ -19,7 +18,6 @@ export type ValidateUserPermissionsStepInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const validateUserPermissionsStepId = 'validate-user-access-permissions'
 
@@ -30,7 +28,6 @@ export const validateUserPermissionsStepId = 'validate-user-access-permissions'
  * `canGrantScope`. An unscoped assignment (`scope` undefined) requires the actor to
  * hold the policy unrestricted.
  * @ignore
- * @featureFlag access
  */
 export const validateUserPermissionsStep = createStep(validateUserPermissionsStepId, async (data: ValidateUserPermissionsStepInput, { container }) => {
 	const { actor_id, actor, policies, actions } = data

@@ -4,7 +4,6 @@ import { validateUserPermissionsStep } from '../steps/validate-user-permissions'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type CreateAccessRolePoliciesWorkflowInput = {
 	actor_id?: string
@@ -18,13 +17,11 @@ export type CreateAccessRolePoliciesWorkflowInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessRolePoliciesWorkflowId = 'create-access-role-policies'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessRolePoliciesWorkflow = createWorkflow(
 	createAccessRolePoliciesWorkflowId,

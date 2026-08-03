@@ -95,9 +95,11 @@ medusaIntegrationTestRunner({
 			//
 			// NOTE: this suite asserts no 403s — it proves the declarations do not BLOCK
 			// a fully-privileged actor, not that they deny an under-privileged one.
-			// Enforcement semantics (sealing, AND-layering, partially-granted actors)
-			// are covered in the access plugin's own spec. Adding a denial case here
-			// would be the natural way to prove complaints' specific policy choices.
+			// That is deliberate: denial is a framework guarantee, so it is proven in
+			// the access plugin's own spec (sealing, AND-layering, under-privileged
+			// actors on a `guardResource` prefix), not re-proven per consumer. Do not
+			// add a denial case here — complaints stays an unscoped, access-aware
+			// consumer and nothing more.
 			const link = container.resolve(ContainerRegistrationKeys.LINK)
 			await (link as any).create({
 				[Modules.USER]: { user_id: user.id },

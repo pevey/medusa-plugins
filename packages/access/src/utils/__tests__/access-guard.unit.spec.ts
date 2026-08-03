@@ -201,9 +201,9 @@ describe('guard mount', () => {
 })
 
 describe('scoped grants at the guard', () => {
-	// A non-reserved actor type: Task 10 makes `user`/`customer`/`api-key`
-	// reserved and duplicate registration throw, so overriding a built-in here
-	// would collide with that. The actor's grants are stubbed at `authorize`
+	// A non-reserved actor type: `user`/`customer`/`api-key` are reserved and
+	// duplicate registration throws, so overriding a built-in here would collide
+	// with that. The actor's grants are stubbed at `authorize`
 	// (mocked above) rather than through real role/policy data, so role
 	// resolution just needs to return a non-null id — the mocked decision
 	// ignores it.
@@ -213,8 +213,8 @@ describe('scoped grants at the guard', () => {
 		resetRegistries()
 		warn.mockClear()
 		;(authorize as jest.Mock).mockImplementation(realAuthorize)
-		// Task 10 makes re-registering an actor type throw, and this describe's
-		// tests each register SCOPED_ACTOR_TYPE fresh -- reset the resolver map
+		// Re-registering an actor type throws, and this describe's tests each
+		// register SCOPED_ACTOR_TYPE fresh -- reset the resolver map
 		// per test rather than reuse the built-in-carrying one from
 		// `resetRegistries` (this describe never needs `user`/`customer`).
 		//

@@ -209,9 +209,6 @@ export function registerRoutePolicies(routes: AccessMiddlewareRoute[]): void {
  * makes a route STRICTER, never looser. Coarse→fine tightening is safe;
  * fine→coarse would be a silent widening.
  *
- * Do not apply this over routes where ownership is a valid alternative
- * satisfier — the subtree floor is AND-ed, so it would defeat the OR.
- *
  * `exports` names subtree paths, relative to the prefix, that require the
  * `export` operation *instead of* the method-derived floor — so an actor
  * holding `complaint:export` but not `complaint:update` can reach

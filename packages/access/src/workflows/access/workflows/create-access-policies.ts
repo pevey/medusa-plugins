@@ -3,7 +3,6 @@ import { createAccessPoliciesStep } from '../steps'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type CreateAccessPoliciesWorkflowInput = {
 	policies: any[]
@@ -11,13 +10,11 @@ export type CreateAccessPoliciesWorkflowInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessPoliciesWorkflowId = 'create-access-policies'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessPoliciesWorkflow = createWorkflow(createAccessPoliciesWorkflowId, (input: WorkflowData<CreateAccessPoliciesWorkflowInput>) => {
 	return new WorkflowResponse(createAccessPoliciesStep(input))

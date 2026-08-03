@@ -4,7 +4,6 @@ import { validateUserRolePermissionsStep } from '../steps/validate-user-role-per
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type RemoveUserRolesWorkflowInput = {
 	actor_id: string
@@ -17,7 +16,6 @@ export type RemoveUserRolesWorkflowInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const removeUserRolesWorkflowId = 'remove-user-access-roles'
 
@@ -28,7 +26,6 @@ export const removeUserRolesWorkflowId = 'remove-user-access-roles'
  * - Remove multiple users from a single role: { user_ids, role_id }
  * It validates that the actor has all the policies from the roles being removed.
  * @ignore
- * @featureFlag access
  */
 export const removeUserRolesWorkflow = createWorkflow(removeUserRolesWorkflowId, (input: WorkflowData<RemoveUserRolesWorkflowInput>) => {
 	const roleIds = transform({ input }, ({ input }) => {

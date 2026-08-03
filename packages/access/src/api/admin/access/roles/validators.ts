@@ -55,9 +55,9 @@ export const AdminUpdateAccessRole = z
 	.strict()
 
 // Array items may be a bare policy id (unrestricted assignment, the original
-// shape) or `{ id, scope }` (a scoped grant -- see Task 7). Kept as one field
-// rather than a second mutually-exclusive one since the existing field is
-// already named `policies`, not `policy_ids` -- there is nothing to conflict.
+// shape) or `{ id, scope }` (a scoped grant). Kept as one field rather than a
+// second mutually-exclusive one since the existing field is already named
+// `policies`, not `policy_ids` -- there is nothing to conflict.
 export const AdminAddRolePoliciesType = z
 	.object({
 		policies: z

@@ -3,7 +3,6 @@ import { CreateAccessRolePolicyDTO, IAccessModuleService } from '../../../module
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type CreateAccessRolePoliciesStepInput = {
 	policies: CreateAccessRolePolicyDTO[]
@@ -11,13 +10,11 @@ export type CreateAccessRolePoliciesStepInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessRolePoliciesStepId = 'create-access-role-policies'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessRolePoliciesStep = createStep(
 	createAccessRolePoliciesStepId,

@@ -5,7 +5,6 @@ import { createStep } from '@medusajs/framework/workflows-sdk'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type ValidateRolePolicyScopesStepInput = {
 	policies: { policy_id: string; scope?: string }[]
@@ -13,7 +12,6 @@ export type ValidateRolePolicyScopesStepInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const validateRolePolicyScopesStepId = 'validate-role-policy-scopes'
 
@@ -26,17 +24,16 @@ export const validateRolePolicyScopesStepId = 'validate-role-policy-scopes'
  * unique index is `(role_id, policy_id)` with no `scope` column, so two
  * entries for the same policy (whether same scope, different scopes, or one
  * scoped/one not) can never both be inserted; without this check that
- * surfaces as a raw DB constraint violation instead of a clean 400. There is
- * no HTTP-level way to CHANGE an existing assignment's scope -- DELETE the
- * assignment (`DELETE /admin/access/roles/:id/policies/:policy_id`) and
- * re-POST it with the new scope.
+ * surfaces as a raw DB constraint violation instead of a clean 400. To change
+ * an existing assignment's scope, re-scope it in place via
+ * `POST /admin/access/roles/:id/policies/:policy_id` rather than assigning the
+ * same policy twice here.
  *
  * Runs unconditionally -- independent of who the actor is -- because this is
  * a data-integrity check, not an authorization check; skipping it whenever no
  * actor is supplied would let a config error through unnoticed until it 403s
  * (or 500s) a real request at 3am.
  * @ignore
- * @featureFlag access
  */
 export const validateRolePolicyScopesStep = createStep(validateRolePolicyScopesStepId, async (data: ValidateRolePolicyScopesStepInput, { container }) => {
 	const policies = data.policies ?? []

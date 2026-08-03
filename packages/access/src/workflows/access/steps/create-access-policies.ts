@@ -3,7 +3,6 @@ import { CreateAccessPolicyDTO, IAccessModuleService } from '../../../modules/ac
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type CreateAccessPoliciesStepInput = {
 	policies: CreateAccessPolicyDTO[]
@@ -11,13 +10,11 @@ export type CreateAccessPoliciesStepInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessPoliciesStepId = 'create-access-policies'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessPoliciesStep = createStep(
 	createAccessPoliciesStepId,

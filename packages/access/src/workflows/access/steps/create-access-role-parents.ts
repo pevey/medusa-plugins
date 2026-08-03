@@ -3,7 +3,6 @@ import { IAccessModuleService } from '../../../modules/access/types'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type CreateAccessRoleParentDTO = {
 	role_id: string
@@ -13,7 +12,6 @@ export type CreateAccessRoleParentDTO = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type CreateAccessRoleParentsStepInput = {
 	role_parents: CreateAccessRoleParentDTO[]
@@ -21,13 +19,11 @@ export type CreateAccessRoleParentsStepInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessRoleParentsStepId = 'create-access-role-parents'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const createAccessRoleParentsStep = createStep(
 	createAccessRoleParentsStepId,

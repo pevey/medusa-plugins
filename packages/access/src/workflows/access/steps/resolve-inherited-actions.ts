@@ -4,7 +4,6 @@ import { AccessModuleService } from '../../../modules/access/service'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type ResolveInheritedActionsStepInput = {
 	role_ids: string[]
@@ -12,7 +11,6 @@ export type ResolveInheritedActionsStepInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const resolveInheritedActionsStepId = 'resolve-inherited-actions'
 
@@ -24,7 +22,6 @@ export const resolveInheritedActionsStepId = 'resolve-inherited-actions'
  * ancestors are already included, because `listPoliciesForRole` walks the same
  * recursive CTE upward from that role.
  * @ignore
- * @featureFlag access
  */
 export const resolveInheritedActionsStep = createStep(resolveInheritedActionsStepId, async (data: ResolveInheritedActionsStepInput, { container }) => {
 	const roleIds = Array.from(new Set(data.role_ids)).filter(Boolean)

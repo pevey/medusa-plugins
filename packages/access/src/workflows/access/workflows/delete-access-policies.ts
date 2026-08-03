@@ -3,7 +3,6 @@ import { deleteAccessPoliciesStep } from '../steps'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export type DeleteAccessPoliciesWorkflowInput = {
 	ids: string[]
@@ -11,13 +10,11 @@ export type DeleteAccessPoliciesWorkflowInput = {
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const deleteAccessPoliciesWorkflowId = 'delete-access-policies'
 
 /**
  * @ignore
- * @featureFlag access
  */
 export const deleteAccessPoliciesWorkflow = createWorkflow(
 	deleteAccessPoliciesWorkflowId,
