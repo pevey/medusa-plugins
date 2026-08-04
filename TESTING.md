@@ -143,6 +143,41 @@ Anything a plugin syncs to the database at boot is already there when your test 
 with the same unique key fails on a constraint rather than on your assertion. Use fixture names that
 cannot collide with the shipped set — `widget`, `probe`, and similar.
 
+### 6. `src/**/__tests__` sits outside every tsconfig project
+
+Unit specs need `/// <reference types="jest" />` as their **first line**, or the editor reports
+`Cannot find name 'describe' / 'it' / 'expect'` on every line of the file:
+
+```ts
+/// <reference types="jest" />
+import { configForLocale } from '../lib/text-search-config'
+```
+
+12 of the 40 unit specs carry it today; the rest still show the errors.
+
+The chain: `medusa plugin:build` emits straight from the package `tsconfig.json`'s file list, and the
+only paths it drops are the exact path *segments* `integration-tests`, `test`, `unit-tests` and
+`src/admin`. `__tests__` matches none of them, so all 17 package configs exclude `**/__tests__/**` to
+keep specs out of `.medusa/server`. An excluded file belongs to no project at all — tsserver falls back
+to an inferred project, which does not inherit the base config's `types: ["node", "framework", "jest"]`.
+The directive resolves `@types/jest` on its own, independent of any project.
+
+The consequence, and three non-fixes that look reasonable and are not:
+
+- **`yarn typecheck` never checks a unit spec.** No package's tsconfig projects include them — access's
+  three configs cover the server build, `integration-tests/` and admin, and none picks up `__tests__`.
+  jest does not close the gap either: `@swc/jest` strips types without checking them. A unit spec can be
+  type-broken and still run green.
+- **Do not un-exclude `__tests__`.** The specs then get emitted into `.medusa/server` and ship, dragging
+  jest and `@medusajs/test-utils` into the published artifact.
+- **Do not rename the directory** to `unit-tests` (which the build *does* ignore). `testMatch` is
+  `**/src/**/__tests__/**/*.unit.spec.[jt]s`, so jest silently stops finding the suite — and 17 of the
+  25 `test:unit` scripts pass `--passWithNoTests`, so in those packages that reads as green.
+- **Do not add a `tsconfig.spec.json` project reference.** A referenced project must be `composite`; a
+  composite project must list every file in its program, so it has to include the sources the specs
+  import; and that overlap makes tsc redirect those shared files to the spec project's never-built
+  declaration output, raising `TS6305: Output file … has not been built from source file …` on each.
+
 ## What a good test looks like here
 
 - **Assert at the highest seam that can observe the behaviour.** An HTTP request for anything the
