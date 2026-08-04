@@ -1,5 +1,5 @@
 import { WorkflowData, WorkflowResponse, createWorkflow, transform, when } from '@medusajs/framework/workflows-sdk'
-import { updateAccessRolePoliciesStep, validateRolePolicyScopesStep } from '../steps'
+import { updateAccessRolePoliciesStep, validateRolePolicyExistsStep, validateRolePolicyScopesStep } from '../steps'
 import { validateUserPermissionsStep } from '../steps/validate-user-permissions'
 
 /**
@@ -38,6 +38,15 @@ export const updateAccessRolePoliciesWorkflow = createWorkflow(
 		}))
 
 		validateRolePolicyScopesStep(scopeCheckData)
+
+		// Existence: an update whose selector matches nothing writes no rows and
+		// would otherwise answer 200, reporting a tightening that never happened.
+		const existsCheckData = transform({ input }, ({ input }) => ({
+			role_id: input.role_id,
+			policy_id: input.policy_id
+		}))
+
+		validateRolePolicyExistsStep(existsCheckData)
 
 		// Assignability: you may only grant what you hold. Unrestricted covers any
 		// scope; otherwise the scope names must match exactly.

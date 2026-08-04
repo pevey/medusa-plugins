@@ -1,5 +1,6 @@
 import { MiddlewareRoute } from '@medusajs/framework/http'
 import { MedusaError } from '@medusajs/framework/utils'
+import { WILDCARD } from './define-policies'
 import { PermissionAction } from './has-permission'
 
 /**
@@ -115,6 +116,12 @@ function registerGuard(input: {
 		source: input.source,
 		assertsScope: input.assertsScope
 	})
+
+	// This is the only path that mutates the registry, so it is the one place the
+	// match index can be invalidated exactly. Inferring staleness from the array's
+	// length — as the index cache also does, defensively — cannot see a same-length
+	// change, so the explicit call is what actually holds the invariant.
+	invalidateGuardIndex()
 }
 
 /**
@@ -278,7 +285,24 @@ export const SEAL_EXEMPT_PREFIXES = ['/auth'] as const
  * one place.
  */
 export function matchesPrefixOnSegmentBoundary(candidate: string, prefix: string): boolean {
-	return prefix === '/' || candidate === prefix || candidate.startsWith(`${prefix}/`)
+	if (prefix === '/') {
+		return true
+	}
+
+	// Case-folded for the same reason `guard.regex` carries the `i` flag: Express
+	// is configured with neither case-sensitive nor strict routing, so it routes
+	// `/Admin/orders` to the `/admin/orders` handler. A raw comparison here
+	// disagreed with what actually matched — a route declared `/Admin/widgets`
+	// dropped silently out of the `/admin` coverage report, and an authenticator
+	// prefix missed a capitalised request.
+	//
+	// `toUpperCase`, not `toLowerCase`, matching `indexableSegment` below: RegExp's
+	// case-insensitive canonicalization is toUpperCase-based, and the two fold
+	// different non-ASCII code points.
+	const foldedCandidate = candidate.toUpperCase()
+	const foldedPrefix = prefix.toUpperCase()
+
+	return foldedCandidate === foldedPrefix || foldedCandidate.startsWith(`${foldedPrefix}/`)
 }
 
 /**
@@ -288,13 +312,16 @@ export function matchesPrefixOnSegmentBoundary(candidate: string, prefix: string
  * must not also seal `/admin/orders`.
  */
 export function isPathSealed(path: string): boolean {
-	const candidate = normalizePath(path).toLowerCase()
+	// No case folding here any more: `matchesPrefixOnSegmentBoundary` owns that
+	// rule now, so both sides fold the same way in every caller rather than each
+	// one remembering to lowercase.
+	const candidate = normalizePath(path)
 
 	if (SEAL_EXEMPT_PREFIXES.some(exempt => matchesPrefixOnSegmentBoundary(candidate, exempt))) {
 		return false
 	}
 
-	return (global.AccessSealedNamespaces ?? []).some(prefix => matchesPrefixOnSegmentBoundary(candidate, prefix.toLowerCase()))
+	return (global.AccessSealedNamespaces ?? []).some(prefix => matchesPrefixOnSegmentBoundary(candidate, prefix))
 }
 
 /** Every registered guard, for drift reporting. */
@@ -326,11 +353,60 @@ export function findGuardsRequiring(resource: string, operation: string): { matc
 		.map(({ matcher, methods }) => ({ matcher, methods }))
 }
 
+/**
+ * Every distinct resource a declaration names, with the guards naming it.
+ *
+ * The wildcard is skipped: `*:read` is satisfied by a grant on any resource, so
+ * there is no resource for anyone to register.
+ *
+ * Resources are reported exactly as declared, never normalized. `authorize`
+ * compares a route's `action.resource` against a map keyed by the registry's
+ * normalized names, so a declaration differing only in casing is already
+ * unholdable — normalizing here would hide that rather than surface it.
+ *
+ * Exists so a resource nobody registered can be reported against the routes it
+ * makes unreachable — the registry lives here, so the collection does too.
+ */
+export function listGuardResources(): { resource: string; guards: { matcher: string; methods: string[]; regex: RegExp }[] }[] {
+	const byResource = new Map<string, Map<string, { matcher: string; methods: string[]; regex: RegExp }>>()
+
+	for (const guard of global.AccessRouteGuards ?? []) {
+		for (const action of guard.policies) {
+			if (action.resource === WILDCARD) {
+				continue
+			}
+
+			const guards = byResource.get(action.resource) ?? new Map()
+			// Keyed, because one guard can name the same resource at several
+			// operations and would otherwise be listed once per operation.
+			guards.set(`${guard.methods.join(',')} ${guard.matcher}`, { matcher: guard.matcher, methods: guard.methods, regex: guard.regex })
+			byResource.set(action.resource, guards)
+		}
+	}
+
+	return [...byResource].map(([resource, guards]) => ({ resource, guards: [...guards.values()] }))
+}
+
 type GuardIndex = { bySegment: Map<string, RouteGuard[]>; unindexed: RouteGuard[] }
 
 let indexCache: GuardIndex | undefined
 let indexedRef: RouteGuard[] | undefined
 let indexedCount = -1
+
+/**
+ * Drop the match index so the next lookup rebuilds it.
+ *
+ * Called by `registerGuard`, which is the only thing that mutates the registry
+ * in place. The ref and length checks in {@link getIndex} stay as a backstop for
+ * the registry being replaced wholesale (which specs do), but they are a
+ * heuristic — neither can see a same-length in-place change — so correctness
+ * rests on this call, not on them.
+ */
+function invalidateGuardIndex(): void {
+	indexCache = undefined
+	indexedRef = undefined
+	indexedCount = -1
+}
 
 /**
  * The literal first path segment of a matcher, or undefined when the segment

@@ -30,20 +30,25 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
  */
 export const POST = async (req: AuthenticatedMedusaRequest<AdminUpdateAccessRoleType>, res: MedusaResponse) => {
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+	// The workflow below writes by selector through the module service, which the
+	// interceptor cannot narrow — so the scope has to be proven here.
+	//
+	// Ahead of the existence check, not after it: for a scoped actor that check's
+	// own query is already narrowed, so an out-of-scope row 404s there and this
+	// never runs, leaving the write's only real guard unexercised. Ordered first,
+	// `assertScope` is the thing that refuses. The existence check still earns its
+	// place for an unscoped actor, where `assertScope` is a no-op.
+	await assertScope(req, { resource: 'access_role', id: req.params.id })
+
 	const { data: existing } = await query.graph({
 		entity: 'access_role',
 		filters: { id: req.params.id },
 		fields: ['id']
 	})
 
-	const existingRole = existing[0]
-	if (!existingRole) {
+	if (!existing[0]) {
 		throw new MedusaError(MedusaError.Types.NOT_FOUND, `Role with id "${req.params.id}" not found`)
 	}
-
-	// The workflow below writes by selector through the module service, which the
-	// interceptor cannot narrow — so the scope has to be proven here.
-	await assertScope(req, { resource: 'access_role', id: req.params.id })
 
 	const { result } = await updateAccessRolesWorkflow(req.scope).run({
 		input: {

@@ -1,6 +1,6 @@
 import { ApiLoader } from '@medusajs/framework/http'
-import { CLOSED_OPERATIONS, DiscardedPolicy, listDiscardedPolicies } from './define-policies'
-import { findGuardsRequiring, listRouteGuards, matchesPrefixOnSegmentBoundary, matchRoutePolicies, normalizePath } from './route-guards'
+import { CLOSED_OPERATIONS, DiscardedPolicy, listDiscardedPolicies, PolicyResource } from './define-policies'
+import { findGuardsRequiring, listGuardResources, listRouteGuards, matchesPrefixOnSegmentBoundary, matchRoutePolicies, normalizePath } from './route-guards'
 
 export type RegisteredRoute = {
 	matcher: string
@@ -205,8 +205,8 @@ function routesStrandedBy(discarded: DiscardedPolicy): { matcher: string; method
 }
 
 /**
- * Report policies refused registration for using an operation outside the
- * closed set. Called on application start; silent when there are none.
+ * Report policies refused registration. Called on application start; silent when
+ * there are none.
  *
  * Detail lines are `warn`, not `debug` as the coverage report uses: that list
  * can run to dozens of core routes, whereas every line here is a declaration
@@ -217,6 +217,11 @@ function routesStrandedBy(discarded: DiscardedPolicy): { matcher: string; method
  * wildcard holder — which presents as "permissions are broken on this route",
  * not as "someone typed `updte`". Naming the stranded routes is what closes
  * that gap, so the report leads with them rather than with the policy alone.
+ *
+ * The reason rides on each line rather than on the summary, because the two
+ * cases need different advice: an out-of-set operation needs the closed set to
+ * compare against, an incomplete declaration needs to be told which field is
+ * missing.
  */
 export function reportDiscardedPolicies(logger: { info?: Function; warn?: Function; debug?: Function } = console): void {
 	const discarded = listDiscardedPolicies()
@@ -224,13 +229,21 @@ export function reportDiscardedPolicies(logger: { info?: Function; warn?: Functi
 		return
 	}
 
-	logger.warn?.(
-		`[access] ${discarded.length} policy declaration(s) discarded — operation outside the closed set (${CLOSED_OPERATIONS.join(', ')}). Domain verbs such as approve or publish are modelled as update.`
-	)
+	logger.warn?.(`[access] ${discarded.length} policy declaration(s) discarded — not registered, so no role can hold them`)
 
 	for (const policy of discarded) {
 		const origin = policy.declaredIn ? `, declared in ${policy.declaredIn}` : ''
-		logger.warn?.(`[access]   discarded: ${policy.key} (policy "${policy.name}"${origin}) — not registered, so no role can hold this grant`)
+
+		if (policy.reason === 'incomplete') {
+			const missing = [!policy.name && 'name', !policy.resource && 'resource', !policy.operation && 'operation'].filter(Boolean).join(', ')
+			logger.warn?.(
+				`[access]   discarded: ${policy.key} (policy "${policy.name}"${origin}) — missing ${missing}. A policy definition needs all three; nothing was registered for it.`
+			)
+		} else {
+			logger.warn?.(
+				`[access]   discarded: ${policy.key} (policy "${policy.name}"${origin}) — operation is outside the closed set (${CLOSED_OPERATIONS.join(', ')}). Domain verbs such as approve or publish are modelled as update.`
+			)
+		}
 
 		const stranded = routesStrandedBy(policy)
 		if (!stranded.length) {
@@ -239,6 +252,76 @@ export function reportDiscardedPolicies(logger: { info?: Function; warn?: Functi
 		}
 		for (const route of stranded) {
 			logger.warn?.(`[access]     required by: ${route.methods.join(',')} ${route.matcher} — which now denies every actor without a wildcard grant`)
+		}
+	}
+}
+
+export type UnregisteredGuardResource = {
+	resource: string
+	/** Declarations naming it, exactly as written. */
+	guards: { matcher: string; methods: string[] }[]
+	/** Whether any route the app registered is matched by one of those declarations. */
+	live: boolean
+}
+
+/**
+ * Resources a route declaration requires that no `definePolicies` call ever
+ * registered.
+ *
+ * The mirror image of {@link getUnregisteredGuardResources}'s sibling
+ * {@link reportDiscardedPolicies}: there a policy was written and refused, here
+ * it was never written at all. Both end in the same place — no policy row, so no
+ * role can hold the grant, so the route admits wildcard holders only — but only
+ * the discarded case has anything on a rejected list to report from. This closes
+ * the other half by joining the guard registry to the policy registry.
+ *
+ * `live` separates urgency from latency. A declaration matching a route the app
+ * actually serves is broken right now; one matching nothing (the pinned core map
+ * spans a `^2.18.0` peer range, so it declares routes the installed version may
+ * not expose) is a latent bug worth fixing before that route appears.
+ */
+export function getUnregisteredGuardResources(): UnregisteredGuardResource[] {
+	const routes = (global.AccessRegisteredRoutes ?? []).map(route => ({
+		probe: toProbePath(route.matcher),
+		method: route.method
+	}))
+
+	return listGuardResources()
+		.filter(({ resource }) => !PolicyResource[resource])
+		.map(({ resource, guards }) => ({
+			resource,
+			guards: guards.map(({ matcher, methods }) => ({ matcher, methods })),
+			live: guards.some(guard => routes.some(route => guard.methods.includes(route.method) && guard.regex.test(route.probe)))
+		}))
+		.sort((a, b) => a.resource.localeCompare(b.resource))
+}
+
+/**
+ * Report resources a declaration requires but nothing registered. Called on
+ * application start; silent when there are none.
+ *
+ * `warn` throughout, like {@link reportDiscardedPolicies} and unlike the
+ * coverage report: every line is a declaration bug someone has to fix, and the
+ * list is short by nature.
+ */
+export function reportUnregisteredGuardResources(logger: { info?: Function; warn?: Function; debug?: Function } = console): void {
+	const unregistered = getUnregisteredGuardResources()
+	if (!unregistered.length) {
+		return
+	}
+
+	logger.warn?.(
+		`[access] ${unregistered.length} resource(s) named by a route declaration have no registered policy — declare them with definePolicies(generateResourcePolicies([...])), or the routes below admit wildcard (*:*) holders only`
+	)
+
+	for (const { resource, guards, live } of unregistered) {
+		const consequence = live
+			? 'and a registered route matches, so it denies every actor without a wildcard grant today'
+			: 'though no registered route matches it yet, so nothing is denied until one appears'
+		logger.warn?.(`[access]   unregistered: ${resource} — no policy declares this resource, ${consequence}`)
+
+		for (const guard of guards) {
+			logger.warn?.(`[access]     required by: ${guard.methods.join(',')} ${guard.matcher}`)
 		}
 	}
 }

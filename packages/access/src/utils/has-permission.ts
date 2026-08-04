@@ -1,5 +1,4 @@
 import { MedusaContainer } from '@medusajs/framework/types'
-import { useCache } from '@medusajs/framework/utils'
 import { WILDCARD } from './define-policies'
 import { resolveUnscopedQuery } from './scoped-query'
 
@@ -297,17 +296,17 @@ export function canGrantScope(granted: ResolvedPermission[], resource: string, o
  * `access_role.policies` is replaced by real policy rows by the module service's
  * `listAccessRoles` override, so `policy.resource`/`policy.operation` are present.
  *
- * The only caching in effect is the request-scoped memo below: the in-flight
- * promise is stored per `(container, roleId)`, so the field filter's fan-out —
- * one permission check per entity path, fired concurrently — collapses to one
- * query with zero staleness.
+ * Caching is request-scoped and nothing else: the in-flight promise is stored per
+ * `(container, roleId)`, so the field filter's fan-out — one permission check per
+ * entity path, fired concurrently — collapses to one query, and a role edit takes
+ * effect on the very next request with no invalidation to get wrong.
  *
- * The cross-request `useCache` wrapper further down is INERT: it passes no
- * `enable`, and `useCache` returns the callback's result untouched when that is
- * falsy. Two things must be fixed before enabling it, or it will misbehave
- * rather than merely do nothing — it caches a `Map`, which stringifies to `{}`
- * and would 500 on a Redis hit, and it pins `providers: ['cache-memory']`,
- * which only resolves when a config sets `in_memory.enable`.
+ * A cross-request `useCache` wrapper lived here and never ran: it passed no
+ * `enable`, which makes `useCache` return the callback's result untouched. It is
+ * removed rather than left looking configured. Anyone reinstating it has two
+ * problems to solve first — it cached a `Map`, which stringifies to `{}` and
+ * would 500 on a Redis hit, and it pinned `providers: ['cache-memory']`, which
+ * only resolves when a config sets `in_memory.enable`.
  */
 async function fetchSingleRolePolicies(roleId: string, container: MedusaContainer): Promise<Map<string, Map<string, Set<string | null>>>> {
 	// Store the in-flight PROMISE, not the result: the field filter calls
@@ -327,68 +326,42 @@ async function fetchSingleRolePolicies(roleId: string, container: MedusaContaine
 async function fetchSingleRolePoliciesUncached(roleId: string, container: MedusaContainer): Promise<Map<string, Map<string, Set<string | null>>>> {
 	const query = resolveUnscopedQuery(container)
 
-	const tags: string[] = []
-	return await useCache<Map<string, Map<string, Set<string | null>>>>(
-		async () => {
-			const { data: roles } = await query.graph({
-				entity: 'access_role',
-				// The `fields` list below is NOT what makes `scope` arrive: the module
-				// service's `listAccessRoles` override (src/modules/access/service.ts)
-				// replaces `role.policies` wholesale with rows from the repository's
-				// raw recursive-CTE query (src/modules/access/repositories/access.ts),
-				// which `SELECT`s `rp.scope` unconditionally regardless of what's
-				// requested here -- the same mechanism that already carries
-				// `resource`/`operation` (columns of `AccessPolicy`, not of the
-				// `AccessRolePolicy` relation `policies` is declared against) and
-				// `inherited_from_role_id` (a synthetic CASE column on no model at
-				// all). `policies.scope` is listed here as belt-and-braces
-				// documentation of intent only, not as the thing keeping this working;
-				// integration coverage (see "pins the query.graph -> authorize chain
-				// end to end" in access.spec.ts) is what actually guards this.
-				fields: ['id', 'policies.*', 'policies.scope'],
-				filters: { id: roleId }
-			})
+	const { data: roles } = await query.graph({
+		entity: 'access_role',
+		// The `fields` list below is NOT what makes `scope` arrive: the module
+		// service's `listAccessRoles` override (src/modules/access/service.ts)
+		// replaces `role.policies` wholesale with rows from the repository's
+		// raw recursive-CTE query (src/modules/access/repositories/access.ts),
+		// which `SELECT`s `rp.scope` unconditionally regardless of what's
+		// requested here -- the same mechanism that already carries
+		// `resource`/`operation` (columns of `AccessPolicy`, not of the
+		// `AccessRolePolicy` relation `policies` is declared against) and
+		// `inherited_from_role_id` (a synthetic CASE column on no model at
+		// all). `policies.scope` is listed here as belt-and-braces
+		// documentation of intent only, not as the thing keeping this working;
+		// integration coverage (see "pins the query.graph -> authorize chain
+		// end to end" in access.spec.ts) is what actually guards this.
+		fields: ['id', 'policies.*', 'policies.scope'],
+		filters: { id: roleId }
+	})
 
-			const role = roles[0]
-			const resourceMap = new Map<string, Map<string, Set<string | null>>>()
+	const role = roles[0]
+	const resourceMap = new Map<string, Map<string, Set<string | null>>>()
 
-			tags.push(`AccessRole:${roleId}`)
-			if (role?.policies && Array.isArray(role.policies)) {
-				for (const policy of role.policies) {
-					if (!resourceMap.has(policy.resource)) {
-						resourceMap.set(policy.resource, new Map())
-					}
-					const opsMap = resourceMap.get(policy.resource)!
-					if (!opsMap.has(policy.operation)) {
-						opsMap.set(policy.operation, new Set())
-					}
-					opsMap.get(policy.operation)!.add(policy.scope ?? null)
-
-					tags.push(`AccessPolicy:${policy.id}`)
-
-					// A grant reaching this role through inheritance means an edit to the
-					// ANCESTOR invalidates this entry too. `inherited_from_role_id` is
-					// NULL for directly-held policies.
-					if (policy.inherited_from_role_id) {
-						tags.push(`AccessRole:${policy.inherited_from_role_id}`)
-					}
-				}
+	if (role?.policies && Array.isArray(role.policies)) {
+		for (const policy of role.policies) {
+			if (!resourceMap.has(policy.resource)) {
+				resourceMap.set(policy.resource, new Map())
 			}
-
-			return resourceMap
-		},
-		{
-			container,
-			key: roleId,
-			// Passed by reference on purpose: `useCache` reads options.tags again
-			// after the callback resolves, and the pushes above happen inside it.
-			// Snapshotting here (e.g. `Array.from(new Set(tags))`) yields an empty
-			// list, because arguments are evaluated before the callback runs.
-			tags,
-			ttl: 60 * 60 * 24 * 7,
-			providers: ['cache-memory']
+			const opsMap = resourceMap.get(policy.resource)!
+			if (!opsMap.has(policy.operation)) {
+				opsMap.set(policy.operation, new Set())
+			}
+			opsMap.get(policy.operation)!.add(policy.scope ?? null)
 		}
-	)
+	}
+
+	return resourceMap
 }
 
 /**

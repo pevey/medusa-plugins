@@ -112,8 +112,11 @@ function installFieldFilter(
 				parsedFields: { fields: new Set(fields), starFields: new Set() }
 			})
 			.then(async access => {
-				if (access.notAllowed.length) {
-					stripNotAllowedFields(body, access.notAllowed)
+				// Denied roots first: removing the relation makes the leaf deletions
+				// below no-ops, and leaving the branch standing with its fields gone
+				// would still disclose how many rows it holds.
+				if (access.deniedRoots.length || access.notAllowed.length) {
+					stripNotAllowedFields(body, [...access.deniedRoots, ...access.notAllowed])
 				}
 				await narrowScopedRelations(req, body, access.scoped)
 				originalJson(body)
@@ -330,7 +333,23 @@ function makeEnforcementRelease(req: AuthenticatedMedusaRequest, res: MedusaResp
 			return true
 		}
 
-		logScopeEnforcementGap(req, enforcement)
+		// Always a consumer-code bug — a missing query or a missing `assertsScope`
+		// declaration — never a one-time misconfiguration, so it is an error rather
+		// than a warning, and it names the resources that were left unnarrowed.
+		try {
+			const logger: any = req.scope.resolve(ContainerRegistrationKeys.LOGGER)
+			const unnarrowed = [...enforcement.required].filter(resource => !enforcement.narrowed.has(resource) && !enforcement.asserted.has(resource))
+			// Deliberately does not name the outcome: which branch runs is decided
+			// afterwards, in the wrappers, and a response whose headers already went
+			// out is destroyed rather than replaced. This line reports the gap; the
+			// truncation branch reports that outcome itself.
+			logger?.error?.(
+				`[access] ${req.method} ${(req as any).originalUrl} completed without narrowing or asserting: ${unnarrowed.join(', ')} — denying rather than shipping unfiltered rows. A scoped handler must query every required resource (so the interceptor can narrow it) or the route must declare assertsScope.`
+			)
+		} catch {
+			// A container without a logger is not a reason to fail the request.
+		}
+
 		return false
 	}
 }
@@ -341,46 +360,129 @@ function makeEnforcementRelease(req: AuthenticatedMedusaRequest, res: MedusaResp
  * rather than shipping unnarrowed. Field stripping stays on the JSON path
  * alone: these bodies have no entity shape to strip.
  */
-function installNonJsonRelease(res: MedusaResponse, release: () => boolean): void {
+function installNonJsonRelease(req: AuthenticatedMedusaRequest, res: MedusaResponse, enforcement: AccessEnforcement, release: () => boolean): void {
 	const forbidden = { type: 'forbidden', message: 'Insufficient permissions' }
+
+	// Follows the release check's gap line and reports the outcome it could not:
+	// destroying the socket is materially different from a clean 403, because the
+	// client gets a truncated body with a success status already on the wire. One
+	// truncation, one line — a handler calling `write` and then `end` reaches this
+	// twice.
+	let truncationLogged = false
+	const logTruncation = () => {
+		if (truncationLogged) {
+			return
+		}
+		truncationLogged = true
+		try {
+			const logger: any = req.scope.resolve(ContainerRegistrationKeys.LOGGER)
+			logger?.error?.(
+				`[access] ${req.method} ${(req as any).originalUrl} could not be denied cleanly: headers were already sent, so the response was DESTROYED and the client received a truncated body rather than a 403. A scoped handler must query every required resource before it starts writing.`
+			)
+		} catch {
+			// A container without a logger is not a reason to fail the request.
+		}
+	}
 
 	const originalSend = typeof (res as any).send === 'function' ? (res as any).send.bind(res) : undefined
 	const originalWrite = typeof (res as any).write === 'function' ? (res as any).write.bind(res) : undefined
 	const originalEnd = typeof (res as any).end === 'function' ? (res as any).end.bind(res) : undefined
 	const originalWriteHead = typeof (res as any).writeHead === 'function' ? (res as any).writeHead.bind(res) : undefined
 
+	/**
+	 * The path being replaced has usually already described a body that will now
+	 * never be sent: `res.redirect` sets `Location` and a `Content-Length` for its
+	 * own small HTML body, `res.sendFile` sets `Content-Length`, `Content-Type`
+	 * and `Content-Disposition` for the file. Left in place they make the denial
+	 * malformed rather than merely wrong — a `Content-Length` shorter than the
+	 * denial body truncates it mid-JSON, a longer one leaves the client waiting —
+	 * and a 403 still carrying `Location` invites a client to follow the redirect
+	 * it was just refused.
+	 */
+	const replaceBodyHeaders = (contentType?: string) => {
+		for (const header of ['Content-Length', 'Content-Type', 'Content-Disposition', 'Content-Encoding', 'Content-Range', 'ETag', 'Last-Modified', 'Location']) {
+			;(res as any).removeHeader?.(header)
+		}
+		if (contentType) {
+			;(res as any).setHeader?.('Content-Type', contentType)
+		}
+	}
+
+	// `release` answers once for the whole response; this carries that answer to
+	// every later terminal call. Without it a handler that writes its head and
+	// then its body gets the 403 status from the head — and the unnarrowed body
+	// underneath it, because the second call sees the spent latch and passes
+	// through. A status is not a denial; a caller reads the body regardless of it.
+	let denied = false
+	const shouldDeny = (): boolean => {
+		if (!denied && !release()) {
+			denied = true
+		}
+		return denied
+	}
+
+	// Set once our own 403 head is on the wire, so the body that follows is ours
+	// to write rather than the handler's to finish — and is not a case for
+	// destroying the socket, which is reserved for a stream that had genuinely
+	// started before the violation was detectable.
+	let denialHeadSent = false
+	let denialBodyWritten = false
+	const denialBody = (): string | undefined => {
+		if (denialBodyWritten) {
+			return undefined
+		}
+		denialBodyWritten = true
+		return JSON.stringify(forbidden)
+	}
+
 	// Ahead of `write`/`end`, because a handler that calls this has committed to
 	// a status before producing a body — checking here is what keeps the denial a
 	// clean 403 rather than a destroyed socket.
 	if (originalWriteHead) {
 		;(res as any).writeHead = (...args: any[]) => {
-			if (release()) {
+			if (!shouldDeny()) {
 				return originalWriteHead(...args)
 			}
 			res.status(403)
-			return originalWriteHead(403)
+			denialHeadSent = true
+			replaceBodyHeaders()
+			return originalWriteHead(403, { 'content-type': 'application/json' })
 		}
 	}
 
 	if (originalSend) {
 		;(res as any).send = (body: any) => {
-			if (release()) {
+			if (!shouldDeny()) {
 				return originalSend(body)
 			}
 			res.status(403)
+			// No content type here: `send` sets its own for the object body.
+			replaceBodyHeaders()
 			return originalSend(forbidden)
 		}
 	}
 
 	if (originalWrite) {
 		;(res as any).write = (...args: any[]) => {
-			if (release()) {
+			if (!shouldDeny()) {
 				return originalWrite(...args)
 			}
-			if (!res.headersSent) {
-				res.status(403)
-				return originalWrite(JSON.stringify(forbidden))
+			const written = denialBody()
+			if (denialHeadSent) {
+				return written === undefined ? true : originalWrite(written)
 			}
+			if (!res.headersSent) {
+				// `undefined` means an earlier terminal call already emitted it —
+				// `res.sendFile` reaches `write` and `end` both, and two copies of the
+				// denial is as malformed as none.
+				if (written === undefined) {
+					return true
+				}
+				res.status(403)
+				replaceBodyHeaders('application/json; charset=utf-8')
+				return originalWrite(written)
+			}
+			logTruncation()
 			;(res as any).destroy?.()
 			return false
 		}
@@ -388,18 +490,108 @@ function installNonJsonRelease(res: MedusaResponse, release: () => boolean): voi
 
 	if (originalEnd) {
 		;(res as any).end = (...args: any[]) => {
-			if (release()) {
+			if (!shouldDeny()) {
 				return originalEnd(...args)
+			}
+			// Drop the handler's chunk either way: the denial body is ours, and
+			// completing their body is the leak this exists to stop.
+			const written = denialBody()
+			if (denialHeadSent) {
+				return written === undefined ? originalEnd() : originalEnd(written)
 			}
 			if (!res.headersSent) {
 				res.status(403)
-				return originalEnd(JSON.stringify(forbidden))
+				replaceBodyHeaders('application/json; charset=utf-8')
+				return written === undefined ? originalEnd() : originalEnd(written)
 			}
 			// The body is already on the wire; truncating it is the only remaining
 			// way to avoid completing a response that was never narrowed.
+			logTruncation()
 			;(res as any).destroy?.()
 			return res
 		}
+	}
+}
+
+/**
+ * Last-resort detection for a scoped response that reached the socket without
+ * passing any wrapped terminal path.
+ *
+ * `installNonJsonRelease` intercepts at the door: it wraps `writeHead`, `send`,
+ * `write` and `end` as own properties of `res`. Anything that reaches the socket
+ * another way — `res.socket.write`, a call through
+ * `http.ServerResponse.prototype`, a proxy or compression layer piping to the
+ * raw socket, or a middleware holding a reference captured before this guard ran
+ * — never meets a wrapper. `finish` is an observation rather than an
+ * interception, so it fires however the response was produced.
+ *
+ * By then the bytes are gone, so this cannot deny; it exists so an escape is
+ * loud rather than silent. Deliberately NOT wired through the release closure:
+ * that latch answers once, and consuming it here would let a genuinely
+ * unsatisfied response released through a wrapped path go unchecked.
+ */
+function installLedgerBackstop(req: AuthenticatedMedusaRequest, res: MedusaResponse, enforcement: AccessEnforcement): void {
+	;(res as any).once?.('finish', () => {
+		// A wrapped path that denied leaves a 4xx behind, and a handler that
+		// errored never claimed success — neither is an escape. Same rule the
+		// release check applies, for the same reason.
+		if (res.statusCode >= 400 || enforcementSatisfied(enforcement)) {
+			return
+		}
+
+		try {
+			const logger: any = req.scope.resolve(ContainerRegistrationKeys.LOGGER)
+			const unnarrowed = [...enforcement.required].filter(resource => !enforcement.narrowed.has(resource) && !enforcement.asserted.has(resource))
+			logger?.error?.(
+				`[access] ${req.method} ${(req as any).originalUrl} SHIPPED a ${res.statusCode} response without narrowing or asserting: ${unnarrowed.join(', ')}. The response bypassed every guarded terminal path (res.writeHead/send/write/end), so it could not be replaced with a 403 — unfiltered rows may have left the process. Find what wrote this response outside the Express response object (a raw res.socket write, a prototype call, or a proxy/stream piping straight to the socket).`
+			)
+		} catch {
+			// A container without a logger is not a reason to throw from an event
+			// handler, where there is no request left to fail.
+		}
+	})
+}
+
+/**
+ * Why the guard refused a request.
+ *
+ * Deliberately absent from the response: every branch answers with the same
+ * status AND the same message, because a Medusa backend is usually
+ * internet-facing and the requester must not learn which check refused them.
+ * This is the operator-side record, and the token a test keys on rather than
+ * inferring the branch from a status every branch shares.
+ */
+export type AccessDenialReason =
+	| 'sealed_namespace'
+	| 'no_actor'
+	| 'no_resolver'
+	| 'missing_grant'
+	| 'unenforceable_scope'
+	| 'non_canonical_scope'
+	| 'multi_operation_scope'
+	| 'mutation_without_assert'
+	| 'scope_resolver_failed'
+	| 'empty_scope_filter'
+
+/**
+ * Record a denial for the operator.
+ *
+ * `debug`, uniformly: this fires once per denied request, and the cheapest
+ * branches are exactly the ones a low-privilege caller can trigger at volume, so
+ * anything louder is a log-amplification vector. Medusa's own error handler
+ * already logs every 4xx at `info`, which makes this strictly quieter than what
+ * ships today.
+ *
+ * Configuration faults raise their own deduped `warn`/`error` alongside this,
+ * through the helpers below — that is the "your config is broken" channel, this
+ * is the "why did this request 403" one.
+ */
+function logDenial(req: AuthenticatedMedusaRequest, reason: AccessDenialReason): void {
+	try {
+		const logger: any = req.scope.resolve(ContainerRegistrationKeys.LOGGER)
+		logger?.debug?.(`[access] denied (${reason}): ${req.method} ${(req as any).originalUrl}`)
+	} catch {
+		// A container without a logger is not a reason to fail the request.
 	}
 }
 
@@ -409,26 +601,6 @@ function warnFieldFilterFault(container: MedusaContainer, entity: string, error:
 		const logger: any = container.resolve(ContainerRegistrationKeys.LOGGER)
 		logger?.warn?.(
 			`[access] field filter failed for entity "${entity}" — falling through with the response unfiltered: ${error instanceof Error ? error.message : String(error)}`
-		)
-	} catch {
-		// A container without a logger is not a reason to fail the request.
-	}
-}
-
-/**
- * Fires only when a scoped route's handler neither queried nor asserted one of
- * its required resources — the response is about to be replaced with a 403
- * instead of leaking unfiltered rows. That is always a consumer-code bug (a
- * missing query or a missing `assertsScope` declaration), never a one-time
- * misconfiguration, so this logs at error level naming the route and the
- * resources that were left unnarrowed.
- */
-function logScopeEnforcementGap(req: AuthenticatedMedusaRequest, enforcement: AccessEnforcement): void {
-	try {
-		const logger: any = req.scope.resolve(ContainerRegistrationKeys.LOGGER)
-		const unnarrowed = [...enforcement.required].filter(resource => !enforcement.narrowed.has(resource) && !enforcement.asserted.has(resource))
-		logger?.error?.(
-			`[access] ${req.method} ${(req as any).originalUrl} completed without narrowing or asserting: ${unnarrowed.join(', ')} — replacing the response with 403 rather than leaking unfiltered rows. A scoped handler must query every required resource (so the interceptor can narrow it) or the route must declare assertsScope.`
 		)
 	} catch {
 		// A container without a logger is not a reason to fail the request.
@@ -613,6 +785,7 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 			// access-aware. A namespace its owner has explicitly sealed is the
 			// exception — there, an undeclared route is a mistake, not an opt-out.
 			if (isPathSealed(fullPath)) {
+				logDenial(req, 'sealed_namespace')
 				throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 			}
 
@@ -651,7 +824,10 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 		const actorType = req.auth_context?.actor_type
 
 		if (!actorId) {
-			throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Forbidden')
+			// Same message as every other branch: "unauthenticated" versus
+			// "insufficient" is a distinction the requester does not need drawn.
+			logDenial(req, 'no_actor')
+			throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 		}
 
 		// Opt this request's scope into memoized role resolution. Everything
@@ -664,6 +840,7 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 
 		if (roleIds === null) {
 			warnUnresolvedActorType(req.scope, actorType ?? 'user')
+			logDenial(req, 'no_resolver')
 			throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 		}
 
@@ -674,6 +851,7 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 		})
 
 		if (!decision.granted) {
+			logDenial(req, 'missing_grant')
 			throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 		}
 
@@ -683,6 +861,7 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 			const missing = decision.scopes.filter(s => !getScope(s.resource, s.scope))
 			if (missing.length) {
 				warnUnenforceableScope(req.scope, missing)
+				logDenial(req, 'unenforceable_scope')
 				throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 			}
 
@@ -693,6 +872,7 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 			const nonCanonical = decision.scopes.filter(s => canonicalQueryRoot(s.resource) !== s.resource)
 			if (nonCanonical.length) {
 				warnNonCanonicalScope(req.scope, nonCanonical)
+				logDenial(req, 'non_canonical_scope')
 				throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 			}
 
@@ -710,11 +890,13 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 			}
 			for (const resource of scopedResources) {
 				if ((operationsPerResource.get(resource)?.size ?? 0) > 1) {
+					logDenial(req, 'multi_operation_scope')
 					throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 				}
 			}
 
 			if (MUTATING_METHODS.has(req.method.toUpperCase()) && !routeAssertsScopes(fullPath, req.method)) {
+				logDenial(req, 'mutation_without_assert')
 				throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 			}
 
@@ -731,6 +913,7 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 				}
 			} catch (error) {
 				logScopeResolutionFailure(req.scope, error)
+				logDenial(req, 'scope_resolver_failed')
 				throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 			}
 
@@ -747,6 +930,7 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 							req.scope,
 							new Error(`scope filter for "${resource}" did not resolve to a non-empty filter object, which would widen access instead of narrowing it`)
 						)
+						logDenial(req, 'empty_scope_filter')
 						throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 					}
 				}
@@ -777,7 +961,8 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 		const release = makeEnforcementRelease(req, res, enforcement)
 		installFieldFilter(req, res, roleIds, required, release)
 		if (enforcement) {
-			installNonJsonRelease(res, release)
+			installNonJsonRelease(req, res, enforcement, release)
+			installLedgerBackstop(req, res, enforcement)
 		}
 
 		return next()

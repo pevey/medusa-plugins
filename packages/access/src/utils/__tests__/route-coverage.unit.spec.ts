@@ -1,5 +1,5 @@
 import { definePolicies } from '../define-policies'
-import { getRouteCoverage, getStaleGuards, reportDiscardedPolicies, reportRouteCoverage } from '../route-coverage'
+import { getRouteCoverage, getStaleGuards, getUnregisteredGuardResources, reportDiscardedPolicies, reportRouteCoverage, reportUnregisteredGuardResources } from '../route-coverage'
 import { guardResource, requirePolicies } from '../route-guards'
 
 const reset = (routes: { method: string; matcher: string }[] = []) => {
@@ -205,6 +205,19 @@ describe('reportDiscardedPolicies', () => {
 		expect(all).toContain('export')
 	})
 
+	it('names the missing fields for an incomplete declaration, not the closed set', () => {
+		definePolicies({ name: 'IncompleteReport', resource: '', operation: '' } as any)
+		const { logged, logger } = capture()
+
+		reportDiscardedPolicies(logger)
+
+		const all = logged.join('\n')
+		expect(all).toContain('missing resource, operation')
+		// Telling someone to check their operation against the closed set is no help
+		// when the field is simply absent.
+		expect(all).not.toContain('outside the closed set')
+	})
+
 	it('states the consequence — that no role can hold the grant', () => {
 		definePolicies({ name: 'ConsequenceTypo', resource: 'consequence_thing', operation: 'updte' })
 		const { logged, logger } = capture()
@@ -291,5 +304,144 @@ describe('probe normalization', () => {
 		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
 
 		expect(getStaleGuards()).toEqual([])
+	})
+
+	// Express routes `/Admin/widgets` to the `/admin/widgets` handler, so a report
+	// that filtered its prefix case-sensitively disagreed with what the guard
+	// actually matched -- and a route dropping silently out of the report reads as
+	// "nothing to see here", which is the one thing a coverage report must never
+	// do wrongly.
+	it('counts a route whose prefix differs only in case', () => {
+		reset([{ method: 'GET', matcher: '/Admin/widgets' }])
+
+		expect(getRouteCoverage('/admin').total).toBe(1)
+		expect(getRouteCoverage('/admin').uncovered).toHaveLength(1)
+
+		guardResource({ resource: 'widget', prefix: '/admin/widgets' })
+		expect(getRouteCoverage('/admin').uncovered).toEqual([])
+	})
+
+	it('considers a declaration whose prefix differs only in case when reporting drift', () => {
+		reset([{ method: 'GET', matcher: '/admin/widgets' }])
+		requirePolicies({ matcher: '/Admin/gone', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+
+		expect(getStaleGuards('/admin').map(guard => guard.matcher)).toEqual(['/Admin/gone'])
+	})
+})
+
+describe('unregistered guard resources', () => {
+	const capture = () => {
+		const logged: string[] = []
+		const logger = {
+			info: (m: string) => logged.push(m),
+			warn: (m: string) => logged.push(m),
+			debug: (m: string) => logged.push(m)
+		}
+		return { logged, logger }
+	}
+
+	beforeEach(() => reset())
+
+	it('reports a resource no definePolicies call registered, naming the declaration requiring it', () => {
+		requirePolicies({
+			matcher: '/admin/unregistered-things/:id',
+			method: ['POST', 'DELETE'],
+			policies: [{ resource: 'never_declared_thing', operation: 'update' }]
+		})
+
+		const found = getUnregisteredGuardResources()
+		expect(found).toHaveLength(1)
+		expect(found[0].resource).toBe('never_declared_thing')
+		expect(found[0].guards).toEqual([{ matcher: '/admin/unregistered-things/:id', methods: ['POST', 'DELETE'] }])
+
+		const { logged, logger } = capture()
+		reportUnregisteredGuardResources(logger)
+
+		const all = logged.join('\n')
+		expect(all).toContain('never_declared_thing')
+		expect(all).toContain('/admin/unregistered-things/:id')
+		expect(all).toContain('POST,DELETE')
+		// the operator has to be told how to fix it, not only what is wrong
+		expect(all).toContain('definePolicies')
+	})
+
+	it('does not report a resource that was registered', () => {
+		definePolicies({ name: 'ReadDeclaredThing', resource: 'declared_thing', operation: 'read' })
+		requirePolicies({
+			matcher: '/admin/declared-things',
+			method: ['GET'],
+			policies: [{ resource: 'declared_thing', operation: 'read' }]
+		})
+
+		expect(getUnregisteredGuardResources()).toEqual([])
+
+		const { logged, logger } = capture()
+		reportUnregisteredGuardResources(logger)
+		expect(logged).toEqual([])
+	})
+
+	it('is silent when there are no declarations at all', () => {
+		const { logged, logger } = capture()
+
+		reportUnregisteredGuardResources(logger)
+
+		expect(logged).toEqual([])
+	})
+
+	it('never reports the wildcard, which no policy can declare', () => {
+		requirePolicies({ matcher: '/admin/anything', method: ['GET'], policies: [{ resource: '*', operation: 'read' }] })
+
+		expect(getUnregisteredGuardResources()).toEqual([])
+	})
+
+	it('marks a resource live when a registered route matches, and says the routes deny today', () => {
+		reset([{ method: 'POST', matcher: '/admin/live-things/:id' }])
+		requirePolicies({
+			matcher: '/admin/live-things/:id',
+			method: ['POST'],
+			policies: [{ resource: 'live_unregistered_thing', operation: 'update' }]
+		})
+
+		expect(getUnregisteredGuardResources()[0].live).toBe(true)
+
+		const { logged, logger } = capture()
+		reportUnregisteredGuardResources(logger)
+		expect(logged.join('\n')).toContain('denies every actor without a wildcard grant today')
+	})
+
+	it('marks a resource latent when no registered route matches, and says nothing is denied yet', () => {
+		reset([{ method: 'GET', matcher: '/admin/somewhere-else' }])
+		requirePolicies({
+			matcher: '/admin/latent-things/:id',
+			method: ['POST'],
+			policies: [{ resource: 'latent_unregistered_thing', operation: 'update' }]
+		})
+
+		expect(getUnregisteredGuardResources()[0].live).toBe(false)
+
+		const { logged, logger } = capture()
+		reportUnregisteredGuardResources(logger)
+		expect(logged.join('\n')).toContain('nothing is denied until one appears')
+	})
+
+	it('reports a declaration whose casing differs from the registered name, since enforcement compares them raw', () => {
+		definePolicies({ name: 'ReadCasedThing', resource: 'casedThing', operation: 'read' })
+		requirePolicies({
+			matcher: '/admin/cased-things',
+			method: ['GET'],
+			// `definePolicies` normalized the registration to `cased_thing`, so this
+			// literal matches no policy and the grant is unholdable.
+			policies: [{ resource: 'casedThing', operation: 'read' }]
+		})
+
+		expect(getUnregisteredGuardResources().map(entry => entry.resource)).toEqual(['casedThing'])
+	})
+
+	it('lists a guard once when it names the same resource at several operations', () => {
+		guardResource({ resource: 'multi_op_unregistered_thing', prefix: '/admin/multi-op-things' })
+
+		const [found] = getUnregisteredGuardResources()
+		const keys = found.guards.map(guard => `${guard.methods.join(',')} ${guard.matcher}`)
+		expect(new Set(keys).size).toBe(keys.length)
 	})
 })

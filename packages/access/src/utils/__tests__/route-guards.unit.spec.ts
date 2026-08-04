@@ -161,6 +161,52 @@ describe('sealNamespace', () => {
 	})
 })
 
+describe('the match index tracks the registry', () => {
+	beforeEach(() => {
+		;(global as any).AccessRouteGuards = []
+		;(global as any).AccessSealedNamespaces = []
+	})
+
+	// The index is built lazily on first match and cached. `registerGuard`
+	// invalidates it explicitly, because inferring staleness from the array's
+	// length cannot see a same-length change.
+	it('sees a guard registered after an earlier request already built the index', () => {
+		requirePolicies({ matcher: '/admin/first', method: ['GET'], policies: [{ resource: 'first', operation: 'read' }] })
+		expect(matchRoutePolicies('/admin/first', 'GET')).toHaveLength(1)
+
+		requirePolicies({ matcher: '/admin/second', method: ['GET'], policies: [{ resource: 'second', operation: 'read' }] })
+
+		expect(matchRoutePolicies('/admin/second', 'GET')).toHaveLength(1)
+		expect(matchRoutePolicies('/admin/first', 'GET')).toHaveLength(1)
+	})
+
+	it('rebuilds after the registry is replaced wholesale, as a reset does', () => {
+		requirePolicies({ matcher: '/admin/first', method: ['GET'], policies: [{ resource: 'first', operation: 'read' }] })
+		expect(matchRoutePolicies('/admin/first', 'GET')).toHaveLength(1)
+
+		;(global as any).AccessRouteGuards = []
+
+		expect(matchRoutePolicies('/admin/first', 'GET')).toEqual([])
+	})
+
+	// Truncate-and-re-register: the same array, back to the same length, holding
+	// something else. This is the shape the ref and length checks cannot see —
+	// both look identical to the state that was indexed — and it is a plausible
+	// reload idiom, not only a theoretical one. Only the explicit invalidation in
+	// `registerGuard` catches it.
+	it('rebuilds when the registry is emptied in place and refilled to the same length', () => {
+		requirePolicies({ matcher: '/admin/first', method: ['GET'], policies: [{ resource: 'first', operation: 'read' }] })
+		expect(matchRoutePolicies('/admin/first', 'GET')).toHaveLength(1)
+
+		;(global as any).AccessRouteGuards.length = 0
+		requirePolicies({ matcher: '/admin/second', method: ['GET'], policies: [{ resource: 'second', operation: 'read' }] })
+
+		expect(matchRoutePolicies('/admin/second', 'GET')).toHaveLength(1)
+		// A stale index would still be answering for the guard that is gone.
+		expect(matchRoutePolicies('/admin/first', 'GET')).toEqual([])
+	})
+})
+
 describe('hasPermission with no roles', () => {
 	it('denies rather than allows', async () => {
 		const { hasPermission } = await import('../has-permission')

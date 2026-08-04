@@ -27,8 +27,62 @@ describe('definePolicies (independent identity)', () => {
 		}
 	})
 
-	it('throws when a policy is missing required fields', () => {
-		expect(() => definePolicies({ name: '', resource: 'x', operation: 'read' } as any)).toThrow()
+})
+
+describe('definePolicies (incomplete declarations)', () => {
+	beforeEach(() => {
+		;(global as any).AccessDiscardedPolicies = []
+	})
+
+	afterAll(() => {
+		;(global as any).AccessDiscardedPolicies = []
+	})
+
+	// The point of the whole discard mechanism: `definePolicies` runs at
+	// module-body evaluation time, so throwing here takes an operator's whole
+	// application down over one third-party plugin's typo.
+	it.each([
+		['name', { name: '', resource: 'incomplete_thing', operation: 'read' }],
+		['resource', { name: 'MissingResource', resource: '', operation: 'read' }],
+		['operation', { name: 'MissingOperation', resource: 'incomplete_thing', operation: '' }]
+	])('discards rather than throwing when %s is missing', (_field, policy) => {
+		expect(() => definePolicies(policy as any)).not.toThrow()
+
+		expect(listDiscardedPolicies()).toHaveLength(1)
+		expect(listDiscardedPolicies()[0].reason).toBe('incomplete')
+	})
+
+	it('registers nothing at all for an incomplete declaration', () => {
+		definePolicies({ name: 'HalfDeclared', resource: 'half_thing', operation: '' } as any)
+
+		expect(Policy['HalfDeclared']).toBeUndefined()
+		expect(PolicyResource['half_thing']).toBeUndefined()
+	})
+
+	it('does not throw on a null or non-object entry', () => {
+		expect(() => definePolicies([null, undefined, 'nonsense'] as any)).not.toThrow()
+		expect(Object.keys(Policy)).not.toContain('nonsense')
+	})
+
+	it('keeps the good policies in a batch that also holds a broken one', () => {
+		const result = definePolicies([
+			{ name: 'GoodOne', resource: 'batch_thing', operation: 'read' },
+			{ name: '', resource: 'batch_thing', operation: 'create' }
+		] as any)
+
+		expect(result.policies.map(p => p.name)).toEqual(['GoodOne'])
+		expect(Policy['GoodOne']).toBeDefined()
+		expect(listDiscardedPolicies()).toHaveLength(1)
+	})
+
+	it('reports two differently-broken declarations separately, but one twice-declared one once', () => {
+		definePolicies({ name: 'BrokenA', resource: '', operation: 'read' } as any)
+		definePolicies({ name: 'BrokenB', resource: '', operation: 'read' } as any)
+		expect(listDiscardedPolicies()).toHaveLength(2)
+
+		// HMR and repeated imports re-run declaration; that is one bug, not two.
+		definePolicies({ name: 'BrokenA', resource: '', operation: 'read' } as any)
+		expect(listDiscardedPolicies()).toHaveLength(2)
 	})
 })
 

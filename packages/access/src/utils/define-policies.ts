@@ -34,6 +34,11 @@ export type DiscardedPolicy = {
 	operation: string
 	/** Normalized `resource:operation` — the grant this would have become. */
 	key: string
+	/**
+	 * Why it was refused, so the boot report can say something true about each
+	 * case rather than describing every discard as a bad operation.
+	 */
+	reason: 'operation' | 'incomplete'
 	/** File that called {@link definePolicies}, when the framework resolved one. */
 	declaredIn?: string
 }
@@ -86,12 +91,20 @@ export function listDiscardedPolicies(): DiscardedPolicy[] {
 	return [...(global.AccessDiscardedPolicies ?? [])]
 }
 
+/**
+ * An out-of-set operation dedupes on the key alone: HMR and repeated imports
+ * re-run declaration, and one stranded grant is one finding however many
+ * declarations produced it. An incomplete declaration strands no grant at all —
+ * there is nothing for a route to require — so it dedupes per declaration, or
+ * two different broken definitions with the same empty field would report once.
+ */
+const dedupeKeyFor = (discarded: DiscardedPolicy): string =>
+	discarded.reason === 'incomplete' ? `incomplete:${discarded.name}:${discarded.resource}:${discarded.operation}` : `operation:${discarded.key}`
+
 function recordDiscardedPolicy(discarded: DiscardedPolicy): void {
 	const collected = (global.AccessDiscardedPolicies ??= [])
-	// Deduped on the key rather than the name: HMR and repeated imports re-run
-	// declaration, and one stranded grant is one finding however many times it
-	// was declared.
-	if (collected.some(existing => existing.key === discarded.key)) {
+	const key = dedupeKeyFor(discarded)
+	if (collected.some(existing => dedupeKeyFor(existing) === key)) {
 		return
 	}
 	collected.push(discarded)
@@ -115,15 +128,31 @@ export function definePolicies(policies: PolicyDefinition | PolicyDefinition[]):
 
 	const policiesArray = Array.isArray(policies) ? policies : [policies]
 
-	for (const policy of policiesArray) {
-		if (!policy.name || !policy.resource || !policy.operation) {
-			throw new Error(`Policy definition must include name, resource, and operation. Received: ${JSON.stringify(policy, null, 2)}`)
-		}
-	}
-
 	const accepted: PolicyDefinition[] = []
 
 	for (const policy of policiesArray) {
+		// An incomplete declaration is as unholdable as one with a bad operation,
+		// and just as likely to come from a third-party plugin the operator does not
+		// control — so it takes the same discard-and-report path. This used to throw
+		// a raw Error, and `definePolicies` runs at module-body evaluation time, so
+		// one typo in one plugin took the whole application down at boot.
+		if (!policy || typeof policy !== 'object' || !policy.name || !policy.resource || !policy.operation) {
+			const name = String((policy as PolicyDefinition | undefined)?.name ?? '')
+			const resource = String((policy as PolicyDefinition | undefined)?.resource ?? '')
+			const operation = String((policy as PolicyDefinition | undefined)?.operation ?? '')
+			recordDiscardedPolicy({
+				name,
+				resource,
+				operation,
+				// `?` rather than an empty segment, so the key reads as a shape with a
+				// hole in it instead of as a grant on the empty resource.
+				key: `${resource ? normalizeKey(resource) : '?'}:${operation ? normalizeKey(operation) : '?'}`,
+				reason: 'incomplete',
+				declaredIn: callerFilePath ?? undefined
+			})
+			continue
+		}
+
 		const resourceKey = normalizeKey(policy.resource)
 		const operationKey = normalizeKey(policy.operation)
 
@@ -136,6 +165,7 @@ export function definePolicies(policies: PolicyDefinition | PolicyDefinition[]):
 				resource: policy.resource,
 				operation: policy.operation,
 				key: `${resourceKey}:${operationKey}`,
+				reason: 'operation',
 				declaredIn: callerFilePath ?? undefined
 			})
 			continue

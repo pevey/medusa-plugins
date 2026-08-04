@@ -30,6 +30,17 @@ export type ScopedFieldPath = {
 export type FieldAccess = {
 	/** Paths to drop outright — no read grant at all. */
 	notAllowed: string[]
+	/**
+	 * The relation paths those dropped fields hang off, when the relation's own
+	 * entity is what the actor cannot read.
+	 *
+	 * Deleting only the leaves leaves the branch standing — `orders: [{}, {}, {}]`
+	 * — which still discloses how many orders the customer has to someone with no
+	 * `order:read` at all. The response strip removes these instead; the pre-query
+	 * pruner keeps using {@link FieldAccess.notAllowed}, because it filters the
+	 * requested field list and those are the entries it has to match.
+	 */
+	deniedRoots: string[]
 	/** Paths kept, but whose rows still need narrowing to the actor's scopes. */
 	scoped: ScopedFieldPath[]
 }
@@ -401,7 +412,7 @@ export class AccessFieldFilter implements IFieldFilter {
 		const fieldsToCheck = [...fields, ...Array.from(starFields)]
 
 		if (!fieldsToCheck.length || !this.policies.length || !entity) {
-			return { notAllowed: [], scoped: [] }
+			return { notAllowed: [], deniedRoots: [], scoped: [] }
 		}
 
 		const uniquePaths = collectUniqueEntityPaths(entity, fieldsToCheck)
@@ -447,6 +458,7 @@ export class AccessFieldFilter implements IFieldFilter {
 		}
 
 		const notAllowed: string[] = []
+		const deniedRoots = new Set<string>()
 		const scoped: ScopedFieldPath[] = []
 
 		for (const field of fieldsToCheck) {
@@ -455,6 +467,7 @@ export class AccessFieldFilter implements IFieldFilter {
 
 			let currentPath = ''
 			let fieldAllowed = true
+			let deniedAt = ''
 			let narrowing: { resource: string; scopes: string[] } | undefined
 			let narrowingPath = ''
 
@@ -463,6 +476,7 @@ export class AccessFieldFilter implements IFieldFilter {
 
 				if (accessMap.has(currentPath) && !accessMap.get(currentPath)) {
 					fieldAllowed = false
+					deniedAt = currentPath
 					break
 				}
 				// The outermost scoped ancestor wins: narrowing `orders` already
@@ -475,6 +489,11 @@ export class AccessFieldFilter implements IFieldFilter {
 
 			if (!fieldAllowed) {
 				notAllowed.push(field)
+				// `deniedAt === entity` means the query root itself is unreadable —
+				// there is no branch to remove, so the leaves are all that can go.
+				if (deniedAt && deniedAt !== entity) {
+					deniedRoots.add(deniedAt.slice(entity.length + 1))
+				}
 				continue
 			}
 			if (narrowing && !scoped.some(entry => entry.path === narrowingPath)) {
@@ -482,7 +501,7 @@ export class AccessFieldFilter implements IFieldFilter {
 			}
 		}
 
-		return { notAllowed, scoped }
+		return { notAllowed, deniedRoots: [...deniedRoots], scoped }
 	}
 
 	/** Just the paths to drop, for callers with no rows to narrow. */

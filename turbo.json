@@ -31,6 +31,10 @@
 			"outputs": [],
 			"cache": false
 		},
+		"test:integration:modules": {
+			"outputs": [],
+			"cache": false
+		},
 		"generate:openapi": {
 			"outputs": ["schemas/**"]
 		},

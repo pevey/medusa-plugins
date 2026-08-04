@@ -161,6 +161,34 @@ describe('actor authentication registration', () => {
 	it('throws when prefixes is supplied without authenticate', () => {
 		expect(() => registerActorResolver({ actorType: 'a2', resolve: async () => [], prefixes: ['/a2'] } as any)).toThrow(/authenticate/i)
 	})
+
+	const withPrefixes = (actorType: string, prefixes: string[]) => () =>
+		registerActorResolver({ actorType, resolve: async () => [], authenticate: (_req: any, _res: any, next: any) => next(), prefixes })
+
+	it('throws on an empty prefixes array, which no request could ever match', () => {
+		expect(withPrefixes('a3', [])).toThrow(/empty/i)
+	})
+
+	it.each(['/', '', '//'])('throws on the root prefix %p, which would match every path', prefix => {
+		// An authenticator on `/` runs against every guarded request, including
+		// surfaces core already authenticates — the opposite of "the paths the actor
+		// type owns".
+		expect(withPrefixes(`root-${prefix.length}`, [prefix])).toThrow(/root prefix/i)
+	})
+
+	it.each(['/admin', '/store', '/Admin', '/store/'])('throws on the reserved prefix %p', prefix => {
+		// The rejection exists so a plugin authenticator cannot reject guest
+		// storefront traffic core would have allowed. Case- and trailing-slash
+		// folded, or the reservation is bypassable by typing it differently.
+		expect(withPrefixes(`reserved-${prefix.replace(/\W/g, '')}`, [prefix])).toThrow(/reserved prefix/i)
+	})
+
+	it('rejects the whole registration when only one of several prefixes is bad', () => {
+		expect(withPrefixes('mixed', ['/affiliate', '/admin'])).toThrow(/reserved prefix/i)
+		// And leaves nothing behind: a partially-applied registration would have the
+		// resolver live with an authenticator that never validated.
+		expect((global as any).AccessActorResolvers.has('mixed')).toBe(false)
+	})
 })
 
 describe('customer resolves direct and group roles', () => {

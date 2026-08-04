@@ -1,7 +1,7 @@
 import { Context, FindConfig, InferEntityType, ModulesSdkTypes } from '@medusajs/framework/types'
 import { InjectManager, InjectTransactionManager, MedusaContext, MedusaError, MedusaService, Modules, promiseAll } from '@medusajs/framework/utils'
 import { Policy, WILDCARD } from '../../utils'
-import { reportDiscardedPolicies, reportRouteCoverage } from '../../utils/route-coverage'
+import { reportDiscardedPolicies, reportRouteCoverage, reportUnregisteredGuardResources } from '../../utils/route-coverage'
 import {
 	AccessRoleDTO,
 	CreateAccessRoleParentDTO,
@@ -69,6 +69,13 @@ export class AccessModuleService
 			// Not advisory: a discarded policy strands every route requiring it, so
 			// this runs where routes are known and can be named alongside it.
 			reportDiscardedPolicies(logger)
+
+			// The other half of the same failure: a declaration naming a resource
+			// nobody ever declared a policy for. Same outcome — a grant no role can
+			// hold — but nothing lands on the discarded list, so it needs its own
+			// join against the policy registry. Runs after syncRegisteredPolicies so
+			// the registry is fully populated.
+			reportUnregisteredGuardResources(logger)
 
 			try {
 				const eventBus = (this.container_ as any)[Modules.EVENT_BUS]

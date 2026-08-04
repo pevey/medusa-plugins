@@ -65,6 +65,14 @@ Consequences to plan for:
 - **Users created _after_ that first boot have no roles**, and will be denied on guarded routes until you assign them a role.
 - Give at least one trusted account the Super Admin role (or a role with the policies needed to manage access) before you start restricting others.
 
+### Upgrading tightens routes too, not only installing
+
+Route coverage grows between versions, and a route that gains a declaration starts denying roles that never held the new grant. Super Admins (`*:*`) are unaffected; narrower roles are not.
+
+Coverage currently reaches beyond what Medusa declares for itself: 35 state-changing admin routes across `view`, `layout`, `property_label`, `product`, `order`, `product_variant`, `price_list`, `inventory_item`, `tax_rate`, `search_index`, `workflow_execution` and `rbac_role` are gated here that core left either undeclared or at a read-only floor. `POST /admin/products/:id` is the clearest example: without this it required only `product:read`, so anyone who could view a product could edit it.
+
+After upgrading, check the boot-time **route coverage** report and grant the new policies to any non-wildcard role that needs them — a role that could previously save a dashboard view or layout now needs `view:update` / `layout:update` explicitly.
+
 ## Concepts
 
 **Policy.** A single grant, identified by the string `resource:operation` — e.g. `product:read`, `order:update`, `access_role:delete`. The operation set is closed: `read`, `create`, `update`, `delete`, `export`, and the wildcard `*`. Domain verbs (approve, publish, cancel) are modelled as `update` — a policy declared with anything else is discarded and reported at boot rather than registered, so a typo cannot mint a grant nobody can hold.
@@ -92,7 +100,7 @@ A user can only assign roles whose policies they themselves hold — you cannot 
 
 The core resources ship with policies already. To protect **your own** admin routes, declare the resource's policies once, then declare the routes — in your project's or plugin's `src/api/middlewares.ts`.
 
-### `guardResource` — the default
+### `guardResource`: the default
 
 One call covers a resource's whole CRUD surface, collection and subtree:
 
@@ -126,11 +134,16 @@ The subtree floor is the point. Matchers are anchored, so a declaration on `/adm
 
 `POST` on the subtree maps to `update`, not `create`: `POST /admin/content/:id/notes` creates a note but is modifying the content item. `create` is reserved for `POST /admin/content` — creating the resource itself.
 
-### `requirePolicies` — the stricter-sub-resource escape hatch
+### `requirePolicies`: the stricter-sub-resource escape hatch
 
 Use it to make one path **stricter** than the floor:
 
 ```ts
+// Both resources, or the stricter declaration below requires a grant no role can
+// hold — which denies everyone but a `*:*` holder and presents as "permissions
+// are broken on this route" rather than as a missing declaration.
+definePolicies(generateResourcePolicies(['content', 'content_publish']))
+
 guardResource({ resource: 'content', prefix: '/admin/content' })
 
 // Publishing needs its own grant, on top of the content:update floor.
@@ -181,7 +194,7 @@ export default defineMiddlewares({ routes })
 
 This is right when routes need per-route operations a single `guardResource` call cannot express — which is why this plugin's own admin routes use it. Note the key is `accessPolicies`, deliberately **not** core's `policies`: that one belongs to core RBAC, whose checker reads roles from the JWT rather than from links, and would 403 every one of these routes if core's `rbac` flag were ever enabled.
 
-### `sealNamespace` — opt a prefix into fail-closed
+### `sealNamespace`: opt a prefix into fail-closed
 
 ```ts
 sealNamespace('/admin/content')
@@ -217,13 +230,41 @@ try {
 
 Declare `medusa-plugin-access` as an optional peer dependency in this case.
 
+### What the package exports
+
+From the root (`medusa-plugin-access`), server-side only — these touch global registries and the Medusa container, so they must not reach an admin bundle:
+
+| | |
+| --- | --- |
+| Declaring | `definePolicies`, `generateResourcePolicies`, `guardResource`, `requirePolicies`, `registerRoutePolicies`, `sealNamespace` |
+| Deciding | `authorize`, `hasPermission`, `resolvePermissions`, `canGrantScope` |
+| Scoping | `defineScope`, `getScope`, `hasScope`, `assertScope`, `resolveUnscopedQuery` / `ACCESS_UNSCOPED_QUERY` |
+| Actors | `registerActorResolver`, `resolveActorRoles` |
+| Reports | `getRouteCoverage`, `getStaleGuards`, `listDiscardedPolicies`, `getUnregisteredGuardResources` — the same data the boot reports print, if you would rather assert on it in your own tests or ship it to a dashboard |
+
+`medusa-plugin-access/workflows` is a separate entry point exporting the role and policy workflows (`createAccessRolesWorkflow`, `assignUserRolesWorkflow`, `getAssignableRolesWorkflow`, and the rest). Use it when you need role management inside your own workflow rather than over HTTP; the assignability rules apply there too, since they live in the workflow steps.
+
+**Removed in 0.2.0:** `withPolicies`, `discoverPoliciesFromDir`, and the route-binding `policiesLoader`. Handler-attached declarations and directory scanning are both gone — declare routes with `guardResource`, `requirePolicies`, or the co-located `accessPolicies` key, and register policies with an explicit `definePolicies` call.
+
 ## Boot-time reports
 
-Two advisory reports run on application start. Both are silent when there is nothing to say.
+Three reports run on application start. Two are silent when there is nothing to say; route coverage always logs its one-line summary per declared prefix.
 
 **Route coverage** lists the routes under each declared prefix that carry no policy declaration — the routes `sealNamespace` would start denying. Run it before sealing to see what sealing would break. It also reports the inverse, _drift_: hand-written declarations matching no registered route, which is what a renamed or removed route leaves behind. `guardResource` output and the pinned core-route map are excluded from drift, since both are deliberately broader than any one version's route set.
 
-**Discarded policies** lists policies refused registration because their operation fell outside the closed set, along with every route whose declaration required the discarded grant. This matters more than it looks: a discarded policy is a grant no role can hold, so a route requiring it denies everyone but a `*:*` holder — which presents as "permissions are broken on this route" rather than as "someone typed `updte`".
+**Discarded policies** lists policies refused registration, along with every route whose declaration required the discarded grant. A policy is discarded for using an operation outside the closed set, or for missing `name`, `resource` or `operation` — neither throws, because `definePolicies` runs at module-load time and a typo in somebody else's plugin should not take your application down at boot. This matters more than it looks: a discarded policy is a grant no role can hold, so a route requiring it denies everyone but a `*:*` holder — which presents as "permissions are broken on this route" rather than as "someone typed `updte`".
+
+**Unregistered resources** lists resources a route declaration requires that no `definePolicies` call ever registered. Same outcome as a discarded policy, reached from the other direction — the declaration exists, the policy was simply never written — and it says whether a registered route currently matches, so a live breakage is distinguishable from one that is only latent.
+
+### Why a request was denied
+
+Every denial answers with the same status and the same body, on purpose: which check refused a caller is configuration detail, and a Medusa backend is usually reachable from the internet. The reason goes to the log instead, at `debug`:
+
+```
+[access] denied (missing_grant): GET /admin/products
+```
+
+The tokens are `sealed_namespace`, `no_actor`, `no_resolver`, `missing_grant`, `unenforceable_scope`, `non_canonical_scope`, `multi_operation_scope`, `mutation_without_assert`, `scope_resolver_failed` and `empty_scope_filter`. Turn on `debug` when you need to answer "why is this user getting a 403". Configuration faults — an unregistered scope, a resolver that throws — additionally warn once at boot-adjacent level, since those need fixing rather than explaining.
 
 ## Gating admin UI on permissions
 
@@ -389,8 +430,10 @@ export async function DELETE(req: MedusaRequest, res: MedusaResponse) {
 
 **Restricted fields are pruned before the query runs.** On a scoped request, field paths resolving
 to an entity the actor cannot `read` are removed from the selection before it executes, so that data
-is never fetched rather than fetched and stripped off the response afterwards. The response filter
-still runs as the second line — it is what covers a response that was never built from the query
+is never fetched rather than fetched and stripped off the response afterwards. Pruning applies to the
+scoped resource's own query: a request holding only unrestricted grants builds no interceptor and so
+prunes nothing, and even on a scoped request a query rooted at some other entity is left alone. The
+response filter still runs as the second line — it is what covers a response that was never built from the query
 layer at all, and what covers a pruning fault (pruning fails open, which is safe precisely because
 the strip is still there). **A relation you hold only at a scope is kept, and its rows are narrowed.** The read check is
 scope-aware (`authorize`, not the strict `hasPermission`), so holding `order:read@sales_channel` and
@@ -400,9 +443,15 @@ root is narrowed at fetch time — so the response pass narrows it instead: it c
 relation already carries and asks the database which of them the scope admits, then drops the rest.
 The predicate is still evaluated by the database, not by a hand-rolled row test.
 
+**A relation you cannot read at all is removed outright**, key and all — not merely emptied of its fields. Deleting just the fields would leave `orders: [{}, {}, {}]` behind, which still tells an actor with no `order:read` how many orders the customer has. Where a denied relation is nested under a readable one, the branch that goes is the outermost denied ancestor.
+
 **The enforcement ledger backstops all of it.** A request carrying a scope gets `req.accessEnforcement = { required, narrowed, asserted }` — `required` is the set of resources that need narrowing; a scoped `query.graph` call adds its resource to `narrowed`, and a passing `assertScope` adds it to `asserted`. Just before a response whose status is **under `400`** is sent, the guard confirms every required resource is in `narrowed` or `asserted`; if not, it replaces that response with `403` instead of letting an unfiltered or unproven success leave the process.
 
-The check covers every terminal response path, not only `res.json`: `res.send`, `res.write`, `res.end`, `res.writeHead` and anything routed through them (a string, a `Buffer`, a file download, a stream) get the same treatment, so a scoped route answering with something other than JSON cannot ship unnarrowed. If the violation only becomes detectable after headers have gone out — a stream that started before the handler finished — the response is destroyed and logged at error level rather than completed, since a truncated body beats a complete unnarrowed one. An already-failing response (`400` and above) passes through unchanged — the check only ever intercepts what looked like a success. This is what makes the model safe to turn on for a handler nobody has individually audited: forgetting to query the scoped root, or a sub-resource route that only ever queries something else, gets a `403` instead of a silent leak.
+The check covers every terminal response path, not only `res.json`: `res.send`, `res.write`, `res.end`, `res.writeHead` and anything routed through them (a string, a `Buffer`, a file download, a stream) get the same treatment, so a scoped route answering with something other than JSON cannot ship unnarrowed. If the violation only becomes detectable after headers have gone out — a stream that started before the handler finished — the response is destroyed and logged at error level rather than completed, since a truncated body beats a complete unnarrowed one. An already-failing response (`400` and above) passes through unchanged — the check only ever intercepts what looked like a success. Headers the replaced response had already set — `Content-Length`, `Location`, `Content-Disposition` and the rest of the entity set — are cleared before the denial body is written, so a refused redirect or file download is a well-formed `403` rather than one whose declared length disagrees with its body.
+
+And because interception can only cover paths that go through `res`, a `finish` listener watches for anything that escaped them — a raw socket write, a proxy piping straight through, a middleware holding a terminal method it captured before this guard ran. It cannot deny at that point, the bytes are already gone; it logs at error level naming the route and the unnarrowed resources, so an escape is loud rather than silent.
+
+This is what makes the model safe to turn on for a handler nobody has individually audited: forgetting to query the scoped root, or a sub-resource route that only ever queries something else, gets a `403` instead of a silent leak.
 
 `hasPermission` is unaffected by any of this: it stays strict (see [Checking a permission in a route handler](#checking-a-permission-in-a-route-handler)) and returns `false` for a scoped grant regardless of whether the interceptor could narrow it. `authorize()` + `decision.scopes` remains the door for a non-HTTP caller — a workflow step, a job — that wants to apply the filter itself.
 
@@ -418,7 +467,7 @@ Every shape the interceptor can't safely filter denies rather than admits unfilt
 - **An empty id-list** — a scope filter, or its merge with the handler's filter, that narrows to zero ids — matches nothing: the fetch throws `404` when the caller passes `throwIfKeyNotFound` (Medusa's standard single-row retrieve pattern); otherwise it comes back as an ordinary empty result (an empty list, or a single-row fetch that didn't request the flag). Normal not-found/empty-list behavior, not an error, but it never widens.
 - **A scope resolver that throws, or resolves to an empty `{}` filter**, denies the whole request. An empty filter would merge as "no filter," silently widening access instead of narrowing it, so it's treated as a resolver fault.
 - **A `defineScope` resource name that isn't the canonical entity name** denies. The interceptor keys filters by canonical query-root name — the same resolution a query's own root goes through — so a scope registered under an alias could never be matched, and is as unenforceable as a missing registration. `defineScope` itself only checks for a duplicate `(resource, name)` registration; it never validates that `resource` is canonical, so this is validated per request, not at registration time.
-- **A route requiring two different operations on one scoped resource** denies. `authorize()` flattens per-operation scope sets into one set per resource; OR-combining two different operations' scopes would widen access (rows either operation could reach) instead of narrowing it, so this denies until a real route needs it.
+- **A route requiring two different operations on one scoped resource** denies. `authorize()` flattens per-operation scope sets into one set per resource; OR-combining two different operations' scopes would widen access (rows either operation could reach) instead of narrowing it. This is not a theoretical edge: core's all-methods read floor plus its per-method write declaration produce exactly this shape, which is why a scoped actor is refused on core admin writes — see [Scoped actors cannot write through core admin routes](#scoped-actors-cannot-write-through-core-admin-routes).
 - **A scoped relation whose rows can't be checked** — the whole relation is dropped from the response rather than shown unnarrowed. That covers a scope with no `defineScope` registration, a relation row carrying no `id` to check, a scope filter that can't be combined with the id lookup, and a lookup that throws.
 - **A sub-resource route that never queries the scoped root** — the enforcement ledger withholds the response with `403`, even though the handler itself never errored. `GET /admin/access/roles/:id/policies` is exactly this case: it's declared under `access_role:read`, but its handler queries `access_role_policy`, which the interceptor never touches, so `access_role` never gets marked narrowed and the ledger replaces the response.
 
@@ -426,8 +475,23 @@ One thing worth stating plainly, since it's easy to assume otherwise:
 
 - **The `404`/`403` split above is deliberate.** An operator-shaped scope filter colliding with a handler filter surfaces as `403`, because the two filters genuinely couldn't be combined — the outcome is unknown, not "no match." A plain scalar/array id filter that merges cleanly but intersects to nothing surfaces as `404` (or an empty list), the same as any other not-found — the outcome is known, and it's "no rows."
 
+### Scoped actors cannot write through core admin routes
+
+Worth stating on its own, because it decides whether a scoped role is usable at all: **a scoped grant is refused on every core admin `POST`/`PUT`/`PATCH`/`DELETE`.** Reads narrow normally. Writes need routes you declare yourself.
+
+Two independent reasons, either sufficient:
+
+1. **No core route declares `assertsScope`.** A scoped mutation is refused at the door unless the matched declaration says a handler will prove the scope, and nothing in core calls `assertScope`. Admitting those routes would admit them *unnarrowed*, which is why the gate is there.
+2. **Core's read floor collides with its write declaration.** The pinned map declares an all-methods floor per resource (`/admin/customers/*` → `customer:read`) alongside per-method entries (`POST /admin/customers/:id` → `customer:update`). Declarations AND, so such a request requires `[customer:read, customer:update]` — two operations on one scoped resource, which is refused because OR-combining their scope sets would widen access rather than narrow it.
+
+The second fires before the first, so declaring `assertsScope` on core routes would not by itself be enough.
+
+What this means in practice: scope a role for **reading**, and give it a prefix you own for anything that writes. `2026-08-03-channel-scoping.md` in this package records what supporting core mutations would take.
+
 ### Caveats
 
+- **`assertScope` only works inside a guarded HTTP request.** It reads the enforcement ledger off `req`, so it is inert in a workflow step, a subscriber, or a job — there is no request there to carry one. A non-HTTP caller that needs to narrow should call `authorize()` and apply `decision.scopes` itself.
+- **The ledger is satisfied per resource, not per row.** Once a handler calls `assertScope` for one id of a resource, that resource counts as proven for the rest of the request. A handler that afterwards returns more rows of the same resource, fetched outside the query layer, would ship them unnarrowed. Assert immediately before the write, not once at the top of a handler that goes on to do other things.
 - **Create operations can't be scoped by the interceptor.** There's no existing row to fetch and filter on a `POST` that creates one — `assertScope` is built around confirming an id already inside a scope's filter, which doesn't apply yet. Scoping a `create` operation means writing your own check against the request payload (e.g. verifying a `company_id` in the body matches the actor's own), not relying on the interceptor.
 - **A scope keyed on a mutable attribute of the row can 404 a self-removing mutation on its own response.** A scope's filter is resolved once, at the start of the request — not re-evaluated per query — but if it constrains on a column the mutation itself changes (rather than a stable identifier), a handler's post-write re-fetch (a common pattern: run the workflow, then `query.graph` the fresh row to build the response) can merge against a row that no longer matches, and 404 despite the write having succeeded. Prefer a scope resolved to a stable key — an `id` list snapshotted once, the way the `company` example above resolves membership — over a filter that reads a column the same update can change, especially for a scope guarding an update-heavy resource.
 
@@ -478,7 +542,7 @@ defineScope({
 
 **3. Reads need nothing further.** `GET /admin/customers` narrows to the company automatically, and `GET /admin/customers/:id` for someone else's customer returns `404` rather than `403` — no existence leak.
 
-**4. Mutations need the route to opt in**, because a scoped mutation is refused at the door unless its declaration says the handler will prove the scope:
+**4. Writes need a route you own — Medusa's own Customers page will not work.** This is the step to plan around, not a detail: a scoped grant on a mutating route is refused at the door unless that route's declaration opted in with `assertsScope`, and the pinned core-route map never does. So a Company Admin holding `customer:update@company` gets `403` on `POST /admin/customers/:id`, and on every other core admin write. Reads narrow; writes go through routes you declare yourself:
 
 ```ts
 guardResource({ resource: 'customer', prefix: '/admin/company-customers', assertsScope: true })
@@ -493,7 +557,7 @@ export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse)
 
 **5. Delegation is bounded automatically.** A company admin holding `customer:delete@company` can grant `customer:delete@company` onward, but not `customer:delete` unrestricted and not `customer:delete@own` — `canGrantScope` requires unrestricted-or-exact-match. And because the filter resolves per actor, the grantee gets _their_ company, not the granter's.
 
-This case fits the model cleanly because ownership is a property of the row, reachable as a column.
+Ownership fits the model well because it is a property of the row, reachable as a column. What it does not give you is a scoped operator working inside the stock admin UI — see [Scoped actors cannot write through core admin routes](#scoped-actors-cannot-write-through-core-admin-routes).
 
 ### Worked example: constraining an operator to a sales channel
 
@@ -583,15 +647,21 @@ registerActorResolver({
 - The check only happens on routes that have declared policies (via `requirePolicies`/`guardResource`) — a route with no declared policy skips this entirely (see [Notes](#notes)). For a route that does have declared policies, after route matching the guard checks `req.auth_context?.actor_id`; if that's not yet set, it runs whichever registered `authenticate` has a prefix matching the request path (matched on a full path segment, not a raw substring) before resolving the actor's roles. This is what makes a custom actor type's own auth run in time — see the worked example below.
 - **First-registration-wins on overlapping prefixes.** If two registrations declare overlapping `prefixes` (e.g. `/affiliate` and `/affiliate/admin`), the guard runs whichever was registered first for a matching request. This is deterministic within a single boot but depends on plugin load order across environments — avoid overlapping `prefixes` across plugins.
 
-### `linkedAccessRoles(entity)` - the common case
+### `linkedAccessRoles(entity)`: the common case
 
 Most actor types will simply carry a direct `access_roles` module link, exactly like `user` and `api-key` do. `linkedAccessRoles` is the resolver factory the built-ins are written with:
 
 ```ts
+import { resolveUnscopedQuery } from 'medusa-plugin-access'
+
 const linkedAccessRoles =
 	(entity: string): ActorRoleResolver =>
 	async (actorId, container) => {
-		const query = container.resolve(ContainerRegistrationKeys.QUERY)
+		// `resolveUnscopedQuery`, not `container.resolve(QUERY)`: on a scoped request
+		// the container's query IS the row-filtering interceptor, so resolving it
+		// here would filter the resolver's own role lookup — or refuse it outright,
+		// since `access_role` is not a root the interceptor recognises mid-resolution.
+		const query = resolveUnscopedQuery(container)
 		const { data } = await query.graph({
 			entity,
 			fields: ['access_roles.id'],
@@ -673,13 +743,14 @@ This is exactly why `registerActorResolver`'s `authenticate`/`prefixes` pair exi
 All endpoints are under `/admin` and require an authenticated admin session; the role/policy routes additionally require the policies noted.
 
 - `GET /admin/access/me/permissions` — the current user's granted `resource:operation` strings, sorted, with wildcards expanded. Returns `{ permissions, scoped }`: `permissions` lists only unrestricted grants (the pre-existing contract UI widgets read); `scoped` separately lists `{ resource, operation, scope }` entries the actor holds only within a scope — see [Scoping access to rows](#scoping-access-to-rows). (No policy required.)
-- `GET|POST /admin/access/roles`, `GET|POST|DELETE /admin/access/roles/:id`, `.../:id/policies`, `.../:id/users` — manage roles, their policies, and their members (gated by `access_role:*` / `user:*` policies).
+- `GET|POST /admin/access/roles`, `GET|POST|DELETE /admin/access/roles/:id`, `GET|POST .../:id/policies`, `GET|POST|DELETE .../:id/users` — manage roles, their policies, and their members (gated by `access_role:*` / `user:*` policies). `POST /admin/access/roles` accepts `parent_ids` and `policy_ids` alongside `name`, which is the only way to set role inheritance over HTTP.
 - `GET /admin/access/roles/assignable` — the roles the caller may actually assign, filtered by what they hold themselves.
 - `GET /admin/access/roles/:id/policies` returns `{ policies, inherited, ... }`. `policies` is this role's own grants; `inherited` is what it holds through its parents, each entry naming `inherited_from_role_id` / `inherited_from_role_name`. Inherited entries have no link id — detach them from the role they come from. Pass `?direct_only=true` to omit them.
-- `POST /admin/access/roles/:id/policies/:policy_id` with `{ scope }` re-scopes an existing grant in place (`{ scope: null }` clears it back to unrestricted), instead of detach-and-reattach. Subject to the same "you may only grant what you hold" rule as assignment.
-- `GET /admin/access/policies`, `GET /admin/access/policies/:id`, `.../:id/roles` — read the registered policies (gated by `access_policy:read`), and `GET /admin/access/policies/assignable` for the subset the caller may grant.
+- `DELETE /admin/access/roles/:id/policies/:policy_id` detaches one grant. There is no bulk detach on `.../:id/policies`.
+- `POST /admin/access/roles/:id/policies/:policy_id` with `{ scope }` re-scopes an existing grant in place (`{ scope: null }` clears it back to unrestricted), instead of detach-and-reattach. Subject to the same "you may only grant what you hold" rule as assignment. `404` if the role holds no such grant — an inherited one cannot be re-scoped here, only on the role it comes from.
+- `GET /admin/access/policies`, `GET /admin/access/policies/:id` — read the registered policies (gated by `access_policy:read`), and `GET /admin/access/policies/assignable` for the subset the caller may grant. `GET /admin/access/policies/:id/roles` needs `access_role:read` as well, since it reads roles.
 - `POST /admin/access/policies`, `POST|DELETE /admin/access/policies/:id` — gated by `access_policy:create` / `:update` / `:delete`. Policies are declared in code and synced on boot, so these exist for completeness rather than as the normal way to manage them.
-- `GET|POST|DELETE /admin/users/:id/access/roles` — read and change a user's roles; `DELETE /admin/users/:id/access/roles/:role_id` removes one.
+- `GET|POST|DELETE /admin/users/:id/access/roles` — read and change a user's roles. `POST` and `DELETE` both take a JSON body `{ "roles": ["acrl_…"] }`; `DELETE /admin/users/:id/access/roles/:role_id` removes a single one by path instead.
 
 The Roles and Policies settings pages and the user-detail widget use these endpoints, so most stores never call them directly.
 
@@ -703,4 +774,4 @@ Users are linked to roles through a Medusa module link (managed by the framework
 - **Enforcement scope.** Once installed, the guard covers Medusa's core admin routes as well as any routes you register with `requirePolicies`. A route with no registered policy is reachable by any authenticated admin; a guarded route requires the caller to hold the policy — either unrestricted, or, where the interceptor can narrow it, within a scope (see [Scoping access to rows](#scoping-access-to-rows)). A user with no roles, or one whose only grant is a scope the interceptor can't apply (an unregistered scope, a mutating route without `assertsScope`), is denied.
 - **Multiple policies are AND.** A route that lists several required policies requires the caller to hold all of them.
 - **Policies are code-owned.** Declare them with `definePolicies` (directly or via `generateResourcePolicies`); the database policy table is reconciled to the code registry on every boot.
-- **Permission caching.** Effective policies per role are cached (7-day TTL) and invalidated on role/policy changes.
+- **Permission caching.** Role→policy resolution is memoized **per request**: the first lookup for a role is shared by everything downstream in that request — the guard, the field filter, workflow steps invoked with `req.scope` — so a response that checks the same role thirty times issues one query. There is deliberately no cross-request cache, so a role or policy change takes effect on the very next request with no invalidation to get wrong.

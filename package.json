@@ -21,7 +21,7 @@
 		"release:preview": "lerna publish from-package && yarn postpublish",
 		"test": "turbo test --concurrency=1 --filter=!storefront",
 		"test:admin": "turbo test:admin --concurrency=1",
-		"test:integration": "turbo test:integration:http",
+		"test:integration": "turbo test:integration:http && turbo test:integration:modules",
 		"test:unit": "turbo test:unit",
 		"typecheck": "turbo typecheck"
 	},

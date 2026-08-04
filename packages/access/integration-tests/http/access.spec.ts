@@ -25,7 +25,14 @@ import {
 } from './response-contracts'
 
 jest.setTimeout(120 * 1000)
-jest.retryTimes(1)
+
+// Deliberately NO `jest.retryTimes`, unlike every other integration spec in this
+// repo. A retry re-runs the whole beforeAll, so the failure you are shown is the
+// second attempt's — usually an artifact of the first attempt's side effects
+// rather than the real defect. Worse, for an authorization suite it converts an
+// intermittent denial-or-admission failure into a green run, which is the one
+// class of flake that must never be swallowed here. Verified stable across
+// repeated runs without it; if that changes, fix the flake rather than hide it.
 
 medusaIntegrationTestRunner({
 	dbName: 'medusa-access',
@@ -94,6 +101,18 @@ medusaIntegrationTestRunner({
 				}
 
 				expect(await rolesOf()).not.toContain('acrl_super_admin')
+
+				// The bootstrap is a one-time grant: it skips the moment ANY user↔role
+				// link exists anywhere. Every later describe creates one, so this block
+				// is only correct in first position — and without this check a reorder
+				// fails on the assertion below with "expected acrl_super_admin", which
+				// points at the workflow rather than at the ordering.
+				const { data: allUsers } = await (query as any).graph({ entity: 'user', fields: ['access_roles.id'] })
+				if (allUsers.some((candidate: any) => (candidate.access_roles ?? []).length)) {
+					throw new Error(
+						'super-admin bootstrap must be the FIRST describe in this file: the workflow skips once any user↔role link exists, and an earlier block has already created one.'
+					)
+				}
 
 				await bootstrapSuperAdminWorkflow(container).run({})
 				expect(await rolesOf()).toContain('acrl_super_admin')
@@ -576,8 +595,8 @@ medusaIntegrationTestRunner({
 				const admin = await setupAdmin('admin-scoped-policy-route@example.com', { superAdmin: true })
 				token = admin.token
 
-				// `jest.retryTimes(1)` is set globally, so a retried run must not
-				// re-throw on `defineScope`'s duplicate-registration guard.
+				// Scope registration is global and this describe must not depend on
+				// which one ran first — `defineScope` throws on a duplicate.
 				if (!hasScope('customer', 'company')) {
 					defineScope({ name: 'company', resource: 'customer', filter: async () => ({}) })
 				}
@@ -830,6 +849,8 @@ medusaIntegrationTestRunner({
 			let floorOnlyToken: string
 			let readOnlyToken: string
 			let exportOnlyToken: string
+			let meReadToken: string
+			let meWriteOnlyToken: string
 
 			beforeAll(async () => {
 				const container = getContainer()
@@ -845,6 +866,14 @@ medusaIntegrationTestRunner({
 					policies: [{ resource: 'layer_strict', operation: 'update' }]
 				})
 				guardResource({ resource: 'export_probe', prefix: '/admin/export-probe', exports: ['pdf-export'] })
+
+				// A REAL mounted route, gated solely by guardResource.
+				// `/admin/access/me/permissions` ships undeclared (fail-open by design),
+				// so nothing else requires anything on it — which makes it the one place
+				// an admission can be attributed to guardResource and nothing else. The
+				// only other actor that touches it in this suite holds `*:*`, so gating
+				// it here cannot disturb them.
+				guardResource({ resource: 'me_probe', prefix: '/admin/access/me' })
 
 				const accessService: any = container.resolve('access')
 				const floorPolicy = await accessService.createAccessPolicies({
@@ -884,15 +913,48 @@ medusaIntegrationTestRunner({
 				// which is what the subtree floor would otherwise demand.
 				exportOnlyToken = await grant('ExportProbeExporter', 'export_probe:export', 'export_probe', 'export', 'export-only@example.com')
 
+				meReadToken = await grant('MeProbeReader', 'me_probe:read', 'me_probe', 'read', 'me-probe-read@example.com')
+				// Deliberately holds a grant on the same resource at the wrong
+				// operation, so the denial below is about the operation and not about
+				// having no policies at all.
+				meWriteOnlyToken = await grant('MeProbeWriter', 'me_probe:create', 'me_probe', 'create', 'me-probe-write@example.com')
+
 				await utils.waitWorkflowExecutions()
 				await dbUtils.snapshot()
 			})
 
+			// The real-route proof: a mounted handler behind a guardResource declaration
+			// and nothing else. An admission here is a 200 carrying a real body, which
+			// is what the synthetic probes below cannot show — a pass through the guard
+			// on a path nothing routes to is indistinguishable from a 404.
+			it('admits a properly-privileged actor through a guardResource-gated real route', async () => {
+				const auth = { headers: { Authorization: `Bearer ${meReadToken}` } }
+
+				const res = await api.get('/admin/access/me/permissions', auth)
+
+				expect(res.status).toBe(200)
+				// The handler really ran: this is its response shape, not the guard's.
+				expect(Array.isArray(res.data.permissions)).toBe(true)
+				expect(res.data.permissions).toContain('me_probe:read')
+			})
+
+			it('denies an actor holding the wrong operation on that same real route', async () => {
+				// Same resource, same route, one operation off -- so the refusal is
+				// attributable to guardResource's method-to-operation mapping rather
+				// than to the actor holding nothing.
+				const auth = { headers: { Authorization: `Bearer ${meWriteOnlyToken}` } }
+
+				const res = await api.get('/admin/access/me/permissions', auth).catch((e: any) => e.response)
+
+				expect(res.status).toBe(403)
+			})
+
 			it('denies an under-privileged actor on a guardResource-declared write, and admits its read', async () => {
-				// `guardResource` is the mechanism the README teaches as the default,
-				// and this is its only proof that a read-only actor is refused a write:
-				// every other under-privileged denial here goes through the
-				// assignability workflows or the query interceptor instead.
+				// Synthetic surface: nothing routes under /admin/layer-probe, so a pass
+				// shows up as 404 and only the 403s carry information. That is enough
+				// for the AND-layering and carve-out cases below, which are about which
+				// declaration matches -- the admission half is proven on the real route
+				// above instead.
 				const auth = { headers: { Authorization: `Bearer ${readOnlyToken}` } }
 
 				const onRead = await api.get('/admin/layer-probe', auth).catch((e: any) => e.response)
@@ -1016,9 +1078,11 @@ medusaIntegrationTestRunner({
 					headers: { Authorization: `Bearer ${limitedToken}` }
 				})
 				expect(limitedRes.status).toBe(200)
-				// … but the linked customer_group data is stripped (no group ids leak)
-				const limitedGroupIds = (limitedRes.data.customer.groups ?? []).map((g: any) => g.id).filter(Boolean)
-				expect(limitedGroupIds.length).toBe(0)
+				// … but the whole linked customer_group branch is gone. Asserting the ids
+				// are absent is too weak: it also passes for `groups: [{}, {}]`, which
+				// still tells the actor how many groups the customer belongs to.
+				expect(limitedRes.data.customer.groups).toBeUndefined()
+				expect(limitedRes.data.customer.id).toBe(customerId)
 			})
 		})
 
@@ -1200,13 +1264,19 @@ medusaIntegrationTestRunner({
 				await accessService.createAccessRolePolicies({ role_id: roleId, policy_id: policy.id })
 			}
 
-			const setupActor = async (label: string, opts: { scope?: string } = {}) => {
+			// Every actor this block needs, created once. Snapshotting from inside an
+			// `it` re-captures the template mid-run, so each test's starting state
+			// depends on which tests happened to run before it — the convention is one
+			// capture, after all seeding, in `beforeAll`.
+			const actors: Record<string, { token: string; userId: string }> = {}
+
+			const createActor = async (label: string, opts: { scope?: string } = {}) => {
 				const container = getContainer()
 				const accessService: any = container.resolve('access')
 				const link = container.resolve(ContainerRegistrationKeys.LINK)
 
-				// A retried test re-running setup must not collide with the previous
-				// attempt's role names or auth identity email.
+				// Role names and auth-identity emails are unique per actor so nothing
+				// collides across the eleven built here.
 				const unique = `${label}-${Math.random().toString(36).slice(2)}`
 
 				const floorRole = await accessService.createAccessRoles({ name: `Floor-${unique}` })
@@ -1226,11 +1296,30 @@ medusaIntegrationTestRunner({
 				await (link as any).create({ [Modules.USER]: { user_id: actor.userId }, access: { access_role_id: floorRole.id } })
 				await (link as any).create({ [Modules.USER]: { user_id: actor.userId }, access: { access_role_id: grantedRole.id } })
 
-				await utils.waitWorkflowExecutions()
-				await dbUtils.snapshot()
-
 				return actor
 			}
+
+			beforeAll(async () => {
+				const scoped = { scope: 'company' } as const
+				for (const [key, opts] of [
+					['scopedAssign1', scoped],
+					['scopedAssign2', scoped],
+					['scopedAssign3', scoped],
+					['unrestrictedAssign', {}],
+					['scopedAssign5', scoped],
+					['scopedAssign6', scoped],
+					['scopedPolicyRoute1', scoped],
+					['scopedPolicyRoute2', scoped],
+					['parentEscalation1', scoped],
+					['parentEscalation2', scoped],
+					['parentEscalation3', scoped]
+				] as const) {
+					actors[key] = await createActor(key, opts)
+				}
+
+				await utils.waitWorkflowExecutions()
+				await dbUtils.snapshot()
+			})
 
 			const makeTargetRole = async (name: string, opts: { scope?: string } = {}) => {
 				const container = getContainer()
@@ -1246,7 +1335,7 @@ medusaIntegrationTestRunner({
 			}
 
 			it('does not let an actor grant an unrestricted policy they hold only scoped', async () => {
-				const actor = await setupActor('scoped-assign-1@example.com', { scope: 'company' })
+				const actor = actors.scopedAssign1
 				const targetRole = await makeTargetRole('UnrestrictedDeleter-1')
 				const targetUser = await setupAdmin(`scoped-assign-target-1-${Math.random().toString(36).slice(2)}@example.com`)
 
@@ -1258,7 +1347,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('lets an actor grant a policy at the same scope they hold', async () => {
-				const actor = await setupActor('scoped-assign-2@example.com', { scope: 'company' })
+				const actor = actors.scopedAssign2
 				const targetRole = await makeTargetRole('CompanyScopedDeleter-2', { scope: 'company' })
 				const targetUser = await setupAdmin(`scoped-assign-target-2-${Math.random().toString(36).slice(2)}@example.com`)
 
@@ -1273,7 +1362,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('does not let an actor grant a policy at a different scope than they hold', async () => {
-				const actor = await setupActor('scoped-assign-3@example.com', { scope: 'company' })
+				const actor = actors.scopedAssign3
 				const targetRole = await makeTargetRole('OwnScopedDeleter-3', { scope: 'own' })
 				const targetUser = await setupAdmin(`scoped-assign-target-3-${Math.random().toString(36).slice(2)}@example.com`)
 
@@ -1285,7 +1374,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('lets an actor holding a policy unrestricted grant it at any scope, and unrestricted', async () => {
-				const actor = await setupActor('scoped-assign-4@example.com')
+				const actor = actors.unrestrictedAssign
 				const unrestrictedTarget = await makeTargetRole('UnrestrictedDeleter-4')
 				const scopedTarget = await makeTargetRole('CompanyScopedDeleter-4', { scope: 'company' })
 				const targetUser = await setupAdmin(`scoped-assign-target-4-${Math.random().toString(36).slice(2)}@example.com`)
@@ -1302,7 +1391,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('lists a policy the actor holds only scoped, since they can assign it at that scope', async () => {
-				const actor = await setupActor('scoped-assign-5@example.com', { scope: 'company' })
+				const actor = actors.scopedAssign5
 
 				const res = await api.get('/admin/access/policies/assignable?limit=1000', { headers: { Authorization: `Bearer ${actor.token}` } })
 
@@ -1319,7 +1408,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('includes/excludes candidate roles from assignable-roles based on matching scope', async () => {
-				const actor = await setupActor('scoped-assign-6@example.com', { scope: 'company' })
+				const actor = actors.scopedAssign6
 
 				const companyRole = await makeTargetRole('AssignableCompanyRole-6', { scope: 'company' })
 				const unrestrictedRole = await makeTargetRole('AssignableUnrestrictedRole-6')
@@ -1403,7 +1492,7 @@ medusaIntegrationTestRunner({
 			// "scoped role-policy assignment route" above all act as a super-admin,
 			// which trivially satisfies `canGrantScope` regardless of wiring.
 			it('does not let an actor grant customer:delete unrestricted via the role-policies route when they hold it only @company', async () => {
-				const actor = await setupActor('scoped-policy-route-1', { scope: 'company' })
+				const actor = actors.scopedPolicyRoute1
 				const container = getContainer()
 				const accessService: any = container.resolve('access')
 				const [customerDeletePolicy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
@@ -1421,7 +1510,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('lets an actor grant customer:delete via the role-policies route at the same scope they hold', async () => {
-				const actor = await setupActor('scoped-policy-route-2', { scope: 'company' })
+				const actor = actors.scopedPolicyRoute2
 				const container = getContainer()
 				const accessService: any = container.resolve('access')
 				const [customerDeletePolicy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
@@ -1442,7 +1531,7 @@ medusaIntegrationTestRunner({
 			// at the super-admin role and inherit `*:*` in one request -- an escalation
 			// entirely independent of scopes, which would make every rule above moot.
 			it('does not let an actor inherit a role whose policies they do not hold, via parent_ids', async () => {
-				const actor = await setupActor('parent-escalation-1', { scope: 'company' })
+				const actor = actors.parentEscalation1
 				const container = getContainer()
 				const accessService: any = container.resolve('access')
 
@@ -1456,7 +1545,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('does not let an actor create a role inheriting from one whose policies they do not hold', async () => {
-				const actor = await setupActor('parent-escalation-2', { scope: 'company' })
+				const actor = actors.parentEscalation2
 
 				const res = await api
 					.post(
@@ -1470,7 +1559,7 @@ medusaIntegrationTestRunner({
 			})
 
 			it('lets an actor attach a parent whose policies they already hold', async () => {
-				const actor = await setupActor('parent-escalation-3', { scope: 'company' })
+				const actor = actors.parentEscalation3
 				const container = getContainer()
 				const accessService: any = container.resolve('access')
 
@@ -1555,6 +1644,12 @@ medusaIntegrationTestRunner({
 				expect(res.data.policies).toHaveLength(1)
 			})
 
+			// Same reason as the rename restore below: an assertion that throws must not
+			// leave this describe's shared grant scoped for whatever runs next.
+			afterEach(async () => {
+				await api.post(`/admin/access/roles/${parentRoleId}/policies/${readPolicyId}`, { scope: null }, bearer(superToken)).catch(() => undefined)
+			})
+
 			it('changes an existing grant scope in place, without detach and re-attach', async () => {
 				const res = await api.post(`/admin/access/roles/${parentRoleId}/policies/${readPolicyId}`, { scope: 'rp_probe' }, bearer(superToken))
 				expect(res.status).toBe(200)
@@ -1564,7 +1659,7 @@ medusaIntegrationTestRunner({
 				expect(check.data.policies).toHaveLength(1)
 				expect(check.data.policies[0].scope).toBe('rp_probe')
 
-				// And back to unrestricted.
+				// Clearing it back is the other half of the contract, not just cleanup.
 				const cleared = await api.post(`/admin/access/roles/${parentRoleId}/policies/${readPolicyId}`, { scope: null }, bearer(superToken))
 				expect(cleared.status).toBe(200)
 				expect(cleared.data.policy.scope).toBeNull()
@@ -1574,7 +1669,33 @@ medusaIntegrationTestRunner({
 				const res = await api
 					.post(`/admin/access/roles/${parentRoleId}/policies/${readPolicyId}`, { scope: 'not-registered-anywhere' }, bearer(superToken))
 					.catch((e: any) => e.response)
-				expect(res.status).toBeGreaterThanOrEqual(400)
+
+				// A bare `>= 400` here would pass on a 500 from any cause; this is a
+				// validation refusal and has to be asserted as one.
+				expect(res.status).toBe(400)
+			})
+
+			// The child inherits `access_role:read` from its parent, so there is no
+			// direct `access_role_policy` row to re-scope. Before this, the update ran
+			// against a selector matching nothing and answered 200 -- telling an
+			// operator a tightening had applied when nothing was written.
+			it('404s re-scoping a grant the role only inherits, rather than reporting a no-op as success', async () => {
+				const res = await api
+					.post(`/admin/access/roles/${childRoleId}/policies/${readPolicyId}`, { scope: 'rp_probe' }, bearer(superToken))
+					.catch((e: any) => e.response)
+
+				expect(res.status).toBe(404)
+				// Distinguishes it from the 404 a policy id that does not exist at all
+				// produces, which a different step raises.
+				expect(res.data.message).toContain('nothing to re-scope')
+			})
+
+			it('leaves the inherited grant untouched after refusing to re-scope it', async () => {
+				const res = await api.get(`/admin/access/roles/${childRoleId}/policies`, bearer(superToken))
+
+				expect(res.status).toBe(200)
+				expect(res.data.inherited).toHaveLength(1)
+				expect(res.data.inherited[0]).toMatchObject({ policy: 'access_role:read', scope: null })
 			})
 		})
 
@@ -1595,7 +1716,7 @@ medusaIntegrationTestRunner({
 				const accessService: any = container.resolve('access')
 				const link = container.resolve(ContainerRegistrationKeys.LINK)
 
-				// Retry-safe: a `jest.retryTimes(1)` re-run of this beforeAll must reuse
+				// Reuses
 				// the same rows rather than collide with the fixed names the scope
 				// filters below close over.
 				const ensureRole = async (name: string) => {
@@ -1617,8 +1738,8 @@ medusaIntegrationTestRunner({
 				visibleRoleIds = [visibleARoleId, visibleBRoleId]
 				hiddenRoleId = hidden.id
 
-				// `jest.retryTimes(1)` is set globally, so a retried run must not
-				// re-throw on `defineScope`'s duplicate-registration guard.
+				// Scope registration is global and this describe must not depend on
+				// which one ran first — `defineScope` throws on a duplicate.
 				if (!hasScope('access_role', 'listed')) {
 					defineScope({ name: 'listed', resource: 'access_role', filter: async () => ({ id: visibleRoleIds }) })
 				}
@@ -1651,9 +1772,15 @@ medusaIntegrationTestRunner({
 				await (link as any).create({ [Modules.USER]: { user_id: unionActor.userId }, access: { access_role_id: unionNamedRole.id } })
 				unionToken = unionActor.token
 
-				// Actor 3: holds access_role:update@listed -- the mutation-gate case.
+				// Actor 3: holds access_role:update@listed AND access_role:delete@listed
+				// -- the mutation-gate case. `delete` matters: the gate under test only
+				// fires once the actor is otherwise granted, so without it the DELETE
+				// below is refused for simply lacking the policy and never reaches the
+				// assertsScope check at all.
+				const [deletePolicy] = await accessService.listAccessPolicies({ key: 'access_role:delete' })
 				const mutationRole = await accessService.createAccessRoles({ name: `ScopedMutationUpdater-${unique}` })
 				await accessService.createAccessRolePolicies({ role_id: mutationRole.id, policy_id: updatePolicy.id, scope: 'listed' })
+				await accessService.createAccessRolePolicies({ role_id: mutationRole.id, policy_id: deletePolicy.id, scope: 'listed' })
 				const mutationActor = await setupAdmin(`scoped-mutation-${unique}@example.com`)
 				await (link as any).create({ [Modules.USER]: { user_id: mutationActor.userId }, access: { access_role_id: mutationRole.id } })
 				mutationToken = mutationActor.token
@@ -1704,6 +1831,14 @@ medusaIntegrationTestRunner({
 			// mutation is admitted at the door instead of refused there, and the
 			// handler's own `assertScope` call is what decides. These two cases are
 			// the framework's only end-to-end proof of a real handler asserting.
+			// Inline restores do not run when an assertion above them throws, so a
+			// single failure here used to corrupt every later case in this describe —
+			// and the resulting cascade points at the wrong test. `afterEach` runs
+			// either way.
+			afterEach(async () => {
+				await api.post(`/admin/access/roles/${visibleBRoleId}`, { name: 'Visible B' }, bearer(superToken)).catch(() => undefined)
+			})
+
 			it('admits a scoped mutation on a row inside the scope, and applies it', async () => {
 				const res = await api
 					.post(`/admin/access/roles/${visibleBRoleId}`, { name: 'Renamed In Scope' }, bearer(mutationToken))
@@ -1712,32 +1847,71 @@ medusaIntegrationTestRunner({
 
 				const check = await api.get(`/admin/access/roles/${visibleBRoleId}`, bearer(superToken))
 				expect(check.data.role.name).toBe('Renamed In Scope')
-
-				// Restore, so ordering against other cases in this describe cannot matter.
-				await api.post(`/admin/access/roles/${visibleBRoleId}`, { name: 'Visible B' }, bearer(superToken))
 			})
 
 			it('refuses a scoped mutation on a row outside the scope, and leaves it unchanged', async () => {
 				const res = await api
 					.post(`/admin/access/roles/${hiddenRoleId}`, { name: 'Renamed By Scoped Actor' }, bearer(mutationToken))
 					.catch((e: any) => e.response)
-				// 404, not 403: the scoped lookup narrows the row away entirely, so the
-				// handler cannot distinguish "exists but forbidden" from "absent" —
-				// which is the point, since a 403 here would confirm the row exists.
+				// 404, not 403: the row is narrowed away entirely, so the response
+				// cannot distinguish "exists but forbidden" from "absent" — which is the
+				// point, since a 403 here would confirm the row exists.
 				expect(res.status).toBe(404)
+
+				// And it is `assertScope` that refuses, not the handler's own existence
+				// check. The two produce different messages, which is the only thing
+				// that tells them apart: with the call ordered after that check, the
+				// narrowed lookup 404s first and `assertScope` never runs, so this test
+				// passed without the mechanism it names ever executing.
+				expect(res.data.message).toBe('access_role with the given id was not found')
+				expect(res.data.message).not.toContain('Role with id')
 
 				const check = await api.get(`/admin/access/roles/${hiddenRoleId}`, bearer(superToken))
 				expect(check.data.role.name).toBe('Hidden')
 			})
 
+			it('still 404s a role that does not exist at all, for an unscoped actor', async () => {
+				// `assertScope` is a no-op without a scope on the request, so the
+				// handler's existence check is what answers here — the half that
+				// reordering must not have cost.
+				const res = await api
+					.post('/admin/access/roles/acrl_definitely_not_real', { name: 'Nope' }, bearer(superToken))
+					.catch((e: any) => e.response)
+
+				expect(res.status).toBe(404)
+				expect(res.data.message).toContain('Role with id')
+			})
+
 			it('still denies a scoped mutation on a route that does not declare assertsScope', async () => {
-				// DELETE on the same path carries no `assertsScope`, so the door-level
-				// refusal that used to cover POST as well still applies here.
+				// The actor holds `access_role:delete@listed` and the row is inside that
+				// scope, so every other reason to refuse is satisfied: the only thing
+				// left is that DELETE carries no `assertsScope`. POST on the identical
+				// path, with the same actor and the same row, is admitted above --
+				// which is what makes this attributable to the gate rather than to a
+				// missing grant.
 				const res = await api.delete(`/admin/access/roles/${visibleARoleId}`, bearer(mutationToken)).catch((e: any) => e.response)
 				expect(res.status).toBe(403)
 
 				const check = await api.get(`/admin/access/roles/${visibleARoleId}`, bearer(superToken))
 				expect(check.data.role.name).toBe('Visible A')
+			})
+
+			it('refuses that DELETE at the door, not by narrowing it away', async () => {
+				// An out-of-scope row would 404 (narrowed to nothing) and an ungranted
+				// policy would 403 from the grant check -- both indistinguishable from
+				// the gate by status alone. Same actor, same verb, a row it CAN see:
+				// still refused, and refused identically.
+				const outOfScope = await api.delete(`/admin/access/roles/${hiddenRoleId}`, bearer(mutationToken)).catch((e: any) => e.response)
+				const inScope = await api.delete(`/admin/access/roles/${visibleARoleId}`, bearer(mutationToken)).catch((e: any) => e.response)
+
+				expect(inScope.status).toBe(403)
+				expect(outOfScope.status).toBe(403)
+
+				// Both rows survive.
+				const survivors = await api.get('/admin/access/roles?limit=200', bearer(superToken))
+				const names = survivors.data.roles.map((r: any) => r.name)
+				expect(names).toContain('Visible A')
+				expect(names).toContain('Hidden')
 			})
 
 			it('unions two scopes granted at different names (the live $or probe)', async () => {
@@ -1767,9 +1941,29 @@ medusaIntegrationTestRunner({
 			})
 
 			it('denies a grant whose scope has no defineScope registration', async () => {
-				const res = await api.get('/admin/access/roles', bearer(ghostToken)).catch((e: any) => e.response)
-				expect(res.status).toBe(403)
-				expect(res.data.message).toBe('Insufficient permissions')
+				// Every guard branch answers with the same status and the same message,
+				// so the response alone cannot say WHICH one refused. Deleting the
+				// unenforceable-scope check would push this request into the eager
+				// scope-resolution catch below it, which throws an identical 403 — this
+				// test passed with the mechanism it names removed. The warn-once log is
+				// the only thing that distinguishes them.
+				const logger: any = getContainer().resolve(ContainerRegistrationKeys.LOGGER)
+				const warn = jest.spyOn(logger, 'warn')
+
+				try {
+					const res = await api.get('/admin/access/roles', bearer(ghostToken)).catch((e: any) => e.response)
+
+					expect(res.status).toBe(403)
+					expect(res.data.message).toBe('Insufficient permissions')
+
+					const warnings = warn.mock.calls.map(([message]: any[]) => String(message))
+					expect(warnings.some(message => message.includes('access_role:ghost') && message.includes('no matching defineScope registration'))).toBe(true)
+					// The resolver never ran, so this is not the generic resolver-threw
+					// path wearing the same status.
+					expect(warnings.some(message => message.includes('scope filter'))).toBe(false)
+				} finally {
+					warn.mockRestore()
+				}
 			})
 
 			it('leaves the super admin unaffected by the interceptor', async () => {
