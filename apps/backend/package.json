@@ -16,7 +16,6 @@
 		"@medusajs/admin-sdk": "2.18.0",
 		"@medusajs/cli": "2.18.0",
 		"@medusajs/framework": "2.18.0",
-		"@medusajs/index": "2.18.0",
 		"@medusajs/medusa": "2.18.0",
 		"medusa-plugin-access": "workspace:*",
 		"medusa-plugin-affiliates": "workspace:*",

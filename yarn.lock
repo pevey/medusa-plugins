@@ -16847,7 +16847,6 @@ __metadata:
     "@medusajs/admin-sdk": "npm:2.18.0"
     "@medusajs/cli": "npm:2.18.0"
     "@medusajs/framework": "npm:2.18.0"
-    "@medusajs/index": "npm:2.18.0"
     "@medusajs/medusa": "npm:2.18.0"
     "@react-email/ui": "npm:6.9.1"
     "@swc/core": "npm:1.15.47"
