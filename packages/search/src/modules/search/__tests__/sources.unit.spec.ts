@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { buildRegistry } from '../lib/sources'
 import type { SearchSource } from '../lib/types'
 

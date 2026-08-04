@@ -1,3 +1,8 @@
+## 1.0.1
+
+- Set zod to truncate to a max query length of 100 characters
+- Add guard against 500 error on unknown locale strings
+
 ## 1.0.0
 
 - Translatable fields support

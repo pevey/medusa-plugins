@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { buildProductDocument, buildCategoryDocument, buildCollectionDocument } from '../lib/build-document'
 
 describe('buildProductDocument', () => {

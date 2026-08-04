@@ -32,12 +32,18 @@ export const LOCALE_CONFIG_MAP: Record<string, string> = {
 	yi: 'yiddish'
 }
 
+// `locale` is request-controlled, so every lookup here must be an own-property check. A plain
+// `overrides[locale]` would resolve inherited keys — 'constructor' and '__proto__' both return
+// truthy non-strings that would flow on as a regconfig and error at query time.
+const own = (obj: Record<string, string>, key: string): string | undefined =>
+	Object.prototype.hasOwnProperty.call(obj, key) ? obj[key] : undefined
+
 // Resolve a BCP-47 locale (e.g. 'es-ES') to a Postgres text-search config name. A full-locale
 // override wins, then a subtag override, then the built-in subtag map, else 'simple'.
 export function configForLocale(locale: string, overrides: Record<string, string> = {}): string {
 	if (!locale) return SIMPLE
-	if (overrides[locale]) return overrides[locale]
+	const full = own(overrides, locale)
+	if (full) return full
 	const subtag = locale.split('-')[0].toLowerCase()
-	if (overrides[subtag]) return overrides[subtag]
-	return LOCALE_CONFIG_MAP[subtag] ?? SIMPLE
+	return own(overrides, subtag) ?? own(LOCALE_CONFIG_MAP, subtag) ?? SIMPLE
 }
