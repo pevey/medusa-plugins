@@ -143,31 +143,47 @@ Anything a plugin syncs to the database at boot is already there when your test 
 with the same unique key fails on a constraint rather than on your assertion. Use fixture names that
 cannot collide with the shipped set — `widget`, `probe`, and similar.
 
-### 6. `src/**/__tests__` sits outside every tsconfig project
+### 6. `src/**/__tests__` sits outside the server tsconfig project
 
-Unit specs need `/// <reference types="jest" />` as their **first line**, or the editor reports
-`Cannot find name 'describe' / 'it' / 'expect'` on every line of the file:
+Every package config excludes `**/__tests__/**`, so unit specs need **two** separate things — one for
+the editor, one for CI. They are not interchangeable.
+
+**In the editor:** `/// <reference types="jest" />` as the **first line** of the spec, or you get
+`Cannot find name 'describe' / 'it' / 'expect'` on every line:
 
 ```ts
 /// <reference types="jest" />
 import { configForLocale } from '../lib/text-search-config'
 ```
 
-12 of the 40 unit specs carry it today; the rest still show the errors.
+All 40 unit specs carry it; keep it on new ones. A `tsconfig.unit.json` does not help here — tsserver
+only ever looks for an ancestor file named `tsconfig.json`, finds the spec excluded from it, and falls
+back to an inferred project that does not inherit the base config's `types: ["node", "framework",
+"jest"]`. The directive resolves `@types/jest` independently of any project.
 
-The chain: `medusa plugin:build` emits straight from the package `tsconfig.json`'s file list, and the
-only paths it drops are the exact path *segments* `integration-tests`, `test`, `unit-tests` and
-`src/admin`. `__tests__` matches none of them, so all 17 package configs exclude `**/__tests__/**` to
-keep specs out of `.medusa/server`. An excluded file belongs to no project at all — tsserver falls back
-to an inferred project, which does not inherit the base config's `types: ["node", "framework", "jest"]`.
-The directive resolves `@types/jest` on its own, independent of any project.
+**In CI:** a `tsconfig.unit.json` per package, `noEmit`, wired into that package's `typecheck` script:
 
-The consequence, and three non-fixes that look reasonable and are not:
+```json
+"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.unit.json && tsc -p tsconfig.admin.json"
+```
 
-- **`yarn typecheck` never checks a unit spec.** No package's tsconfig projects include them — access's
-  three configs cover the server build, `integration-tests/` and admin, and none picks up `__tests__`.
-  jest does not close the gap either: `@swc/jest` strips types without checking them. A unit spec can be
-  type-broken and still run green.
+Its `include` mirrors the `TEST_TYPE=unit` testMatch exactly, so the project covers precisely what
+`yarn test:unit` runs — including the one unit spec that lives under `src/admin`. Only the specs are
+listed; tsc pulls in the sources they import. All 9 packages with unit tests have it, covering all 40
+specs. Add both the config and the `typecheck` entry when a package gains its first unit test.
+
+Why the exclusion exists at all: `medusa plugin:build` emits straight from `tsconfig.json`'s file list,
+and the only paths it drops are the exact path *segments* `integration-tests`, `test`, `unit-tests` and
+`src/admin`. `__tests__` matches none of them, so excluding it is the only thing keeping specs out of
+`.medusa/server`.
+
+Before `tsconfig.unit.json` existed, nothing checked these files at all — and jest does not close that
+gap, because `@swc/jest` strips types without checking them. A unit spec could be type-broken and still
+run green, which is exactly what had happened: turning the check on surfaced 26 errors in `access`
+alone. See the note below on what they were, because the same shapes will recur.
+
+Three non-fixes that look reasonable and are not:
+
 - **Do not un-exclude `__tests__`.** The specs then get emitted into `.medusa/server` and ship, dragging
   jest and `@medusajs/test-utils` into the published artifact.
 - **Do not rename the directory** to `unit-tests` (which the build *does* ignore). `testMatch` is
@@ -199,6 +215,26 @@ The consequence, and three non-fixes that look reasonable and are not:
 - **`packages/access`** — an authorization framework, so the "assert the reason" rule above is load-
   bearing rather than advisory. See [packages/access/AUDIT-ACTIONS.md](packages/access/AUDIT-ACTIONS.md)
   sections B–D for the specific tests that currently do not meet it.
+
+  Turning on `tsconfig.unit.json` (footgun 6) surfaced 26 errors across 6 of its 19 specs. All are
+  fixed, and the four shapes are worth recognising because they recur in any spec suite that has never
+  been typechecked:
+
+  - **Reading a discriminated union without narrowing.** `AccessDecision` is
+    `{granted: false, missing} | {granted: true, scopes}`, and specs read `.missing` straight off it.
+    The fix is `assertDenied`/`assertGranted` in `authorize.unit.spec.ts` — `asserts decision is
+    Extract<…>` helpers that assert the branch *and* narrow to it. Prefer them over the two idioms they
+    replaced: `if (!decision.granted) { expect(...) }` silently skips the assertions it wraps when the
+    decision is the other branch, and `(decision as any).scopes` asserts nothing at all.
+  - **Untyped mocks.** `jest.fn(async () => …)` infers a zero-length argument tuple, so
+    `graph.mock.calls[0][0]` is a type error rather than an assertion. Declare the parameter the
+    production path actually passes.
+  - **Casting past an API type.** `resolve('query') as { graph: () => … }` was unsound —
+    `QueryGraphFunction` requires an argument — and would have survived a signature change it no longer
+    matched. Resolve at the real type instead.
+  - **Relative `await import()`.** It resolves as ESM under `moduleResolution: node16` and wants a
+    `.js` extension jest cannot resolve. Hoist to a static import when the module has no side effects
+    worth deferring.
 - **`packages/complaints`** — deliberately proves only that access's declarations do not block a
   fully-privileged actor. Denial is a framework guarantee and is proven in access's own suite, not
   re-proven per consumer.

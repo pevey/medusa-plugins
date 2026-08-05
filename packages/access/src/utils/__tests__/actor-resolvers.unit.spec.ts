@@ -1,7 +1,15 @@
+/// <reference types="jest" />
 import { MedusaError } from '@medusajs/framework/utils'
+import type { RequestHandler } from 'express'
 import { registerActorResolver, resolveActorRoles } from '../actor-resolvers'
 
 const containerWith = (graph: jest.Mock) => ({ resolve: () => ({ graph }) }) as any
+
+// Annotated at the handler rather than inline in the call. Several of these registrations are cast
+// `as any` on purpose — that cast is what lets the test hand `registerActorResolver` the invalid
+// authenticate/prefixes pairings it is supposed to reject — but casting the object literal also
+// strips contextual typing from its function params, leaving `_req`/`_res`/`next` implicitly `any`.
+const passThrough: RequestHandler = (_req, _res, next) => next()
 
 describe('resolveActorRoles', () => {
 	it('returns null for an actor type with no registered resolver', async () => {
@@ -52,7 +60,7 @@ describe('resolveActorRoles', () => {
 			registerActorResolver({
 				actorType: 'conflict-paired',
 				resolve: async () => [],
-				authenticate: (_req, _res, next) => next(),
+				authenticate: passThrough,
 				prefixes: ['/conflict-paired']
 			})
 		).toThrow(/already registered/)
@@ -65,7 +73,7 @@ describe('resolveActorRoles', () => {
 			registerActorResolver({
 				actorType: 'conflict-unpaired',
 				resolve: async () => [],
-				authenticate: (_req, _res, next) => next()
+				authenticate: passThrough
 			} as any)
 		).toThrow(/supplied "authenticate" without "prefixes"/)
 	})
@@ -148,14 +156,14 @@ describe('actor authentication registration', () => {
 			registerActorResolver({
 				actorType: 'affiliate-auth',
 				resolve: async () => [],
-				authenticate: (_req, _res, next) => next(),
+				authenticate: passThrough,
 				prefixes: ['/affiliate']
 			})
 		).not.toThrow()
 	})
 
 	it('throws when authenticate is supplied without prefixes', () => {
-		expect(() => registerActorResolver({ actorType: 'a1', resolve: async () => [], authenticate: (_req, _res, next) => next() } as any)).toThrow(/prefixes/i)
+		expect(() => registerActorResolver({ actorType: 'a1', resolve: async () => [], authenticate: passThrough } as any)).toThrow(/prefixes/i)
 	})
 
 	it('throws when prefixes is supplied without authenticate', () => {

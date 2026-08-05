@@ -1,4 +1,19 @@
+/// <reference types="jest" />
 import { authorize, hasPermission, resolvePermissions } from '../has-permission'
+import type { AccessDecision } from '../has-permission'
+
+// `AccessDecision` is a discriminated union, so `missing` and `scopes` are only reachable after
+// narrowing. These assert the branch *and* narrow to it: the `expect` throws when the decision is the
+// other branch, so a wrong-branch result fails here with a readable diff, and everything after the
+// call is typed as the claimed branch. Prefer these over `if (decision.granted) { ... }`, which
+// silently skips the assertions it wraps, and over `(decision as any).scopes`, which asserts nothing.
+function assertDenied(decision: AccessDecision): asserts decision is Extract<AccessDecision, { granted: false }> {
+	expect(decision.granted).toBe(false)
+}
+
+function assertGranted(decision: AccessDecision): asserts decision is Extract<AccessDecision, { granted: true }> {
+	expect(decision.granted).toBe(true)
+}
 
 // Each role resolves to policies; `scope` is null for an unrestricted grant.
 const containerFor = (policies: Record<string, { resource: string; operation: string; scope: string | null }[]>) =>
@@ -71,8 +86,8 @@ describe('authorize', () => {
 			})
 		})
 
-		expect(decision.granted).toBe(true)
-		expect((decision as any).scopes).toEqual(
+		assertGranted(decision)
+		expect(decision.scopes).toEqual(
 			expect.arrayContaining([
 				{ resource: 'customer', scope: 'own' },
 				{ resource: 'customer', scope: 'company' }
@@ -107,10 +122,8 @@ describe('authorize', () => {
 			container: containerFor({ acrl_6: [{ resource: '*', operation: '*', scope: 'company' }] })
 		})
 
-		expect(decision.granted).toBe(false)
-		if (!decision.granted) {
-			expect(decision.missing).toEqual([{ resource: 'customer', operation: 'delete' }])
-		}
+		assertDenied(decision)
+		expect(decision.missing).toEqual([{ resource: 'customer', operation: 'delete' }])
 	})
 
 	it('ignores a resource-wildcard (customer:*) grant that carries a stored scope', async () => {
@@ -120,10 +133,8 @@ describe('authorize', () => {
 			container: containerFor({ acrl_7: [{ resource: 'customer', operation: '*', scope: 'company' }] })
 		})
 
-		expect(decision.granted).toBe(false)
-		if (!decision.granted) {
-			expect(decision.missing).toEqual([{ resource: 'customer', operation: 'delete' }])
-		}
+		assertDenied(decision)
+		expect(decision.missing).toEqual([{ resource: 'customer', operation: 'delete' }])
 	})
 })
 
@@ -174,7 +185,7 @@ describe('authorize across multiple operations', () => {
 			container: containerFor(CREATE_ONLY)
 		})
 
-		expect(decision.granted).toBe(false)
+		assertDenied(decision)
 		expect(decision.missing).toEqual([{ resource: 'product', operation: ['create', 'update'] }])
 	})
 
@@ -200,7 +211,7 @@ describe('authorize across multiple operations', () => {
 			})
 		})
 
-		expect(decision.granted).toBe(true)
+		assertGranted(decision)
 		expect(decision.scopes).toHaveLength(2)
 		expect(decision.scopes).toEqual(expect.arrayContaining([{ resource: 'product', scope: 'own' }, { resource: 'product', scope: 'team' }]))
 	})

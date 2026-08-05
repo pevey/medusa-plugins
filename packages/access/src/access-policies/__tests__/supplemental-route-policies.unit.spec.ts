@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { CLOSED_OPERATIONS, PolicyResource } from '../../utils/define-policies'
 import { supplementalRoutePolicies } from '../supplemental-route-policies'
 import '../index'

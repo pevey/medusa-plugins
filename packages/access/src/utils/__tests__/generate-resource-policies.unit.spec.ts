@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { generateResourcePolicies } from '../generate-resource-policies'
 import { defaultPolicyOperations } from '../default-policy-operations'
 

@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { canGrantScope, ResolvedPermission } from '../has-permission'
 
 const RESOURCE = 'customer'

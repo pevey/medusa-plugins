@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { windowHistory, dropUnpairedToolUse } from '../history-window'
 import type { ChatMessage } from '../llm-provider'
 

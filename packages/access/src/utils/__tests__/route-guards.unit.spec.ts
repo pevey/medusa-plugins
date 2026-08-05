@@ -1,4 +1,9 @@
+/// <reference types="jest" />
 import { guardResource, isPathSealed, matchRoutePolicies, registerRoutePolicies, requirePolicies, routeAssertsScopes, sealNamespace } from '../route-guards'
+// Static rather than `await import('../has-permission')`: a relative dynamic import resolves as ESM
+// under `moduleResolution: node16` and wants a `.js` extension jest cannot resolve. The module is
+// declaration-only (its one module-level binding is a memo WeakMap), so hoisting changes nothing.
+import { hasPermission } from '../has-permission'
 
 const resetRegistries = () => {
 	;(global as any).AccessRouteGuards = []
@@ -209,8 +214,6 @@ describe('the match index tracks the registry', () => {
 
 describe('hasPermission with no roles', () => {
 	it('denies rather than allows', async () => {
-		const { hasPermission } = await import('../has-permission')
-
 		// Returns before touching the container, so a stub is sufficient.
 		await expect(
 			hasPermission({
@@ -222,8 +225,6 @@ describe('hasPermission with no roles', () => {
 	})
 
 	it('allows when nothing is required', async () => {
-		const { hasPermission } = await import('../has-permission')
-
 		await expect(hasPermission({ roles: [], actions: [], container: {} as any })).resolves.toBe(true)
 	})
 })

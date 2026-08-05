@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { PDFDocument, StandardFonts } from 'pdf-lib'
 import { classify, embedAttachment } from '../embed-attachment'
 import type { DocumentMeta, PdfFonts } from '../types'

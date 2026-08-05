@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { defineScope, getScope, hasScope } from '../scopes'
 
 const resetScopes = () => {
@@ -67,9 +68,12 @@ describe('defineScope', () => {
 			name: 'company',
 			resource: 'quote',
 			filter: async (_actor, resolvedContainer) => {
-				const query = resolvedContainer.resolve('query') as { graph: () => Promise<{ data: { id: string }[] }> }
-				const { data } = await query.graph()
-				return { customer_id: data.map(row => row.id) }
+				// Resolve at the real `query` type instead of casting to a nullary `graph`: that cast was
+				// unsound (`QueryGraphFunction` requires an argument) and would have gone on compiling
+				// through a signature change it no longer matched.
+				const query = resolvedContainer.resolve('query')
+				const { data } = await query.graph({ entity: 'quote', fields: ['id'] })
+				return { customer_id: data.map((row: { id: string }) => row.id) }
 			}
 		})
 

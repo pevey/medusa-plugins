@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { reconcileOrder } from '../update-affiliate-attributions'
 
 describe('reconcileOrder', () => {

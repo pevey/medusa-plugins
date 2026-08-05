@@ -55,7 +55,7 @@
 		"clean:snapshots": "find . -name '.snapshot-*.json' -path '*/migrations/*' -delete",
 		"dev": "medusa plugin:develop",
 		"prepublishOnly": "medusa plugin:build",
-		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.integration.json && tsc -p tsconfig.admin.json",
+		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.unit.json && tsc --noEmit -p tsconfig.integration.json && tsc -p tsconfig.admin.json",
 		"test:admin": "vitest run",
 		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit --passWithNoTests",
 		"test:integration:http": "TEST_TYPE=integration:http NODE_OPTIONS=--experimental-vm-modules jest --silent=false --runInBand --detectOpenHandles --forceExit",

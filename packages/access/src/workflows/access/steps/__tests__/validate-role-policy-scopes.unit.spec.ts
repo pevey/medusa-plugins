@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { asValue, createContainer } from 'awilix'
 import { createWorkflow, WorkflowResponse } from '@medusajs/framework/workflows-sdk'
 import { defineScope, hasScope } from '../../../../utils/scopes'

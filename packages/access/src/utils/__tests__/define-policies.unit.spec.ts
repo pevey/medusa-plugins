@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { AccessPolicySymbol, definePolicies, listDiscardedPolicies, Policy, PolicyOperation, PolicyResource } from '../define-policies'
 
 describe('definePolicies (independent identity)', () => {

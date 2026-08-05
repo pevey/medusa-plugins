@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { SignatureCache } from '../signature-cache'
 
 describe('SignatureCache.checkAndRecord', () => {

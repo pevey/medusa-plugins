@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 jest.mock('../has-permission', () => {
 	const actual = jest.requireActual('../has-permission')
 	return { ...actual, authorize: jest.fn(actual.authorize) }
@@ -1587,7 +1588,9 @@ describe('pre-query field pruning reaches the database with fewer fields', () =>
 			return { granted: true, scopes: [{ resource: 'customer', scope: 'own' }] }
 		})
 
-		const graph = jest.fn(async () => ({ data: [] }))
+		// Typed parameter, not `jest.fn(async () => ...)`: an inferred zero-argument mock records a
+		// zero-length call tuple, so reading back the options the guard forwarded is a type error.
+		const graph = jest.fn(async (_options: { entity: string; fields?: string[]; filters?: Record<string, unknown> }) => ({ data: [] as unknown[] }))
 		let scopedQuery: any
 		const req = makeReq({
 			originalUrl: '/admin/customers',

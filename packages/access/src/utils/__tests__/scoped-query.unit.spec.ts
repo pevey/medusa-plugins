@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { ACCESS_UNSCOPED_QUERY, createScopedQuery, enforcementSatisfied, AccessEnforcement, resolveUnscopedQuery } from '../scoped-query'
 
 jest.mock('@medusajs/framework/modules-sdk', () => ({
@@ -188,8 +189,15 @@ describe('pre-query field pruning', () => {
 	const enforcement = () => ({ required: new Set(['customer']), narrowed: new Set<string>(), asserted: new Set<string>() })
 	const filters = () => new Map([['customer', { owner_id: 'u_1' }]])
 
+	// The mock's parameter list is what makes `graph.mock.calls[0][0]` reachable: `jest.fn(async () =>
+	// ...)` infers a zero-length argument tuple, so indexing into a recorded call is a type error
+	// rather than an assertion. Declaring the options object the production path actually passes
+	// (`original.graph({ ...queryOptions, filters, fields })`) types the recorded call instead.
+	type GraphOptions = { entity: string; fields?: string[]; filters?: Record<string, unknown> }
+	const graphMock = () => jest.fn(async (_options: GraphOptions) => ({ data: [] as unknown[] }))
+
 	it('removes pruned paths from the selection the underlying query receives', async () => {
-		const graph = jest.fn(async () => ({ data: [] }))
+		const graph = graphMock()
 		const query = createScopedQuery({
 			original: { graph },
 			filters: filters(),
@@ -205,7 +213,7 @@ describe('pre-query field pruning', () => {
 	})
 
 	it('leaves the selection alone when nothing is pruned', async () => {
-		const graph = jest.fn(async () => ({ data: [] }))
+		const graph = graphMock()
 		const query = createScopedQuery({
 			original: { graph },
 			filters: filters(),
@@ -219,7 +227,7 @@ describe('pre-query field pruning', () => {
 	})
 
 	it('keeps the original selection when a pruner faults, leaving the post-query strip to cover it', async () => {
-		const graph = jest.fn(async () => ({ data: [] }))
+		const graph = graphMock()
 		const query = createScopedQuery({
 			original: { graph },
 			filters: filters(),
@@ -235,7 +243,7 @@ describe('pre-query field pruning', () => {
 	})
 
 	it('keeps the original selection rather than issuing a query that selects nothing', async () => {
-		const graph = jest.fn(async () => ({ data: [] }))
+		const graph = graphMock()
 		const query = createScopedQuery({
 			original: { graph },
 			filters: filters(),
@@ -249,7 +257,7 @@ describe('pre-query field pruning', () => {
 	})
 
 	it('does not prune a query on an unscoped root', async () => {
-		const graph = jest.fn(async () => ({ data: [] }))
+		const graph = graphMock()
 		const pruneFields = jest.fn(async (_root: string, fields: string[]) => fields)
 		const query = createScopedQuery({ original: { graph }, filters: filters(), enforcement: enforcement(), pruneFields })
 
@@ -259,7 +267,7 @@ describe('pre-query field pruning', () => {
 	})
 
 	it('still narrows rows when no pruner is supplied', async () => {
-		const graph = jest.fn(async () => ({ data: [] }))
+		const graph = graphMock()
 		const query = createScopedQuery({ original: { graph }, filters: filters(), enforcement: enforcement() })
 
 		await query.graph({ entity: 'customer', fields: ['id'] })

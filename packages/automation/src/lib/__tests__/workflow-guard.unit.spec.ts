@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { isBlockedWorkflowName } from '../workflow-guard'
 
 describe('isBlockedWorkflowName', () => {

@@ -1,0 +1,23 @@
+{
+	// Typechecks the jest unit specs, which the server config (`tsconfig.json`) must exclude to keep
+	// them out of the `medusa plugin:build` output. Without this project they are checked by nothing —
+	// `@swc/jest` strips types without checking them. See TESTING.md, footgun 6.
+	//
+	// `include` deliberately mirrors the `TEST_TYPE=unit` testMatch (`src/**/__tests__/**/*.unit.spec`)
+	// so this project covers exactly what `yarn test:unit` runs — including the odd unit spec that
+	// lives under `src/admin`. The vitest admin tests (`*.test.tsx`) are a different suite and do not
+	// match this pattern; they are covered by `tsconfig.admin.json` where a package has one.
+	//
+	// `noEmit` is what makes it safe to point a second project at the same sources: nothing is
+	// written, so the two cannot collide on output paths. Do not use `composite` + `references`
+	// instead — that redirects the shared sources to this project's unbuilt declarations (TS6305).
+	// Only the specs are listed; tsc pulls in the sources they import.
+	"extends": "../../_tsconfig.base.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"declaration": false,
+		"rootDir": "./"
+	},
+	"include": ["src/**/__tests__/**/*.unit.spec.ts", ".medusa/types/*"],
+	"exclude": ["node_modules", ".cache"]
+}

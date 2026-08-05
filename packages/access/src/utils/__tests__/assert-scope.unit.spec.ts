@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { assertScope } from '../assert-scope'
 import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 

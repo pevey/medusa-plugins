@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { combineScopeFilters, mergeScopeFilter } from '../scope-filters'
 
 describe('combineScopeFilters', () => {

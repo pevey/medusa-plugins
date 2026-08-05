@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { canonicalQueryRoot, extractQueryRoots } from '../query-roots'
 
 jest.mock('@medusajs/framework/modules-sdk', () => ({

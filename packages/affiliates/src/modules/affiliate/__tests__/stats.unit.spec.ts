@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { windowStart, selectRowsByBasis, bucketByCurrency, AttributionRow } from '../stats'
 
 const NOW = new Date('2026-06-27T12:00:00Z')

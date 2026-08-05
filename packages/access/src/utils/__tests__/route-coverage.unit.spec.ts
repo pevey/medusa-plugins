@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { definePolicies } from '../define-policies'
 import { getRouteCoverage, getStaleGuards, getUnregisteredGuardResources, reportDiscardedPolicies, reportRouteCoverage, reportUnregisteredGuardResources } from '../route-coverage'
 import { guardResource, requirePolicies } from '../route-guards'

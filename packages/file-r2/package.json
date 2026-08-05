@@ -52,7 +52,8 @@
 		"dev": "medusa plugin:develop",
 		"prepublishOnly": "medusa plugin:build",
 		"test:unit": "TEST_TYPE=unit NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit",
-		"test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit -- integration-tests"
+		"test:integration": "NODE_OPTIONS=--experimental-vm-modules jest --silent --runInBand --detectOpenHandles --forceExit -- integration-tests",
+		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.unit.json"
 	},
 	"devDependencies": {
 		"@medusajs/admin-sdk": "2.18.0",

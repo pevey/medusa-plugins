@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { PDFDocument } from 'pdf-lib'
 import { buildComplaintsPdf } from '../build'
 import type { ComplaintForExport } from '../types'

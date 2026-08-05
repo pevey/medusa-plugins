@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { SsrfGuard } from '../ssrf'
 
 describe('SsrfGuard.validateUrl', () => {

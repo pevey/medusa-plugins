@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { PDFDocument, StandardFonts } from 'pdf-lib'
 import { wrapText, drawWrappedText } from '../text-layout'
 

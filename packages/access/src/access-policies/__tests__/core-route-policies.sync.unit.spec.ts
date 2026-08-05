@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { CORE_ROUTE_POLICIES_MEDUSA_VERSION, coreRoutePolicies } from '../core-route-policies'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

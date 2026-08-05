@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 jest.mock('@medusajs/framework/modules-sdk', () => ({
 	MedusaModule: {
 		getAllJoinerConfigs: () => [
