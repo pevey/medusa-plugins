@@ -1,7 +1,16 @@
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
 import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
-import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
-import { authorize, defineScope, hasPermission, hasScope, resolveActorRoles, resolvePermissions } from '../../src/utils'
+import { createCustomerAccountWorkflow, createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
+import {
+	authorize,
+	configureAccessNamespace,
+	declareRestrictedFields,
+	defineScope,
+	hasPermission,
+	hasScope,
+	resolveActorRoles,
+	resolvePermissions
+} from '../../src/utils'
 import {
 	bootstrapSuperAdminWorkflow,
 	createAccessPoliciesWorkflow,
@@ -1972,6 +1981,183 @@ medusaIntegrationTestRunner({
 				const ids = res.data.roles.map((r: any) => r.id)
 				expect(ids).toContain(hiddenRoleId)
 				expect(ids).toEqual(expect.arrayContaining(visibleRoleIds))
+			})
+		})
+
+		describe('restricted fields enforcement', () => {
+			let adminToken: string
+			let customerToken: string
+			let customerId: string
+			let publishableApiKey: string
+
+			beforeAll(async () => {
+				const container = getContainer()
+				;({ token: adminToken } = await setupAdmin('restricted-fields@example.com', { superAdmin: true }))
+
+				const scRes = await api.post('/admin/sales-channels', { name: 'Restricted Fields Channel' }, auth())
+				const keyRes = await api.post('/admin/api-keys', { title: 'Restricted Fields Key', type: 'publishable' }, auth())
+				publishableApiKey = keyRes.data.api_key.token
+				await api.post(`/admin/api-keys/${keyRes.data.api_key.id}/sales-channels`, { add: [scRes.data.sales_channel.id] }, auth())
+
+				const authService: any = container.resolve(Modules.AUTH)
+				const { authIdentity } = await authService.register('emailpass', {
+					body: { email: 'restricted-customer@example.com', password: 'Sup3rSecret!' }
+				})
+				const { result: customer } = await createCustomerAccountWorkflow(container).run({
+					input: {
+						authIdentityId: authIdentity!.id,
+						customerData: { email: 'restricted-customer@example.com', first_name: 'Restricted', last_name: 'Customer' }
+					}
+				})
+				customerId = customer.id
+				const login = await api.post('/auth/customer/emailpass', {
+					email: 'restricted-customer@example.com',
+					password: 'Sup3rSecret!'
+				})
+				customerToken = login.data.token
+
+				await dbUtils.snapshot()
+			})
+
+			afterAll(() => {
+				// Process-global registry; later describes must not inherit this
+				// suite's declarations.
+				;(global as any).AccessRestrictedFields = new Map()
+			})
+
+			const auth = () => ({ headers: { Authorization: `Bearer ${adminToken}` } })
+			const customerAuth = () => ({
+				headers: { Authorization: `Bearer ${customerToken}`, 'x-publishable-api-key': publishableApiKey }
+			})
+			const storeHeaders = () => ({ headers: { 'x-publishable-api-key': publishableApiKey } })
+
+			it('makes a requested core-restricted relation byte-indistinguishable from a nonexistent one', async () => {
+				// `orders` is in Medusa's DEFAULT_STORE_RESTRICTED_FIELDS and a real
+				// relation on customer. Without the guard, requesting it returns
+				// `orders: []` while a made-up relation is silently absent — a probe
+				// can tell the two apart. With the guard both responses must be
+				// byte-identical, and neither confirms the relation exists.
+				const restricted = await api.get('/store/customers/me?fields=+orders.id', customerAuth())
+				const nonexistent = await api.get('/store/customers/me?fields=+zz_nonexistent.id', customerAuth())
+
+				expect(restricted.status).toBe(200)
+				expect(nonexistent.status).toBe(200)
+				expect(restricted.data.customer.orders).toBeUndefined()
+				expect(restricted.data).toEqual(nonexistent.data)
+			})
+
+			it('records an explicit request for a restricted field as a probe in the operator log', async () => {
+				const logger: any = getContainer().resolve(ContainerRegistrationKeys.LOGGER)
+				const debug = jest.spyOn(logger, 'debug')
+
+				try {
+					const res = await api.get('/store/customers/me?fields=+orders.id', customerAuth())
+					expect(res.status).toBe(200)
+
+					const messages = debug.mock.calls.map(([message]: any[]) => String(message))
+					expect(messages.some(message => message.includes('restricted_field_probe') && message.includes('orders.id'))).toBe(true)
+				} finally {
+					debug.mockRestore()
+				}
+			})
+
+			it('strips a registry-declared field on /store while /admin keeps it', async () => {
+				declareRestrictedFields({ prefix: '/store', fields: ['addresses'] })
+
+				const store = await api.get('/store/customers/me', customerAuth())
+				expect(store.status).toBe(200)
+				expect(store.data.customer.id).toBe(customerId)
+				expect(store.data.customer.addresses).toBeUndefined()
+
+				const admin = await api.get(`/admin/customers/${customerId}?fields=*addresses`, auth())
+				expect(admin.status).toBe(200)
+				expect(admin.data.customer.addresses).toEqual(expect.any(Array))
+			})
+
+			it('answers ordering by a restricted field identically to ordering by a nonexistent one (list shape)', async () => {
+				const restricted = await api.get('/store/products?order=orders', storeHeaders()).catch((e: any) => e.response)
+				const nonexistent = await api.get('/store/products?order=zz_nonexistent', storeHeaders()).catch((e: any) => e.response)
+
+				expect(restricted.status).toBe(nonexistent.status)
+				expect(restricted.data).toEqual(nonexistent.data)
+			})
+
+			it('answers ordering by a restricted field identically on routes that reject or ignore ordering', async () => {
+				const restricted = await api.get('/store/customers/me?order=orders', customerAuth()).catch((e: any) => e.response)
+				const nonexistent = await api.get('/store/customers/me?order=zz_nonexistent', customerAuth()).catch((e: any) => e.response)
+
+				expect(restricted.status).toBe(nonexistent.status)
+				expect(restricted.data).toEqual(nonexistent.data)
+			})
+		})
+
+		describe('scope discovery and the /access namespace', () => {
+			let adminToken: string
+			let customerToken: string
+
+			beforeAll(async () => {
+				const container = getContainer()
+				;({ token: adminToken } = await setupAdmin('access-namespace@example.com', { superAdmin: true }))
+
+				const authService: any = container.resolve(Modules.AUTH)
+				const { authIdentity } = await authService.register('emailpass', {
+					body: { email: 'namespace-customer@example.com', password: 'Sup3rSecret!' }
+				})
+				await createCustomerAccountWorkflow(container).run({
+					input: {
+						authIdentityId: authIdentity!.id,
+						customerData: { email: 'namespace-customer@example.com', first_name: 'Namespace', last_name: 'Customer' }
+					}
+				})
+				const login = await api.post('/auth/customer/emailpass', {
+					email: 'namespace-customer@example.com',
+					password: 'Sup3rSecret!'
+				})
+				customerToken = login.data.token
+
+				await dbUtils.snapshot()
+			})
+
+			afterAll(() => {
+				// Process-global namespace config; later describes must not inherit the
+				// customer opt-in below.
+				;(global as any).AccessNamespaceConfig = { actorTypes: new Set(['user']) }
+			})
+
+			const auth = () => ({ headers: { Authorization: `Bearer ${adminToken}` } })
+			const customerBearer = () => ({ headers: { Authorization: `Bearer ${customerToken}` } })
+
+			it('lists registered scopes per resource for the pickers', async () => {
+				defineScope({ name: 'discovery-test', resource: 'discovery_widget', filter: async () => ({}) })
+
+				const res = await api.get('/admin/access/scopes', auth())
+
+				expect(res.status).toBe(200)
+				expect(res.data.scopes).toEqual(expect.arrayContaining([{ resource: 'discovery_widget', names: ['discovery-test'] }]))
+			})
+
+			it('serves /access/me/permissions to an admin user with the same contract as the admin path', async () => {
+				const viaAccess = await api.get('/access/me/permissions', auth())
+				const viaAdmin = await api.get('/admin/access/me/permissions', auth())
+
+				expect(viaAccess.status).toBe(200)
+				expect(viaAccess.data.permissions).toEqual(expect.arrayContaining(['access_role:read']))
+				expect(viaAccess.data).toEqual(viaAdmin.data)
+			})
+
+			it('rejects actor types that have not been opted in', async () => {
+				const res = await api.get('/access/me/permissions', customerBearer()).catch((e: any) => e.response)
+
+				expect(res.status).toBe(401)
+			})
+
+			it('serves an opted-in actor type its own (empty) permission set', async () => {
+				configureAccessNamespace({ actorTypes: ['customer'] })
+
+				const res = await api.get('/access/me/permissions', customerBearer())
+
+				expect(res.status).toBe(200)
+				expect(res.data).toEqual({ permissions: [], scoped: [] })
 			})
 		})
 	}

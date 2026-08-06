@@ -263,7 +263,7 @@ describe('scoped grants at the guard', () => {
 		await accessGuard(req, makeRes(), next)
 
 		expect(next.mock.calls[0][0]?.type).toBe('forbidden')
-		expect((req as any).accessScopes).toBeUndefined()
+		expect((req as any).access_context).toBeUndefined()
 	})
 
 	it('attaches no scopes and proceeds for an unrestricted grant', async () => {
@@ -275,7 +275,7 @@ describe('scoped grants at the guard', () => {
 		await accessGuard(req, makeRes(), next)
 
 		expect(next).toHaveBeenCalledWith()
-		expect((req as any).accessScopes).toEqual([])
+		expect((req as any).access_context.scopes).toEqual([])
 	})
 })
 
@@ -424,8 +424,8 @@ describe('the guard admits and narrows scoped grants', () => {
 		await accessGuard(req, makeRes(), next)
 
 		expect(next).toHaveBeenCalledWith()
-		expect((req as any).accessScopes).toEqual([{ resource: 'widget', scope: 'own' }])
-		expect((req as any).accessEnforcement.required.has('widget')).toBe(true)
+		expect((req as any).access_context.scopes).toEqual([{ resource: 'widget', scope: 'own' }])
+		expect((req as any).access_context.enforcement.required.has('widget')).toBe(true)
 		expect(req.scope.register).toHaveBeenCalledWith(
 			expect.objectContaining({ query: expect.anything(), remoteQuery: expect.anything(), access_unscoped_query: expect.anything() })
 		)
@@ -806,7 +806,7 @@ describe('the finish backstop against a real express response', () => {
 		// What a scoped `query.graph` does for the handler, via the interceptor.
 		app.get('/admin/widgets/satisfied', (req: any, res: any) => {
 			signal(res)
-			req.accessEnforcement.narrowed.add('widget')
+			req.access_context.enforcement.narrowed.add('widget')
 			res.send('legitimately narrowed rows')
 		})
 

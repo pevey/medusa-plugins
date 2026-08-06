@@ -11,7 +11,7 @@ const makeReq = (enforcement: any, graphResult: any[], options?: { skipNarrowing
 	})
 	const resolve = jest.fn().mockReturnValue({ graph })
 	return {
-		req: { accessEnforcement: enforcement, scope: { resolve } } as any,
+		req: { access_context: { scopes: [], enforcement }, scope: { resolve } } as any,
 		graph,
 		resolve
 	}

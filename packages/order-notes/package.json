@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-order-notes",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"description": "Order notes plugin adding Medusa v1-style notes for Medusa v2",
 	"author": "Lacey Pevey",
 	"license": "MIT",
@@ -71,6 +71,7 @@
 		"@types/react-dom": "18.3.7",
 		"jest": "29.7.0",
 		"medusa-admin-test-utils": "workspace:*",
+		"medusa-plugin-access": "workspace:*",
 		"prop-types": "15.8.1",
 		"react": "18.3.1",
 		"react-dom": "18.3.1",
@@ -83,7 +84,13 @@
 	"peerDependencies": {
 		"@medusajs/framework": "^2.18.0",
 		"@medusajs/js-sdk": "^2.18.0",
-		"@medusajs/medusa": "^2.18.0"
+		"@medusajs/medusa": "^2.18.0",
+		"medusa-plugin-access": "^0.2.0"
+	},
+	"peerDependenciesMeta": {
+		"medusa-plugin-access": {
+			"optional": true
+		}
 	},
 	"engines": {
 		"node": ">=22"

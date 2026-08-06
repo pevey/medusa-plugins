@@ -15,4 +15,19 @@ export type ComplaintOptions = {
 	 * (or lower the client constant if you want a smaller cap).
 	 */
 	// maxDocumentBytes?: number
+
+	/**
+	 * Whether complaint relations are reachable only through the admin API.
+	 *
+	 * When true (the default), the module declares its complaint relations as
+	 * restricted on `/store` via the access plugin's restricted-fields registry,
+	 * so they cannot be reached through store field expansion (e.g.
+	 * `?fields=complaints` on a customer or order) — silently, indistinguishable
+	 * from the relation not existing. Requires `medusa-plugin-access` to be
+	 * installed; without it the declaration is a no-op (see README for the
+	 * core-only fallback).
+	 *
+	 * Set to false to expose complaint relations to store field expansion.
+	 */
+	adminOnly?: boolean
 }

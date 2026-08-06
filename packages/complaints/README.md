@@ -51,16 +51,37 @@ module.exports = defineConfig({
 })
 ```
 
-To ensure complaints cannot be queried in GET requests to the storefront API, add 'complaint' to your restricted fields in `medusa-config.ts`.
+### Keeping complaints out of store field expansion
+
+Complaints cannot be fetched via the store api by default when [medusa-plugin-access](https://pevey.com/medusa-plugin-access) is installed. This plugin automatically declares them as restricted on `/store` routes. They are silently dropped if requested, so they cannot be reached through field expansion on other entities (e.g. `?fields=complaint` on a customer or order).
+
+To expose complaint relations to store field expansion instead, opt out:
 
 ```ts
+module.exports = defineConfig({
+	//... other config
+	plugins: [
+		{
+			resolve: 'medusa-plugin-complaints',
+			options: {
+				adminOnly: false
+			}
+		}
+	]
+})
+```
+
+**Without medusa-plugin-access**, the declaration is a no-op, and you must rely on Medusa's own mechanism — with an important caveat: as of Medusa 2.18, `http.restrictedFields` is only enforced when the undocumented `MEDUSA_FF_RBAC_FILTER_FIELDS` feature flag is enabled. Setting the config alone does nothing.
+
+```ts
+// medusa-config.ts — ALSO requires MEDUSA_FF_RBAC_FILTER_FIELDS=true in your environment
 module.exports = defineConfig({
 	projectConfig: {
 		// ... other settings
 		http: {
 			// ... other settings
 			restrictedFields: {
-				store: ['complaint']
+				store: ['complaint', 'complaints']
 			}
 		}
 	}

@@ -15208,7 +15208,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cors@npm:^2.8.12":
+"@types/cors@npm:2.8.19, @types/cors@npm:^2.8.12":
   version: 2.8.19
   resolution: "@types/cors@npm:2.8.19"
   dependencies:
@@ -24899,11 +24899,13 @@ __metadata:
     "@medusajs/ui": "npm:4.2.0"
     "@swc/core": "npm:1.15.47"
     "@swc/jest": "npm:0.2.39"
+    "@types/cors": "npm:2.8.19"
     "@types/jest": "npm:30.0.0"
     "@types/node": "npm:22.20.1"
     "@types/react": "npm:18.3.31"
     "@types/react-dom": "npm:18.3.7"
     awilix: "npm:8.0.1"
+    cors: "npm:^2.8.5"
     jest: "npm:29.7.0"
     medusa-admin-test-utils: "workspace:*"
     prop-types: "npm:15.8.1"
@@ -25197,6 +25199,7 @@ __metadata:
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
     medusa-admin-test-utils: "workspace:*"
+    medusa-plugin-access: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
@@ -25209,6 +25212,10 @@ __metadata:
     "@medusajs/framework": ^2.18.0
     "@medusajs/js-sdk": ^2.18.0
     "@medusajs/medusa": ^2.18.0
+    medusa-plugin-access: ^0.2.0
+  peerDependenciesMeta:
+    medusa-plugin-access:
+      optional: true
   languageName: unknown
   linkType: soft
 
@@ -25307,6 +25314,7 @@ __metadata:
     "@types/react-dom": "npm:18.3.7"
     jest: "npm:29.7.0"
     medusa-admin-test-utils: "workspace:*"
+    medusa-plugin-access: "workspace:*"
     prop-types: "npm:15.8.1"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
@@ -25319,6 +25327,10 @@ __metadata:
     "@medusajs/framework": ^2.18.0
     "@medusajs/js-sdk": ^2.18.0
     "@medusajs/medusa": ^2.18.0
+    medusa-plugin-access: ^0.2.0
+  peerDependenciesMeta:
+    medusa-plugin-access:
+      optional: true
   languageName: unknown
   linkType: soft
 

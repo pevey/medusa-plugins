@@ -162,3 +162,10 @@ export type AdminAccessMePermissionsResponse = {
 	permissions: string[]
 	scoped: { resource: string; operation: string; scope: string }[]
 }
+
+// GET /admin/access/scopes — the registered scope names per resource, from the
+// defineScope registry. Consumed by scope pickers in the role-management UI, so
+// the options offered are exactly the scopes enforcement can actually apply.
+export type AdminAccessScopesResponse = {
+	scopes: { resource: string; names: string[] }[]
+}

@@ -950,13 +950,12 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 				[ContainerRegistrationKeys.REMOTE_QUERY]: asValue(scopedQuery),
 				[ACCESS_UNSCOPED_QUERY]: asValue(original)
 			})
-			;(req as any).accessEnforcement = enforcement
 		}
 
-		// Set only on the granted path: `[]` means evaluated with nothing to narrow,
-		// non-empty means admitted with `req.accessEnforcement` as its ledger, and
-		// `undefined` means never evaluated (undeclared route).
-		;(req as any).accessScopes = decision.scopes
+		// Set only on the granted path: `scopes: []` means evaluated with nothing
+		// to narrow, non-empty means admitted with `enforcement` as its ledger, and
+		// an absent `access_context` means never evaluated (undeclared route).
+		req.access_context = { scopes: decision.scopes, enforcement }
 
 		const release = makeEnforcementRelease(req, res, enforcement)
 		installFieldFilter(req, res, roleIds, required, release)

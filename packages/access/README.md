@@ -51,7 +51,36 @@ module.exports = defineConfig({
 })
 ```
 
-The plugin takes **no options** — registering it installs the Access module, the admin Settings UI, the global `/*` enforcement guard, and the role/policy API routes. The guard itself runs on every request; the bundled core policy map only declares Medusa's admin routes, so `/admin` is what is guarded out of the box. Declaring `requirePolicies` or `sealNamespace` on any other prefix (e.g. `/store`) makes the guard enforce there too.
+Registering the plugin installs the Access module, the admin Settings UI, the global `/*` enforcement guard, and the role/policy API routes. The guard itself runs on every request; the bundled core policy map only declares Medusa's admin routes, so `/admin` is what is guarded out of the box. Declaring `requirePolicies` or `sealNamespace` on any other prefix (e.g. `/store`) makes the guard enforce there too.
+
+The one option is `accessNamespace`, configuring the top-level `/access` introspection surface (see [The `/access` namespace](#the-access-namespace)):
+
+```ts
+{
+	resolve: 'medusa-plugin-access',
+	options: {
+		accessNamespace: {
+			// Actor types allowed on /access routes, additive to the "user" default.
+			actorTypes: ['customer'],
+			// CORS origins for /access; defaults to the union of adminCors and storeCors.
+			cors: 'https://portal.example.com'
+		}
+	}
+}
+```
+
+### The `/access` namespace
+
+`GET /access/me/permissions` answers the same contract as `GET /admin/access/me/permissions` — the authenticated actor's own effective permissions — but on a top-level namespace that is not hard-locked to the `user` actor type the way `/admin/*` is. That is what lets a POS client, an affiliate portal, or a B2B customer portal ask "what can I do" for conditional UI. The route is authenticated (bearer or session) but not authorization-gated: it is self-referential introspection, and an actor type with no role resolution simply reports no permissions.
+
+By default only `user` is allowed; opt other actor types in via the `accessNamespace` option above, or programmatically — a plugin that registers a custom actor type can pair the two calls:
+
+```ts
+import { configureAccessNamespace, registerActorResolver } from 'medusa-plugin-access'
+
+registerActorResolver({ actorType: 'affiliate', /* ... */ })
+configureAccessNamespace({ actorTypes: ['affiliate'] })
+```
 
 ## Important: installing this plugin gates your entire admin
 
@@ -241,10 +270,32 @@ From the root (`medusa-plugin-access`), server-side only — these touch global 
 | Scoping | `defineScope`, `getScope`, `hasScope`, `assertScope`, `resolveUnscopedQuery` / `ACCESS_UNSCOPED_QUERY` |
 | Actors | `registerActorResolver`, `resolveActorRoles` |
 | Reports | `getRouteCoverage`, `getStaleGuards`, `listDiscardedPolicies`, `getUnregisteredGuardResources` — the same data the boot reports print, if you would rather assert on it in your own tests or ship it to a dashboard |
+| Restricted fields | `declareRestrictedFields` — also available from the dedicated stable entry point `medusa-plugin-access/field-restrictions`, which other plugins should prefer for optional imports |
 
 `medusa-plugin-access/workflows` is a separate entry point exporting the role and policy workflows (`createAccessRolesWorkflow`, `assignUserRolesWorkflow`, `getAssignableRolesWorkflow`, and the rest). Use it when you need role management inside your own workflow rather than over HTTP; the assignability rules apply there too, since they live in the workflow steps.
 
 **Removed in 0.2.0:** `withPolicies`, `discoverPoliciesFromDir`, and the route-binding `policiesLoader`. Handler-attached declarations and directory scanning are both gone — declare routes with `guardResource`, `requirePolicies`, or the co-located `accessPolicies` key, and register policies with an explicit `definePolicies` call.
+
+## Restricted fields
+
+Medusa documents `http.restrictedFields` as hiding fields from store responses, but as of Medusa 2.18 core computes the restriction and then discards it unless the undocumented `MEDUSA_FF_RBAC_FILTER_FIELDS` feature flag is enabled. This plugin enforces it for real — no flag needed — and generalizes it beyond `/store`.
+
+Enforcement is **silent**: a restricted field is stripped from responses at any depth below the response envelope, making it byte-indistinguishable from a field that does not exist (which core answers with a 200 and the field silently absent). There is deliberately no error response — an error would be the only signal in the system that confirms a field exists and is sensitive, which is exactly what a probing client wants to learn. Explicitly requesting a restricted field via `?fields=` is instead recorded in the operator log (`restricted_field_probe`, at debug). Sorting by a restricted field is neutralized by rewriting the `order` parameter to an unorderable field, so the response is whatever core answers for any unknown order field.
+
+Sources, union-merged per request:
+
+- `http.restrictedFields.store` in `medusa-config.ts` (including Medusa's own `["order", "orders"]` default) — enforced on `/store` as the core docs describe.
+- `declareRestrictedFields({ prefix, fields })` — from your own code or other plugins. `prefix` is matched on segment boundaries and is not limited to `/store`: a plugin adding a public `/content` surface can keep `created_by` out of it while `/admin` sees everything. `fields` are single segments (`customer_tags`, not `customer.customer_tags`), matched against any position in a field path — the same semantics as core's config.
+
+```ts
+import { declareRestrictedFields } from 'medusa-plugin-access/field-restrictions'
+
+declareRestrictedFields({ prefix: '/content', fields: ['created_by', 'updated_at'] })
+```
+
+For plugin authors, `medusa-plugin-access/field-restrictions` is a deliberately tiny, stable entry point: import it lazily from a module loader (where your plugin's options are available) and no-op when access is absent, the same pattern as [above](#optional-dependency-for-plugin-authors). `medusa-plugin-customer-tags`, `medusa-plugin-order-notes`, and `medusa-plugin-complaints` do exactly this to keep their relations admin-only by default.
+
+Unlike route gating, this applies to **undeclared routes too** — it enforces configuration you or an installed plugin wrote, not route policies, so the fail-open contract above does not extend to it. Note it is a disclosure control, not a fetch control: the data is still queried and then stripped from the response. Response envelopes are respected — `/store/orders/:id` still answers `{ order: … }` with `orders` restricted; the restriction governs what can be reached *through* other entities.
 
 ## Boot-time reports
 
@@ -743,6 +794,8 @@ This is exactly why `registerActorResolver`'s `authenticate`/`prefixes` pair exi
 All endpoints are under `/admin` and require an authenticated admin session; the role/policy routes additionally require the policies noted.
 
 - `GET /admin/access/me/permissions` — the current user's granted `resource:operation` strings, sorted, with wildcards expanded. Returns `{ permissions, scoped }`: `permissions` lists only unrestricted grants (the pre-existing contract UI widgets read); `scoped` separately lists `{ resource, operation, scope }` entries the actor holds only within a scope — see [Scoping access to rows](#scoping-access-to-rows). (No policy required.)
+- `GET /access/me/permissions` — the same contract on the top-level namespace, reachable by every actor type opted into `accessNamespace` (see [The `/access` namespace](#the-access-namespace)). Portals and POS clients use this one; `/admin/*` cannot authenticate them.
+- `GET /admin/access/scopes` — the registered scope names per resource, from the `defineScope` registry, as `{ scopes: [{ resource, names }] }`. Backs the scope pickers in the role UI, so only enforceable scopes are ever offered. (Requires `access_role:read`.)
 - `GET|POST /admin/access/roles`, `GET|POST|DELETE /admin/access/roles/:id`, `GET|POST .../:id/policies`, `GET|POST|DELETE .../:id/users` — manage roles, their policies, and their members (gated by `access_role:*` / `user:*` policies). `POST /admin/access/roles` accepts `parent_ids` and `policy_ids` alongside `name`, which is the only way to set role inheritance over HTTP.
 - `GET /admin/access/roles/assignable` — the roles the caller may actually assign, filtered by what they hold themselves.
 - `GET /admin/access/roles/:id/policies` returns `{ policies, inherited, ... }`. `policies` is this role's own grants; `inherited` is what it holds through its parents, each entry naming `inherited_from_role_id` / `inherited_from_role_name`. Inherited entries have no link id — detach them from the role they come from. Pass `?direct_only=true` to omit them.

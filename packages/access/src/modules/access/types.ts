@@ -1,6 +1,16 @@
 // Vendored from @medusajs/types rbac types, renamed rbac -> access.
 // Generic framework types are imported from @medusajs/framework/types.
 import { Context, FindConfig, IModuleService, RestoreReturn, SoftDeleteReturn } from '@medusajs/framework/types'
+import type { AccessNamespaceOptions } from '../../utils/access-namespace'
+
+/**
+ * Options accepted by the access plugin in `medusa-config.ts` (plugin options
+ * flow through to the module).
+ */
+export type AccessModuleOptions = {
+	/** Configuration for the top-level `/access` introspection namespace. */
+	accessNamespace?: AccessNamespaceOptions
+}
 
 export type AccessRoleDTO = {
 	id: string

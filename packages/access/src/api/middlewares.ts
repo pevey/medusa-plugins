@@ -1,10 +1,12 @@
 import { defineMiddlewares } from '@medusajs/framework/http'
-import { accessGuard, installRouteRegistry, registerCoreRoutePolicies, registerRoutePolicies } from '../utils'
+import { accessGuard, installRouteRegistry, registerCoreRoutePolicies, registerRoutePolicies, restrictedFieldsGuard } from '../utils'
 import { coreRoutePolicies } from '../access-policies/core-route-policies'
 import { supplementalRoutePolicies } from '../access-policies/supplemental-route-policies'
 import { adminAccessRoleRoutesMiddlewares } from './admin/access/roles/middlewares'
 import { adminAccessPolicyRoutesMiddlewares } from './admin/access/policies/middlewares'
+import { adminAccessScopeRoutesMiddlewares } from './admin/access/scopes/middlewares'
 import { adminUserAccessRoleRoutesMiddlewares } from './admin/users/[id]/access/roles/middlewares'
+import { accessNamespaceRoutesMiddlewares } from './access/middlewares'
 
 // Record every route the app registers so coverage can be reported at boot. This
 // module body runs during the API loader's scan phase, which completes before any
@@ -12,7 +14,12 @@ import { adminUserAccessRoleRoutesMiddlewares } from './admin/users/[id]/access/
 installRouteRegistry()
 
 // Feed our own routes' co-located accessPolicies declarations into the guard registry.
-registerRoutePolicies([...adminAccessRoleRoutesMiddlewares, ...adminAccessPolicyRoutesMiddlewares, ...adminUserAccessRoleRoutesMiddlewares])
+registerRoutePolicies([
+	...adminAccessRoleRoutesMiddlewares,
+	...adminAccessPolicyRoutesMiddlewares,
+	...adminAccessScopeRoutesMiddlewares,
+	...adminUserAccessRoleRoutesMiddlewares
+])
 
 // Full parity: gate the entire core admin surface (products, orders, …) using
 // the pinned core route→policy declarations.
@@ -26,8 +33,11 @@ registerCoreRoutePolicies(supplementalRoutePolicies)
 export default defineMiddlewares({
 	routes: [
 		{ matcher: '/*', middlewares: [accessGuard] },
+		{ matcher: '/*', middlewares: [restrictedFieldsGuard] },
+		...accessNamespaceRoutesMiddlewares,
 		...adminAccessRoleRoutesMiddlewares,
 		...adminAccessPolicyRoutesMiddlewares,
+		...adminAccessScopeRoutesMiddlewares,
 		...adminUserAccessRoleRoutesMiddlewares
 	]
 })

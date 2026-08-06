@@ -1,3 +1,8 @@
+## 1.1.0
+
+- Add medusa-plugin-access as optional peer dep.
+- Default API access to complaints to admin-only (silently dropped in /store routes). Can be overriden in options by changing adminOnly to false.
+
 ## 1.0.1
 
 - Remove test artifacts from repo & package

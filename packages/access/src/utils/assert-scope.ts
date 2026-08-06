@@ -1,9 +1,9 @@
 import { MedusaRequest } from '@medusajs/framework/http'
 import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils'
-import { AccessEnforcement } from './scoped-query'
+import './access-context'
 
 export async function assertScope(req: MedusaRequest, input: { resource: string; id: string | string[] }): Promise<void> {
-	const enforcement = (req as any).accessEnforcement as AccessEnforcement | undefined
+	const enforcement = req.access_context?.enforcement
 	if (!enforcement?.required.has(input.resource)) return
 
 	const ids = [...new Set(Array.isArray(input.id) ? input.id : [input.id])]

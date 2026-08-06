@@ -42,6 +42,17 @@ export function getScope(resource: string, name: string): ScopeFilter | undefine
 	return global.AccessScopes!.get(resource)?.get(name)
 }
 
+/**
+ * The registered scopes per resource, sorted both ways for stable output.
+ * Backs the scope-discovery endpoint the admin UI's pickers consume.
+ */
+export function listScopes(): Array<{ resource: string; names: string[] }> {
+	return [...(global.AccessScopes ?? new Map()).entries()]
+		.map(([resource, byName]) => ({ resource, names: [...byName.keys()].sort() }))
+		.filter(entry => entry.names.length > 0)
+		.sort((a, b) => a.resource.localeCompare(b.resource))
+}
+
 export function hasScope(resource: string, name: string): boolean {
 	return global.AccessScopes!.get(resource)?.has(name) ?? false
 }

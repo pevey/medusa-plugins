@@ -1,5 +1,5 @@
 /// <reference types="jest" />
-import { defineScope, getScope, hasScope } from '../scopes'
+import { defineScope, getScope, hasScope, listScopes } from '../scopes'
 
 const resetScopes = () => {
 	;(global as any).AccessScopes = new Map()
@@ -57,6 +57,21 @@ describe('defineScope', () => {
 
 		await expect(getScope('a:b', 'c')!({ id: 'x', type: 't' }, {} as any)).resolves.toEqual({ from: 'resource-has-colon' })
 		await expect(getScope('a', 'b:c')!({ id: 'x', type: 't' }, {} as any)).resolves.toEqual({ from: 'name-has-colon' })
+	})
+
+	it('lists registered scopes grouped by resource, sorted both ways', () => {
+		defineScope({ name: 'own', resource: 'review', filter: async () => ({}) })
+		defineScope({ name: 'company', resource: 'review', filter: async () => ({}) })
+		defineScope({ name: 'own', resource: 'order', filter: async () => ({}) })
+
+		expect(listScopes()).toEqual([
+			{ resource: 'order', names: ['own'] },
+			{ resource: 'review', names: ['company', 'own'] }
+		])
+	})
+
+	it('lists nothing when the registry is empty', () => {
+		expect(listScopes()).toEqual([])
 	})
 
 	it('passes the container through to the filter', async () => {
