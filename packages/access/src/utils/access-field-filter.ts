@@ -1,7 +1,8 @@
 import { GraphQLUtils, promiseAll, toSnakeCase } from '@medusajs/framework/utils'
 import { MedusaModule } from '@medusajs/framework/modules-sdk'
 import type { MedusaContainer } from '@medusajs/framework/types'
-import { authorize } from './has-permission'
+import type { ActorHolding } from './actor-resolvers'
+import { ScopeAlternative, authorize } from './has-permission'
 import { PolicyDefinition, PolicyResource } from './define-policies'
 import { graphqlTypeForAlias, joinerConfigCount } from './query-roots'
 
@@ -24,7 +25,7 @@ export type ScopedFieldPath = {
 	/** Path as the caller wrote it, relative to the query root. */
 	path: string
 	resource: string
-	scopes: string[]
+	alternatives: ScopeAlternative[]
 }
 
 export type FieldAccess = {
@@ -388,12 +389,12 @@ function collectUniqueEntityPaths(entity: string, fields: string[]): Map<string,
  */
 export class AccessFieldFilter implements IFieldFilter {
 	private policies: PolicyDefinition[]
-	private userRoles: string[]
+	private holdings: ActorHolding[]
 	private container: MedusaContainer
 
-	constructor({ policies, userRoles, container }: { policies: PolicyDefinition[]; userRoles: string[]; container: MedusaContainer }) {
+	constructor({ policies, holdings, container }: { policies: PolicyDefinition[]; holdings: ActorHolding[]; container: MedusaContainer }) {
 		this.policies = policies
-		this.userRoles = userRoles
+		this.holdings = holdings
 		this.container = container
 	}
 
@@ -432,28 +433,28 @@ export class AccessFieldFilter implements IFieldFilter {
 		const permissionResults = await promiseAll(
 			pathsNeedingCheck.map(async ({ path, entityName }) => {
 				const decision = await authorize({
-					roles: this.userRoles,
+					holdings: this.holdings,
 					actions: { resource: entityName, operation: 'read' },
 					container: this.container
 				})
 				if (!decision.granted) {
-					return { path, entityName, hasAccess: false, scopes: [] as string[] }
+					return { path, entityName, hasAccess: false, alternatives: [] as ScopeAlternative[] }
 				}
 				return {
 					path,
 					entityName,
 					hasAccess: true,
-					scopes: decision.scopes.filter(scope => scope.resource === entityName).map(scope => scope.scope)
+					alternatives: decision.scopes.filter(scope => scope.resource === entityName).flatMap(scope => scope.alternatives)
 				}
 			})
 		)
 
 		const accessMap = new Map<string, boolean>()
-		const scopeMap = new Map<string, { resource: string; scopes: string[] }>()
+		const scopeMap = new Map<string, { resource: string; alternatives: ScopeAlternative[] }>()
 		for (const result of permissionResults) {
 			accessMap.set(result.path, result.hasAccess)
-			if (result.hasAccess && result.scopes.length) {
-				scopeMap.set(result.path, { resource: result.entityName, scopes: result.scopes })
+			if (result.hasAccess && result.alternatives.length) {
+				scopeMap.set(result.path, { resource: result.entityName, alternatives: result.alternatives })
 			}
 		}
 
@@ -468,7 +469,7 @@ export class AccessFieldFilter implements IFieldFilter {
 			let currentPath = ''
 			let fieldAllowed = true
 			let deniedAt = ''
-			let narrowing: { resource: string; scopes: string[] } | undefined
+			let narrowing: { resource: string; alternatives: ScopeAlternative[] } | undefined
 			let narrowingPath = ''
 
 			for (let i = 0; i < pathSegments.length; i++) {
@@ -497,7 +498,7 @@ export class AccessFieldFilter implements IFieldFilter {
 				continue
 			}
 			if (narrowing && !scoped.some(entry => entry.path === narrowingPath)) {
-				scoped.push({ path: narrowingPath, resource: narrowing.resource, scopes: narrowing.scopes })
+				scoped.push({ path: narrowingPath, resource: narrowing.resource, alternatives: narrowing.alternatives })
 			}
 		}
 

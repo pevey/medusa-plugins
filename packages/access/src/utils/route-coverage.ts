@@ -1,6 +1,8 @@
 import { ApiLoader } from '@medusajs/framework/http'
 import { CLOSED_OPERATIONS, DiscardedPolicy, listDiscardedPolicies, PolicyResource } from './define-policies'
+import { canonicalQueryRoot } from './query-roots'
 import { findGuardsRequiring, listGuardResources, listRouteGuards, matchesPrefixOnSegmentBoundary, matchRoutePolicies, normalizePath } from './route-guards'
+import { listTenancies } from './tenancy'
 
 export type RegisteredRoute = {
 	matcher: string
@@ -177,6 +179,49 @@ export function reportRouteCoverage(logger: { info?: Function; warn?: Function; 
 			for (const guard of stale) {
 				logger.debug?.(`[access]   stale: ${guard.methods.join(',')} ${guard.matcher}`)
 			}
+		}
+	}
+}
+
+/**
+ * The exact mutating surface that stays closed to tenancy-scoped actors:
+ * core-map declarations with a mutating method but neither `assertsScope`
+ * (no core handler calls `assertScope`) nor a derived `target` (the generator
+ * could not bind the path param to the policy resource). Unscoped actors are
+ * unaffected. Info-level: this is an expected property of the installed core
+ * version, not a fault — but an operator scoping actors deserves the list.
+ */
+export function reportScopedMutationClosure(logger: { info?: Function; warn?: Function; debug?: Function } = console): void {
+	const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
+	const closed = listRouteGuards().filter(
+		guard => guard.source === 'core-map' && !guard.assertsScope && !guard.target && guard.methods.some(method => MUTATING.has(method))
+	)
+
+	if (!closed.length) {
+		return
+	}
+
+	logger.info?.(
+		`[access] ${closed.length} core mutating route declaration(s) carry no row target — tenancy-scoped actors are denied on them (unscoped actors unaffected)`
+	)
+	for (const guard of closed) {
+		logger.debug?.(`[access]   closed to scoped actors: ${guard.methods.join(',')} ${guard.matcher}`)
+	}
+}
+
+/**
+ * A tenancy dimension covering a resource under a non-canonical query-root
+ * name can never narrow it — the interceptor keys row filters by canonical
+ * name — so scoped holders are denied on it while the coverage LOOKS declared.
+ * The same trap `warnNonCanonicalScope` names at request time, caught at boot.
+ */
+export function reportTenancyCoverage(logger: { info?: Function; warn?: Function; debug?: Function } = console): void {
+	for (const { type, resources } of listTenancies()) {
+		const nonCanonical = resources.filter(resource => canonicalQueryRoot(resource) !== resource)
+		if (nonCanonical.length) {
+			logger.warn?.(
+				`[access] tenancy "${type}" covers non-canonical resource name(s): ${nonCanonical.join(', ')} — their filters can never apply, so scoped holders are denied on them. Use the canonical query-root names.`
+			)
 		}
 	}
 }

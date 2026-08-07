@@ -1,5 +1,5 @@
 import { WorkflowData, WorkflowResponse, createWorkflow, transform } from '@medusajs/framework/workflows-sdk'
-import { createRemoteLinkStep } from '@medusajs/medusa/core-flows'
+import { createRoleAssignmentsStep } from '../../access/steps/create-role-assignments'
 import { validateRolesExistStep } from '../../invite/steps/validate-roles-exist'
 import { validateUserRolePermissionsStep } from '../steps/validate-user-role-permissions'
 
@@ -41,26 +41,14 @@ export const assignUserRolesWorkflow = createWorkflow(assignUserRolesWorkflowId,
 		role_ids: roleIds
 	})
 
-	const userRoleLinks = transform({ input }, ({ input }) => {
+	const assignments = transform({ input }, ({ input }) => {
 		const users = input.user_ids ?? (input.user_id ? [input.user_id] : [])
 		const roles = input.role_ids ?? (input.role_id ? [input.role_id] : [])
 
-		const links: {
-			user: { user_id: string }
-			access: { access_role_id: string }
-		}[] = []
-		for (const userId of users) {
-			for (const roleId of roles) {
-				links.push({
-					user: { user_id: userId },
-					access: { access_role_id: roleId }
-				})
-			}
-		}
-		return links
+		return users.flatMap(userId => roles.map(roleId => ({ role_id: roleId, grantee_type: 'user', grantee_id: userId })))
 	})
 
-	createRemoteLinkStep(userRoleLinks)
+	createRoleAssignmentsStep({ assignments })
 
 	return new WorkflowResponse(void 0)
 })

@@ -3,13 +3,15 @@ import { MedusaContainer } from '@medusajs/framework/types'
 import { ContainerRegistrationKeys, MedusaError } from '@medusajs/framework/utils'
 import { asValue } from 'awilix'
 import { AccessFieldFilter, ScopedFieldPath } from './access-field-filter'
-import { getActorAuthenticators, resolveActorRoles } from './actor-resolvers'
-import { PermissionAction, ScopeRequirement, authorize, markRequestScope } from './has-permission'
+import { ActorHolding, getActorAuthenticators, resolveActorHoldings } from './actor-resolvers'
+import { PermissionAction, ScopeAlternative, authorize, markRequestScope } from './has-permission'
 import { canonicalQueryRoot } from './query-roots'
-import { isPathSealed, matchesPrefixOnSegmentBoundary, matchRoutePolicies, normalizePath, routeAssertsScopes } from './route-guards'
+import { isPathSealed, matchesPrefixOnSegmentBoundary, matchRoutePolicies, normalizePath, routeAssertsScopes, routeTargets } from './route-guards'
 import { combineScopeFilters, mergeScopeFilter } from './scope-filters'
 import { ACCESS_UNSCOPED_QUERY, AccessEnforcement, FieldPruner, createScopedQuery, enforcementSatisfied, resolveUnscopedQuery } from './scoped-query'
+import { assertScope } from './assert-scope'
 import { getScope } from './scopes'
+import { getTenancy, getTenancyFilter } from './tenancy'
 import { alreadyWarned, markWarned } from './warn-once'
 
 /** Recursively delete a dotted field path from an object/array tree. */
@@ -83,7 +85,7 @@ function stripNotAllowedFields(body: any, notAllowed: string[]): void {
 function installFieldFilter(
 	req: AuthenticatedMedusaRequest,
 	res: MedusaResponse,
-	roleIds: string[],
+	holdings: ActorHolding[],
 	policies: PermissionAction[],
 	release: () => boolean
 ): void {
@@ -103,8 +105,8 @@ function installFieldFilter(
 		}
 
 		// A non-empty `policies` enables filtering at all; the read checks use
-		// `userRoles`, not this list.
-		const filter = new AccessFieldFilter({ policies: policies as any, userRoles: roleIds, container: req.scope })
+		// `holdings`, not this list.
+		const filter = new AccessFieldFilter({ policies: policies as any, holdings, container: req.scope })
 
 		filter
 			.resolveFieldAccess({
@@ -193,23 +195,91 @@ async function narrowScopedRelations(req: AuthenticatedMedusaRequest, body: any,
 	}
 }
 
-/** Which of `ids` the actor's scopes on this resource actually admit. */
+/**
+ * Resolve one admitted alternative to a concrete query filter.
+ *
+ * Parts AND together via `mergeScopeFilter` (disjoint keys copy in, shared
+ * scalar keys intersect). Returns:
+ * - `{ kind: 'filter' }` — the composed filter; a match-nothing `{ id: [] }`
+ *   when the parts contradict or cannot merge (an alternative admitting no
+ *   rows, not an error — another alternative may still admit rows);
+ * - `{ kind: 'unregistered' }` — a part references a scope name or tenancy
+ *   dimension with no registration (fail closed at the caller);
+ * - `{ kind: 'invalid' }` — a part resolved to an empty or non-object filter,
+ *   which would widen access instead of narrowing it.
+ *
+ * A throwing actor-relative resolver propagates; callers decide the denial.
+ */
+async function composeAlternativeFilter(
+	alternative: ScopeAlternative,
+	resource: string,
+	actor: { id: string; type: string },
+	container: MedusaContainer
+): Promise<{ kind: 'filter'; filter: Record<string, unknown> } | { kind: 'unregistered' } | { kind: 'invalid' }> {
+	const isUsableFilter = (filter: unknown): filter is Record<string, unknown> =>
+		Boolean(filter) && typeof filter === 'object' && !Array.isArray(filter) && Object.keys(filter as object).length > 0
+
+	let actorFilter: Record<string, unknown> | undefined
+	if (alternative.scope) {
+		const scopeFn = getScope(resource, alternative.scope)
+		if (!scopeFn) {
+			return { kind: 'unregistered' }
+		}
+		const resolved = await scopeFn(actor, container)
+		if (!isUsableFilter(resolved)) {
+			return { kind: 'invalid' }
+		}
+		actorFilter = resolved
+	}
+
+	let tenancyFilter: Record<string, unknown> | undefined
+	if (alternative.tenancy) {
+		const tenancyFn = getTenancyFilter(alternative.tenancy.type, resource)
+		if (!tenancyFn) {
+			return { kind: 'unregistered' }
+		}
+		const resolved = tenancyFn(alternative.tenancy.ids)
+		if (!isUsableFilter(resolved)) {
+			return { kind: 'invalid' }
+		}
+		tenancyFilter = resolved
+	}
+
+	if (actorFilter && tenancyFilter) {
+		const merge = mergeScopeFilter(actorFilter, tenancyFilter)
+		if (merge.kind === 'filters') {
+			return { kind: 'filter', filter: merge.filters }
+		}
+		if (merge.kind === 'unmergeable') {
+			logScopeResolutionFailure(
+				container,
+				new Error(`cannot AND-compose the "${alternative.scope}" filter with the "${alternative.tenancy!.type}" tenancy filter for "${resource}" (key "${merge.key}") — this alternative admits no rows`)
+			)
+		}
+		return { kind: 'filter', filter: { id: [] } }
+	}
+
+	return { kind: 'filter', filter: (actorFilter ?? tenancyFilter)! }
+}
+
+/** Which of `ids` the actor's admitted alternatives on this resource actually allow. */
 async function idsInScope(
 	req: AuthenticatedMedusaRequest,
 	actor: { id: string; type: string },
 	entry: ScopedFieldPath,
 	ids: string[]
 ): Promise<Set<string> | undefined> {
+	if (!entry.alternatives.length) {
+		return undefined
+	}
+
 	const resolved: Record<string, unknown>[] = []
-	for (const name of entry.scopes) {
-		const scope = getScope(entry.resource, name)
-		if (!scope) {
+	for (const alternative of entry.alternatives) {
+		const result = await composeAlternativeFilter(alternative, entry.resource, actor, req.scope)
+		if (result.kind !== 'filter') {
 			return undefined
 		}
-		resolved.push(await scope(actor, req.scope))
-	}
-	if (!resolved.length) {
-		return undefined
+		resolved.push(result.filter)
 	}
 
 	const merge = mergeScopeFilter({ id: ids }, combineScopeFilters(resolved))
@@ -298,9 +368,9 @@ function narrowPath(node: any, segments: string[], allowed: Set<string> | undefi
  * The post-query strip still runs on the response — it is what covers a
  * response not built from the query layer, and a pruning fault.
  */
-function makeFieldPruner(req: AuthenticatedMedusaRequest, roleIds: string[], policies: PermissionAction[]): FieldPruner {
+function makeFieldPruner(req: AuthenticatedMedusaRequest, holdings: ActorHolding[], policies: PermissionAction[]): FieldPruner {
 	return async (root, fields) => {
-		const filter = new AccessFieldFilter({ policies: policies as any, userRoles: roleIds, container: req.scope })
+		const filter = new AccessFieldFilter({ policies: policies as any, holdings, container: req.scope })
 
 		const notAllowed = await filter.getNotAllowedFields({
 			entity: root,
@@ -570,6 +640,7 @@ export type AccessDenialReason =
 	| 'non_canonical_scope'
 	| 'multi_operation_scope'
 	| 'mutation_without_assert'
+	| 'create_outside_scope'
 	| 'scope_resolver_failed'
 	| 'empty_scope_filter'
 
@@ -629,7 +700,7 @@ function warnUnresolvedActorType(container: MedusaContainer, actorType: string):
  * permissions denial unless we say otherwise here, so an operator does not go
  * looking somewhere else for what is actually a missing `defineScope` call.
  */
-function warnUnenforceableScope(container: MedusaContainer, scopes: ScopeRequirement[]): void {
+function warnUnenforceableScope(container: MedusaContainer, scopes: { resource: string; scope: string }[]): void {
 	const unwarned = scopes.filter(s => !alreadyWarned('unenforceable-scope', `${s.resource}:${s.scope}`))
 	if (!unwarned.length) {
 		return
@@ -659,7 +730,7 @@ function warnUnenforceableScope(container: MedusaContainer, scopes: ScopeRequire
  * but, because of the name it was registered under, can never take effect —
  * the guard denies rather than admit unnarrowed, same as that case.
  */
-function warnNonCanonicalScope(container: MedusaContainer, scopes: ScopeRequirement[]): void {
+function warnNonCanonicalScope(container: MedusaContainer, scopes: { resource: string; scope: string }[]): void {
 	const unwarned = scopes.filter(s => !alreadyWarned('non-canonical-scope', `${s.resource}:${s.scope}`))
 	if (!unwarned.length) {
 		return
@@ -836,16 +907,16 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 		// per role for the life of the request, with no staleness window.
 		markRequestScope(req.scope)
 
-		const roleIds = await resolveActorRoles(actorType ?? 'user', actorId, req.scope)
+		const holdings = await resolveActorHoldings(actorType ?? 'user', actorId, req.scope)
 
-		if (roleIds === null) {
+		if (holdings === null) {
 			warnUnresolvedActorType(req.scope, actorType ?? 'user')
 			logDenial(req, 'no_resolver')
 			throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 		}
 
 		const decision = await authorize({
-			roles: roleIds,
+			holdings,
 			actions: required,
 			container: req.scope
 		})
@@ -858,7 +929,12 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 		let enforcement: AccessEnforcement | undefined
 
 		if (decision.scopes.length) {
-			const missing = decision.scopes.filter(s => !getScope(s.resource, s.scope))
+			// Every actor-relative part needs a registered ScopeFilter; tenancy
+			// parts are covered by construction (authorize only emits them for
+			// resources inside a registered dimension's coverage set).
+			const missing = decision.scopes.flatMap(s =>
+				s.alternatives.filter(a => a.scope && !getScope(s.resource, a.scope)).map(a => ({ resource: s.resource, scope: a.scope! }))
+			)
 			if (missing.length) {
 				warnUnenforceableScope(req.scope, missing)
 				logDenial(req, 'unenforceable_scope')
@@ -869,7 +945,9 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 			// for the canonical entity `widget`) can never be narrowed — the
 			// interceptor keys filters by canonical name — so it is as unenforceable
 			// as a missing registration and denied for the same reason.
-			const nonCanonical = decision.scopes.filter(s => canonicalQueryRoot(s.resource) !== s.resource)
+			const nonCanonical = decision.scopes
+				.filter(s => canonicalQueryRoot(s.resource) !== s.resource)
+				.map(s => ({ resource: s.resource, scope: s.alternatives.find(a => a.scope)?.scope ?? s.alternatives.find(a => a.tenancy)?.tenancy?.type ?? '?' }))
 			if (nonCanonical.length) {
 				warnNonCanonicalScope(req.scope, nonCanonical)
 				logDenial(req, 'non_canonical_scope')
@@ -895,45 +973,105 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 				}
 			}
 
+			// Three-way mutation gate. A route that declares `assertsScope` is
+			// admitted whole — its handler calls `assertScope` itself. Otherwise,
+			// per scoped resource: a declared route `target` lets the guard perform
+			// the assertion on the route's behalf (below, once the scoped query is
+			// registered); a required `create` operation goes through the declared
+			// payload rule; anything else stays denied — admitting a scoped
+			// mutation unasserted would be unnarrowed.
+			const pendingAsserts: { resource: string; id: string }[] = []
+			const pendingCreates: string[] = []
 			if (MUTATING_METHODS.has(req.method.toUpperCase()) && !routeAssertsScopes(fullPath, req.method)) {
-				logDenial(req, 'mutation_without_assert')
-				throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
+				const targets = routeTargets(fullPath, req.method)
+
+				for (const requirement of decision.scopes) {
+					const operations = operationsPerResource.get(requirement.resource) ?? new Set()
+
+					if (operations.has('create')) {
+						// There is no row to assert before it exists — the declared
+						// payload rule is the only admissible check. An alternative
+						// carrying an actor-relative part cannot admit a create (no row
+						// to test the relation against), so only pure-tenancy
+						// alternatives with a declared create_field count.
+						let ruleSeen = false
+						let admitted = false
+						for (const alternative of requirement.alternatives) {
+							if (!alternative.tenancy || alternative.scope) {
+								continue
+							}
+							const field = getTenancy(alternative.tenancy.type)?.create_fields?.[requirement.resource]
+							if (!field) {
+								continue
+							}
+							ruleSeen = true
+							const raw = (req.body as Record<string, unknown> | undefined)?.[field]
+							const values = raw === undefined || raw === null ? [] : Array.isArray(raw) ? raw : [raw]
+							// A missing value denies too: a server-side default would
+							// land the row wherever the default points, unchecked.
+							if (values.length && values.every(value => typeof value === 'string' && alternative.tenancy!.ids.includes(value))) {
+								admitted = true
+								break
+							}
+						}
+						if (!admitted) {
+							logDenial(req, ruleSeen ? 'create_outside_scope' : 'mutation_without_assert')
+							throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
+						}
+						pendingCreates.push(requirement.resource)
+						continue
+					}
+
+					const id = targets.get(requirement.resource)
+					if (!id) {
+						logDenial(req, 'mutation_without_assert')
+						throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
+					}
+					pendingAsserts.push({ resource: requirement.resource, id })
+				}
 			}
 
 			// Eager resolution runs before `req.scope.register` below, so every scope
-			// filter resolver always sees the unwrapped (unscoped) query.
+			// filter resolver always sees the unwrapped (unscoped) query. Each
+			// alternative composes its actor-relative and tenancy parts (AND);
+			// alternatives then union per resource.
 			const actor = { id: actorId, type: actorType ?? 'user' }
 			const byResource = new Map<string, Record<string, unknown>[]>()
-			try {
-				for (const requirement of decision.scopes) {
-					const filter = await getScope(requirement.resource, requirement.scope)!(actor, req.scope)
-					const list = byResource.get(requirement.resource) ?? []
-					list.push(filter)
-					byResource.set(requirement.resource, list)
-				}
-			} catch (error) {
-				logScopeResolutionFailure(req.scope, error)
-				logDenial(req, 'scope_resolver_failed')
-				throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
-			}
-
-			// Checked before combining, and outside the try above: an empty `{}`
-			// merges as "no filter" downstream, which would mark the resource
-			// narrowed while narrowing nothing at all — silent widening, not a
-			// resolver crash, so it gets its own denial rather than folding into the
-			// generic resolver-threw catch (which would also double-log this one).
-			const filtersByResource = new Map<string, Record<string, unknown>>()
-			for (const [resource, resolved] of byResource) {
-				for (const filter of resolved) {
-					if (!filter || typeof filter !== 'object' || !Object.keys(filter).length) {
+			for (const requirement of decision.scopes) {
+				const resolved: Record<string, unknown>[] = []
+				for (const alternative of requirement.alternatives) {
+					let result: Awaited<ReturnType<typeof composeAlternativeFilter>>
+					try {
+						result = await composeAlternativeFilter(alternative, requirement.resource, actor, req.scope)
+					} catch (error) {
+						logScopeResolutionFailure(req.scope, error)
+						logDenial(req, 'scope_resolver_failed')
+						throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
+					}
+					// Unregistered parts were denied above; defensively treat a race
+					// the same way rather than admit unnarrowed.
+					if (result.kind === 'unregistered') {
+						logDenial(req, 'unenforceable_scope')
+						throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
+					}
+					// A part resolving to an empty `{}` would merge as "no filter"
+					// downstream — silent widening, not a resolver crash, so it gets
+					// its own denial rather than folding into the resolver-threw catch.
+					if (result.kind === 'invalid') {
 						logScopeResolutionFailure(
 							req.scope,
-							new Error(`scope filter for "${resource}" did not resolve to a non-empty filter object, which would widen access instead of narrowing it`)
+							new Error(`a scope filter for "${requirement.resource}" did not resolve to a non-empty filter object, which would widen access instead of narrowing it`)
 						)
 						logDenial(req, 'empty_scope_filter')
 						throw new MedusaError(MedusaError.Types.FORBIDDEN, 'Insufficient permissions')
 					}
+					resolved.push(result.filter)
 				}
+				byResource.set(requirement.resource, resolved)
+			}
+
+			const filtersByResource = new Map<string, Record<string, unknown>>()
+			for (const [resource, resolved] of byResource) {
 				filtersByResource.set(resource, combineScopeFilters(resolved))
 			}
 
@@ -943,13 +1081,28 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 				original,
 				filters: filtersByResource,
 				enforcement,
-				pruneFields: makeFieldPruner(req, roleIds, required)
+				pruneFields: makeFieldPruner(req, holdings, required)
 			})
 			req.scope.register({
 				[ContainerRegistrationKeys.QUERY]: asValue(scopedQuery),
 				[ContainerRegistrationKeys.REMOTE_QUERY]: asValue(scopedQuery),
 				[ACCESS_UNSCOPED_QUERY]: asValue(original)
 			})
+
+			// The guard-side assertion, for routes with a declared `target`: the
+			// same check an `assertsScope` handler performs, run on its behalf. It
+			// needs `access_context` and the scoped query, so it sits here rather
+			// than in the gate above; a miss throws NOT_FOUND — out-of-scope must
+			// be indistinguishable from nonexistent.
+			req.access_context = { scopes: decision.scopes, enforcement }
+			for (const target of pendingAsserts) {
+				await assertScope(req, { resource: target.resource, id: target.id })
+			}
+			// A create that passed its payload rule counts as asserted: the rule is
+			// the row-level check, performed on the row-to-be.
+			for (const resource of pendingCreates) {
+				enforcement.asserted.add(resource)
+			}
 		}
 
 		// Set only on the granted path: `scopes: []` means evaluated with nothing
@@ -958,7 +1111,7 @@ export async function accessGuard(req: AuthenticatedMedusaRequest, res: MedusaRe
 		req.access_context = { scopes: decision.scopes, enforcement }
 
 		const release = makeEnforcementRelease(req, res, enforcement)
-		installFieldFilter(req, res, roleIds, required, release)
+		installFieldFilter(req, res, holdings, required, release)
 		if (enforcement) {
 			installNonJsonRelease(req, res, enforcement, release)
 			installLedgerBackstop(req, res, enforcement)

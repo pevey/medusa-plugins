@@ -6,8 +6,10 @@ import {
 	configureAccessNamespace,
 	declareRestrictedFields,
 	defineScope,
+	defineTenancy,
 	hasPermission,
 	hasScope,
+	requirePolicies,
 	resolveActorRoles,
 	resolvePermissions
 } from '../../src/utils'
@@ -48,8 +50,21 @@ medusaIntegrationTestRunner({
 	inApp: true,
 	env: {},
 	testSuite: ({ getContainer, dbUtils, utils, api }) => {
+		// Grant a role through an assignment row — the assignment-model successor
+		// of the old actor↔role link-create.
+		const assignRole = async (granteeType: string, granteeId: string, roleId: string) => {
+			const accessService: any = getContainer().resolve('access')
+			await accessService.createAccessRoleAssignments({ role_id: roleId, grantee_type: granteeType, grantee_id: granteeId })
+		}
+
+		const assignedRoleIds = async (granteeType: string, granteeId: string): Promise<string[]> => {
+			const accessService: any = getContainer().resolve('access')
+			const rows = await accessService.listAccessRoleAssignments({ grantee_type: granteeType, grantee_id: granteeId })
+			return rows.map((row: any) => row.role_id)
+		}
+
 		// Register + create an admin user, optionally grant the seeded super-admin
-		// role (via the link), and log in. Returns the user id + bearer token.
+		// role (via an assignment), and log in. Returns the user id + bearer token.
 		const setupAdmin = async (email: string, opts?: { superAdmin?: boolean }): Promise<{ userId: string; token: string }> => {
 			const container = getContainer()
 			const authService: any = container.resolve(Modules.AUTH)
@@ -63,11 +78,7 @@ medusaIntegrationTestRunner({
 				}
 			})
 			if (opts?.superAdmin) {
-				const link = container.resolve(ContainerRegistrationKeys.LINK)
-				await (link as any).create({
-					[Modules.USER]: { user_id: user.id },
-					access: { access_role_id: 'acrl_super_admin' }
-				})
+				await assignRole('user', user.id, 'acrl_super_admin')
 			}
 			const login = await api.post('/auth/user/emailpass', {
 				email,
@@ -76,9 +87,9 @@ medusaIntegrationTestRunner({
 			return { userId: user.id, token: login.data.token }
 		}
 
-		// Runs FIRST, on clean boot state (no user↔access_role links yet), so the
+		// Runs FIRST, on clean boot state (no role assignments yet), so the
 		// bootstrap's "first load" precondition holds before other describes create
-		// super-admin links into the DB template.
+		// super-admin assignments into the DB template.
 		describe('super-admin bootstrap', () => {
 			it('grants super-admin to a role-less user and is idempotent', async () => {
 				const container = getContainer()
@@ -99,27 +110,20 @@ medusaIntegrationTestRunner({
 				await utils.waitWorkflowExecutions()
 				await dbUtils.snapshot()
 
-				const query = container.resolve(ContainerRegistrationKeys.QUERY)
-				const rolesOf = async () => {
-					const { data } = await (query as any).graph({
-						entity: 'user',
-						fields: ['id', 'access_roles.id'],
-						filters: { id: user.id }
-					})
-					return (data[0]?.access_roles ?? []).map((r: any) => r.id)
-				}
+				const rolesOf = () => assignedRoleIds('user', user.id)
 
 				expect(await rolesOf()).not.toContain('acrl_super_admin')
 
-				// The bootstrap is a one-time grant: it skips the moment ANY user↔role
-				// link exists anywhere. Every later describe creates one, so this block
-				// is only correct in first position — and without this check a reorder
-				// fails on the assertion below with "expected acrl_super_admin", which
-				// points at the workflow rather than at the ordering.
-				const { data: allUsers } = await (query as any).graph({ entity: 'user', fields: ['access_roles.id'] })
-				if (allUsers.some((candidate: any) => (candidate.access_roles ?? []).length)) {
+				// The bootstrap is a one-time grant: it skips the moment ANY role
+				// assignment exists anywhere. Every later describe creates one, so this
+				// block is only correct in first position — and without this check a
+				// reorder fails on the assertion below with "expected acrl_super_admin",
+				// which points at the workflow rather than at the ordering.
+				const accessService: any = container.resolve('access')
+				const existingAssignments = await accessService.listAccessRoleAssignments({})
+				if (existingAssignments.length) {
 					throw new Error(
-						'super-admin bootstrap must be the FIRST describe in this file: the workflow skips once any user↔role link exists, and an earlier block has already created one.'
+						'super-admin bootstrap must be the FIRST describe in this file: the workflow skips once any role assignment exists, and an earlier block has already created one.'
 					)
 				}
 
@@ -133,11 +137,10 @@ medusaIntegrationTestRunner({
 			})
 		})
 
-		describe('access links', () => {
-			it('links a user to an access role and resolves it via graph query', async () => {
+		describe('role assignments', () => {
+			it('assigns a role to a user and resolves it via graph query', async () => {
 				const container = getContainer()
 				const accessService: any = container.resolve('access')
-				const link = container.resolve(ContainerRegistrationKeys.LINK)
 				const query = container.resolve(ContainerRegistrationKeys.QUERY)
 
 				// 1) create an access role
@@ -159,22 +162,19 @@ medusaIntegrationTestRunner({
 					}
 				})
 
-				// 3) create the link (user <-> access_role)
-				await (link as any).create({
-					[Modules.USER]: { user_id: user.id },
-					access: { access_role_id: role.id }
-				})
+				// 3) create the assignment (user holds access_role)
+				await assignRole('user', user.id, role.id)
 
-				// 4) resolve the role back through the user via graph
+				// 4) resolve the assignment back via graph, role relation included
 				const { data } = await (query as any).graph({
-					entity: 'user',
-					fields: ['id', 'access_roles.id', 'access_roles.name'],
-					filters: { id: user.id }
+					entity: 'access_role_assignment',
+					fields: ['role_id', 'role.name'],
+					filters: { grantee_type: 'user', grantee_id: user.id }
 				})
 
 				expect(data).toHaveLength(1)
-				const roleIds = (data[0].access_roles ?? []).map((r: any) => r.id)
-				expect(roleIds).toContain(role.id)
+				expect(data[0].role_id).toBe(role.id)
+				expect(data[0].role?.name).toBe('Manager')
 			})
 		})
 
@@ -440,22 +440,12 @@ medusaIntegrationTestRunner({
 				await assignUserRolesWorkflow(container).run({
 					input: { actor_id: user.id, user_id: user.id, role_id: role.id }
 				})
-				const { data: afterAssign } = await (query as any).graph({
-					entity: 'user',
-					fields: ['id', 'access_roles.id'],
-					filters: { id: user.id }
-				})
-				expect((afterAssign[0].access_roles ?? []).map((r: any) => r.id)).toContain(role.id)
+				expect(await assignedRoleIds('user', user.id)).toContain(role.id)
 
 				await removeUserRolesWorkflow(container).run({
 					input: { actor_id: user.id, user_id: user.id, role_id: role.id }
 				})
-				const { data: afterRemove } = await (query as any).graph({
-					entity: 'user',
-					fields: ['id', 'access_roles.id'],
-					filters: { id: user.id }
-				})
-				expect((afterRemove[0].access_roles ?? []).map((r: any) => r.id)).not.toContain(role.id)
+				expect(await assignedRoleIds('user', user.id)).not.toContain(role.id)
 			})
 		})
 
@@ -900,11 +890,7 @@ medusaIntegrationTestRunner({
 				// Deliberately NOT granted layer_strict:update.
 				const limited = await setupAdmin('layer-floor@example.com')
 				floorOnlyToken = limited.token
-				const link = container.resolve(ContainerRegistrationKeys.LINK)
-				await (link as any).create({
-					[Modules.USER]: { user_id: limited.userId },
-					access: { access_role_id: role.id }
-				})
+				await assignRole('user', limited.userId, role.id)
 
 				const grant = async (roleName: string, key: string, resource: string, operation: string, email: string) => {
 					const [existingPolicy] = await accessService.listAccessPolicies({ key })
@@ -912,7 +898,7 @@ medusaIntegrationTestRunner({
 					const grantRole = await accessService.createAccessRoles({ name: roleName })
 					await accessService.createAccessRolePolicies({ role_id: grantRole.id, policy_id: policy.id })
 					const actor = await setupAdmin(email)
-					await (link as any).create({ [Modules.USER]: { user_id: actor.userId }, access: { access_role_id: grantRole.id } })
+					await assignRole('user', actor.userId, grantRole.id)
 					return actor.token
 				}
 
@@ -1051,11 +1037,7 @@ medusaIntegrationTestRunner({
 						}
 					}
 				})
-				const link = container.resolve(ContainerRegistrationKeys.LINK)
-				await (link as any).create({
-					[Modules.USER]: { user_id: user.id },
-					access: { access_role_id: role.id }
-				})
+				await assignRole('user', user.id, role.id)
 				const login = await api.post('/auth/user/emailpass', {
 					email: 'ff-limited@example.com',
 					password: 'Sup3rSecret!'
@@ -1098,32 +1080,21 @@ medusaIntegrationTestRunner({
 		describe('customer group role resolution', () => {
 			it('resolves a customer to the roles held by their group', async () => {
 				const container = getContainer()
-				const link = container.resolve(ContainerRegistrationKeys.LINK)
-				const query = container.resolve(ContainerRegistrationKeys.QUERY)
 				const customerService: any = container.resolve(Modules.CUSTOMER)
 
 				const group = await customerService.createCustomerGroups({ name: 'Wholesale' })
 				const customer = await customerService.createCustomers({ email: 'wholesale@example.com' })
 				await customerService.addCustomerToGroup({ customer_id: customer.id, customer_group_id: group.id })
 
-				await (link as any).create({
-					[Modules.CUSTOMER]: { customer_group_id: group.id },
-					access: { access_role_id: 'acrl_super_admin' }
-				})
+				await assignRole('customer_group', group.id, 'acrl_super_admin')
 
-				const { data } = await query.graph({
-					entity: 'customer',
-					fields: ['groups.access_roles.id'],
-					filters: { id: customer.id }
-				})
+				const roleIds = await resolveActorRoles('customer', customer.id, container)
 
-				expect(data[0].groups[0].access_roles).toEqual([{ id: 'acrl_super_admin' }])
+				expect(roleIds).toEqual(['acrl_super_admin'])
 			})
 
-			it('unions a directly-linked role with a role held through a group', async () => {
+			it('unions a directly-assigned role with a role held through a group', async () => {
 				const container = getContainer()
-				const link = container.resolve(ContainerRegistrationKeys.LINK)
-				const query = container.resolve(ContainerRegistrationKeys.QUERY)
 				const accessService: any = container.resolve('access')
 				const customerService: any = container.resolve(Modules.CUSTOMER)
 
@@ -1132,26 +1103,14 @@ medusaIntegrationTestRunner({
 				const customer = await customerService.createCustomers({ email: 'direct-and-group@example.com' })
 				await customerService.addCustomerToGroup({ customer_id: customer.id, customer_group_id: group.id })
 
-				await (link as any).create({
-					[Modules.CUSTOMER]: { customer_id: customer.id },
-					access: { access_role_id: directRole.id }
-				})
-				await (link as any).create({
-					[Modules.CUSTOMER]: { customer_group_id: group.id },
-					access: { access_role_id: 'acrl_super_admin' }
-				})
+				await assignRole('customer', customer.id, directRole.id)
+				await assignRole('customer_group', group.id, 'acrl_super_admin')
 
-				// Assert on the raw query result before the resolver's Set collapses it --
-				// the union+dedupe would pass identically whether the two paths are
-				// actually isolated or whether the joiner cross-contaminates them.
-				const { data } = await query.graph({
-					entity: 'customer',
-					fields: ['access_roles.id', 'groups.access_roles.id'],
-					filters: { id: customer.id }
-				})
-
-				expect(data[0].access_roles).toEqual([{ id: directRole.id }])
-				expect(data[0].groups[0].access_roles).toEqual([{ id: 'acrl_super_admin' }])
+				// Assert on the raw assignment rows before the resolver's dedupe
+				// collapses them -- the union would pass identically whether the two
+				// grantee paths are actually isolated or cross-contaminated.
+				expect(await assignedRoleIds('customer', customer.id)).toEqual([directRole.id])
+				expect(await assignedRoleIds('customer_group', group.id)).toEqual(['acrl_super_admin'])
 
 				const roleIds = await resolveActorRoles('customer', customer.id, container)
 
@@ -1161,10 +1120,8 @@ medusaIntegrationTestRunner({
 		})
 
 		describe('api key role resolution', () => {
-			it('resolves an api key to its linked access role', async () => {
+			it('resolves an api key to its assigned access role', async () => {
 				const container = getContainer()
-				const link = container.resolve(ContainerRegistrationKeys.LINK)
-				const query = container.resolve(ContainerRegistrationKeys.QUERY)
 				const apiKeyService: any = container.resolve(Modules.API_KEY)
 
 				const apiKey = await apiKeyService.createApiKeys({
@@ -1173,18 +1130,151 @@ medusaIntegrationTestRunner({
 					created_by: 'test'
 				})
 
-				await (link as any).create({
-					[Modules.API_KEY]: { api_key_id: apiKey.id },
-					access: { access_role_id: 'acrl_super_admin' }
+				// Actor type `api-key` maps to grantee_type `api_key`.
+				await assignRole('api_key', apiKey.id, 'acrl_super_admin')
+
+				const roleIds = await resolveActorRoles('api-key', apiKey.id, container)
+
+				expect(roleIds).toEqual(['acrl_super_admin'])
+			})
+		})
+
+		describe('tenancy-scoped assignments', () => {
+			it('narrows a covered resource end to end, admits asserted mutations inside the tenant, and stays inert for role-id resolution', async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+
+				// A contrived dimension whose "tenant" is an access_role row itself —
+				// exercises the full guard path (holdings → tenancy alternative →
+				// composed filter → narrowed query.graph → assertScope) on the
+				// plugin's own routes. Core routes that call the raw remoteQuery
+				// callable (e.g. /admin/customers) cannot be narrowed by design —
+				// the interceptor denies them for scoped actors.
+				defineTenancy({ type: 'test_desk', resources: { access_role: (ids: string[]) => ({ id: ids }) } })
+
+				const [readPolicy] = await accessService.listAccessPolicies({ key: 'access_role:read' })
+				const [updatePolicy] = await accessService.listAccessPolicies({ key: 'access_role:update' })
+				const role = await accessService.createAccessRoles({ name: 'Desk Operator' })
+				await accessService.createAccessRolePolicies({ role_id: role.id, policy_id: readPolicy.id })
+				await accessService.createAccessRolePolicies({ role_id: role.id, policy_id: updatePolicy.id })
+
+				const inTenant = await accessService.createAccessRoles({ name: 'Desk Tenant Role' })
+				const outOfTenant = await accessService.createAccessRoles({ name: 'Other Desk Role' })
+
+				const actor = await setupAdmin('tenancy-actor@example.com')
+				await accessService.createAccessRoleAssignments({
+					role_id: role.id,
+					grantee_type: 'user',
+					grantee_id: actor.userId,
+					scope_type: 'test_desk',
+					scope_id: inTenant.id
 				})
 
-				const { data } = await query.graph({
-					entity: 'api_key',
-					fields: ['access_roles.id'],
-					filters: { id: apiKey.id }
+				// The scoped holding is invisible to role-id resolution — a
+				// tenancy-pinned role must never resolve as held-everywhere.
+				expect(await resolveActorRoles('user', actor.userId, container)).toEqual([])
+
+				// Reads admit and narrow: only the tenant's rows come back.
+				const authHeader = { headers: { Authorization: `Bearer ${actor.token}` } }
+				const list = await api.get('/admin/access/roles', authHeader)
+				expect(list.status).toBe(200)
+				const ids = list.data.roles.map((r: any) => r.id)
+				expect(ids).toContain(inTenant.id)
+				expect(ids).not.toContain(outOfTenant.id)
+
+				// An in-tenant mutation passes through the assertsScope route: the
+				// guard admits it, the handler's assertScope proves the row sits
+				// inside the composed tenancy filter.
+				const update = await api.post(`/admin/access/roles/${inTenant.id}`, { description: 'updated in tenant' }, authHeader).catch((e: any) => e.response)
+				expect(update.status).toBe(200)
+
+				// An out-of-tenant mutation 404s — the row is narrowed away entirely,
+				// so existence is never confirmed.
+				const denied = await api.post(`/admin/access/roles/${outOfTenant.id}`, { description: 'nope' }, authHeader).catch((e: any) => e.response)
+				expect(denied.status).toBe(404)
+			})
+
+			it('performs the scope assertion on a route with a declared target — no handler assertScope needed', async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+
+				// The policies routes declare no assertsScope; the explicit target
+				// declaration (the same data the generated core map carries) is what
+				// lets the guard assert the row itself.
+				defineTenancy({ type: 'test_policy_row', resources: { access_policy: (ids: string[]) => ({ id: ids }) } })
+				requirePolicies({
+					matcher: '/admin/access/policies/:id',
+					method: ['POST'],
+					policies: [{ resource: 'access_policy', operation: 'update' }],
+					target: { resource: 'access_policy', param: 'id' }
 				})
 
-				expect(data[0].access_roles).toEqual([{ id: 'acrl_super_admin' }])
+				const inTenant = await accessService.createAccessPolicies({ key: 'desk_thing:read', resource: 'desk_thing', operation: 'read' })
+				const outOfTenant = await accessService.createAccessPolicies({ key: 'desk_thing:update', resource: 'desk_thing', operation: 'update' })
+
+				const [updatePolicy] = await accessService.listAccessPolicies({ key: 'access_policy:update' })
+				const role = await accessService.createAccessRoles({ name: 'Policy Desk Operator' })
+				await accessService.createAccessRolePolicies({ role_id: role.id, policy_id: updatePolicy.id })
+
+				const actor = await setupAdmin('tenancy-target-actor@example.com')
+				await accessService.createAccessRoleAssignments({
+					role_id: role.id,
+					grantee_type: 'user',
+					grantee_id: actor.userId,
+					scope_type: 'test_policy_row',
+					scope_id: inTenant.id
+				})
+
+				const authHeader = { headers: { Authorization: `Bearer ${actor.token}` } }
+				const update = await api.post(`/admin/access/policies/${inTenant.id}`, { description: 'updated via guard-side assert' }, authHeader).catch((e: any) => e.response)
+				expect(update.status).toBe(200)
+
+				const denied = await api.post(`/admin/access/policies/${outOfTenant.id}`, { description: 'nope' }, authHeader).catch((e: any) => e.response)
+				expect(denied.status).toBe(404)
+			})
+
+			it('enforces the declared create rule: payloads land inside the tenant or not at all', async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+
+				// The "tenant" is the policy's resource string — contrived, but it
+				// exercises the declared payload rule end to end: body.resource must
+				// fall inside the assignment's scope ids.
+				defineTenancy({
+					type: 'test_policy_kind',
+					resources: { access_policy: (ids: string[]) => ({ resource: ids }) },
+					create_fields: { access_policy: 'resource' }
+				})
+
+				const [createPolicy] = await accessService.listAccessPolicies({ key: 'access_policy:create' })
+				const role = await accessService.createAccessRoles({ name: 'Policy Kind Creator' })
+				await accessService.createAccessRolePolicies({ role_id: role.id, policy_id: createPolicy.id })
+
+				const actor = await setupAdmin('tenancy-create-actor@example.com')
+				await accessService.createAccessRoleAssignments({
+					role_id: role.id,
+					grantee_type: 'user',
+					grantee_id: actor.userId,
+					scope_type: 'test_policy_kind',
+					scope_id: 'desk_gadget'
+				})
+
+				const authHeader = { headers: { Authorization: `Bearer ${actor.token}` } }
+				const created = await api
+					.post('/admin/access/policies', { key: 'desk_gadget:read', resource: 'desk_gadget', operation: 'read' }, authHeader)
+					.catch((e: any) => e.response)
+				expect(created.status).toBe(200)
+
+				const outside = await api
+					.post('/admin/access/policies', { key: 'desk_widget:read', resource: 'desk_widget', operation: 'read' }, authHeader)
+					.catch((e: any) => e.response)
+				expect(outside.status).toBe(403)
+
+				// A missing value denies too — a default would land the row unchecked.
+				const missing = await api
+					.post('/admin/access/policies', { key: 'desk_gadget:write', operation: 'update' } as any, authHeader)
+					.catch((e: any) => e.response)
+				expect([400, 403]).toContain(missing.status)
 			})
 		})
 
@@ -1219,7 +1309,6 @@ medusaIntegrationTestRunner({
 			it('pins the query.graph -> authorize chain end to end for a scoped grant', async () => {
 				const container = getContainer()
 				const accessService: any = container.resolve('access')
-				const link = container.resolve(ContainerRegistrationKeys.LINK)
 
 				const role = await accessService.createAccessRoles({ name: 'Scoped Deleter' })
 				const [policy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
@@ -1240,10 +1329,7 @@ medusaIntegrationTestRunner({
 					}
 				})
 
-				await (link as any).create({
-					[Modules.USER]: { user_id: user.id },
-					access: { access_role_id: role.id }
-				})
+				await assignRole('user', user.id, role.id)
 
 				await expect(
 					hasPermission({
@@ -1259,7 +1345,7 @@ medusaIntegrationTestRunner({
 					container
 				})
 
-				expect(decision).toEqual({ granted: true, scopes: [{ resource: 'customer', scope: 'company' }] })
+				expect(decision).toEqual({ granted: true, scopes: [{ resource: 'customer', alternatives: [{ scope: 'company' }] }] })
 			})
 		})
 
@@ -1282,7 +1368,6 @@ medusaIntegrationTestRunner({
 			const createActor = async (label: string, opts: { scope?: string } = {}) => {
 				const container = getContainer()
 				const accessService: any = container.resolve('access')
-				const link = container.resolve(ContainerRegistrationKeys.LINK)
 
 				// Role names and auth-identity emails are unique per actor so nothing
 				// collides across the eleven built here.
@@ -1302,8 +1387,8 @@ medusaIntegrationTestRunner({
 				})
 
 				const actor = await setupAdmin(`${unique}@example.com`)
-				await (link as any).create({ [Modules.USER]: { user_id: actor.userId }, access: { access_role_id: floorRole.id } })
-				await (link as any).create({ [Modules.USER]: { user_id: actor.userId }, access: { access_role_id: grantedRole.id } })
+				await assignRole('user', actor.userId, floorRole.id)
+				await assignRole('user', actor.userId, grantedRole.id)
 
 				return actor
 			}
@@ -1445,7 +1530,6 @@ medusaIntegrationTestRunner({
 				const container = getContainer()
 				const accessService: any = container.resolve('access')
 				const authService: any = container.resolve(Modules.AUTH)
-				const link = container.resolve(ContainerRegistrationKeys.LINK)
 				const unique = Math.random().toString(36).slice(2)
 
 				const [accessRoleUpdatePolicy] = await accessService.listAccessPolicies({ key: 'access_role:update' })
@@ -1463,7 +1547,7 @@ medusaIntegrationTestRunner({
 				const { result: actorUser } = await createUserAccountWorkflow(container).run({
 					input: { authIdentityId: actorAuthIdentity!.id, userData: { email: actorEmail, first_name: 'Self', last_name: 'Ref' } }
 				})
-				await (link as any).create({ [Modules.USER]: { user_id: actorUser.id }, access: { access_role_id: actorRole.id } })
+				await assignRole('user', actorUser.id, actorRole.id)
 
 				const targetEmail = `self-ref-target-${unique}@example.com`
 				const { authIdentity: targetAuthIdentity } = await authService.register('emailpass', {
@@ -1723,7 +1807,6 @@ medusaIntegrationTestRunner({
 			beforeAll(async () => {
 				const container = getContainer()
 				const accessService: any = container.resolve('access')
-				const link = container.resolve(ContainerRegistrationKeys.LINK)
 
 				// Reuses
 				// the same rows rather than collide with the fixed names the scope
@@ -1765,7 +1848,7 @@ medusaIntegrationTestRunner({
 				const listedRole = await accessService.createAccessRoles({ name: `ScopedListedReader-${unique}` })
 				await accessService.createAccessRolePolicies({ role_id: listedRole.id, policy_id: readPolicy.id, scope: 'listed' })
 				const listedActor = await setupAdmin(`scoped-listed-${unique}@example.com`)
-				await (link as any).create({ [Modules.USER]: { user_id: listedActor.userId }, access: { access_role_id: listedRole.id } })
+				await assignRole('user', listedActor.userId, listedRole.id)
 				listedToken = listedActor.token
 
 				// Actor 2: holds access_role:read@listed AND access_role:read@named_a,
@@ -1777,8 +1860,8 @@ medusaIntegrationTestRunner({
 				const unionNamedRole = await accessService.createAccessRoles({ name: `ScopedUnionNamedA-${unique}` })
 				await accessService.createAccessRolePolicies({ role_id: unionNamedRole.id, policy_id: readPolicy.id, scope: 'named_a' })
 				const unionActor = await setupAdmin(`scoped-union-${unique}@example.com`)
-				await (link as any).create({ [Modules.USER]: { user_id: unionActor.userId }, access: { access_role_id: unionListedRole.id } })
-				await (link as any).create({ [Modules.USER]: { user_id: unionActor.userId }, access: { access_role_id: unionNamedRole.id } })
+				await assignRole('user', unionActor.userId, unionListedRole.id)
+				await assignRole('user', unionActor.userId, unionNamedRole.id)
 				unionToken = unionActor.token
 
 				// Actor 3: holds access_role:update@listed AND access_role:delete@listed
@@ -1791,7 +1874,7 @@ medusaIntegrationTestRunner({
 				await accessService.createAccessRolePolicies({ role_id: mutationRole.id, policy_id: updatePolicy.id, scope: 'listed' })
 				await accessService.createAccessRolePolicies({ role_id: mutationRole.id, policy_id: deletePolicy.id, scope: 'listed' })
 				const mutationActor = await setupAdmin(`scoped-mutation-${unique}@example.com`)
-				await (link as any).create({ [Modules.USER]: { user_id: mutationActor.userId }, access: { access_role_id: mutationRole.id } })
+				await assignRole('user', mutationActor.userId, mutationRole.id)
 				mutationToken = mutationActor.token
 
 				// Actor 4: holds access_role:read@ghost, seeded directly through the
@@ -1801,7 +1884,7 @@ medusaIntegrationTestRunner({
 				const ghostRole = await accessService.createAccessRoles({ name: `ScopedGhostReader-${unique}` })
 				await accessService.createAccessRolePolicies({ role_id: ghostRole.id, policy_id: readPolicy.id, scope: 'ghost' })
 				const ghostActor = await setupAdmin(`scoped-ghost-${unique}@example.com`)
-				await (link as any).create({ [Modules.USER]: { user_id: ghostActor.userId }, access: { access_role_id: ghostRole.id } })
+				await assignRole('user', ghostActor.userId, ghostRole.id)
 				ghostToken = ghostActor.token
 
 				const superAdmin = await setupAdmin(`scoped-super-${unique}@example.com`, { superAdmin: true })
@@ -2158,6 +2241,126 @@ medusaIntegrationTestRunner({
 
 				expect(res.status).toBe(200)
 				expect(res.data).toEqual({ permissions: [], scoped: [] })
+			})
+		})
+
+		describe('generic assignments + delegation under tenants', () => {
+			it('lets a granter delegate within their own tenant, and only there', async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+
+				// The dimension registered by the create-rule test: access_policy
+				// partitioned by its `resource` string. Target role T carries
+				// access_policy:create; the granter holds that authority ONLY
+				// pinned to tenant 'desk_gadget'.
+				const [createPolicy] = await accessService.listAccessPolicies({ key: 'access_policy:create' })
+				const [roleUpdatePolicy] = await accessService.listAccessPolicies({ key: 'access_role:update' })
+				const [roleReadPolicy] = await accessService.listAccessPolicies({ key: 'access_role:read' })
+
+				const targetRole = await accessService.createAccessRoles({ name: 'Gadget Policy Creator' })
+				await accessService.createAccessRolePolicies({ role_id: targetRole.id, policy_id: createPolicy.id })
+
+				// Unscoped base role: reaches the assignment route (access_role
+				// update/read) but carries none of the target role's policies.
+				const baseRole = await accessService.createAccessRoles({ name: 'Assignment Desk Base' })
+				await accessService.createAccessRolePolicies({ role_id: baseRole.id, policy_id: roleUpdatePolicy.id })
+				await accessService.createAccessRolePolicies({ role_id: baseRole.id, policy_id: roleReadPolicy.id })
+
+				// Scoped authority: the target role itself, pinned to the tenant.
+				const granter = await setupAdmin('tenant-granter@example.com')
+				await accessService.createAccessRoleAssignments({ role_id: baseRole.id, grantee_type: 'user', grantee_id: granter.userId })
+				await accessService.createAccessRoleAssignments({
+					role_id: targetRole.id,
+					grantee_type: 'user',
+					grantee_id: granter.userId,
+					scope_type: 'test_policy_kind',
+					scope_id: 'desk_gadget'
+				})
+
+				const grantee = await setupAdmin('tenant-grantee@example.com')
+				const authHeader = { headers: { Authorization: `Bearer ${granter.token}` } }
+
+				// Within their tenant: allowed.
+				const inTenant = await api
+					.post(
+						`/admin/access/roles/${targetRole.id}/assignments`,
+						{ assignments: [{ grantee_type: 'user', grantee_id: grantee.userId, scope_type: 'test_policy_kind', scope_id: 'desk_gadget' }] },
+						authHeader
+					)
+					.catch((e: any) => e.response)
+				expect(inTenant.status).toBe(200)
+				expect(inTenant.data.assignments).toEqual(
+					expect.arrayContaining([expect.objectContaining({ grantee_id: grantee.userId, scope_id: 'desk_gadget' })])
+				)
+
+				// Unscoped: their tenant-pinned authority does not reach it.
+				const unscoped = await api
+					.post(
+						`/admin/access/roles/${targetRole.id}/assignments`,
+						{ assignments: [{ grantee_type: 'user', grantee_id: grantee.userId }] },
+						authHeader
+					)
+					.catch((e: any) => e.response)
+				expect(unscoped.status).toBe(403)
+
+				// Another tenant: incomparable, denied.
+				const otherTenant = await api
+					.post(
+						`/admin/access/roles/${targetRole.id}/assignments`,
+						{ assignments: [{ grantee_type: 'user', grantee_id: grantee.userId, scope_type: 'test_policy_kind', scope_id: 'desk_widget' }] },
+						authHeader
+					)
+					.catch((e: any) => e.response)
+				expect(otherTenant.status).toBe(403)
+
+				// And the delegated assignment is removable through the same surface.
+				const list = await api.get(`/admin/access/roles/${targetRole.id}/assignments?grantee_id=${grantee.userId}`, authHeader)
+				const created = list.data.assignments.find((row: any) => row.grantee_id === grantee.userId)
+				const removed = await api
+					.delete(`/admin/access/roles/${targetRole.id}/assignments`, { ...authHeader, data: { assignment_ids: [created.id] } })
+					.catch((e: any) => e.response)
+				expect(removed.status).toBe(200)
+			})
+		})
+
+		describe('invite role-assignment transfer', () => {
+			it('moves an invite’s assignments to the accepting user, scope columns preserved', async () => {
+				const container = getContainer()
+				const accessService: any = container.resolve('access')
+				const userService: any = container.resolve(Modules.USER)
+
+				const role = await accessService.createAccessRoles({ name: 'Invited Operator' })
+				const invite = await userService.createInvites({ email: 'invited-op@example.com' })
+				await accessService.createAccessRoleAssignments({
+					role_id: role.id,
+					grantee_type: 'invite',
+					grantee_id: invite.id,
+					scope_type: 'test_policy_kind',
+					scope_id: 'desk_gadget'
+				})
+
+				// Simulate the accept flow's observable effects: the user exists,
+				// the invite is deleted, and the event fires with just the id.
+				const user = await userService.createUsers({ email: 'invited-op@example.com' })
+				await userService.softDeleteInvites([invite.id])
+				const eventBus: any = container.resolve(Modules.EVENT_BUS)
+				await eventBus.emit({ name: 'invite.accepted', data: { id: invite.id } })
+
+				const transferred = await (async () => {
+					for (let attempt = 0; attempt < 30; attempt++) {
+						const rows = await accessService.listAccessRoleAssignments({ grantee_type: 'user', grantee_id: user.id })
+						if (rows.length) {
+							return rows
+						}
+						await new Promise(resolve => setTimeout(resolve, 100))
+					}
+					return []
+				})()
+
+				expect(transferred).toEqual([
+					expect.objectContaining({ role_id: role.id, scope_type: 'test_policy_kind', scope_id: 'desk_gadget' })
+				])
+				await expect(accessService.listAccessRoleAssignments({ grantee_type: 'invite', grantee_id: invite.id })).resolves.toEqual([])
 			})
 		})
 	}

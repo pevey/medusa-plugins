@@ -1,9 +1,30 @@
 /// <reference types="jest" />
 import { MedusaError } from '@medusajs/framework/utils'
 import type { RequestHandler } from 'express'
-import { registerActorResolver, resolveActorRoles } from '../actor-resolvers'
+import { registerActorResolver, registerGranteePath, resolveActorHoldings, resolveActorRoles } from '../actor-resolvers'
 
 const containerWith = (graph: jest.Mock) => ({ resolve: () => ({ graph }) }) as any
+
+/** An assignment row as the resolution query returns it. */
+const assignment = (role_id: string, grantee_type: string, grantee_id: string, scope_type: string | null = null, scope_id: string | null = null) => ({
+	role_id,
+	grantee_type,
+	grantee_id,
+	scope_type,
+	scope_id
+})
+
+/**
+ * Routes `query.graph` calls by entity: actor-row walks get `actorRows`,
+ * assignment lookups get `assignmentRows`.
+ */
+const graphByEntity = (assignmentRows: any[], actorRows: any[] = []) =>
+	jest.fn().mockImplementation(({ entity }: { entity: string }) => {
+		if (entity === 'access_role_assignment') {
+			return Promise.resolve({ data: assignmentRows })
+		}
+		return Promise.resolve({ data: actorRows })
+	})
 
 // Annotated at the handler rather than inline in the call. Several of these registrations are cast
 // `as any` on purpose — that cast is what lets the test hand `registerActorResolver` the invalid
@@ -16,29 +37,52 @@ describe('resolveActorRoles', () => {
 		await expect(resolveActorRoles('unregistered-actor-type', 'x_1', containerWith(jest.fn()))).resolves.toBeNull()
 	})
 
-	it('resolves a user through the access_roles link', async () => {
-		const graph = jest.fn().mockResolvedValue({ data: [{ access_roles: [{ id: 'acrl_1' }, { id: 'acrl_2' }] }] })
+	it('resolves a user through identity assignments', async () => {
+		const graph = graphByEntity([assignment('acrl_1', 'user', 'usr_1'), assignment('acrl_2', 'user', 'usr_1')])
 
 		await expect(resolveActorRoles('user', 'usr_1', containerWith(graph))).resolves.toEqual(['acrl_1', 'acrl_2'])
-		expect(graph).toHaveBeenCalledWith({ entity: 'user', fields: ['access_roles.id'], filters: { id: 'usr_1' } })
+		expect(graph).toHaveBeenCalledWith({
+			entity: 'access_role_assignment',
+			fields: ['role_id', 'grantee_type', 'grantee_id', 'scope_type', 'scope_id'],
+			filters: { grantee_type: ['user'], grantee_id: ['usr_1'] }
+		})
 	})
 
 	it('returns an empty array for a user that holds no roles', async () => {
-		const graph = jest.fn().mockResolvedValue({ data: [{}] })
+		const graph = graphByEntity([])
 
 		await expect(resolveActorRoles('user', 'usr_1', containerWith(graph))).resolves.toEqual([])
 	})
 
-	it('returns an empty array when the actor row does not exist', async () => {
-		const graph = jest.fn().mockResolvedValue({ data: [] })
+	it('drops rows whose type and id each match a DIFFERENT grantee pair', async () => {
+		// The lookup filters grantee_type IN (...) AND grantee_id IN (...) — a
+		// row can satisfy both columns without matching any actual pair. The
+		// post-filter must reject it or an unrelated grantee's role leaks in.
+		const graph = graphByEntity(
+			[assignment('acrl_leak', 'customer_group', 'cus_1'), assignment('acrl_ok', 'customer', 'cus_1')],
+			[{ groups: [] }]
+		)
 
-		await expect(resolveActorRoles('user', 'usr_missing', containerWith(graph))).resolves.toEqual([])
+		await expect(resolveActorRoles('customer', 'cus_1', containerWith(graph))).resolves.toEqual(['acrl_ok'])
+	})
+
+	it('excludes scoped holdings — a tenancy-pinned role must never resolve as held-everywhere', async () => {
+		const graph = graphByEntity([assignment('acrl_scoped', 'user', 'usr_1', 'company', 'comp_1'), assignment('acrl_plain', 'user', 'usr_1')])
+
+		await expect(resolveActorRoles('user', 'usr_1', containerWith(graph))).resolves.toEqual(['acrl_plain'])
 	})
 
 	it('lets a plugin register a resolver for a new actor type', async () => {
 		registerActorResolver({ actorType: 'affiliate', resolve: async () => ['acrl_aff'] })
 
-		await expect(resolveActorRoles('affiliate', 'aff_1', containerWith(jest.fn()))).resolves.toEqual(['acrl_aff'])
+		await expect(resolveActorRoles('affiliate', 'aff_1', containerWith(graphByEntity([])))).resolves.toEqual(['acrl_aff'])
+	})
+
+	it('unions legacy resolver results with identity assignments', async () => {
+		registerActorResolver({ actorType: 'vendor', resolve: async () => ['acrl_computed'] })
+		const graph = graphByEntity([assignment('acrl_assigned', 'vendor', 'ven_1')])
+
+		await expect(resolveActorRoles('vendor', 'ven_1', containerWith(graph))).resolves.toEqual(expect.arrayContaining(['acrl_computed', 'acrl_assigned']))
 	})
 
 	it('throws when a second registration targets an already-registered actor type', () => {
@@ -78,7 +122,7 @@ describe('resolveActorRoles', () => {
 		).toThrow(/supplied "authenticate" without "prefixes"/)
 	})
 
-	it('re-running the built-in registration path does not throw and does not clobber an existing resolver', async () => {
+	it('re-running the built-in registration path does not throw and does not clobber an existing registration', async () => {
 		// This package can end up with two live copies of this module body
 		// sharing one globalThis (src/ and .medusa/server/src/), and each
 		// re-require re-runs the module body — which re-registers the
@@ -89,7 +133,7 @@ describe('resolveActorRoles', () => {
 			require('../actor-resolvers')
 		}).not.toThrow()
 
-		const graph = jest.fn().mockResolvedValue({ data: [{ access_roles: [{ id: 'acrl_1' }] }] })
+		const graph = graphByEntity([assignment('acrl_1', 'user', 'usr_1')])
 		await expect(resolveActorRoles('user', 'usr_1', containerWith(graph))).resolves.toEqual(['acrl_1'])
 	})
 
@@ -100,53 +144,125 @@ describe('resolveActorRoles', () => {
 	})
 })
 
+describe('resolveActorHoldings', () => {
+	it('returns scoped holdings with their tenancy pins', async () => {
+		const graph = graphByEntity([assignment('acrl_mgr', 'user', 'usr_1', 'company', 'comp_acme')])
+
+		await expect(resolveActorHoldings('user', 'usr_1', containerWith(graph))).resolves.toEqual([
+			{ role_id: 'acrl_mgr', scope: { type: 'company', id: 'comp_acme' } }
+		])
+	})
+
+	it('collapses a role held unscoped anywhere, subsuming its scoped holdings', async () => {
+		const graph = graphByEntity([
+			assignment('acrl_mgr', 'user', 'usr_1'),
+			assignment('acrl_mgr', 'user', 'usr_1', 'company', 'comp_acme')
+		])
+
+		await expect(resolveActorHoldings('user', 'usr_1', containerWith(graph))).resolves.toEqual([{ role_id: 'acrl_mgr', scope: null }])
+	})
+
+	it('deduplicates identical scoped holdings and keeps distinct tenants', async () => {
+		const graph = graphByEntity([
+			assignment('acrl_mgr', 'user', 'usr_1', 'company', 'comp_acme'),
+			assignment('acrl_mgr', 'user', 'usr_1', 'company', 'comp_acme'),
+			assignment('acrl_mgr', 'user', 'usr_1', 'company', 'comp_beta')
+		])
+
+		await expect(resolveActorHoldings('user', 'usr_1', containerWith(graph))).resolves.toEqual([
+			{ role_id: 'acrl_mgr', scope: { type: 'company', id: 'comp_acme' } },
+			{ role_id: 'acrl_mgr', scope: { type: 'company', id: 'comp_beta' } }
+		])
+	})
+
+	it('returns null for an unregistered actor type', async () => {
+		await expect(resolveActorHoldings('nobody', 'x_1', containerWith(jest.fn()))).resolves.toBeNull()
+	})
+})
+
 describe('customer actor resolution', () => {
-	it('resolves roles through customer groups', async () => {
-		const graph = jest.fn().mockResolvedValue({
-			data: [{ groups: [{ access_roles: [{ id: 'acrl_wholesale' }] }, { access_roles: [{ id: 'acrl_vip' }] }] }]
-		})
+	it('walks groups and matches group-held assignments', async () => {
+		const graph = graphByEntity(
+			[assignment('acrl_wholesale', 'customer_group', 'cusgrp_1'), assignment('acrl_vip', 'customer_group', 'cusgrp_2')],
+			[{ groups: [{ id: 'cusgrp_1' }, { id: 'cusgrp_2' }] }]
+		)
 
 		await expect(resolveActorRoles('customer', 'cus_1', containerWith(graph))).resolves.toEqual(['acrl_wholesale', 'acrl_vip'])
 		expect(graph).toHaveBeenCalledWith({
 			entity: 'customer',
-			fields: ['access_roles.id', 'groups.access_roles.id'],
+			fields: ['groups.id'],
 			filters: { id: 'cus_1' }
+		})
+		expect(graph).toHaveBeenCalledWith({
+			entity: 'access_role_assignment',
+			fields: ['role_id', 'grantee_type', 'grantee_id', 'scope_type', 'scope_id'],
+			filters: { grantee_type: ['customer', 'customer_group'], grantee_id: ['cus_1', 'cusgrp_1', 'cusgrp_2'] }
 		})
 	})
 
-	it('deduplicates a role reached through two groups', async () => {
-		const graph = jest.fn().mockResolvedValue({
-			data: [{ groups: [{ access_roles: [{ id: 'acrl_shared' }] }, { access_roles: [{ id: 'acrl_shared' }] }] }]
-		})
+	it('unions directly-held roles with group roles and deduplicates overlap', async () => {
+		const graph = graphByEntity(
+			[assignment('acrl_shared', 'customer', 'cus_1'), assignment('acrl_shared', 'customer_group', 'cusgrp_1')],
+			[{ groups: [{ id: 'cusgrp_1' }] }]
+		)
 
 		await expect(resolveActorRoles('customer', 'cus_1', containerWith(graph))).resolves.toEqual(['acrl_shared'])
 	})
 
-	it('returns an empty array for a customer in no groups', async () => {
-		const graph = jest.fn().mockResolvedValue({ data: [{ groups: [] }] })
+	it('returns an empty array for a customer in no groups with no direct assignments', async () => {
+		const graph = graphByEntity([], [{ groups: [] }])
 
 		await expect(resolveActorRoles('customer', 'cus_1', containerWith(graph))).resolves.toEqual([])
 	})
 
-	it('returns an empty array for a customer whose groups carry no roles', async () => {
-		const graph = jest.fn().mockResolvedValue({ data: [{ groups: [{ access_roles: [] }, {}] }] })
+	it('tolerates a null entry inside the groups array', async () => {
+		const graph = graphByEntity([assignment('acrl_group', 'customer_group', 'cusgrp_1')], [{ groups: [null, { id: 'cusgrp_1' }] }])
 
-		await expect(resolveActorRoles('customer', 'cus_1', containerWith(graph))).resolves.toEqual([])
+		await expect(resolveActorRoles('customer', 'cus_1', containerWith(graph))).resolves.toEqual(['acrl_group'])
+	})
+
+	it('tolerates a missing actor row — identity assignments still resolve', async () => {
+		const graph = graphByEntity([assignment('acrl_direct', 'customer', 'cus_ghost')], [])
+
+		await expect(resolveActorRoles('customer', 'cus_ghost', containerWith(graph))).resolves.toEqual(['acrl_direct'])
 	})
 })
 
 describe('api-key actor resolution', () => {
-	it('resolves an api key through the access_roles link', async () => {
-		const graph = jest.fn().mockResolvedValue({ data: [{ access_roles: [{ id: 'acrl_1' }, { id: 'acrl_2' }] }] })
+	it("maps actor type 'api-key' to Query entity 'api_key' for the identity grantee", async () => {
+		const graph = graphByEntity([assignment('acrl_1', 'api_key', 'apk_1'), assignment('acrl_2', 'api_key', 'apk_1')])
 
 		await expect(resolveActorRoles('api-key', 'apk_1', containerWith(graph))).resolves.toEqual(['acrl_1', 'acrl_2'])
-		expect(graph).toHaveBeenCalledWith({ entity: 'api_key', fields: ['access_roles.id'], filters: { id: 'apk_1' } })
+		expect(graph).toHaveBeenCalledWith(
+			expect.objectContaining({
+				entity: 'access_role_assignment',
+				filters: { grantee_type: ['api_key'], grantee_id: ['apk_1'] }
+			})
+		)
+	})
+})
+
+describe('registerGranteePath', () => {
+	it('is additive on built-ins and idempotent on duplicates', async () => {
+		registerGranteePath('user', { entity: 'team', path: 'teams.id' })
+		registerGranteePath('user', { entity: 'team', path: 'teams.id' })
+
+		const graph = graphByEntity([assignment('acrl_team', 'team', 'team_1')], [{ teams: [{ id: 'team_1' }] }])
+
+		await expect(resolveActorRoles('user', 'usr_1', containerWith(graph))).resolves.toEqual(['acrl_team'])
+		expect(graph).toHaveBeenCalledWith({
+			entity: 'user',
+			fields: ['teams.id'],
+			filters: { id: 'usr_1' }
+		})
 	})
 
-	it('returns an empty array for an api key that holds no roles', async () => {
-		const graph = jest.fn().mockResolvedValue({ data: [{}] })
+	it('throws on an incomplete grantee path', () => {
+		expect(() => registerGranteePath('user', { entity: '', path: 'x.id' })).toThrow(/incomplete/)
+	})
 
-		await expect(resolveActorRoles('api-key', 'apk_1', containerWith(graph))).resolves.toEqual([])
+	it('accepts paths for actor types that are not registered yet', () => {
+		expect(() => registerGranteePath('future-type', { entity: 'org', path: 'org.id' })).not.toThrow()
 	})
 })
 
@@ -194,59 +310,16 @@ describe('actor authentication registration', () => {
 	it('rejects the whole registration when only one of several prefixes is bad', () => {
 		expect(withPrefixes('mixed', ['/affiliate', '/admin'])).toThrow(/reserved prefix/i)
 		// And leaves nothing behind: a partially-applied registration would have the
-		// resolver live with an authenticator that never validated.
+		// identity entity live with an authenticator that never validated.
 		expect((global as any).AccessActorResolvers.has('mixed')).toBe(false)
-	})
-})
-
-describe('customer resolves direct and group roles', () => {
-	it('unions directly-linked roles with group roles', async () => {
-		const graph = jest.fn().mockResolvedValue({
-			data: [{ access_roles: [{ id: 'acrl_direct' }], groups: [{ access_roles: [{ id: 'acrl_group' }] }] }]
-		})
-
-		await expect(resolveActorRoles('customer', 'cus_1', containerWith(graph))).resolves.toEqual(['acrl_direct', 'acrl_group'])
-	})
-
-	it('deduplicates a role held both directly and through a group', async () => {
-		const graph = jest.fn().mockResolvedValue({
-			data: [{ access_roles: [{ id: 'acrl_shared' }], groups: [{ access_roles: [{ id: 'acrl_shared' }] }] }]
-		})
-
-		await expect(resolveActorRoles('customer', 'cus_1', containerWith(graph))).resolves.toEqual(['acrl_shared'])
-	})
-
-	it('works with only direct roles', async () => {
-		const graph = jest.fn().mockResolvedValue({ data: [{ access_roles: [{ id: 'acrl_direct' }], groups: [] }] })
-
-		await expect(resolveActorRoles('customer', 'cus_1', containerWith(graph))).resolves.toEqual(['acrl_direct'])
-	})
-
-	it('tolerates a null entry inside the groups array', async () => {
-		const graph = jest.fn().mockResolvedValue({
-			data: [{ access_roles: [], groups: [null, { access_roles: [{ id: 'acrl_group' }] }] }]
-		})
-
-		await expect(resolveActorRoles('customer', 'cus_1', containerWith(graph))).resolves.toEqual(['acrl_group'])
-	})
-
-	it('requests both field paths in one query', async () => {
-		const graph = jest.fn().mockResolvedValue({ data: [{}] })
-
-		await resolveActorRoles('customer', 'cus_1', containerWith(graph))
-
-		expect(graph).toHaveBeenCalledWith({
-			entity: 'customer',
-			fields: ['access_roles.id', 'groups.access_roles.id'],
-			filters: { id: 'cus_1' }
-		})
+		expect((global as any).AccessActorEntities.has('mixed')).toBe(false)
 	})
 })
 
 describe('actor lookups bypass a scoped query', () => {
 	it('resolves ACCESS_UNSCOPED_QUERY in preference to QUERY when registered', async () => {
-		const unscopedGraph = jest.fn().mockResolvedValue({ data: [{ access_roles: [{ id: 'acrl_1' }] }] })
-		const scopedGraph = jest.fn().mockResolvedValue({ data: [{ access_roles: [] }] })
+		const unscopedGraph = graphByEntity([assignment('acrl_1', 'user', 'usr_1')])
+		const scopedGraph = graphByEntity([])
 		const container = {
 			hasRegistration: (key: string) => key === 'access_unscoped_query',
 			resolve: (key: string) => (key === 'access_unscoped_query' ? { graph: unscopedGraph } : { graph: scopedGraph })

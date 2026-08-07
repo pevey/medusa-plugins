@@ -34,7 +34,7 @@ jest.mock('@medusajs/framework/modules-sdk', () => ({
 }))
 
 import { accessGuard } from '../access-guard'
-import { linkedAccessRoles, registerActorResolver } from '../actor-resolvers'
+import { registerActorResolver } from '../actor-resolvers'
 import { authorize } from '../has-permission'
 import { requirePolicies, sealNamespace } from '../route-guards'
 import { definePolicies } from '../define-policies'
@@ -47,9 +47,11 @@ import { rearmWarnings } from '../warn-once'
 const realAuthorize = jest.requireActual('../has-permission').authorize
 
 // Captured before any test runs, so the built-in `user`/`customer`/`api-key`
-// resolvers can be restored rather than re-registered — `registerActorResolver`
-// throws on a duplicate, and only `user`'s resolver is individually exported.
+// registrations can be restored rather than re-registered —
+// `registerActorResolver` throws on a duplicate.
 const BUILTIN_RESOLVERS = new Map((global as any).AccessActorResolvers ?? [])
+const BUILTIN_ENTITIES = new Map((global as any).AccessActorEntities ?? [])
+const BUILTIN_GRANTEES = new Map([...((global as any).AccessActorGrantees ?? new Map())].map(([type, paths]) => [type, [...(paths as any[])]]))
 
 /**
  * Every registry the guard reads, reset together.
@@ -64,6 +66,8 @@ const resetRegistries = () => {
 	;(global as any).AccessSealedNamespaces = []
 	;(global as any).AccessScopes = new Map()
 	;(global as any).AccessActorResolvers = new Map(BUILTIN_RESOLVERS)
+	;(global as any).AccessActorEntities = new Map(BUILTIN_ENTITIES)
+	;(global as any).AccessActorGrantees = new Map([...BUILTIN_GRANTEES].map(([type, paths]) => [type, [...(paths as any[])]]))
 	;(global as any).AccessActorAuthenticators = new Map()
 	for (const bucket of ['actor-type', 'unenforceable-scope', 'non-canonical-scope'] as const) {
 		rearmWarnings(bucket)
@@ -243,7 +247,7 @@ describe('scoped grants at the guard', () => {
 
 	it('denies a scoped grant with no defineScope registration -- no interceptor exists to enforce it either way', async () => {
 		// role grants customer:delete@company, and no defineScope('company', 'customer') exists
-		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'customer', scope: 'company' }] })
+		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'customer', alternatives: [{ scope: 'company' }] }] })
 		requirePolicies({ matcher: '/admin/customers/:id', method: ['DELETE'], policies: [{ resource: 'customer', operation: 'delete' }] })
 		const next = jest.fn()
 
@@ -255,7 +259,7 @@ describe('scoped grants at the guard', () => {
 
 	it('still denies a scoped grant even once defineScope is registered -- registration is not enforcement', async () => {
 		defineScope({ name: 'company', resource: 'customer', filter: async () => ({ id: ['cus_1'] }) })
-		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'customer', scope: 'company' }] })
+		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'customer', alternatives: [{ scope: 'company' }] }] })
 		requirePolicies({ matcher: '/admin/customers/:id', method: ['DELETE'], policies: [{ resource: 'customer', operation: 'delete' }] })
 		const req = scopedReq({ originalUrl: '/admin/customers/cus_1', method: 'DELETE' })
 		const next = jest.fn()
@@ -401,7 +405,7 @@ describe('the guard admits and narrows scoped grants', () => {
 	})
 
 	afterAll(() => {
-		;(global as any).AccessActorResolvers.set('user', linkedAccessRoles('user'))
+		resetRegistries()
 	})
 
 	// `makeReq()`'s default actor type is 'user' (built-in resolver, which
@@ -410,8 +414,9 @@ describe('the guard admits and narrows scoped grants', () => {
 	// duplicate registration. The stubbed role ids are never inspected: the
 	// mocked `authorize` below decides access directly.
 	const grantScoped = (resource = 'widget') => {
+		;(global as any).AccessActorEntities.delete('user')
 		;(global as any).AccessActorResolvers.set('user', async () => ['role_1'])
-		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource, scope: 'own' }] })
+		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource, alternatives: [{ scope: 'own' }] }] })
 	}
 
 	it('admits a scoped GET, shadows both query keys, and records enforcement', async () => {
@@ -424,7 +429,7 @@ describe('the guard admits and narrows scoped grants', () => {
 		await accessGuard(req, makeRes(), next)
 
 		expect(next).toHaveBeenCalledWith()
-		expect((req as any).access_context.scopes).toEqual([{ resource: 'widget', scope: 'own' }])
+		expect((req as any).access_context.scopes).toEqual([{ resource: 'widget', alternatives: [{ scope: 'own' }] }])
 		expect((req as any).access_context.enforcement.required.has('widget')).toBe(true)
 		expect(req.scope.register).toHaveBeenCalledWith(
 			expect.objectContaining({ query: expect.anything(), remoteQuery: expect.anything(), access_unscoped_query: expect.anything() })
@@ -628,14 +633,15 @@ describe('the finish backstop, where a real response cannot reach', () => {
 	})
 
 	afterAll(() => {
-		;(global as any).AccessActorResolvers.set('user', linkedAccessRoles('user'))
+		resetRegistries()
 	})
 
 	const admitScoped = async (res: any) => {
 		defineScope({ name: 'own', resource: 'widget', filter: async actor => ({ owner_id: actor.id }) })
 		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+		;(global as any).AccessActorEntities.delete('user')
 		;(global as any).AccessActorResolvers.set('user', async () => ['role_1'])
-		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'widget', scope: 'own' }] })
+		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'widget', alternatives: [{ scope: 'own' }] }] })
 
 		const req = makeReq({ originalUrl: '/admin/widgets' })
 		await accessGuard(req, res, jest.fn())
@@ -672,6 +678,7 @@ describe('the finish backstop, where a real response cannot reach', () => {
 
 		resetRegistries()
 		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+		;(global as any).AccessActorEntities.delete('user')
 		;(global as any).AccessActorResolvers.set('user', async () => ['role_1'])
 		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [] })
 		const unscoped = makeStreamRes()
@@ -856,7 +863,7 @@ describe('the finish backstop against a real express response', () => {
 	afterAll(async () => {
 		await new Promise<void>(resolve => server.close(() => resolve()))
 		require('fs').rmSync(downloadDir, { recursive: true, force: true })
-		;(global as any).AccessActorResolvers.set('user', linkedAccessRoles('user'))
+		resetRegistries()
 	})
 
 	beforeEach(() => {
@@ -866,10 +873,11 @@ describe('the finish backstop against a real express response', () => {
 
 		defineScope({ name: 'own', resource: 'widget', filter: async actor => ({ owner_id: actor.id }) })
 		requirePolicies({ matcher: '/admin/widgets/*', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+		;(global as any).AccessActorEntities.delete('user')
 		;(global as any).AccessActorResolvers.set('user', async () => ['role_1'])
 		// Scoped grant, and no handler here queries `widget`, so the ledger stays
 		// unsatisfied — the condition both cases below hinge on.
-		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'widget', scope: 'own' }] })
+		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'widget', alternatives: [{ scope: 'own' }] }] })
 	})
 
 	it('fires on a real response whose body escaped every wrapped path', async () => {
@@ -954,7 +962,7 @@ describe('the finish backstop against a real express response', () => {
 
 		// An actor whose grants would build the interceptor and install the field
 		// filter on any DECLARED route.
-		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'widget', scope: 'own' }] })
+		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'widget', alternatives: [{ scope: 'own' }] }] })
 		const withScopedGrant = await read()
 
 		// An actor holding nothing at all.
@@ -1099,6 +1107,7 @@ describe('denial reasons are recorded for the operator, never for the requester'
 	// built-ins, so anything that resets mid-test has to re-apply this.
 	const useStubUserResolver = () => {
 		;(global as any).AccessActorResolvers = new Map()
+		;(global as any).AccessActorEntities = new Map()
 		registerActorResolver({ actorType: 'user', resolve: async () => ['role_1'] })
 	}
 
@@ -1147,7 +1156,7 @@ describe('denial reasons are recorded for the operator, never for the requester'
 	it('records unenforceable_scope', async () => {
 		const { reason } = await deny(() => {
 			declared()
-			scopedDecision([{ resource: 'widget', scope: 'never_registered' }])
+			scopedDecision([{ resource: 'widget', alternatives: [{ scope: 'never_registered' }] }])
 		})
 		expect(reason).toBe('unenforceable_scope')
 	})
@@ -1156,7 +1165,7 @@ describe('denial reasons are recorded for the operator, never for the requester'
 		const { reason } = await deny(() => {
 			declared()
 			defineScope({ name: 'own', resource: 'widgets', filter: async () => ({ id: ['w_1'] }) })
-			scopedDecision([{ resource: 'widgets', scope: 'own' }])
+			scopedDecision([{ resource: 'widgets', alternatives: [{ scope: 'own' }] }])
 		})
 		expect(reason).toBe('non_canonical_scope')
 	})
@@ -1165,7 +1174,7 @@ describe('denial reasons are recorded for the operator, never for the requester'
 		const { reason } = await deny(() => {
 			requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: ['read', 'update'] }] })
 			defineScope({ name: 'own', resource: 'widget', filter: async () => ({ id: ['w_1'] }) })
-			scopedDecision([{ resource: 'widget', scope: 'own' }])
+			scopedDecision([{ resource: 'widget', alternatives: [{ scope: 'own' }] }])
 		})
 		expect(reason).toBe('multi_operation_scope')
 	})
@@ -1175,7 +1184,7 @@ describe('denial reasons are recorded for the operator, never for the requester'
 			() => {
 				requirePolicies({ matcher: '/admin/widgets', method: ['POST'], policies: [{ resource: 'widget', operation: 'update' }] })
 				defineScope({ name: 'own', resource: 'widget', filter: async () => ({ id: ['w_1'] }) })
-				scopedDecision([{ resource: 'widget', scope: 'own' }])
+				scopedDecision([{ resource: 'widget', alternatives: [{ scope: 'own' }] }])
 			},
 			{ method: 'POST' }
 		)
@@ -1192,7 +1201,7 @@ describe('denial reasons are recorded for the operator, never for the requester'
 					throw new Error('db down')
 				}
 			})
-			scopedDecision([{ resource: 'widget', scope: 'own' }])
+			scopedDecision([{ resource: 'widget', alternatives: [{ scope: 'own' }] }])
 		})
 		expect(reason).toBe('scope_resolver_failed')
 	})
@@ -1201,7 +1210,7 @@ describe('denial reasons are recorded for the operator, never for the requester'
 		const { reason } = await deny(() => {
 			declared()
 			defineScope({ name: 'own', resource: 'widget', filter: async () => ({}) })
-			scopedDecision([{ resource: 'widget', scope: 'own' }])
+			scopedDecision([{ resource: 'widget', alternatives: [{ scope: 'own' }] }])
 		})
 		expect(reason).toBe('empty_scope_filter')
 	})
@@ -1224,7 +1233,7 @@ describe('denial reasons are recorded for the operator, never for the requester'
 				() => {
 					declared()
 					defineScope({ name: 'own', resource: 'widget', filter: async () => ({}) })
-					scopedDecision([{ resource: 'widget', scope: 'own' }])
+					scopedDecision([{ resource: 'widget', alternatives: [{ scope: 'own' }] }])
 				},
 				{}
 			]
@@ -1267,7 +1276,7 @@ describe('undeclared routes: memoized, otherwise untouched', () => {
 	})
 
 	afterAll(() => {
-		;(global as any).AccessActorResolvers.set('user', linkedAccessRoles('user'))
+		resetRegistries()
 	})
 
 	it('memoizes role resolution on an authenticated request to an undeclared route', async () => {
@@ -1332,13 +1341,14 @@ describe('configuration warnings re-arm when the registry that fixes them change
 	})
 
 	afterAll(() => {
-		;(global as any).AccessActorResolvers.set('user', linkedAccessRoles('user'))
+		resetRegistries()
 	})
 
 	it('warns about an unenforceable scope again once any scope is registered', async () => {
 		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+		;(global as any).AccessActorEntities.delete('user')
 		;(global as any).AccessActorResolvers.set('user', async () => ['role_1'])
-		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'widget', scope: 'ghost' }] })
+		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'widget', alternatives: [{ scope: 'ghost' }] }] })
 
 		await accessGuard(makeReq({ originalUrl: '/admin/widgets' }), makeRes(), jest.fn())
 		await accessGuard(makeReq({ originalUrl: '/admin/widgets' }), makeRes(), jest.fn())
@@ -1359,8 +1369,9 @@ describe('configuration warnings re-arm when the registry that fixes them change
 		// without a process restart -- and without this the re-arm call could be
 		// deleted with the whole suite staying green.
 		requirePolicies({ matcher: '/admin/widgets', method: ['GET'], policies: [{ resource: 'widget', operation: 'read' }] })
+		;(global as any).AccessActorEntities.delete('user')
 		;(global as any).AccessActorResolvers.set('user', async () => ['role_1'])
-		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'widgets', scope: 'own' }] })
+		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [{ resource: 'widgets', alternatives: [{ scope: 'own' }] }] })
 		defineScope({ name: 'own', resource: 'widgets', filter: async () => ({ id: ['w_1'] }) })
 
 		await accessGuard(makeReq(), makeRes(), jest.fn())
@@ -1402,11 +1413,12 @@ describe('client disconnect', () => {
 	})
 
 	afterAll(() => {
-		;(global as any).AccessActorResolvers.set('user', linkedAccessRoles('user'))
+		resetRegistries()
 	})
 
 	it('stops before resolving roles when the client has already gone', async () => {
 		const resolve = jest.fn(async () => ['role_1'])
+		;(global as any).AccessActorEntities.delete('user')
 		;(global as any).AccessActorResolvers.set('user', resolve)
 		const res = makeRes()
 		res.destroyed = true
@@ -1420,6 +1432,7 @@ describe('client disconnect', () => {
 
 	it('still resolves roles for a live request', async () => {
 		const resolve = jest.fn(async () => ['role_1'])
+		;(global as any).AccessActorEntities.delete('user')
 		;(global as any).AccessActorResolvers.set('user', resolve)
 		;(authorize as jest.Mock).mockResolvedValue({ granted: true, scopes: [] })
 
@@ -1463,11 +1476,12 @@ describe('the response strip removes a field wherever it appears in the tree', (
 	})
 
 	afterAll(() => {
-		;(global as any).AccessActorResolvers.set('user', linkedAccessRoles('user'))
+		resetRegistries()
 	})
 
 	const strip = async (body: any, fields: string[] = ['id', 'orders.id']) => {
 		requirePolicies({ matcher: '/admin/customers', method: ['GET'], policies: [{ resource: 'customer', operation: 'read' }] })
+		;(global as any).AccessActorEntities.delete('user')
 		;(global as any).AccessActorResolvers.set('user', async () => ['role_1'])
 		;(authorize as jest.Mock).mockImplementation(async (input: any) => {
 			const actions = Array.isArray(input.actions) ? input.actions : [input.actions]
@@ -1572,12 +1586,13 @@ describe('pre-query field pruning reaches the database with fewer fields', () =>
 	})
 
 	afterAll(() => {
-		;(global as any).AccessActorResolvers.set('user', linkedAccessRoles('user'))
+		resetRegistries()
 	})
 
 	const fieldsReachingTheDatabase = async (options: { canReadOrders: boolean }) => {
 		defineScope({ name: 'own', resource: 'customer', filter: async () => ({ id: ['cus_1'] }) })
 		requirePolicies({ matcher: '/admin/customers', method: ['GET'], policies: [{ resource: 'customer', operation: 'read' }] })
+		;(global as any).AccessActorEntities.delete('user')
 		;(global as any).AccessActorResolvers.set('user', async () => ['role_1'])
 		;(authorize as jest.Mock).mockImplementation(async (input: any) => {
 			const actions = Array.isArray(input.actions) ? input.actions : [input.actions]
@@ -1585,7 +1600,7 @@ describe('pre-query field pruning reaches the database with fewer fields', () =>
 				return options.canReadOrders ? { granted: true, scopes: [] } : { granted: false, missing: actions }
 			}
 			// Scoped, so the interceptor -- and with it the pruner -- is built at all.
-			return { granted: true, scopes: [{ resource: 'customer', scope: 'own' }] }
+			return { granted: true, scopes: [{ resource: 'customer', alternatives: [{ scope: 'own' }] }] }
 		})
 
 		// Typed parameter, not `jest.fn(async () => ...)`: an inferred zero-argument mock records a
@@ -1646,7 +1661,7 @@ describe('a scoped relation is narrowed in the response', () => {
 	})
 
 	afterAll(() => {
-		;(global as any).AccessActorResolvers.set('user', linkedAccessRoles('user'))
+		resetRegistries()
 	})
 
 	// The actor reads customers outright and orders only within their sales
@@ -1655,11 +1670,12 @@ describe('a scoped relation is narrowed in the response', () => {
 	const request = async (responseBody: any, options: { inScopeIds?: string[]; graphThrows?: boolean; unscoped?: boolean } = {}) => {
 		defineScope({ name: 'sales_channel', resource: 'order', filter: async () => ({ sales_channel_id: ['sc_1'] }) })
 		requirePolicies({ matcher: '/admin/customers', method: ['GET'], policies: [{ resource: 'customer', operation: 'read' }] })
+		;(global as any).AccessActorEntities.delete('user')
 		;(global as any).AccessActorResolvers.set('user', async () => ['role_1'])
 		;(authorize as jest.Mock).mockImplementation(async (input: any) => {
 			const actions = Array.isArray(input.actions) ? input.actions : [input.actions]
 			if (!options.unscoped && actions.some((a: any) => a.resource === 'order')) {
-				return { granted: true, scopes: [{ resource: 'order', scope: 'sales_channel' }] }
+				return { granted: true, scopes: [{ resource: 'order', alternatives: [{ scope: 'sales_channel' }] }] }
 			}
 			return { granted: true, scopes: [] }
 		})
@@ -1746,5 +1762,173 @@ describe('a scoped relation is narrowed in the response', () => {
 		await request(body, { unscoped: true, inScopeIds: [] })
 
 		expect(body.customers[0].orders).toHaveLength(2)
+	})
+})
+
+describe('the three-way mutation gate (targets and create rules)', () => {
+	const { defineTenancy } = require('../tenancy')
+
+	beforeAll(() => {
+		// Registered once for the whole file — the tenancy registry is
+		// process-global and throws on duplicate types.
+		defineTenancy({ type: 'gate_desk', resources: { widget: (ids: string[]) => ({ id: ids }) } })
+		// Also covers widget (the mocked joiner config only knows widget/customer/
+		// order as canonical roots), but WITH a create rule — the pair lets the
+		// rule-present and rule-absent create paths both be exercised.
+		defineTenancy({
+			type: 'gate_kind',
+			resources: { widget: (ids: string[]) => ({ kind: ids }) },
+			create_fields: { widget: 'kind' }
+		})
+	})
+
+	beforeEach(() => {
+		resetRegistries()
+		warn.mockClear()
+		error.mockClear()
+		debug.mockClear()
+		;(global as any).AccessActorEntities.delete('user')
+		;(global as any).AccessActorResolvers.set('user', async () => ['role_1'])
+	})
+
+	const denialLogged = (reason: string) => debug.mock.calls.some(call => String(call[0]).includes(`denied (${reason})`))
+
+	/** A request whose registered scoped query is what `resolve` then returns — so the guard-side assertScope reaches it. */
+	const assertableReq = (overrides: Record<string, any>, graph: jest.Mock) => {
+		let registered: any
+		return makeReq({
+			...overrides,
+			scope: {
+				resolve: (key: string) => {
+					if (key === 'logger') {
+						return { warn, error, debug }
+					}
+					if (registered?.query) {
+						return typeof registered.query.resolve === 'function' ? registered.query.resolve() : registered.query
+					}
+					return { graph }
+				},
+				register: (registrations: any) => {
+					registered = registrations
+				},
+				hasRegistration: jest.fn(() => false)
+			}
+		})
+	}
+
+	it('admits a scoped mutation on a route with a declared target, asserting the row on its behalf', async () => {
+		requirePolicies({
+			matcher: '/admin/widgets/:id',
+			method: ['DELETE'],
+			policies: [{ resource: 'widget', operation: 'delete' }],
+			target: { resource: 'widget', param: 'id' }
+		})
+		;(authorize as jest.Mock).mockResolvedValue({
+			granted: true,
+			scopes: [{ resource: 'widget', alternatives: [{ tenancy: { type: 'gate_desk', ids: ['wid_1'] } }] }]
+		})
+		const graph = jest.fn(async () => ({ data: [{ id: 'wid_1' }] }))
+		const req = assertableReq({ originalUrl: '/admin/widgets/wid_1', method: 'DELETE' }, graph)
+		const next = jest.fn()
+
+		await accessGuard(req, makeRes(), next)
+
+		expect(next).toHaveBeenCalledWith()
+		expect((req as any).access_context.enforcement.asserted.has('widget')).toBe(true)
+		expect(graph).toHaveBeenCalledWith(expect.objectContaining({ entity: 'widget', filters: expect.objectContaining({ id: ['wid_1'] }) }))
+	})
+
+	it('404s a scoped mutation whose target row the composed filter does not admit', async () => {
+		requirePolicies({
+			matcher: '/admin/widgets/:id',
+			method: ['DELETE'],
+			policies: [{ resource: 'widget', operation: 'delete' }],
+			target: { resource: 'widget', param: 'id' }
+		})
+		;(authorize as jest.Mock).mockResolvedValue({
+			granted: true,
+			scopes: [{ resource: 'widget', alternatives: [{ tenancy: { type: 'gate_desk', ids: ['wid_other'] } }] }]
+		})
+		// The scoped query narrows the lookup away: no row comes back.
+		const graph = jest.fn(async () => ({ data: [] }))
+		const req = assertableReq({ originalUrl: '/admin/widgets/wid_1', method: 'DELETE' }, graph)
+		const next = jest.fn()
+
+		await accessGuard(req, makeRes(), next)
+
+		const err = next.mock.calls[0]?.[0]
+		expect(err?.type).toBe('not_found')
+	})
+
+	it('denies a scoped mutation with neither assertsScope nor a target', async () => {
+		requirePolicies({ matcher: '/admin/widgets/:id', method: ['DELETE'], policies: [{ resource: 'widget', operation: 'delete' }] })
+		;(authorize as jest.Mock).mockResolvedValue({
+			granted: true,
+			scopes: [{ resource: 'widget', alternatives: [{ tenancy: { type: 'gate_desk', ids: ['wid_1'] } }] }]
+		})
+		const next = jest.fn()
+
+		await accessGuard(makeReq({ originalUrl: '/admin/widgets/wid_1', method: 'DELETE' }), makeRes(), next)
+
+		expect(next.mock.calls[0]?.[0]?.type).toBe('forbidden')
+		expect(denialLogged('mutation_without_assert')).toBe(true)
+	})
+
+	it('admits a scoped create whose payload lands inside the tenant', async () => {
+		requirePolicies({ matcher: '/admin/widgets', method: ['POST'], policies: [{ resource: 'widget', operation: 'create' }] })
+		;(authorize as jest.Mock).mockResolvedValue({
+			granted: true,
+			scopes: [{ resource: 'widget', alternatives: [{ tenancy: { type: 'gate_kind', ids: ['k1'] } }] }]
+		})
+		const req = makeReq({ originalUrl: '/admin/widgets', method: 'POST', body: { kind: 'k1' } })
+		const next = jest.fn()
+
+		await accessGuard(req, makeRes(), next)
+
+		expect(next).toHaveBeenCalledWith()
+		expect((req as any).access_context.enforcement.asserted.has('widget')).toBe(true)
+	})
+
+	it('denies a scoped create whose payload names another tenant', async () => {
+		requirePolicies({ matcher: '/admin/widgets', method: ['POST'], policies: [{ resource: 'widget', operation: 'create' }] })
+		;(authorize as jest.Mock).mockResolvedValue({
+			granted: true,
+			scopes: [{ resource: 'widget', alternatives: [{ tenancy: { type: 'gate_kind', ids: ['k1'] } }] }]
+		})
+		const next = jest.fn()
+
+		await accessGuard(makeReq({ originalUrl: '/admin/widgets', method: 'POST', body: { kind: 'k2' } }), makeRes(), next)
+
+		expect(next.mock.calls[0]?.[0]?.type).toBe('forbidden')
+		expect(denialLogged('create_outside_scope')).toBe(true)
+	})
+
+	it('denies a scoped create with a MISSING payload value — a server-side default would land it unchecked', async () => {
+		requirePolicies({ matcher: '/admin/widgets', method: ['POST'], policies: [{ resource: 'widget', operation: 'create' }] })
+		;(authorize as jest.Mock).mockResolvedValue({
+			granted: true,
+			scopes: [{ resource: 'widget', alternatives: [{ tenancy: { type: 'gate_kind', ids: ['k1'] } }] }]
+		})
+		const next = jest.fn()
+
+		await accessGuard(makeReq({ originalUrl: '/admin/widgets', method: 'POST', body: {} }), makeRes(), next)
+
+		expect(next.mock.calls[0]?.[0]?.type).toBe('forbidden')
+		expect(denialLogged('create_outside_scope')).toBe(true)
+	})
+
+	it('denies a scoped create on a dimension with no declared create rule', async () => {
+		requirePolicies({ matcher: '/admin/widgets', method: ['POST'], policies: [{ resource: 'widget', operation: 'create' }] })
+		// gate_desk covers widget but declares no create_fields.
+		;(authorize as jest.Mock).mockResolvedValue({
+			granted: true,
+			scopes: [{ resource: 'widget', alternatives: [{ tenancy: { type: 'gate_desk', ids: ['wid_1'] } }] }]
+		})
+		const next = jest.fn()
+
+		await accessGuard(makeReq({ originalUrl: '/admin/widgets', method: 'POST', body: { id: 'wid_1' } }), makeRes(), next)
+
+		expect(next.mock.calls[0]?.[0]?.type).toBe('forbidden')
+		expect(denialLogged('mutation_without_assert')).toBe(true)
 	})
 })

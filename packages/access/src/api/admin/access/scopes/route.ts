@@ -1,13 +1,14 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/http'
-import { listScopes } from 'medusa-plugin-access/utils'
+import { listScopes, listTenancies } from 'medusa-plugin-access/utils'
 import { AdminAccessScopesResponse } from '../../../../admin/types'
 
 /**
- * Scope discovery for the role-management UI: the registered scope names per
- * resource, straight from the `defineScope` registry. Offering only registered
- * scopes keeps the picker from producing a grant the guard would then deny as
- * unenforceable.
+ * Scope discovery for the role-management UI: the registered actor-relative
+ * scope names per resource (the `defineScope` registry) and the registered
+ * tenancy dimensions with their coverage sets (the `defineTenancy` registry).
+ * Offering only registered entries keeps the pickers from producing a grant
+ * or assignment the guard would then deny as unenforceable.
  */
 export const GET = async (_req: AuthenticatedMedusaRequest, res: MedusaResponse<AdminAccessScopesResponse>) => {
-	res.status(200).json({ scopes: listScopes() })
+	res.status(200).json({ scopes: listScopes(), tenancies: listTenancies() })
 }

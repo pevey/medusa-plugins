@@ -161,6 +161,12 @@ export type AdminAssignUserRolesResponse = { roles: AdminAccessRole[] }
 export type AdminAccessMePermissionsResponse = {
 	permissions: string[]
 	scoped: { resource: string; operation: string; scope: string }[]
+	/**
+	 * Tenancy-scoped holdings, summarized per dimension: which tenants the
+	 * actor is pinned to and through which roles. Additive — consumers of
+	 * `permissions` are unaffected.
+	 */
+	tenancy?: { type: string; ids: string[]; roles: string[] }[]
 }
 
 // GET /admin/access/scopes — the registered scope names per resource, from the
@@ -168,4 +174,6 @@ export type AdminAccessMePermissionsResponse = {
 // the options offered are exactly the scopes enforcement can actually apply.
 export type AdminAccessScopesResponse = {
 	scopes: { resource: string; names: string[] }[]
+	/** Registered tenancy dimensions with their coverage sets. */
+	tenancies: { type: string; resources: string[] }[]
 }

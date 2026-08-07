@@ -5,7 +5,28 @@ import { normalizePath } from './route-guards'
 import { resolveUnscopedQuery } from './scoped-query'
 import { rearmWarnings } from './warn-once'
 
+/**
+ * Legacy escape hatch: bespoke role resolution returning role ids. The ids are
+ * treated as UNSCOPED holdings. Prefer grantee paths — computed roles cannot
+ * carry a scope and cannot be audited or revoked as rows; see the collision
+ * note on {@link resolveActorHoldings}.
+ */
 export type ActorRoleResolver = (actorId: string, container: MedusaContainer) => Promise<string[]>
+
+/**
+ * A path from an actor to a non-actor entity that can hold role assignments
+ * on the actor's behalf. `entity` is the Query entity name assignments
+ * reference in `grantee_type`; `path` is the `query.graph` field path from the
+ * actor row to that entity's id (`'groups.id'`, `'company.id'`).
+ */
+export type GranteePath = { entity: string; path: string }
+
+/**
+ * One resolved role holding. `scope` null means the role applies everywhere
+ * (an unscoped assignment, or a legacy resolver result); set, it pins the
+ * holding to a tenancy dimension value.
+ */
+export type ActorHolding = { role_id: string; scope: { type: string; id: string } | null }
 
 type ActorAuthenticator = { authenticate: RequestHandler; prefixes: string[] }
 
@@ -14,24 +35,34 @@ declare global {
 	var AccessActorResolvers: Map<string, ActorRoleResolver> | undefined
 	// eslint-disable-next-line no-var
 	var AccessActorAuthenticators: Map<string, ActorAuthenticator> | undefined
+	// eslint-disable-next-line no-var
+	var AccessActorEntities: Map<string, string> | undefined
+	// eslint-disable-next-line no-var
+	var AccessActorGrantees: Map<string, GranteePath[]> | undefined
 }
 
 global.AccessActorResolvers ??= new Map()
 global.AccessActorAuthenticators ??= new Map()
+global.AccessActorEntities ??= new Map()
+global.AccessActorGrantees ??= new Map()
 
 /**
- * Teach the guard how to find an actor type's roles. Without this the guard can
- * only serve actors whose entity carries an `access_roles` link directly.
+ * Teach the guard how to resolve an actor type's role holdings.
+ *
+ * Registering establishes the type's IDENTITY grantee — assignments with
+ * `grantee_type` equal to `entity` (default: the actor type) and `grantee_id`
+ * equal to the acting actor's id resolve automatically. `grantees` adds
+ * indirection paths (membership walks); `resolve` is the legacy escape hatch
+ * for computed roles, unioned with assignment-based holdings when both are
+ * supplied.
  *
  * Registering an `actorType` that is already registered throws: `user`,
- * `customer`, and `api-key` are reserved by this plugin's built-in resolvers,
- * and a silent replacement of any actor type's resolver — reserved or not —
- * is almost certainly a mistake rather than an intentional override. There is
- * no override flag and no second public function; this is the only behaviour
- * external callers get. The built-in registrations at the bottom of this
- * module go through a separate, private, set-if-absent path so HMR and the
- * `src` / `.medusa/server` two-realm case can re-run this module body without
- * crashing the app.
+ * `customer`, and `api-key` are reserved by this plugin's built-ins, and a
+ * silent replacement of any actor type's resolution — reserved or not — is
+ * almost certainly a mistake rather than an intentional override. There is no
+ * override flag; WHO resolves an actor type is closed. What an actor type can
+ * inherit THROUGH is open — see {@link registerGranteePath}, which is additive
+ * and allowed on built-ins.
  *
  * `authenticate` and `prefixes` are a pair: an authenticator with no declared
  * prefixes would run on every unauthenticated request regardless of actor
@@ -52,8 +83,15 @@ global.AccessActorAuthenticators ??= new Map()
  * a given request — deterministic per boot, but dependent on plugin load
  * order across environments. Avoid overlapping `prefixes` across plugins.
  */
-export function registerActorResolver(input: { actorType: string; resolve: ActorRoleResolver; authenticate?: RequestHandler; prefixes?: string[] }): void {
-	const { actorType, resolve, authenticate, prefixes } = input
+export function registerActorResolver(input: {
+	actorType: string
+	entity?: string
+	grantees?: GranteePath[]
+	resolve?: ActorRoleResolver
+	authenticate?: RequestHandler
+	prefixes?: string[]
+}): void {
+	const { actorType, entity, grantees, resolve, authenticate, prefixes } = input
 
 	if (authenticate && !prefixes) {
 		throw new MedusaError(
@@ -91,11 +129,17 @@ export function registerActorResolver(input: { actorType: string; resolve: Actor
 			}
 		}
 	}
-	if (global.AccessActorResolvers!.has(actorType)) {
+	if (global.AccessActorEntities!.has(actorType) || global.AccessActorResolvers!.has(actorType)) {
 		throw new MedusaError(MedusaError.Types.INVALID_DATA, `registerActorResolver: "${actorType}" is already registered — refusing to replace it.`)
 	}
 
-	global.AccessActorResolvers!.set(actorType, resolve)
+	global.AccessActorEntities!.set(actorType, entity ?? actorType)
+	if (resolve) {
+		global.AccessActorResolvers!.set(actorType, resolve)
+	}
+	for (const grantee of grantees ?? []) {
+		registerGranteePath(actorType, grantee)
+	}
 
 	if (authenticate && prefixes) {
 		global.AccessActorAuthenticators!.set(actorType, { authenticate, prefixes })
@@ -108,6 +152,37 @@ export function registerActorResolver(input: { actorType: string; resolve: Actor
 }
 
 /**
+ * Adds a grantee path to an actor type — additive and allowed on built-ins,
+ * unlike resolver registration: WHO resolves an actor type is closed (a
+ * security boundary), but what an actor can inherit through is open. This is
+ * how a B2B plugin gives customers company inheritance without re-registering
+ * the reserved `customer` type:
+ *
+ *     registerGranteePath('customer', { entity: 'company', path: 'company.id' })
+ *
+ * Duplicate `(actorType, entity, path)` registrations are idempotent no-ops,
+ * so plugin load order and HMR re-evaluation are harmless. The actor type
+ * need not be registered yet — paths for unknown types sit unused until a
+ * registration arrives, since load order across plugins is not guaranteed.
+ */
+export function registerGranteePath(actorType: string, grantee: GranteePath): void {
+	if (!grantee.entity || !grantee.path) {
+		throw new MedusaError(
+			MedusaError.Types.INVALID_DATA,
+			`registerGranteePath: "${actorType}" supplied an incomplete grantee path — both "entity" and "path" are required.`
+		)
+	}
+	let paths = global.AccessActorGrantees!.get(actorType)
+	if (!paths) {
+		paths = []
+		global.AccessActorGrantees!.set(actorType, paths)
+	}
+	if (!paths.some(existing => existing.entity === grantee.entity && existing.path === grantee.path)) {
+		paths.push({ entity: grantee.entity, path: grantee.path })
+	}
+}
+
+/**
  * Every registered actor authenticator, for the guard to run against a
  * request whose path matches one of its declared prefixes.
  */
@@ -116,77 +191,174 @@ export function getActorAuthenticators(): { actorType: string; authenticate: Req
 }
 
 /**
- * Register a built-in resolver only if nothing is registered for the actor
- * type yet.
+ * Register a built-in only if nothing is registered for the actor type yet.
  *
- * The built-ins (`user`, `customer`) are registered at module-body evaluation
- * time, and this package can end up with two live copies of that module body
- * sharing one `globalThis` — `src/` and `.medusa/server/src/` both resolve to
- * the same global under ts-jest/HMR re-evaluation. An unconditional `.set()`
- * from the built-ins would silently clobber a consumer's stricter override the
- * next time either copy's module body re-runs. `registerActorResolver` itself
- * must stay an unconditional set for callers — this is only how the built-ins
- * install themselves.
+ * The built-ins are registered at module-body evaluation time, and this
+ * package can end up with two live copies of that module body sharing one
+ * `globalThis` — `src/` and `.medusa/server/src/` both resolve to the same
+ * global under ts-jest/HMR re-evaluation. An unconditional set from the
+ * built-ins would silently clobber a consumer's registration the next time
+ * either copy's module body re-runs. `registerActorResolver` itself must stay
+ * an unconditional set for callers — this is only how the built-ins install
+ * themselves.
  */
-function registerBuiltinActorResolver(input: { actorType: string; resolve: ActorRoleResolver }): void {
-	if (!global.AccessActorResolvers!.has(input.actorType)) {
-		global.AccessActorResolvers!.set(input.actorType, input.resolve)
+function registerBuiltinActor(input: { actorType: string; entity?: string; grantees?: GranteePath[] }): void {
+	if (global.AccessActorEntities!.has(input.actorType)) {
+		return
+	}
+	global.AccessActorEntities!.set(input.actorType, input.entity ?? input.actorType)
+	for (const grantee of input.grantees ?? []) {
+		registerGranteePath(input.actorType, grantee)
 	}
 }
 
 /**
- * Role ids held by an actor, or `null` when no resolver is registered for the
- * type. `null` and `[]` mean different things: the first is a gap in
- * configuration, the second is an actor that genuinely holds nothing.
+ * Walks a `query.graph` field path over a node, flattening to-many relations
+ * at any level and keeping only string leaves.
  */
-export async function resolveActorRoles(actorType: string, actorId: string, container: MedusaContainer): Promise<string[] | null> {
-	const resolver = global.AccessActorResolvers!.get(actorType)
-	if (!resolver) {
-		return null
+function collectPathIds(node: unknown, segments: string[]): string[] {
+	if (node === null || node === undefined) {
+		return []
 	}
-	return await resolver(actorId, container)
+	if (Array.isArray(node)) {
+		return node.flatMap(item => collectPathIds(item, segments))
+	}
+	if (!segments.length) {
+		return typeof node === 'string' ? [node] : []
+	}
+	if (typeof node !== 'object') {
+		return []
+	}
+	return collectPathIds((node as Record<string, unknown>)[segments[0]], segments.slice(1))
 }
 
-const linkedAccessRoles =
-	(entity: string): ActorRoleResolver =>
-	async (actorId, container) => {
-		const query = resolveUnscopedQuery(container)
-		const { data } = await query.graph({
-			entity,
-			fields: ['access_roles.id'],
-			filters: { id: actorId }
-		})
-		return data?.[0]?.access_roles?.map((role: { id: string }) => role.id).filter(Boolean) ?? []
+/**
+ * Resolves an actor's role holdings, or `null` when the actor type is not
+ * registered. `null` and `[]` mean different things: the first is a gap in
+ * configuration, the second is an actor that genuinely holds nothing.
+ *
+ * Resolution is grantee walk → assignment lookup → dedupe:
+ *
+ * 1. Grantee identities: the identity pair `(entity, actorId)` plus, per
+ *    registered grantee path, the ids reached by walking the path from the
+ *    actor row (one `query.graph` for all paths). The walk is NEVER cached —
+ *    its truth lives in foreign modules whose writes this plugin cannot
+ *    observe.
+ * 2. Assignments matching any grantee pair. Fetched with IN filters per
+ *    column, then post-filtered to exact pairs — IN×IN alone would admit a
+ *    row whose type and id each match a *different* grantee.
+ * 3. Legacy `resolve` results union in as unscoped holdings. Note the
+ *    collision this allows: a resolver returning a role id makes that role
+ *    unscoped-held, which subsumes any scoped ASSIGNMENT of the same role —
+ *    an operator's narrowing silently voided by plugin code. Prefer grantee
+ *    paths.
+ *
+ * Dedupe: a role held unscoped anywhere collapses to one unscoped holding
+ * (subsuming its scoped holdings); scoped holdings dedupe by (role, type, id).
+ */
+export async function resolveActorHoldings(actorType: string, actorId: string, container: MedusaContainer): Promise<ActorHolding[] | null> {
+	const identityEntity = global.AccessActorEntities!.get(actorType)
+	const legacyResolver = global.AccessActorResolvers!.get(actorType)
+
+	if (!identityEntity && !legacyResolver) {
+		return null
 	}
 
-registerBuiltinActorResolver({ actorType: 'user', resolve: linkedAccessRoles('user') })
+	const holdings: ActorHolding[] = []
 
-const customerAccessRoles: ActorRoleResolver = async (actorId, container) => {
-	const query = resolveUnscopedQuery(container)
-	const { data } = await query.graph({
-		entity: 'customer',
-		fields: ['access_roles.id', 'groups.access_roles.id'],
-		filters: { id: actorId }
-	})
+	if (identityEntity) {
+		const pairs: { type: string; id: string }[] = [{ type: identityEntity, id: actorId }]
 
-	const roleIds = new Set<string>()
-	for (const role of data?.[0]?.access_roles ?? []) {
-		if (role?.id) {
-			roleIds.add(role.id)
+		const granteePaths = global.AccessActorGrantees!.get(actorType) ?? []
+		if (granteePaths.length) {
+			const query = resolveUnscopedQuery(container)
+			const result = await query.graph({
+				entity: identityEntity,
+				fields: granteePaths.map(grantee => grantee.path),
+				filters: { id: actorId }
+			})
+			const actorRow = result?.data?.[0]
+			for (const grantee of granteePaths) {
+				for (const id of collectPathIds(actorRow, grantee.path.split('.'))) {
+					pairs.push({ type: grantee.entity, id })
+				}
+			}
+		}
+
+		const query = resolveUnscopedQuery(container)
+		const result = await query.graph({
+			entity: 'access_role_assignment',
+			fields: ['role_id', 'grantee_type', 'grantee_id', 'scope_type', 'scope_id'],
+			filters: {
+				grantee_type: [...new Set(pairs.map(pair => pair.type))],
+				grantee_id: [...new Set(pairs.map(pair => pair.id))]
+			}
+		})
+		const rows = result?.data
+
+		const pairKeys = new Set(pairs.map(pair => `${pair.type} ${pair.id}`))
+		for (const row of rows ?? []) {
+			if (!row?.role_id || !pairKeys.has(`${row.grantee_type} ${row.grantee_id}`)) {
+				continue
+			}
+			holdings.push({
+				role_id: row.role_id,
+				scope: row.scope_type && row.scope_id ? { type: row.scope_type, id: row.scope_id } : null
+			})
 		}
 	}
-	for (const group of data?.[0]?.groups ?? []) {
-		for (const role of group?.access_roles ?? []) {
-			if (role?.id) {
-				roleIds.add(role.id)
+
+	if (legacyResolver) {
+		for (const roleId of await legacyResolver(actorId, container)) {
+			if (roleId) {
+				holdings.push({ role_id: roleId, scope: null })
 			}
 		}
 	}
-	return [...roleIds]
+
+	const unscoped = new Set<string>()
+	for (const holding of holdings) {
+		if (holding.scope === null) {
+			unscoped.add(holding.role_id)
+		}
+	}
+
+	const deduped: ActorHolding[] = [...unscoped].map(role_id => ({ role_id, scope: null }))
+	const seenScoped = new Set<string>()
+	for (const holding of holdings) {
+		if (holding.scope === null || unscoped.has(holding.role_id)) {
+			continue
+		}
+		const key = `${holding.role_id} ${holding.scope.type} ${holding.scope.id}`
+		if (!seenScoped.has(key)) {
+			seenScoped.add(key)
+			deduped.push(holding)
+		}
+	}
+
+	return deduped
 }
 
-registerBuiltinActorResolver({ actorType: 'customer', resolve: customerAccessRoles })
+/**
+ * Role ids held UNSCOPED by an actor, or `null` when no resolver is registered
+ * for the type. Scoped holdings are deliberately excluded here: every caller
+ * of this function treats a role id as granting everywhere, and admitting a
+ * tenancy-pinned holding unnarrowed would be strictly worse than ignoring it.
+ * Scoped holdings activate through the holdings-aware authorization path only.
+ */
+export async function resolveActorRoles(actorType: string, actorId: string, container: MedusaContainer): Promise<string[] | null> {
+	const holdings = await resolveActorHoldings(actorType, actorId, container)
+	if (holdings === null) {
+		return null
+	}
+	return holdings.filter(holding => holding.scope === null).map(holding => holding.role_id)
+}
 
-registerBuiltinActorResolver({ actorType: 'api-key', resolve: linkedAccessRoles('api_key') })
+registerBuiltinActor({ actorType: 'user' })
 
-export { linkedAccessRoles }
+// The same customer group that drives pricing drives access — groups are the
+// convenience path for customer roles, expressed as a plain grantee walk.
+registerBuiltinActor({ actorType: 'customer', grantees: [{ entity: 'customer_group', path: 'groups.id' }] })
+
+// Actor type `api-key` (auth vocabulary) maps to Query entity `api_key`.
+registerBuiltinActor({ actorType: 'api-key', entity: 'api_key' })

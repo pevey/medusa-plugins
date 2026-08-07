@@ -10,14 +10,27 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 	const roleId = req.params.id
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
-	const { data: links, metadata } = await query.graph({
-		entity: 'user_access_role',
-		fields: req.queryConfig?.fields,
-		filters: { ...req.filterableFields, access_role_id: roleId },
+	// Assignments carry no cross-module link to user, so membership resolves in
+	// two steps: paginate the role's user assignments, then fetch those users.
+	const { data: assignments, metadata } = await query.graph({
+		entity: 'access_role_assignment',
+		fields: ['grantee_id'],
+		filters: { ...req.filterableFields, role_id: roleId, grantee_type: 'user' },
 		pagination: req.queryConfig?.pagination || {}
 	})
 
-	const users = links.map((link: any) => link.user)
+	const userIds = [...new Set((assignments ?? []).map((assignment: any) => assignment.grantee_id).filter(Boolean))]
+
+	let users: any[] = []
+	if (userIds.length) {
+		const { data } = await query.graph({
+			entity: 'user',
+			fields: req.queryConfig?.fields,
+			filters: { id: userIds }
+		})
+		const byId = new Map((data ?? []).map((user: any) => [user.id, user]))
+		users = userIds.map(id => byId.get(id)).filter(Boolean)
+	}
 
 	res.status(200).json({
 		users,
@@ -56,13 +69,23 @@ export const POST = async (req: AuthenticatedMedusaRequest<AdminAssignRoleUsersT
 		}
 	})
 
-	const { data: links } = await query.graph({
-		entity: 'user_access_role',
-		fields: ['user.id', 'user.email', 'user.first_name', 'user.last_name'],
-		filters: { access_role_id: roleId }
+	const { data: assignments } = await query.graph({
+		entity: 'access_role_assignment',
+		fields: ['grantee_id'],
+		filters: { role_id: roleId, grantee_type: 'user' }
 	})
 
-	const roleUsers = links.map((link: any) => link.user)
+	const userIds = [...new Set((assignments ?? []).map((assignment: any) => assignment.grantee_id).filter(Boolean))]
+
+	let roleUsers: any[] = []
+	if (userIds.length) {
+		const { data } = await query.graph({
+			entity: 'user',
+			fields: ['id', 'email', 'first_name', 'last_name'],
+			filters: { id: userIds }
+		})
+		roleUsers = data ?? []
+	}
 
 	res.status(200).json({ users: roleUsers })
 }

@@ -6,14 +6,14 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 	const userId = req.params.id
 	const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
-	const { data: links, metadata } = await query.graph({
-		entity: 'user_access_role',
+	const { data: assignments, metadata } = await query.graph({
+		entity: 'access_role_assignment',
 		fields: req.queryConfig?.fields,
-		filters: { ...req.filterableFields, user_id: userId },
+		filters: { ...req.filterableFields, grantee_type: 'user', grantee_id: userId },
 		pagination: req.queryConfig?.pagination || {}
 	})
 
-	const roles = links.map((link: any) => link.access_role)
+	const roles = assignments.map((assignment: any) => assignment.role)
 
 	res.status(200).json({
 		roles,
@@ -49,13 +49,13 @@ export const POST = async (req: AuthenticatedMedusaRequest<{ roles: string[] }>,
 		}
 	})
 
-	const { data: links } = await query.graph({
-		entity: 'user_access_role',
-		fields: ['access_role.*'],
-		filters: { user_id: userId }
+	const { data: assignments } = await query.graph({
+		entity: 'access_role_assignment',
+		fields: ['role.*'],
+		filters: { grantee_type: 'user', grantee_id: userId }
 	})
 
-	const userRoles = links.map((link: any) => link.access_role)
+	const userRoles = assignments.map((assignment: any) => assignment.role)
 
 	res.status(200).json({ roles: userRoles })
 }

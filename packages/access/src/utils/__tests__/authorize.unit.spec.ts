@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 import { authorize, hasPermission, resolvePermissions } from '../has-permission'
 import type { AccessDecision } from '../has-permission'
+import { defineTenancy } from '../tenancy'
 
 // `AccessDecision` is a discriminated union, so `missing` and `scopes` are only reachable after
 // narrowing. These assert the branch *and* narrow to it: the `expect` throws when the decision is the
@@ -46,7 +47,7 @@ describe('authorize', () => {
 			container: containerFor(SCOPED)
 		})
 
-		expect(decision).toEqual({ granted: true, scopes: [{ resource: 'customer', scope: 'company' }] })
+		expect(decision).toEqual({ granted: true, scopes: [{ resource: 'customer', alternatives: [{ scope: 'company' }] }] })
 	})
 
 	it('reports the unsatisfied action when denied', async () => {
@@ -87,12 +88,7 @@ describe('authorize', () => {
 		})
 
 		assertGranted(decision)
-		expect(decision.scopes).toEqual(
-			expect.arrayContaining([
-				{ resource: 'customer', scope: 'own' },
-				{ resource: 'customer', scope: 'company' }
-			])
-		)
+		expect(decision.scopes).toEqual([{ resource: 'customer', alternatives: expect.arrayContaining([{ scope: 'own' }, { scope: 'company' }]) }])
 	})
 
 	it('denies when no roles are held', async () => {
@@ -212,8 +208,117 @@ describe('authorize across multiple operations', () => {
 		})
 
 		assertGranted(decision)
-		expect(decision.scopes).toHaveLength(2)
-		expect(decision.scopes).toEqual(expect.arrayContaining([{ resource: 'product', scope: 'own' }, { resource: 'product', scope: 'team' }]))
+		// Alternatives from both operations union into ONE requirement per
+		// resource — the guard's multi-operation check denies this shape anyway.
+		expect(decision.scopes).toHaveLength(1)
+		expect(decision.scopes[0].resource).toBe('product')
+		expect(decision.scopes[0].alternatives).toEqual(expect.arrayContaining([{ scope: 'own' }, { scope: 'team' }]))
+	})
+})
+
+describe('authorize over tenancy-scoped holdings', () => {
+	beforeAll(() => {
+		defineTenancy({
+			type: 'test_channel',
+			resources: { order: ids => ({ sales_channel_id: ids }) }
+		})
+	})
+
+	const ORDER_READ = { acrl_ops: [{ resource: 'order', operation: 'read', scope: null }] }
+
+	it('narrows a covered resource to the holding tenant', async () => {
+		const decision = await authorize({
+			holdings: [{ role_id: 'acrl_ops', scope: { type: 'test_channel', id: 'sc_web' } }],
+			actions: { resource: 'order', operation: 'read' },
+			container: containerFor(ORDER_READ)
+		})
+
+		expect(decision).toEqual({
+			granted: true,
+			scopes: [{ resource: 'order', alternatives: [{ tenancy: { type: 'test_channel', ids: ['sc_web'] } }] }]
+		})
+	})
+
+	it('unions tenant ids across two scoped assignments of the same role', async () => {
+		const decision = await authorize({
+			holdings: [
+				{ role_id: 'acrl_ops', scope: { type: 'test_channel', id: 'sc_web' } },
+				{ role_id: 'acrl_ops', scope: { type: 'test_channel', id: 'sc_retail' } }
+			],
+			actions: { resource: 'order', operation: 'read' },
+			container: containerFor(ORDER_READ)
+		})
+
+		expect(decision).toEqual({
+			granted: true,
+			scopes: [{ resource: 'order', alternatives: [{ tenancy: { type: 'test_channel', ids: ['sc_retail', 'sc_web'] } }] }]
+		})
+	})
+
+	it('an unscoped holding of the same role subsumes the scoped one', async () => {
+		const decision = await authorize({
+			holdings: [
+				{ role_id: 'acrl_ops', scope: { type: 'test_channel', id: 'sc_web' } },
+				{ role_id: 'acrl_ops', scope: null }
+			],
+			actions: { resource: 'order', operation: 'read' },
+			container: containerFor(ORDER_READ)
+		})
+
+		expect(decision).toEqual({ granted: true, scopes: [] })
+	})
+
+	it('a scoped holding contributes NOTHING for a resource outside the coverage set', async () => {
+		const decision = await authorize({
+			holdings: [{ role_id: 'acrl_wide', scope: { type: 'test_channel', id: 'sc_web' } }],
+			actions: { resource: 'product', operation: 'read' },
+			container: containerFor({ acrl_wide: [{ resource: 'product', operation: 'read', scope: null }] })
+		})
+
+		assertDenied(decision)
+		expect(decision.missing).toEqual([{ resource: 'product', operation: 'read' }])
+	})
+
+	it('another unscoped holding fills the gap for an uncovered resource — the additive escape', async () => {
+		const decision = await authorize({
+			holdings: [
+				{ role_id: 'acrl_wide', scope: { type: 'test_channel', id: 'sc_web' } },
+				{ role_id: 'acrl_base', scope: null }
+			],
+			actions: { resource: 'product', operation: 'read' },
+			container: containerFor({
+				acrl_wide: [{ resource: 'product', operation: 'read', scope: null }],
+				acrl_base: [{ resource: 'product', operation: 'read', scope: null }]
+			})
+		})
+
+		expect(decision).toEqual({ granted: true, scopes: [] })
+	})
+
+	it('an actor-relative grant on a scoped holding composes both narrowings into one alternative', async () => {
+		const decision = await authorize({
+			holdings: [{ role_id: 'acrl_own_ops', scope: { type: 'test_channel', id: 'sc_web' } }],
+			actions: { resource: 'order', operation: 'read' },
+			container: containerFor({ acrl_own_ops: [{ resource: 'order', operation: 'read', scope: 'own' }] })
+		})
+
+		expect(decision).toEqual({
+			granted: true,
+			scopes: [{ resource: 'order', alternatives: [{ scope: 'own', tenancy: { type: 'test_channel', ids: ['sc_web'] } }] }]
+		})
+	})
+
+	it('a wildcard grant on a scoped holding is tenancy-narrowed for covered resources, not unrestricted', async () => {
+		const decision = await authorize({
+			holdings: [{ role_id: 'acrl_super', scope: { type: 'test_channel', id: 'sc_web' } }],
+			actions: { resource: 'order', operation: 'read' },
+			container: containerFor({ acrl_super: [{ resource: '*', operation: '*', scope: null }] })
+		})
+
+		expect(decision).toEqual({
+			granted: true,
+			scopes: [{ resource: 'order', alternatives: [{ tenancy: { type: 'test_channel', ids: ['sc_web'] } }] }]
+		})
 	})
 })
 

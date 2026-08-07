@@ -94,26 +94,29 @@ const routes = [
 	{
 		matcher: '/admin/access/roles/:id/users',
 		methods: ['GET'],
-		middlewares: [
-			validateAndTransformQuery(RoleValidators.AdminGetRoleUsersParams, {
-				...RoleQueryConfig.listRoleUsersTransformQueryConfig,
-				// `roles/[id]/users/route.ts` flattens the `user_access_role` join's `user` relation
-				// onto bare top-level fields before responding (`users: links.map(l => l.user)`), so
-				// the real `defaultAdminRoleUsersFields` -- which describe the PRE-flatten
-				// `query.graph` fields (`user.id`, `user.email`, ...) -- don't match the actual
-				// response shape at all. Real Medusa only ever uses `defaults` to build the graph
-				// query, so this mismatch is invisible there; this harness's `project()` re-applies
-				// `defaults` to the RESPONSE too, so using the pre-flatten list here would silently
-				// project every returned user down to `{}` (none of `id`/`email`/`first_name`/
-				// `last_name` match a top-level key named `user`). Overridden with the POST-flatten
-				// field names for the fake's benefit only -- this doesn't change the real backend,
-				// just what this test contract models the response shape as.
-				defaults: ['id', 'email', 'first_name', 'last_name']
-			})
-		]
+		// Since the assignment refactor, `defaultAdminRoleUsersFields` IS the
+		// post-flatten user field list (the route fetches users in a second
+		// query), so the config matches the response shape this harness's
+		// `project()` applies it to — no override needed.
+		middlewares: [validateAndTransformQuery(RoleValidators.AdminGetRoleUsersParams, RoleQueryConfig.listRoleUsersTransformQueryConfig)]
 	},
 	{ matcher: '/admin/access/roles/:id/users', methods: ['POST'], middlewares: [validateAndTransformBody(RoleValidators.AdminAssignRoleUsers)] },
 	{ matcher: '/admin/access/roles/:id/users', methods: ['DELETE'], middlewares: [validateAndTransformBody(RoleValidators.AdminRemoveRoleUsers)] },
+	{
+		matcher: '/admin/access/roles/:id/assignments',
+		methods: ['GET'],
+		middlewares: [validateAndTransformQuery(RoleValidators.AdminGetRoleAssignmentsParams, RoleQueryConfig.listRoleAssignmentsTransformQueryConfig)]
+	},
+	{
+		matcher: '/admin/access/roles/:id/assignments',
+		methods: ['POST'],
+		middlewares: [validateAndTransformBody(RoleValidators.AdminCreateRoleAssignments)]
+	},
+	{
+		matcher: '/admin/access/roles/:id/assignments',
+		methods: ['DELETE'],
+		middlewares: [validateAndTransformBody(RoleValidators.AdminRemoveRoleAssignments)]
+	},
 	{ matcher: '/admin/access/roles/:id', methods: ['DELETE'], middlewares: [] },
 
 	// `/admin/users` is a CORE Medusa route, not one this plugin owns or declares middlewares for

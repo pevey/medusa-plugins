@@ -116,6 +116,39 @@ export type CreateAccessRoleParentDTO = {
 export type UpdateAccessRoleParentDTO = Partial<CreateAccessRoleParentDTO> & {
 	id: string
 }
+
+export type AccessRoleAssignmentDTO = {
+	id: string
+	role_id: string
+	grantee_type: string
+	grantee_id: string
+	scope_type?: string | null
+	scope_id?: string | null
+	metadata?: Record<string, unknown> | null
+	deleted_at?: Date | string | null
+}
+
+export type FilterableAccessRoleAssignmentProps = {
+	id?: string | string[]
+	role_id?: string | string[]
+	grantee_type?: string | string[]
+	grantee_id?: string | string[]
+	scope_type?: string | string[] | null
+	scope_id?: string | string[] | null
+}
+
+export type CreateAccessRoleAssignmentDTO = {
+	role_id: string
+	grantee_type: string
+	grantee_id: string
+	scope_type?: string | null
+	scope_id?: string | null
+	metadata?: Record<string, unknown> | null
+}
+
+export type UpdateAccessRoleAssignmentDTO = Partial<CreateAccessRoleAssignmentDTO> & {
+	id: string
+}
 export interface IAccessModuleService extends IModuleService {
 	createAccessRoles(data: CreateAccessRoleDTO, sharedContext?: Context): Promise<AccessRoleDTO>
 	createAccessRoles(data: CreateAccessRoleDTO[], sharedContext?: Context): Promise<AccessRoleDTO[]>
@@ -193,6 +226,28 @@ export interface IAccessModuleService extends IModuleService {
 		sharedContext?: Context
 	): Promise<[AccessRoleParentDTO[], number]>
 
+	createAccessRoleAssignments(data: CreateAccessRoleAssignmentDTO, sharedContext?: Context): Promise<AccessRoleAssignmentDTO>
+	createAccessRoleAssignments(data: CreateAccessRoleAssignmentDTO[], sharedContext?: Context): Promise<AccessRoleAssignmentDTO[]>
+
+	updateAccessRoleAssignments(data: UpdateAccessRoleAssignmentDTO, sharedContext?: Context): Promise<AccessRoleAssignmentDTO>
+	updateAccessRoleAssignments(data: UpdateAccessRoleAssignmentDTO[], sharedContext?: Context): Promise<AccessRoleAssignmentDTO[]>
+
+	deleteAccessRoleAssignments(ids: string | string[], sharedContext?: Context): Promise<void>
+
+	retrieveAccessRoleAssignment(id: string, config?: FindConfig<AccessRoleAssignmentDTO>, sharedContext?: Context): Promise<AccessRoleAssignmentDTO>
+
+	listAccessRoleAssignments(
+		filters?: FilterableAccessRoleAssignmentProps,
+		config?: FindConfig<AccessRoleAssignmentDTO>,
+		sharedContext?: Context
+	): Promise<AccessRoleAssignmentDTO[]>
+
+	listAndCountAccessRoleAssignments(
+		filters?: FilterableAccessRoleAssignmentProps,
+		config?: FindConfig<AccessRoleAssignmentDTO>,
+		sharedContext?: Context
+	): Promise<[AccessRoleAssignmentDTO[], number]>
+
 	listPoliciesForRole(roleId: string, sharedContext?: Context): Promise<AccessPolicyDTO[]>
 
 	softDeleteAccessRoles<TReturnableLinkableKeys extends string = string>(
@@ -222,6 +277,16 @@ export interface IAccessModuleService extends IModuleService {
 	): Promise<Record<string, string[]> | void>
 	restoreAccessRolePolicies<TReturnableLinkableKeys extends string = string>(
 		rolePolicyIds: string | string[],
+		config?: RestoreReturn<TReturnableLinkableKeys>,
+		sharedContext?: Context
+	): Promise<Record<string, string[]> | void>
+	softDeleteAccessRoleAssignments<TReturnableLinkableKeys extends string = string>(
+		assignmentIds: string | string[],
+		config?: SoftDeleteReturn<TReturnableLinkableKeys>,
+		sharedContext?: Context
+	): Promise<Record<string, string[]> | void>
+	restoreAccessRoleAssignments<TReturnableLinkableKeys extends string = string>(
+		assignmentIds: string | string[],
 		config?: RestoreReturn<TReturnableLinkableKeys>,
 		sharedContext?: Context
 	): Promise<Record<string, string[]> | void>

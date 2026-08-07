@@ -8,10 +8,13 @@ import {
 	AdminAddRolePoliciesType,
 	AdminAssignRoleUsers,
 	AdminCreateAccessRole,
+	AdminCreateRoleAssignments,
 	AdminGetAccessRoleParams,
 	AdminGetAccessRolesParams,
+	AdminGetRoleAssignmentsParams,
 	AdminGetRolePoliciesParams,
 	AdminGetRoleUsersParams,
+	AdminRemoveRoleAssignments,
 	AdminRemoveRoleUsers,
 	AdminUpdateAccessRole,
 	AdminUpdateRolePolicyScope
@@ -123,6 +126,39 @@ export const adminAccessRoleRoutesMiddlewares: AccessMiddlewareRoute[] = [
 		method: ['DELETE'],
 		matcher: '/admin/access/roles/:id/policies/:policy_id',
 		middlewares: [],
+		accessPolicies: [
+			{
+				resource: Entities.access_role,
+				operation: PolicyOperation.update
+			}
+		]
+	},
+	{
+		method: ['GET'],
+		matcher: '/admin/access/roles/:id/assignments',
+		middlewares: [validateAndTransformQuery(AdminGetRoleAssignmentsParams, QueryConfig.listRoleAssignmentsTransformQueryConfig)],
+		accessPolicies: [
+			{
+				resource: Entities.access_role,
+				operation: PolicyOperation.read
+			}
+		]
+	},
+	{
+		method: ['POST'],
+		matcher: '/admin/access/roles/:id/assignments',
+		middlewares: [validateAndTransformBody(AdminCreateRoleAssignments)],
+		accessPolicies: [
+			{
+				resource: Entities.access_role,
+				operation: PolicyOperation.update
+			}
+		]
+	},
+	{
+		method: ['DELETE'],
+		matcher: '/admin/access/roles/:id/assignments',
+		middlewares: [validateAndTransformBody(AdminRemoveRoleAssignments)],
 		accessPolicies: [
 			{
 				resource: Entities.access_role,

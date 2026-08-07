@@ -1,5 +1,5 @@
 import { WorkflowData, WorkflowResponse, createWorkflow, transform } from '@medusajs/framework/workflows-sdk'
-import { dismissRemoteLinkStep } from '@medusajs/medusa/core-flows'
+import { removeRoleAssignmentsStep } from '../../access/steps/remove-role-assignments'
 import { validateUserRolePermissionsStep } from '../steps/validate-user-role-permissions'
 
 /**
@@ -38,26 +38,15 @@ export const removeUserRolesWorkflow = createWorkflow(removeUserRolesWorkflowId,
 		actor: input.actor
 	})
 
-	const userRoleLinks = transform({ input }, ({ input }) => {
-		const users = input.user_ids ?? (input.user_id ? [input.user_id] : [])
-		const roles = input.role_ids ?? (input.role_id ? [input.role_id] : [])
-
-		const links: {
-			user: { user_id: string }
-			access: { access_role_id: string }
-		}[] = []
-		for (const userId of users) {
-			for (const roleId of roles) {
-				links.push({
-					user: { user_id: userId },
-					access: { access_role_id: roleId }
-				})
-			}
+	const removal = transform({ input }, ({ input }) => {
+		return {
+			role_ids: input.role_ids ?? (input.role_id ? [input.role_id] : []),
+			grantee_type: 'user',
+			grantee_ids: input.user_ids ?? (input.user_id ? [input.user_id] : [])
 		}
-		return links
 	})
 
-	dismissRemoteLinkStep(userRoleLinks)
+	removeRoleAssignmentsStep(removal)
 
 	return new WorkflowResponse(void 0)
 })

@@ -42,13 +42,23 @@ export const listRolePoliciesTransformQueryConfig = {
 	isList: true
 }
 
-// Explicit fields, not `user.*`: the wildcard pulls back the FULL raw `user`
-// row (avatar_url, metadata, created_at, updated_at, deleted_at) through a
+// Explicit fields, not `*`: the wildcard pulls back the FULL raw `user` row
+// (avatar_url, metadata, created_at, updated_at, deleted_at) through a
 // permissions-management endpoint, none of which `AdminAccessRoleUser` or any
 // admin component reads -- an unnecessary over-exposure of internal user data.
-export const defaultAdminRoleUsersFields = ['user_id', 'access_role_id', 'user.id', 'user.email', 'user.first_name', 'user.last_name']
+// User-relative: the route resolves grantee ids from assignments first, then
+// fetches users with these fields.
+export const defaultAdminRoleUsersFields = ['id', 'email', 'first_name', 'last_name']
 
 export const listRoleUsersTransformQueryConfig = {
 	defaults: defaultAdminRoleUsersFields,
 	isList: true
+}
+
+export const defaultAdminRoleAssignmentsFields = ['id', 'role_id', 'grantee_type', 'grantee_id', 'scope_type', 'scope_id']
+
+export const listRoleAssignmentsTransformQueryConfig = {
+	defaults: defaultAdminRoleAssignmentsFields,
+	isList: true,
+	entity: 'access_role_assignment'
 }

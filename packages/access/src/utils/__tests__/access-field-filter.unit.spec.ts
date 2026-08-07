@@ -40,7 +40,7 @@ describe('AccessFieldFilter -- read access, scoped or not', () => {
 	it('keeps fields for an unrestricted grant', async () => {
 		const filter = new AccessFieldFilter({
 			policies: [{ resource: 'customer', operation: 'read' }] as any,
-			userRoles: ['role_1'],
+			holdings: [{ role_id: 'role_1', scope: null }],
 			container: containerFor([{ resource: 'customer', operation: 'read', scope: null }])
 		})
 
@@ -58,7 +58,7 @@ describe('AccessFieldFilter -- read access, scoped or not', () => {
 		// question is whether the field path survives, not which rows come back.
 		const filter = new AccessFieldFilter({
 			policies: [{ resource: 'customer', operation: 'read' }] as any,
-			userRoles: ['role_1'],
+			holdings: [{ role_id: 'role_1', scope: null }],
 			container: containerFor([{ resource: 'customer', operation: 'read', scope: 'own' }])
 		})
 
@@ -73,7 +73,7 @@ describe('AccessFieldFilter -- read access, scoped or not', () => {
 	it('strips fields for an outright denial', async () => {
 		const filter = new AccessFieldFilter({
 			policies: [{ resource: 'customer', operation: 'read' }] as any,
-			userRoles: ['role_1'],
+			holdings: [{ role_id: 'role_1', scope: null }],
 			container: containerFor([{ resource: 'order', operation: 'read', scope: null }])
 		})
 
@@ -90,7 +90,7 @@ describe('AccessFieldFilter -- read access, scoped or not', () => {
 		// asking for customers?fields=id,orders.* used to get no orders at all.
 		const filter = new AccessFieldFilter({
 			policies: [{ resource: 'customer', operation: 'read' }] as any,
-			userRoles: ['role_1'],
+			holdings: [{ role_id: 'role_1', scope: null }],
 			container: containerFor([
 				{ resource: 'customer', operation: 'read', scope: null },
 				{ resource: 'order', operation: 'read', scope: 'sales_channel' }
@@ -108,7 +108,7 @@ describe('AccessFieldFilter -- read access, scoped or not', () => {
 	it('strips a nested relation the actor holds no grant on', async () => {
 		const filter = new AccessFieldFilter({
 			policies: [{ resource: 'customer', operation: 'read' }] as any,
-			userRoles: ['role_1'],
+			holdings: [{ role_id: 'role_1', scope: null }],
 			container: containerFor([{ resource: 'customer', operation: 'read', scope: null }])
 		})
 
@@ -123,7 +123,7 @@ describe('AccessFieldFilter -- read access, scoped or not', () => {
 	it('leaves scalar columns alone -- gating is at entity grain only', async () => {
 		const filter = new AccessFieldFilter({
 			policies: [{ resource: 'customer', operation: 'read' }] as any,
-			userRoles: ['role_1'],
+			holdings: [{ role_id: 'role_1', scope: null }],
 			container: containerFor([{ resource: 'customer', operation: 'read', scope: null }])
 		})
 

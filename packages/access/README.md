@@ -86,7 +86,7 @@ configureAccessNamespace({ actorTypes: ['affiliate'] })
 
 Enforcement is always on once the module is loaded. The plugin ships a pinned map of Medusa's core admin routes to the policies they require, so after install a user can only reach an admin route if one of their roles grants the matching policy.
 
-To avoid locking yourself out, on the **first** boot after install the plugin links **every existing user** to the seeded **Super Admin** role (which holds the wildcard policy `*:*`). This runs once — the moment any user↔role link exists, it never runs again.
+To avoid locking yourself out, on the **first** boot after install the plugin grants **every existing user** the seeded **Super Admin** role (which holds the wildcard policy `*:*`). This runs once — the moment any role assignment exists, it never runs again.
 
 Consequences to plan for:
 
@@ -371,7 +371,7 @@ For imperative checks inside a handler, `hasPermission` resolves whether a set o
 import { hasPermission } from 'medusa-plugin-access'
 
 const allowed = await hasPermission({
-	roles: roleIds, // the actor's access_roles ids
+	roles: roleIds, // the actor's role ids
 	actions: [{ resource: 'content', operation: 'update' }],
 	container: req.scope
 })
@@ -410,7 +410,9 @@ Inside a request, prefer neither: declare the route and let the guard run, and f
 
 A **scoped grant** attaches a named restriction to a policy assignment, describing a subset of rows instead of every row of that resource. This document writes a scoped grant as `resource:operation@scope` (e.g. `customer:delete@own`) as shorthand for "the `customer:delete` policy, assigned with scope `own`" — that string is never actually stored or parsed anywhere; on the wire and in the database the policy id and the scope are two separate fields.
 
-Scopes express **ownership-shaped row reachability** — the `@own` / `@company` cases: "the rows this actor owns or belongs to," not an arbitrary predicate. A scope produces a **query filter**, never a hand-written row test — the predicate is always evaluated by the database. At the query's root that filter is merged into the fetch itself, so a route whose handler never queries the scoped resource can't be narrowed at all (see [Fail-closed surfaces](#fail-closed-surfaces)); for a scoped relation nested in a response, the same filter is applied in a second lookup once the rows are back. An **unscoped grant is the norm** and behaves exactly as it always has; everything in this section only comes into play once a role holds a policy _at a scope_.
+Scopes express **actor-relative row reachability** — "the rows that stand in some relation to the acting actor": `@own`, `@created_by_me`. A scope produces a **query filter**, never a hand-written row test — the predicate is always evaluated by the database. At the query's root that filter is merged into the fetch itself, so a route whose handler never queries the scoped resource can't be narrowed at all (see [Fail-closed surfaces](#fail-closed-surfaces)); for a scoped relation nested in a response, the same filter is applied in a second lookup once the rows are back. An **unscoped grant is the norm** and behaves exactly as it always has; everything in this section only comes into play once a role holds a policy _at a scope_.
+
+**Two kinds of scope, and the criterion between them.** An actor-relative scope (this section) constrains rows by a relation to the *acting actor* — there is no nameable value to write down, because the answer differs per actor by definition. A **tenancy** constraint names a *value* — a row in some tenant-shaped table (`company:acme`, `sales_channel:webstore`) — and lives on the **role assignment**, not the grant: see [Tenancy: assignment-level scoping](#tenancy-assignment-level-scoping). The litmus test: **if your `ScopeFilter` resolves the actor's links to produce a list of tenant ids, you want `defineTenancy` and a scoped assignment instead.** Derivable-from-the-actor is not the same as being about the actor.
 
 ### `defineScope`
 
@@ -418,11 +420,10 @@ Register a scope with `defineScope({ name, resource, filter })`. `filter` receiv
 
 The registry is keyed by `(resource, name)`, not by `name` alone, so the same scope name can mean something different per resource (there's no single shared "ownership" concept) and, just as importantly, two unrelated resources can both define an `own` scope without colliding. Registering the same `(resource, name)` pair twice throws `MedusaError.Types.INVALID_DATA`.
 
-A single resource can register more than one named scope. For example, `customer` might have both an `own` scope (a customer acting on themselves) and a `company` scope (a B2B user acting on every customer that belongs to their company):
+A single resource can register more than one named scope, and the same name can mean different things on different resources:
 
 ```ts
 import { defineScope } from 'medusa-plugin-access/utils'
-import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
 
 defineScope({
 	name: 'own',
@@ -431,24 +432,17 @@ defineScope({
 })
 
 defineScope({
-	name: 'company',
-	resource: 'customer',
-	filter: async (actor, container) => {
-		const query = container.resolve(ContainerRegistrationKeys.QUERY)
-		const { data } = await query.graph({
-			entity: 'customer',
-			fields: ['company.members.id'],
-			filters: { id: actor.id }
-		})
-		const memberIds = data[0]?.company?.members?.map((m: { id: string }) => m.id) ?? []
-		return { id: memberIds }
-	}
+	name: 'own',
+	resource: 'review',
+	filter: async actor => ({ customer_id: actor.id })
 })
 ```
 
-A role can then hold `customer:delete@own`, `customer:delete@company`, both, or neither — a plain unscoped `customer:delete` remains the unrestricted grant. Holding both scopes grants the union of their filters (see [Composition rules](#composition-rules)); holding one, a read against `customer` narrows automatically, while a mutation additionally needs the route to declare `assertsScope` and the handler to call `assertScope` first — see [How enforcement works](#how-enforcement-works).
+A role can then hold `review:delete@own` — a plain unscoped `review:delete` remains the unrestricted grant. Holding a scoped grant, a read against the resource narrows automatically, while a mutation additionally needs the route to declare `assertsScope` (or a `target`) — see [How enforcement works](#how-enforcement-works).
 
-**Root-filter constraint.** Medusa's query layer prunes filters applied to expand nodes, so a scope cannot be expressed as a nested filter shape — filtering `customer` by `company.members.id` directly on the expanded relation is never enforced, no matter how the query is shaped. This is a permanent, upstream limit: at fetch time only the query's root is narrowed. A nested collection in the _response_ is narrowed separately, after the fetch — see [How enforcement works](#how-enforcement-works). The `company` example above resolves the relationship itself, inside the filter function, down to a plain `id` list — a column `customer` carries directly — before returning it. Any scope whose restriction lives behind a relationship has to do the same resolution step.
+**The anti-example — this shape means you want tenancy.** Earlier versions of this document showed a `company` scope that queried the actor's company membership inside the filter and returned the member ids. That works mechanically, but look at what it is: a filter deriving a *nameable tenant value* (`acme`) from the actor's links. Tenancy expresses it better in every way — the tenant is pinned on the assignment (auditable, per-tenant revocable, different roles per tenant), and the filter becomes a constant. See [Tenancy: assignment-level scoping](#tenancy-assignment-level-scoping) for the company case done right. `defineScope` is for relations that have no nameable value: `own` and kin.
+
+**Root-filter constraint.** Medusa's query layer prunes filters applied to expand nodes, so a scope cannot be expressed as a nested filter shape. This is an upstream limit (relaxing with cross-module joins): at fetch time only the query's root is narrowed. A nested collection in the _response_ is narrowed separately, after the fetch — see [How enforcement works](#how-enforcement-works). Any scope whose restriction lives behind a relationship has to resolve it to a root-level column inside the filter.
 
 ### Composition rules
 
@@ -518,7 +512,7 @@ Every shape the interceptor can't safely filter denies rather than admits unfilt
 - **An empty id-list** — a scope filter, or its merge with the handler's filter, that narrows to zero ids — matches nothing: the fetch throws `404` when the caller passes `throwIfKeyNotFound` (Medusa's standard single-row retrieve pattern); otherwise it comes back as an ordinary empty result (an empty list, or a single-row fetch that didn't request the flag). Normal not-found/empty-list behavior, not an error, but it never widens.
 - **A scope resolver that throws, or resolves to an empty `{}` filter**, denies the whole request. An empty filter would merge as "no filter," silently widening access instead of narrowing it, so it's treated as a resolver fault.
 - **A `defineScope` resource name that isn't the canonical entity name** denies. The interceptor keys filters by canonical query-root name — the same resolution a query's own root goes through — so a scope registered under an alias could never be matched, and is as unenforceable as a missing registration. `defineScope` itself only checks for a duplicate `(resource, name)` registration; it never validates that `resource` is canonical, so this is validated per request, not at registration time.
-- **A route requiring two different operations on one scoped resource** denies. `authorize()` flattens per-operation scope sets into one set per resource; OR-combining two different operations' scopes would widen access (rows either operation could reach) instead of narrowing it. This is not a theoretical edge: core's all-methods read floor plus its per-method write declaration produce exactly this shape, which is why a scoped actor is refused on core admin writes — see [Scoped actors cannot write through core admin routes](#scoped-actors-cannot-write-through-core-admin-routes).
+- **A route requiring two different operations on one scoped resource** denies. `authorize()` flattens per-operation scope sets into one set per resource; OR-combining two different operations' scopes would widen access (rows either operation could reach) instead of narrowing it. This is not a theoretical edge: core's all-methods read floor plus its per-method write declaration produce exactly this shape, which is why a scoped actor is refused on core admin writes — see [Scoped actors and core admin routes](#scoped-actors-and-core-admin-routes).
 - **A scoped relation whose rows can't be checked** — the whole relation is dropped from the response rather than shown unnarrowed. That covers a scope with no `defineScope` registration, a relation row carrying no `id` to check, a scope filter that can't be combined with the id lookup, and a lookup that throws.
 - **A sub-resource route that never queries the scoped root** — the enforcement ledger withholds the response with `403`, even though the handler itself never errored. `GET /admin/access/roles/:id/policies` is exactly this case: it's declared under `access_role:read`, but its handler queries `access_role_policy`, which the interceptor never touches, so `access_role` never gets marked narrowed and the ledger replaces the response.
 
@@ -526,18 +520,15 @@ One thing worth stating plainly, since it's easy to assume otherwise:
 
 - **The `404`/`403` split above is deliberate.** An operator-shaped scope filter colliding with a handler filter surfaces as `403`, because the two filters genuinely couldn't be combined — the outcome is unknown, not "no match." A plain scalar/array id filter that merges cleanly but intersects to nothing surfaces as `404` (or an empty list), the same as any other not-found — the outcome is known, and it's "no rows."
 
-### Scoped actors cannot write through core admin routes
+### Mutations on scoped resources: three admissible shapes
 
-Worth stating on its own, because it decides whether a scoped role is usable at all: **a scoped grant is refused on every core admin `POST`/`PUT`/`PATCH`/`DELETE`.** Reads narrow normally. Writes need routes you declare yourself.
+A `POST`/`PUT`/`PATCH`/`DELETE` against a resource the actor holds only at a scope is admitted in exactly three shapes, and denied otherwise:
 
-Two independent reasons, either sufficient:
+1. **The route declares `assertsScope`** and its handler calls `assertScope` before writing — the original contract, unchanged.
+2. **The route carries a row `target`** — `{ resource, param }`, naming which path param holds the mutated row's id. The guard then performs the assertion itself: it extracts the id, fetches it through the composed scope filter, `404`s on a miss, and marks the resource asserted. The generated core-route map derives targets mechanically; `requirePolicies` accepts one for your own routes. No handler changes needed.
+3. **The required operation is `create`** and the resource's tenancy dimension declares a `create_fields` rule — the named body field must fall inside the actor's tenant ids; missing or out-of-tenant values deny.
 
-1. **No core route declares `assertsScope`.** A scoped mutation is refused at the door unless the matched declaration says a handler will prove the scope, and nothing in core calls `assertScope`. Admitting those routes would admit them *unnarrowed*, which is why the gate is there.
-2. **Core's read floor collides with its write declaration.** The pinned map declares an all-methods floor per resource (`/admin/customers/*` → `customer:read`) alongside per-method entries (`POST /admin/customers/:id` → `customer:update`). Declarations AND, so such a request requires `[customer:read, customer:update]` — two operations on one scoped resource, which is refused because OR-combining their scope sets would widen access rather than narrow it.
-
-The second fires before the first, so declaring `assertsScope` on core routes would not by itself be enough.
-
-What this means in practice: scope a role for **reading**, and give it a prefix you own for anything that writes. `2026-08-03-channel-scoping.md` in this package records what supporting core mutations would take.
+Core admin writes remain closed despite shape 2 — see [Scoped actors and core admin routes](#scoped-actors-and-core-admin-routes) for why and for the practical recipe.
 
 ### Caveats
 
@@ -564,118 +555,94 @@ The request is rejected (`400`) when:
 
 **`canGrantScope`** governs who may assign a scoped policy: an actor may grant `resource:operation` at scope `S` only if their own effective permissions hold that same `resource:operation` either unrestricted or at exactly scope `S`. Two different scope names are incomparable — holding `@own` does not let you grant `@company`. This is the same "you can't grant what you don't hold" rule extended with scope, enforced consistently for assignable-policy listings, assignable-role listings, and the create/update validation path.
 
-### Worked example: B2B company ownership
+## Tenancy: assignment-level scoping
 
-The canonical case. A `company` entity is linked to `customer`, and a company administrator manages the customers belonging to their own company — nobody else's.
-
-**1. Resolve the relationship to a plain column.** The scope filter must return a root-level filter, so the membership walk happens inside the filter and comes out as an id list:
+A **tenancy dimension** partitions resources by a tenant-shaped entity — sales channels, B2B companies. The constraint does not live on a grant: it lives on the **role assignment**. Roles and their grants stay tenancy-free; one role definition serves every tenant via N scoped assignments.
 
 ```ts
-import { defineScope } from 'medusa-plugin-access'
-import { ContainerRegistrationKeys } from '@medusajs/framework/utils'
+import { defineTenancy } from 'medusa-plugin-access/utils'
 
-defineScope({
-	name: 'company',
-	resource: 'customer',
-	filter: async (actor, container) => {
-		const query = container.resolve(ContainerRegistrationKeys.QUERY)
-		const { data } = await query.graph({
-			entity: 'customer',
-			fields: ['company.members.id'],
-			filters: { id: actor.id }
-		})
-		return { id: data[0]?.company?.members?.map((m: { id: string }) => m.id) ?? [] }
-	}
+defineTenancy({
+	type: 'sales_channel',
+	resources: {
+		// per covered resource: a CONSTANT filter over the assignment's tenant ids
+		order: ids => ({ sales_channel_id: ids })
+	},
+	// B2 create rule: on `create`, this body field must fall inside the tenant ids
+	create_fields: { order: 'sales_channel_id' },
+	// backs GET /admin/access/scopes/:type/options (the assignment UI's value picker)
+	options: { entity: 'sales_channel', display_field: 'name' }
 })
 ```
 
-**2. Grant it.** A `Company Admin` role holds `customer:read@company`, `customer:update@company` and `customer:delete@company`. Note the scope is repeated per grant — a scope rides on the grant, not on the role, so `customer:create` left unscoped on the same role would be an unrestricted grant.
+An assignment then pins a holding to a tenant: `{ role_id, grantee_type: 'user', grantee_id, scope_type: 'sales_channel', scope_id: 'sc_webstore' }` — created through `POST /admin/access/roles/:id/assignments` or the `assignRolesWorkflow`. An assignment with no scope columns means the role applies everywhere (the normal case).
 
-**3. Reads need nothing further.** `GET /admin/customers` narrows to the company automatically, and `GET /admin/customers/:id` for someone else's customer returns `404` rather than `403` — no existence leak.
+**Semantics.**
 
-**4. Writes need a route you own — Medusa's own Customers page will not work.** This is the step to plan around, not a detail: a scoped grant on a mutating route is refused at the door unless that route's declaration opted in with `assertsScope`, and the pinned core-route map never does. So a Company Admin holding `customer:update@company` gets `403` on `POST /admin/customers/:id`, and on every other core admin write. Reads narrow; writes go through routes you declare yourself:
+- **The `resources` map is the coverage set.** A grant on a resource outside it contributes **nothing** from a scoped holding — always, no override. The additive model is the escape: another (unscoped) holding can still grant the action. See the layering recipe below.
+- **Union across assignments.** Holding a role at two tenants narrows to both (`sales_channel_id IN (a, b)`); holding it unscoped anywhere subsumes the scoped holdings entirely.
+- **Composition with actor-relative scopes.** A grant carrying `@own` on a tenancy-held role narrows twice — both filters apply.
+- **Reads narrow automatically**; out-of-tenant detail fetches `404` with no existence leak.
+- **Mutations** go through the same gate as actor-relative scopes: a route that declares `assertsScope`, or one that carries a row `target` (the generated core map declares these; `requirePolicies` accepts one too), is admitted with the row asserted against the tenant filter. `create` operations are checked against the declared `create_fields` rule — a missing or out-of-tenant value denies. **Core admin writes are still denied today**: core's all-methods read floor plus its per-method write declaration require two operations on one scoped resource, which is refused (see [Scoped actors and core admin routes](#scoped-actors-and-core-admin-routes)).
+- **Delegation is tenant-bounded.** Creating an assignment scoped to a tenant evaluates the granter's authority *within that tenant* — their unscoped holdings plus holdings pinned to exactly that tenant (coverage-limited). Creating an unscoped assignment requires unscoped authority. Two different tenants are incomparable.
 
-```ts
-guardResource({ resource: 'customer', prefix: '/admin/company-customers', assertsScope: true })
-```
+**The canonical layering recipe** — the answer to "but my role has global grants":
 
-```ts
-export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
-	await assertScope(req, { resource: 'customer', id: req.params.id })
-	// the id is inside the actor's company — proceed
-}
-```
+- a **base role, assigned unscoped**, carries grants on non-partitioned resources (`product:read`, `region:read` for staff; `customer:read@own`, `order:read@own` for customers — delivered once via a group grantee);
+- **curated roles, scoped per assignment**, carry only covered resources and stack on top.
 
-**5. Delegation is bounded automatically.** A company admin holding `customer:delete@company` can grant `customer:delete@company` onward, but not `customer:delete` unrestricted and not `customer:delete@own` — `canGrantScope` requires unrestricted-or-exact-match. And because the filter resolves per actor, the grantee gets _their_ company, not the granter's.
+Union across holdings composes them, and curated roles have nothing uncovered, so the fail-closed rule never bites. For B2B: a *Company Base* role assigned once with `grantee_type: 'company'` reaches every member through the membership walk (hires and offboarding automatic — see [grantee paths](#custom-actor-types)); *Company Manager* is assigned per person, scoped to the company. Multi-tenant membership is one assignment row per tenant — including **different roles per tenant** (manager at Acme, viewer at Beta), which no actor-relative design can express.
 
-Ownership fits the model well because it is a property of the row, reachable as a column. What it does not give you is a scoped operator working inside the stock admin UI — see [Scoped actors cannot write through core admin routes](#scoped-actors-cannot-write-through-core-admin-routes).
+### Scoped actors and core admin routes
 
-### Worked example: constraining an operator to a sales channel
+Where enforcement stands for a tenancy- or actor-relative-scoped actor on Medusa's own admin surface:
 
-Worth walking through because it is the case the model fits **least** well. Read it as a list of constraints rather than a recipe.
-
-A sales channel is not ownership — it is a cross-cutting constraint over many resources at once. The mechanics do work for a single resource that carries a channel column:
-
-```ts
-defineScope({
-	name: 'sales_channel',
-	resource: 'order',
-	filter: async (actor, container) => {
-		const query = container.resolve(ContainerRegistrationKeys.QUERY)
-		const { data } = await query.graph({
-			entity: 'user',
-			fields: ['sales_channels.id'],
-			filters: { id: actor.id }
-		})
-		return { sales_channel_id: data[0]?.sales_channels?.map((c: { id: string }) => c.id) ?? [] }
-	}
-})
-```
-
-`order` carries `sales_channel_id` as a real column, so that filter merges straight into the fetch. There is no built-in user↔sales-channel link — the `defineLink` behind `sales_channels` above is yours to declare.
-
-Five things to know before relying on it:
-
-- **A scope is actor-relative by design.** `@sales_channel` always means "the channels _this_ actor is linked to", so you get "only Channel A" by linking the actor to Channel A — not by naming the channel in the grant. One role definition then serves every channel, and two operators holding it see different rows. The flip side is deliberate and worth knowing: a role cannot be pinned to a channel independently of who holds it, and there is no way to express a negative rule like "no `customer:write` in Channel A" — the model is additive, so withholding something means not granting it.
-- **Every grant must repeat the scope.** Scope rides on the grant, so a channel-constrained role means `@sales_channel` on all of its grants; one omission is an unrestricted grant on that resource. This is the deliberate trade for keeping declarations flat, and it is the sharpest edge of the model.
-- **One `defineScope` per resource, and not every resource can express it.** `order` is easy. `product` relates to sales channels through a link module with no column on `product`, so its filter would have to pre-resolve to a product id list — unbounded for a real catalogue.
-- **Core admin mutations are refused outright.** A scoped grant on a mutating route is denied unless that route declares `assertsScope`, and the pinned core-route declarations do not — nothing outside your own code calls `assertScope`. So a channel-scoped operator can read core admin surfaces narrowed, and cannot write through them at all.
-- **`create` cannot be scoped.** There is no row to filter on a `POST` that makes one, so nothing stops a channel-scoped actor creating an order in another channel. That needs a payload check you write yourself.
-
-For a **read-only** channel-scoped role over resources that carry a channel column, this works today. For a channel-constrained operator who also writes, it does not — see `2026-08-03-channel-scoping.md` for what that would take.
+- **Reads narrow** wherever the core handler queries through `query.graph`. Handlers that call the raw remote-query callable cannot be narrowed and are denied instead (fail closed) — `GET /admin/customers` is a known case; the boot report and this package's issue tracker carry the inventory.
+- **Writes are denied** — two independent gates, one now solvable, one pending. The generated core-route map carries a row `target` for most mutating entries (the guard can assert the row itself; nothing in core calls `assertScope`), **but** core's all-methods read floor plus its per-method write entry require two operations on one scoped resource, and that shape is refused before targets are consulted — OR-combining two operations' scope sets would widen access. Per-operation scope tracking is the planned fix; until it lands, scope a role for **reading** core surfaces, and give it routes you own for writing (single-operation declarations with `assertsScope` or a `target` get the full read-write path — this plugin's own routes are the worked example).
 
 ## Custom actor types
 
 An **actor type** is the string Medusa's auth system stamps onto `req.auth_context.actor_type` when it authenticates a request — `user` for an admin session, `customer` for a storefront session, `api-key` for a request authenticated with a secret API key. The global guard reads `req.auth_context.actor_type` and `req.auth_context.actor_id` on every guarded request and asks "what roles does this actor hold?" before checking the route's required policies. How it answers that question is pluggable per actor type.
 
-Three resolvers ship out of the box:
+Roles are held through **assignments** — rows of `(role_id, grantee_type, grantee_id, scope_type?, scope_id?)`. Resolution collects the actor's **grantee identities** (the actor itself, plus anything reached through registered **grantee paths**) and matches assignments against any of them. Three actor types ship out of the box:
 
-- **`user`** — the actor's own `access_roles` link (a user is linked to roles directly).
-- **`customer`** — the union of roles linked directly to the customer and roles held by any of the customer's **groups**.
-- **`api-key`** — the key's own `access_roles` link (scoped API keys), resolved from the `api_key` entity.
+- **`user`** — identity assignments (`grantee_type: 'user'`).
+- **`customer`** — identity assignments plus assignments held by any of the customer's **groups** (`grantee_type: 'customer_group'`, reached through the `groups.id` grantee path).
+- **`api-key`** — identity assignments under Query entity name `api_key` (the actor type is hyphenated; the entity is not).
 
-If your plugin introduces a new kind of authenticated caller — a vendor, an affiliate, a support-desk agent authenticated by a different system — the built-in resolvers don't know how to find its roles, and the guard denies every request from that actor type by default (logging a one-time warning naming the unresolved type). `registerActorResolver` is how you teach it.
+If your plugin introduces a new kind of authenticated caller — a vendor, an affiliate, a support-desk agent authenticated by a different system — the guard denies every request from that actor type by default (logging a one-time warning naming the unresolved type). `registerActorResolver` is how you teach it.
 
 ### `registerActorResolver`
 
 ```ts
 import { registerActorResolver } from 'medusa-plugin-access'
-import type { MedusaContainer } from '@medusajs/framework/types'
 
 registerActorResolver({
-	actorType: 'affiliate',
-	resolve: async (actorId: string, container: MedusaContainer): Promise<string[]> => {
-		// return the access_role ids this actor holds
-		return []
-	}
+	actorType: 'affiliate'
+	// entity: 'affiliate'  — the Query entity for identity assignments; defaults to the actor type
+	// grantees: [{ entity: 'affiliate_network', path: 'network.id' }]  — membership walks (see below)
+	// resolve: async (actorId, container) => [...roleIds]  — legacy escape hatch for computed roles
 })
 ```
 
-- Call it once, at module-body evaluation time, from a file the API loader scans on boot — the same place the plugin's own built-ins register themselves (`src/utils/actor-resolvers.ts`). A project-level `src/api/middlewares.ts`, or a middlewares/loader file in your own plugin, both run early enough.
-- `resolve` receives the raw `actor_id` from `req.auth_context` and the request's scoped container (`req.scope`), and must resolve to an array of `access_role` ids — `[]` if the actor holds none. Registering `undefined`/throwing is not handled specially; let it resolve to `[]` for "no roles" and reserve throwing for genuine faults.
-- **`user`, `customer`, and `api-key` are reserved.** They're registered by this plugin's own built-ins before your code runs, and `registerActorResolver` throws `MedusaError.Types.INVALID_DATA` if you register any of them again.
-- **Registering any `actorType` a second time throws**, reserved or not — there is no override flag. A silent replacement of an already-registered resolver is treated as a mistake, not an intentional override; pick a distinct `actorType` instead.
-- The resolver only receives `actorId` and `container` — not the request or the full `auth_context`. If role membership needs to be read off the JWT's `app_metadata`/`user_metadata` rather than looked up by id, this signature can't express that; resolve it from the database instead (see `linkedAccessRoles` below).
+Registering an actor type establishes its **identity grantee**: assignments with `grantee_type` equal to `entity` (default: the actor type) and `grantee_id` equal to the acting actor's id resolve automatically — no link, no resolver code. The optional pieces:
+
+- **`grantees`** — indirection paths: `{ entity, path }` pairs where `path` is a `query.graph` field path from the actor row to another entity's id. An assignment on that entity's row is then held by every actor whose walk reaches it — membership-based roles with automatic offboarding.
+- **`resolve`** — the legacy escape hatch for *computed* roles (a tier-based baseline, say). Its returned role ids are treated as **unscoped** holdings and union with assignment-based resolution. Prefer grantees: computed roles cannot carry a scope, cannot be audited as rows, and a resolver returning a role id silently subsumes any tenancy-scoped assignment of the same role.
+- Call it once, at module-body evaluation time, from a file the API loader scans on boot. A project-level `src/api/middlewares.ts`, or a middlewares/loader file in your own plugin, both run early enough.
+- **`user`, `customer`, and `api-key` are reserved**, and **registering any `actorType` a second time throws** — there is no override flag. WHO resolves an actor type is closed.
+
+### `registerGranteePath`: extending built-ins
+
+What an actor can inherit *through* is open, unlike resolver registration: `registerGranteePath` is additive and allowed on the built-in types. This is how a B2B plugin gives customers company inheritance without touching the reserved `customer` type:
+
+```ts
+import { registerGranteePath } from 'medusa-plugin-access'
+
+registerGranteePath('customer', { entity: 'company', path: 'company.id' })
+```
+
+An assignment with `grantee_type: 'company'` now reaches every member of that company — one row, created when the company is, and membership changes take effect on the next request with nothing to revoke. Duplicate `(actorType, entity, path)` registrations are idempotent no-ops, so plugin load order and HMR re-runs are harmless.
 
 ### Wiring authentication for a custom actor type: `authenticate` / `prefixes`
 
@@ -683,11 +650,10 @@ The guard is mounted at `/*` and runs ahead of every other route's own middlewar
 
 ```ts
 import { authenticate } from '@medusajs/framework/http'
-import { registerActorResolver, linkedAccessRoles } from 'medusa-plugin-access'
+import { registerActorResolver } from 'medusa-plugin-access'
 
 registerActorResolver({
 	actorType: 'affiliate',
-	resolve: linkedAccessRoles('affiliate'),
 	authenticate: authenticate('affiliate', ['bearer']),
 	prefixes: ['/affiliate']
 })
@@ -698,71 +664,26 @@ registerActorResolver({
 - The check only happens on routes that have declared policies (via `requirePolicies`/`guardResource`) — a route with no declared policy skips this entirely (see [Notes](#notes)). For a route that does have declared policies, after route matching the guard checks `req.auth_context?.actor_id`; if that's not yet set, it runs whichever registered `authenticate` has a prefix matching the request path (matched on a full path segment, not a raw substring) before resolving the actor's roles. This is what makes a custom actor type's own auth run in time — see the worked example below.
 - **First-registration-wins on overlapping prefixes.** If two registrations declare overlapping `prefixes` (e.g. `/affiliate` and `/affiliate/admin`), the guard runs whichever was registered first for a matching request. This is deterministic within a single boot but depends on plugin load order across environments — avoid overlapping `prefixes` across plugins.
 
-### `linkedAccessRoles(entity)`: the common case
-
-Most actor types will simply carry a direct `access_roles` module link, exactly like `user` and `api-key` do. `linkedAccessRoles` is the resolver factory the built-ins are written with:
-
-```ts
-import { resolveUnscopedQuery } from 'medusa-plugin-access'
-
-const linkedAccessRoles =
-	(entity: string): ActorRoleResolver =>
-	async (actorId, container) => {
-		// `resolveUnscopedQuery`, not `container.resolve(QUERY)`: on a scoped request
-		// the container's query IS the row-filtering interceptor, so resolving it
-		// here would filter the resolver's own role lookup — or refuse it outright,
-		// since `access_role` is not a root the interceptor recognises mid-resolution.
-		const query = resolveUnscopedQuery(container)
-		const { data } = await query.graph({
-			entity,
-			fields: ['access_roles.id'],
-			filters: { id: actorId }
-		})
-		return data?.[0]?.access_roles?.map(role => role.id).filter(Boolean) ?? []
-	}
-```
-
-`entity` is the **Query module's** entity name for the linked module — not necessarily the `actor_type` string. They usually match (`registerBuiltinActorResolver({ actorType: 'user', resolve: linkedAccessRoles('user') })`), but they don't have to: the `api-key` actor type is authenticated as `api-key` (hyphenated — that's what Medusa's core auth middleware hardcodes into `auth_context.actor_type`), while the linked module's entity is `api_key` (underscored — the API Key module's linkable name), so the plugin registers `linkedAccessRoles('api_key')` under the `'api-key'` actor type. Get this wrong and the query silently resolves against the wrong (or a nonexistent) entity.
-
 ### Worked example: an `affiliate` actor type
 
 Say a separate `medusa-plugin-affiliates` plugin defines its own `affiliate` module and wants affiliates gated by `medusa-plugin-access` the same way users and customers are.
 
-**1. Link the affiliate module to the access module.** In the affiliate plugin's own `src/links/affiliate-access-role.ts`, following the same shape as this plugin's `src/links/user-access-role.ts`:
-
-```ts
-import { defineLink } from '@medusajs/framework/utils'
-import AffiliateModule from '../modules/affiliate'
-import AccessModule from 'medusa-plugin-access/modules/access'
-
-export default defineLink(
-	{
-		linkable: AffiliateModule.linkable.affiliate,
-		isList: true
-	},
-	{
-		linkable: AccessModule.linkable.accessRole,
-		isList: true,
-		filterable: ['id', 'name']
-	}
-)
-```
-
-This is the same link declaration this plugin uses for `user`, `customer_group`, and `api_key` — importing `AccessModule` from `medusa-plugin-access/modules/access` (the package's `./modules/*` export path) rather than from a relative path, since the link now spans two separately-published packages. This gives affiliates an `access_roles` field, queryable the same way `user.access_roles` is.
-
-**2. Register the resolver**, once, at boot — in the affiliate plugin's own `src/api/middlewares.ts`. If affiliates authenticate through core's generic `POST /auth/:actor_type/:auth_provider` under `/admin` or `/store`, `resolve` alone is enough, exactly like `user`/`customer`/`api-key`. If affiliates need their own prefix (e.g. `/affiliate/*`) authenticated on the way in, pair `resolve` with `authenticate`/`prefixes` (see [Wiring authentication for a custom actor type](#wiring-authentication-for-a-custom-actor-type-authenticate--prefixes) above) — that's the seam that makes case 2 possible:
+**1. Register the actor type**, once, at boot — in the affiliate plugin's own `src/api/middlewares.ts`. That alone gives affiliates identity assignments (`grantee_type: 'affiliate'`); nothing else is needed for them to hold roles. If affiliates authenticate through core's generic `POST /auth/:actor_type/:auth_provider` under `/admin` or `/store`, registration alone is enough. If affiliates need their own prefix (e.g. `/affiliate/*`) authenticated on the way in, pair it with `authenticate`/`prefixes` (see [Wiring authentication for a custom actor type](#wiring-authentication-for-a-custom-actor-type-authenticate--prefixes) above):
 
 ```ts
 import { authenticate } from '@medusajs/framework/http'
-import { linkedAccessRoles, registerActorResolver } from 'medusa-plugin-access'
+import { registerActorResolver } from 'medusa-plugin-access'
 
 registerActorResolver({
 	actorType: 'affiliate',
-	resolve: linkedAccessRoles('affiliate'),
+	// affiliates in a network inherit roles assigned to the network itself
+	grantees: [{ entity: 'affiliate_network', path: 'network.id' }],
 	authenticate: authenticate('affiliate', ['bearer']),
 	prefixes: ['/affiliate']
 })
 ```
+
+**2. Assign roles.** `POST /admin/access/roles/:id/assignments` with `{ "assignments": [{ "grantee_type": "affiliate", "grantee_id": "aff_123" }] }` — or to the whole network at once with `grantee_type: 'affiliate_network'`.
 
 **3. Require policies on the affiliate routes**, the same way any other plugin does (see [Guarding your own API routes](#guarding-your-own-api-routes)):
 
@@ -777,7 +698,7 @@ requirePolicies({
 })
 ```
 
-Given an authenticated request whose `req.auth_context` reads `{ actor_type: 'affiliate', actor_id: 'aff_123' }`, the guard looks up `aff_123`'s `access_roles` and enforces the `affiliate_payout:read` policy correctly — covered by this plugin's own tests (`src/utils/__tests__/actor-resolvers.unit.spec.ts` registers and resolves a fake `affiliate` actor type this exact way). What populates `req.auth_context` in the first place for a request under `/affiliate/*` is exactly what `authenticate`/`prefixes` above is for — see the mechanics below.
+Given an authenticated request whose `req.auth_context` reads `{ actor_type: 'affiliate', actor_id: 'aff_123' }`, the guard resolves `aff_123`'s assignments (identity plus network) and enforces the `affiliate_payout:read` policy correctly — covered by this plugin's own tests (`src/utils/__tests__/actor-resolvers.unit.spec.ts` registers and resolves custom actor types this exact way). What populates `req.auth_context` in the first place for a request under `/affiliate/*` is exactly what `authenticate`/`prefixes` above is for — see the mechanics below.
 
 ### Why a custom prefix needs `authenticate`/`prefixes` at all
 
@@ -793,9 +714,11 @@ This is exactly why `registerActorResolver`'s `authenticate`/`prefixes` pair exi
 
 All endpoints are under `/admin` and require an authenticated admin session; the role/policy routes additionally require the policies noted.
 
-- `GET /admin/access/me/permissions` — the current user's granted `resource:operation` strings, sorted, with wildcards expanded. Returns `{ permissions, scoped }`: `permissions` lists only unrestricted grants (the pre-existing contract UI widgets read); `scoped` separately lists `{ resource, operation, scope }` entries the actor holds only within a scope — see [Scoping access to rows](#scoping-access-to-rows). (No policy required.)
+- `GET /admin/access/me/permissions` — the current user's granted `resource:operation` strings, sorted, with wildcards expanded. Returns `{ permissions, scoped, tenancy? }`: `permissions` lists only unrestricted grants (the pre-existing contract UI widgets read); `scoped` separately lists `{ resource, operation, scope }` entries the actor holds only within an actor-relative scope; `tenancy` (present only when non-empty) summarizes tenancy-pinned holdings per dimension as `{ type, ids, roles }`. (No policy required.)
 - `GET /access/me/permissions` — the same contract on the top-level namespace, reachable by every actor type opted into `accessNamespace` (see [The `/access` namespace](#the-access-namespace)). Portals and POS clients use this one; `/admin/*` cannot authenticate them.
-- `GET /admin/access/scopes` — the registered scope names per resource, from the `defineScope` registry, as `{ scopes: [{ resource, names }] }`. Backs the scope pickers in the role UI, so only enforceable scopes are ever offered. (Requires `access_role:read`.)
+- `GET /admin/access/scopes` — scope discovery for the pickers: `{ scopes: [{ resource, names }], tenancies: [{ type, resources }] }` from the `defineScope` and `defineTenancy` registries, so only enforceable entries are ever offered. (Requires `access_role:read`.)
+- `GET /admin/access/scopes/:type/options` — the pickable tenant values for a tenancy dimension, `{ type, options: [{ id, label }] }`, from the dimension's `options` config. `404` for a dimension with no options source. (Requires `access_role:read`.)
+- `GET|POST|DELETE /admin/access/roles/:id/assignments` — the generic assignment surface: list a role's assignments; create them (`{ assignments: [{ grantee_type, grantee_id, scope_type?, scope_id? }] }` — any grantee, actor or indirection entity, optionally tenant-pinned); remove them by id (`{ assignment_ids }`). Creation and removal validate the caller's delegation authority under each assignment's scope. (GET requires `access_role:read`; POST/DELETE `access_role:update`.)
 - `GET|POST /admin/access/roles`, `GET|POST|DELETE /admin/access/roles/:id`, `GET|POST .../:id/policies`, `GET|POST|DELETE .../:id/users` — manage roles, their policies, and their members (gated by `access_role:*` / `user:*` policies). `POST /admin/access/roles` accepts `parent_ids` and `policy_ids` alongside `name`, which is the only way to set role inheritance over HTTP.
 - `GET /admin/access/roles/assignable` — the roles the caller may actually assign, filtered by what they hold themselves.
 - `GET /admin/access/roles/:id/policies` returns `{ policies, inherited, ... }`. `policies` is this role's own grants; `inherited` is what it holds through its parents, each entry naming `inherited_from_role_id` / `inherited_from_role_name`. Inherited entries have no link id — detach them from the role they come from. Pass `?direct_only=true` to omit them.
@@ -809,16 +732,17 @@ The Roles and Policies settings pages and the user-detail widget use these endpo
 
 ## Data model
 
-The migrations create four tables:
+The migrations create five tables:
 
-| Table                | Purpose                                                                                              |
-| -------------------- | ---------------------------------------------------------------------------------------------------- |
-| `access_role`        | A named role (`id`, `name`, `description`, `metadata`)                                               |
-| `access_policy`      | A registered `resource:operation` policy (`key`, `resource`, `operation`, `name`, `description`)     |
-| `access_role_policy` | Join: which policies a role grants, and at what `scope` (nullable — `null` is an unrestricted grant) |
-| `access_role_parent` | Join: a role's parent role(s), for inheritance                                                       |
+| Table                    | Purpose                                                                                                                                     |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `access_role`            | A named role (`id`, `name`, `description`, `metadata`)                                                                                       |
+| `access_policy`          | A registered `resource:operation` policy (`key`, `resource`, `operation`, `name`, `description`)                                             |
+| `access_role_policy`     | Join: which policies a role grants, and at what `scope` (nullable — `null` is an unrestricted grant)                                         |
+| `access_role_parent`     | Join: a role's parent role(s), for inheritance                                                                                               |
+| `access_role_assignment` | Who holds a role: `(role_id, grantee_type, grantee_id)`, optionally pinned to a tenant via `(scope_type, scope_id)` — both set or both null |
 
-Users are linked to roles through a Medusa module link (managed by the framework), exposed as `user.access_roles`. The same link shape exists for other entities too — at least `customer`, `customer_group`, `api_key`, and `invite` (`customer.access_roles`, `customer_group.access_roles`, `api_key.access_roles`, `invite.access_roles`) — the built-in `customer` resolver reads the union of the customer's own link and every group it belongs to.
+Assignments replace the earlier per-entity module links (`user.access_roles` and kin). The migration copies existing link rows into unscoped assignments; the link tables are dropped by link-sync on the next `db:migrate` after upgrading. A `grantee_type` is a Query entity name — actor entities (`user`, `customer`, `api_key`, `invite`) or indirection entities reached through grantee paths (`customer_group`, `company`, …). Uniqueness spans `(role_id, grantee, scope)` with NULL scope treated as a value, so duplicate unscoped assignments cannot exist; a CHECK constraint rejects a half-set scope pair.
 
 ## Notes
 

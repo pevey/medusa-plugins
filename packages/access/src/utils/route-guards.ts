@@ -35,6 +35,13 @@ type RouteGuard = {
 	 * the request guard; this module only stores and matches it.
 	 */
 	assertsScope?: boolean
+	/**
+	 * Which row a mutating request targets: `param` names the matcher's path
+	 * param holding the `resource` row's id. Lets the guard perform the scope
+	 * assertion itself for routes whose handlers never call `assertScope`
+	 * (core's). Read by the request guard via {@link routeTargets}.
+	 */
+	target?: { resource: string; param: string }
 }
 
 declare global {
@@ -61,11 +68,30 @@ const ALL_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD']
  * case-sensitive guard would miss that and fail open — capitalisation alone
  * would bypass both the policy check and `sealNamespace`.
  */
-function toPattern(matcher: string): string {
+function toPattern(matcher: string, captureParams = false): string {
+	const seen = new Set<string>()
 	return normalizePath(matcher)
 		.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
-		.replace(/:[A-Za-z0-9_]+/g, '[^/]+')
+		.replace(/:([A-Za-z0-9_]+)/g, (_, name: string) => {
+			// Only the first occurrence of a param name captures — a duplicate
+			// named group is a RegExp syntax error, and `routeTargets` only ever
+			// reads the first anyway.
+			if (!captureParams || seen.has(name)) {
+				return '[^/]+'
+			}
+			seen.add(name)
+			return `(?<${paramGroupName(name)}>[^/]+)`
+		})
 		.replace(/\*/g, '.*')
+}
+
+/**
+ * RegExp group name for a matcher param. Prefixed because a group name must
+ * not start with a digit, and sanitized because params come from matcher
+ * strings this module does not author.
+ */
+function paramGroupName(param: string): string {
+	return `p_${param.replace(/[^A-Za-z0-9_]/g, '_')}`
 }
 
 /**
@@ -79,8 +105,10 @@ function toPattern(matcher: string): string {
  * not also exclude `pdf-export-log`.
  */
 function compileMatcher(matcher: string, exclude: string[] = []): RegExp {
+	// Lookaheads never capture: a param appearing in both an exclusion and the
+	// matcher would otherwise declare the same group name twice.
 	const lookaheads = exclude.map(path => `(?!${toPattern(path)}(?:/|$))`).join('')
-	return new RegExp(`^${lookaheads}${toPattern(matcher)}$`, 'i')
+	return new RegExp(`^${lookaheads}${toPattern(matcher, true)}$`, 'i')
 }
 
 /**
@@ -102,6 +130,7 @@ function registerGuard(input: {
 	policies: PermissionAction | PermissionAction[]
 	source: GuardSource
 	assertsScope?: boolean
+	target?: { resource: string; param: string }
 	exclude?: string[]
 }): void {
 	const methods = (Array.isArray(input.method) ? input.method : input.method ? [input.method] : ALL_METHODS).map(m => m.toUpperCase())
@@ -114,7 +143,8 @@ function registerGuard(input: {
 		methods,
 		policies,
 		source: input.source,
-		assertsScope: input.assertsScope
+		assertsScope: input.assertsScope,
+		target: input.target
 	})
 
 	// This is the only path that mutates the registry, so it is the one place the
@@ -137,6 +167,7 @@ export function requirePolicies(input: {
 	method?: string | string[]
 	policies: PermissionAction | PermissionAction[]
 	assertsScope?: boolean
+	target?: { resource: string; param: string }
 }): void {
 	registerGuard({ ...input, source: 'explicit' })
 }
@@ -150,9 +181,11 @@ export function requirePolicies(input: {
  * more than one Medusa version, so an entry matching no route in the installed
  * version is expected rather than rotted and must not be reported as drift.
  */
-export function registerCoreRoutePolicies(entries: { matcher: string; methods?: string[]; policies: PermissionAction[] }[]): void {
+export function registerCoreRoutePolicies(
+	entries: { matcher: string; methods?: string[]; policies: PermissionAction[]; target?: { resource: string; param: string } }[]
+): void {
 	for (const entry of entries) {
-		registerGuard({ matcher: entry.matcher, method: entry.methods, policies: entry.policies, source: 'core-map' })
+		registerGuard({ matcher: entry.matcher, method: entry.methods, policies: entry.policies, source: 'core-map', target: entry.target })
 	}
 }
 
@@ -324,9 +357,23 @@ export function isPathSealed(path: string): boolean {
 	return (global.AccessSealedNamespaces ?? []).some(prefix => matchesPrefixOnSegmentBoundary(candidate, prefix))
 }
 
-/** Every registered guard, for drift reporting. */
-export function listRouteGuards(): { matcher: string; methods: string[]; regex: RegExp; source: GuardSource }[] {
-	return (global.AccessRouteGuards ?? []).map(({ matcher, methods, regex, source }) => ({ matcher, methods, regex, source }))
+/** Every registered guard, for drift and closure reporting. */
+export function listRouteGuards(): {
+	matcher: string
+	methods: string[]
+	regex: RegExp
+	source: GuardSource
+	assertsScope?: boolean
+	target?: { resource: string; param: string }
+}[] {
+	return (global.AccessRouteGuards ?? []).map(({ matcher, methods, regex, source, assertsScope, target }) => ({
+		matcher,
+		methods,
+		regex,
+		source,
+		assertsScope,
+		target
+	}))
 }
 
 /**
@@ -533,4 +580,42 @@ export function routeAssertsScopes(path: string, method: string): boolean {
 		}
 	}
 	return false
+}
+
+/**
+ * The target rows declared by the guards matching `path`+`method`:
+ * `resource → id extracted from the path`. Lets the request guard perform the
+ * scope assertion on a mutating route's behalf.
+ *
+ * A resource two matched guards bind to DIFFERENT ids is dropped entirely —
+ * an ambiguous target cannot be asserted, and the caller's fail-closed default
+ * (deny the mutation) is strictly safer than asserting the wrong row.
+ */
+export function routeTargets(path: string, method: string): Map<string, string> {
+	const candidate = normalizePath(path)
+	const byResource = new Map<string, string | null>()
+
+	for (const guard of matchingGuards(candidate, method)) {
+		if (!guard.target) {
+			continue
+		}
+		const id = guard.regex.exec(candidate)?.groups?.[paramGroupName(guard.target.param)]
+		if (!id) {
+			continue
+		}
+		const existing = byResource.get(guard.target.resource)
+		if (existing === undefined) {
+			byResource.set(guard.target.resource, id)
+		} else if (existing !== id) {
+			byResource.set(guard.target.resource, null)
+		}
+	}
+
+	const targets = new Map<string, string>()
+	for (const [resource, id] of byResource) {
+		if (id !== null) {
+			targets.set(resource, id)
+		}
+	}
+	return targets
 }

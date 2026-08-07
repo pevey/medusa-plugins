@@ -1,16 +1,25 @@
 import { Context, FindConfig, InferEntityType, ModulesSdkTypes } from '@medusajs/framework/types'
 import { InjectManager, InjectTransactionManager, MedusaContext, MedusaError, MedusaService, Modules, promiseAll } from '@medusajs/framework/utils'
 import { Policy, WILDCARD } from '../../utils'
-import { reportDiscardedPolicies, reportRouteCoverage, reportUnregisteredGuardResources } from '../../utils/route-coverage'
+import {
+	reportDiscardedPolicies,
+	reportRouteCoverage,
+	reportScopedMutationClosure,
+	reportTenancyCoverage,
+	reportUnregisteredGuardResources
+} from '../../utils/route-coverage'
 import {
 	AccessRoleDTO,
+	CreateAccessRoleAssignmentDTO,
 	CreateAccessRoleParentDTO,
 	FilterableAccessRoleProps,
 	IAccessModuleService,
+	AccessRoleAssignmentDTO,
 	AccessRoleParentDTO,
+	UpdateAccessRoleAssignmentDTO,
 	UpdateAccessRoleParentDTO
 } from './types'
-import { AccessPolicy, AccessRole, AccessRoleParent, AccessRolePolicy } from './models'
+import { AccessPolicy, AccessRole, AccessRoleAssignment, AccessRoleParent, AccessRolePolicy } from './models'
 import { AccessRepository } from './repositories'
 import { BOOTSTRAP_SUPER_ADMIN_EVENT } from '../../workflows/access/workflows/bootstrap-super-admin'
 
@@ -27,6 +36,7 @@ export class AccessModuleService
 	extends MedusaService({
 		AccessRole,
 		AccessPolicy,
+		AccessRoleAssignment,
 		AccessRoleParent,
 		AccessRolePolicy
 	})
@@ -76,6 +86,12 @@ export class AccessModuleService
 			// join against the policy registry. Runs after syncRegisteredPolicies so
 			// the registry is fully populated.
 			reportUnregisteredGuardResources(logger)
+
+			// What tenancy-scoped actors can and cannot reach: the mutating core
+			// surface with no derivable row target, and coverage declared under
+			// names the interceptor can never narrow.
+			reportScopedMutationClosure(logger)
+			reportTenancyCoverage(logger)
 
 			try {
 				const eventBus = (this.container_ as any)[Modules.EVENT_BUS]
@@ -258,5 +274,81 @@ export class AccessModuleService
 		}
 
 		return await super.updateAccessRoleParents(data, sharedContext)
+	}
+
+	/**
+	 * `scope_type`/`scope_id` must be set together or not at all. The DB CHECK
+	 * constraint enforces the same; validating here keeps the error friendly
+	 * before it is constraint-shaped.
+	 */
+	private assertScopePair(scopeType: string | null | undefined, scopeId: string | null | undefined): void {
+		const hasType = (scopeType ?? null) !== null
+		const hasId = (scopeId ?? null) !== null
+
+		if (hasType !== hasId) {
+			throw new MedusaError(
+				MedusaError.Types.INVALID_DATA,
+				`Role assignment scope_type and scope_id must be provided together (scope_type: ${scopeType ?? 'null'}, scope_id: ${scopeId ?? 'null'})`
+			)
+		}
+	}
+
+	@InjectManager()
+	// @ts-expect-error
+	async createAccessRoleAssignments(
+		data: CreateAccessRoleAssignmentDTO | CreateAccessRoleAssignmentDTO[],
+		@MedusaContext() sharedContext: Context = {}
+	): Promise<AccessRoleAssignmentDTO | AccessRoleAssignmentDTO[]> {
+		const items = Array.isArray(data) ? data : [data]
+		for (const item of items) {
+			this.assertScopePair(item.scope_type, item.scope_id)
+		}
+
+		return await super.createAccessRoleAssignments(data as CreateAccessRoleAssignmentDTO[], sharedContext)
+	}
+
+	@InjectManager()
+	// @ts-expect-error
+	async updateAccessRoleAssignments(
+		data: UpdateAccessRoleAssignmentDTO | UpdateAccessRoleAssignmentDTO[],
+		@MedusaContext() sharedContext: Context = {}
+	): Promise<AccessRoleAssignmentDTO | AccessRoleAssignmentDTO[]> {
+		const items = Array.isArray(data) ? data : [data]
+
+		// A payload touching only one half of the scope pair is validated against
+		// the other half's current value, so a lone `scope_id` update cannot
+		// slip past the both-or-neither rule.
+		const halfTouched = items.filter(item => 'scope_type' in item !== 'scope_id' in item)
+		const current = new Map<string, AccessRoleAssignmentDTO>()
+		if (halfTouched.length > 0) {
+			const rows = await super.listAccessRoleAssignments({ id: halfTouched.map(item => item.id) }, {}, sharedContext)
+			for (const row of rows) {
+				current.set(row.id, row as AccessRoleAssignmentDTO)
+			}
+		}
+
+		for (const item of items) {
+			const touchesType = 'scope_type' in item
+			const touchesId = 'scope_id' in item
+
+			if (!touchesType && !touchesId) {
+				continue
+			}
+
+			if (touchesType && touchesId) {
+				this.assertScopePair(item.scope_type, item.scope_id)
+				continue
+			}
+
+			const row = current.get(item.id)
+			if (!row) {
+				// Unknown id — super's update throws the not-found error.
+				continue
+			}
+
+			this.assertScopePair(touchesType ? item.scope_type : row.scope_type, touchesId ? item.scope_id : row.scope_id)
+		}
+
+		return await super.updateAccessRoleAssignments(data as UpdateAccessRoleAssignmentDTO[], sharedContext)
 	}
 }

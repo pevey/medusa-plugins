@@ -14,6 +14,8 @@ type CoreRoutePolicy = {
 	matcher: string
 	methods?: string[]
 	policies: { resource: string; operation: string | string[] }[]
+	/** The row a mutating entry targets, for the guard-side scope assertion. */
+	target?: { resource: string; param: string }
 }
 
 export const coreRoutePolicies: CoreRoutePolicy[] = [
@@ -54,7 +56,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'api_key',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'api_key',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/api-keys/:id',
@@ -64,7 +70,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'api_key',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'api_key',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/api-keys/:id/revoke',
@@ -74,7 +84,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'api_key',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'api_key',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/api-keys/:id/sales-channels',
@@ -84,7 +98,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'api_key',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'api_key',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/campaigns/*',
@@ -123,7 +141,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'campaign',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'campaign',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/campaigns/:id/promotions',
@@ -133,7 +155,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'campaign',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'campaign',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/campaigns/:id',
@@ -143,7 +169,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'campaign',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'campaign',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/*',
@@ -182,7 +212,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/claim-items/:action_id',
@@ -192,7 +226,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/claim-items/:action_id',
@@ -202,7 +240,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/inbound/items',
@@ -212,7 +254,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/inbound/items/:action_id',
@@ -222,7 +268,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/inbound/items/:action_id',
@@ -232,7 +282,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/inbound/shipping-method',
@@ -242,7 +296,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/inbound/shipping-method/:action_id',
@@ -252,7 +310,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/inbound/shipping-method/:action_id',
@@ -262,7 +324,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/outbound/items',
@@ -272,7 +338,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/outbound/items/:action_id',
@@ -286,7 +356,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/outbound/items/:action_id',
@@ -296,7 +370,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/outbound/shipping-method',
@@ -306,7 +384,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/outbound/shipping-method/:action_id',
@@ -316,7 +398,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/outbound/shipping-method/:action_id',
@@ -326,7 +412,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/request',
@@ -336,7 +426,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/request',
@@ -346,7 +440,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id',
@@ -356,7 +454,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/claims/:id/cancel',
@@ -366,7 +468,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_claim',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_claim',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/collections/*',
@@ -405,7 +511,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_collection',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'product_collection',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/collections/:id',
@@ -415,7 +525,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_collection',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'product_collection',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/collections/:id/products',
@@ -425,7 +539,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_collection',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'product_collection',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/currencies/*',
@@ -483,7 +601,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'customer_group',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'customer_group',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/customer-groups/:id/customers',
@@ -493,7 +615,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'customer_group',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'customer_group',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/customer-groups/:id',
@@ -503,7 +629,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'customer_group',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'customer_group',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/customers/*',
@@ -542,7 +672,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'customer',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'customer',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/customers/:id',
@@ -552,7 +686,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'customer',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'customer',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/customers/:id/addresses',
@@ -562,7 +700,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'customer_address',
 				operation: 'create'
 			}
-		]
+		],
+		target: {
+			resource: 'customer_address',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/customers/:id/addresses/:address_id',
@@ -582,7 +724,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'customer_address',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'customer_address',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/customers/:id/addresses/:address_id',
@@ -592,7 +738,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'customer_address',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'customer_address',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/customers/:id/addresses',
@@ -612,7 +762,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'customer',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'customer',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/draft-orders/*',
@@ -651,7 +805,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/draft-orders/:id/convert-to-order',
@@ -661,7 +819,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/draft-orders/:id/edit/items',
@@ -671,7 +833,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/draft-orders/:id/edit/items/item/:item_id',
@@ -681,7 +847,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/draft-orders/:id/edit/items/:action_id',
@@ -691,7 +861,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/draft-orders/:id/edit/promotions',
@@ -701,7 +875,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/draft-orders/:id/edit/promotions',
@@ -711,7 +889,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/draft-orders/:id/edit/shipping-methods',
@@ -721,7 +903,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/draft-orders/:id/edit/shipping-methods/method/:method_id',
@@ -731,7 +917,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/draft-orders/:id/edit/shipping-methods/:action_id',
@@ -741,7 +931,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/*',
@@ -780,7 +974,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/inbound/items/:action_id',
@@ -790,7 +988,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/inbound/items/:action_id',
@@ -800,7 +1002,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/inbound/shipping-method',
@@ -810,7 +1016,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/inbound/shipping-method/:action_id',
@@ -820,7 +1030,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/inbound/shipping-method/:action_id',
@@ -830,7 +1044,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/outbound/items',
@@ -840,7 +1058,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/outbound/items/:action_id',
@@ -850,7 +1072,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/outbound/items/:action_id',
@@ -860,7 +1086,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/outbound/shipping-method',
@@ -870,7 +1100,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/outbound/shipping-method/:action_id',
@@ -880,7 +1114,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/outbound/shipping-method/:action_id',
@@ -890,7 +1128,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/request',
@@ -900,7 +1142,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/request',
@@ -910,7 +1156,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id',
@@ -920,7 +1170,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/exchanges/:id/cancel',
@@ -930,7 +1184,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_exchange',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_exchange',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/fulfillment-providers/*',
@@ -1005,7 +1263,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'fulfillment_set',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'fulfillment_set',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/fulfillment-sets/:id/service-zones/:zone_id',
@@ -1048,7 +1310,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'fulfillment',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'fulfillment',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/fulfillments',
@@ -1068,7 +1334,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'fulfillment',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'fulfillment',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/inventory-items/*',
@@ -1136,7 +1406,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'inventory_item',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'inventory_item',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/inventory-items/:id/location-levels',
@@ -1146,7 +1420,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'inventory_level',
 				operation: 'create'
 			}
-		]
+		],
+		target: {
+			resource: 'inventory_level',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/inventory-items/:id/location-levels/batch',
@@ -1156,7 +1434,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'inventory_level',
 				operation: '*'
 			}
-		]
+		],
+		target: {
+			resource: 'inventory_level',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/inventory-items/:id/location-levels/:location_id',
@@ -1166,7 +1448,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'inventory_level',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'inventory_level',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/inventory-items/:id/location-levels/:location_id',
@@ -1176,7 +1462,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'inventory_level',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'inventory_level',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/invites',
@@ -1216,7 +1506,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'invite',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'invite',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/invites/:id/resend',
@@ -1226,7 +1520,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'invite',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'invite',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/locales/*',
@@ -1283,7 +1581,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_change',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_change',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/order-edits/*',
@@ -1312,7 +1614,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_change',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_change',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/order-edits/:id/items/:action_id',
@@ -1322,7 +1628,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_change',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_change',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/order-edits/:id/items/item/:item_id',
@@ -1332,7 +1642,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_change',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_change',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/order-edits/:id/items/:action_id',
@@ -1342,7 +1656,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_change',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'order_change',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/order-edits/:id/shipping-method',
@@ -1352,7 +1670,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_change',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_change',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/order-edits/:id/shipping-method/:action_id',
@@ -1362,7 +1684,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_change',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_change',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/order-edits/:id/shipping-method/:action_id',
@@ -1372,7 +1698,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_change',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_change',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/order-edits/:id/confirm',
@@ -1382,7 +1712,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_change',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_change',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/order-edits/:id/request',
@@ -1392,7 +1726,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_change',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order_change',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/order-edits/:id',
@@ -1402,7 +1740,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order_change',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'order_change',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/*',
@@ -1441,7 +1783,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/archive',
@@ -1451,7 +1797,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/cancel',
@@ -1461,7 +1811,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/complete',
@@ -1471,7 +1825,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/payment-sessions/authorize',
@@ -1481,7 +1839,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/credit-lines',
@@ -1491,7 +1853,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'credit_line',
 				operation: 'create'
 			}
-		]
+		],
+		target: {
+			resource: 'credit_line',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/fulfillments',
@@ -1501,7 +1867,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'fulfillment',
 				operation: 'create'
 			}
-		]
+		],
+		target: {
+			resource: 'fulfillment',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/fulfillments/:fulfillment_id/cancel',
@@ -1511,7 +1881,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'fulfillment',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'fulfillment',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/fulfillments/:fulfillment_id/shipments',
@@ -1521,7 +1895,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'fulfillment',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'fulfillment',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/fulfillments/:fulfillment_id/mark-as-delivered',
@@ -1531,7 +1909,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'fulfillment',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'fulfillment',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/transfer',
@@ -1541,7 +1923,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/transfer/guest',
@@ -1551,7 +1937,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/orders/:id/transfer/cancel',
@@ -1561,7 +1951,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'order',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'order',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/payment-collections/*',
@@ -1590,7 +1984,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'payment_collection',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'payment_collection',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/payment-collections/:id/payment-sessions',
@@ -1600,7 +1998,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'payment_collection',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'payment_collection',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/payment-collections/:id',
@@ -1610,7 +2012,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'payment_collection',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'payment_collection',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/payments/*',
@@ -1639,7 +2045,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'capture',
 				operation: 'create'
 			}
-		]
+		],
+		target: {
+			resource: 'capture',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/payments/:id/refund',
@@ -1649,7 +2059,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'refund',
 				operation: 'create'
 			}
-		]
+		],
+		target: {
+			resource: 'refund',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/price-lists/*',
@@ -1697,7 +2111,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'price_list',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'price_list',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/price-lists/:id/products',
@@ -1707,7 +2125,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'price_list',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'price_list',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/price-lists/:id/prices/batch',
@@ -1717,7 +2139,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'price',
 				operation: '*'
 			}
-		]
+		],
+		target: {
+			resource: 'price',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/price-preferences/*',
@@ -1756,7 +2182,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'price_preference',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'price_preference',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/price-preferences/:id',
@@ -1766,7 +2196,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'price_preference',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'price_preference',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/product-categories/*',
@@ -1805,7 +2239,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_category',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'product_category',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/product-categories/:id',
@@ -1815,7 +2253,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_category',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'product_category',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/product-categories/:id/products',
@@ -1825,7 +2267,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_category',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'product_category',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/product-options/*',
@@ -1854,7 +2300,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_option',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'product_option',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/product-options/:id',
@@ -1864,7 +2314,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_option',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'product_option',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/product-options/:id/values',
@@ -1955,7 +2409,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_tag',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'product_tag',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/product-tags/:id',
@@ -1965,7 +2423,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_tag',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'product_tag',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/product-types/*',
@@ -2004,7 +2466,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_type',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'product_type',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/product-types/:id',
@@ -2014,7 +2480,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_type',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'product_type',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/product-variants/*',
@@ -2117,7 +2587,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'product',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/products/:id/variants',
@@ -2127,7 +2601,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_variant',
 				operation: 'create'
 			}
-		]
+		],
+		target: {
+			resource: 'product_variant',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/products/:id/variants/batch',
@@ -2137,7 +2615,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_variant',
 				operation: ['create', 'update', 'delete']
 			}
-		]
+		],
+		target: {
+			resource: 'product_variant',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/products/:id/variants/:variant_id',
@@ -2147,7 +2629,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_variant',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'product_variant',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/products/:id/options/batch',
@@ -2157,7 +2643,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'product_option',
 				operation: ['delete', 'create', 'update']
 			}
-		]
+		],
+		target: {
+			resource: 'product_option',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/products/:id/variants/inventory-items/batch',
@@ -2167,7 +2657,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'inventory_item',
 				operation: ['create', 'update', 'delete']
 			}
-		]
+		],
+		target: {
+			resource: 'inventory_item',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/products/:id/variants/:variant_id/inventory-items',
@@ -2177,7 +2671,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'inventory_item',
 				operation: 'create'
 			}
-		]
+		],
+		target: {
+			resource: 'inventory_item',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/products/:id/variants/:variant_id/inventory-items/:inventory_item_id',
@@ -2187,7 +2685,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'inventory_item',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'inventory_item',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/products/:id/variants/:variant_id/inventory-items/:inventory_item_id',
@@ -2197,7 +2699,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'inventory_item',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'inventory_item',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/promotions/*',
@@ -2236,7 +2742,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'promotion',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'promotion',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/promotions/:id',
@@ -2246,7 +2756,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'promotion',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'promotion',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/promotions/:id/rules/batch',
@@ -2256,7 +2770,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'promotion',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'promotion',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/promotions/:id/target-rules/batch',
@@ -2266,7 +2784,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'promotion',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'promotion',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/promotions/:id/buy-rules/batch',
@@ -2276,7 +2798,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'promotion',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'promotion',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/rbac/roles',
@@ -2316,7 +2842,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'rbac_role',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'rbac_role',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/rbac/roles/:id/policies',
@@ -2336,7 +2866,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'rbac_role',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'rbac_role',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/rbac/roles/:id/policies/:policy_id',
@@ -2346,7 +2880,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'rbac_role',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'rbac_role',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/rbac/roles/:id/users',
@@ -2394,7 +2932,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'rbac_role',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'rbac_role',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/rbac/policies',
@@ -2458,7 +3000,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'rbac_policy',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'rbac_policy',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/rbac/policies/:id',
@@ -2468,7 +3014,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'rbac_policy',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'rbac_policy',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/refund-reasons/*',
@@ -2507,7 +3057,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'refund_reason',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'refund_reason',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/refund-reasons/:id',
@@ -2517,7 +3071,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'refund_reason',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'refund_reason',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/regions/*',
@@ -2556,7 +3114,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'region',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'region',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/regions/:id',
@@ -2566,7 +3128,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'region',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'region',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/reservations/*',
@@ -2605,7 +3171,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'reservation_item',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'reservation_item',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/reservations/:id',
@@ -2615,7 +3185,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'reservation_item',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'reservation_item',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/return-reasons/*',
@@ -2654,7 +3228,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return_reason',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return_reason',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/return-reasons/:id',
@@ -2664,7 +3242,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return_reason',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'return_reason',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/*',
@@ -2693,7 +3275,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns',
@@ -2713,7 +3299,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/request-items/:action_id',
@@ -2723,7 +3313,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/request-items/:action_id',
@@ -2733,7 +3327,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/shipping-method',
@@ -2743,7 +3341,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/shipping-method/:action_id',
@@ -2753,7 +3355,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/shipping-method/:action_id',
@@ -2763,7 +3369,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/request',
@@ -2773,7 +3383,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/cancel',
@@ -2783,7 +3397,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/request',
@@ -2793,7 +3411,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/receive',
@@ -2803,7 +3425,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/receive',
@@ -2813,7 +3439,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/receive/confirm',
@@ -2823,7 +3453,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/receive-items',
@@ -2833,7 +3467,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/receive-items/:action_id',
@@ -2843,7 +3481,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/receive-items/:action_id',
@@ -2853,7 +3495,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/dismiss-items',
@@ -2863,7 +3509,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/dismiss-items/:action_id',
@@ -2873,7 +3523,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/returns/:id/dismiss-items/:action_id',
@@ -2883,7 +3537,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'return',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'return',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/sales-channels/*',
@@ -2922,7 +3580,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'sales_channel',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'sales_channel',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/sales-channels/:id',
@@ -2932,7 +3594,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'sales_channel',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'sales_channel',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/sales-channels/:id/products',
@@ -2942,7 +3608,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'sales_channel',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'sales_channel',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/shipping-option-types/*',
@@ -2981,7 +3651,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'shipping_option_type',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'shipping_option_type',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/shipping-option-types/:id',
@@ -2991,7 +3665,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'shipping_option_type',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'shipping_option_type',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/shipping-options/*',
@@ -3030,7 +3708,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'shipping_option',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'shipping_option',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/shipping-options/:id',
@@ -3040,7 +3722,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'shipping_option',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'shipping_option',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/shipping-options/:id/rules/batch',
@@ -3050,7 +3736,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'shipping_option',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'shipping_option',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/shipping-profiles/*',
@@ -3089,7 +3779,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'shipping_profile',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'shipping_profile',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/shipping-profiles/:id',
@@ -3099,7 +3793,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'shipping_profile',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'shipping_profile',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/stock-locations/*',
@@ -3138,7 +3836,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'stock_location',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'stock_location',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/stock-locations/:id/fulfillment-sets',
@@ -3148,7 +3850,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'stock_location',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'stock_location',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/stock-locations/:id/sales-channels',
@@ -3158,7 +3864,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'stock_location',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'stock_location',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/stock-locations/:id/fulfillment-providers',
@@ -3168,7 +3878,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'stock_location',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'stock_location',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/stock-locations/:id',
@@ -3178,7 +3892,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'stock_location',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'stock_location',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/stores/*',
@@ -3207,7 +3925,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'store',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'store',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/tax-providers/*',
@@ -3255,7 +3977,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'tax_rate',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'tax_rate',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/tax-rates',
@@ -3275,7 +4001,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'tax_rate',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'tax_rate',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/tax-rates/:id/rules/:rule_id',
@@ -3285,7 +4015,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'tax_rate',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'tax_rate',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/tax-regions/*',
@@ -3314,7 +4048,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'tax_region',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'tax_region',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/tax-regions',
@@ -3334,7 +4072,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'tax_region',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'tax_region',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/translations/*',
@@ -3430,7 +4172,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'file',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'file',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/uploads/presigned-urls',
@@ -3470,7 +4216,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'user',
 				operation: 'update'
 			}
-		]
+		],
+		target: {
+			resource: 'user',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/users/:id',
@@ -3480,7 +4230,11 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 				resource: 'user',
 				operation: 'delete'
 			}
-		]
+		],
+		target: {
+			resource: 'user',
+			param: 'id'
+		}
 	},
 	{
 		matcher: '/admin/users/:id/roles',

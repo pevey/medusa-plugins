@@ -121,3 +121,40 @@ export type AdminRemoveRoleUsersType = z.infer<typeof AdminRemoveRoleUsers>
 export const AdminRemoveRoleUsers = z.object({
 	users: z.array(z.string().min(1)).min(1)
 })
+
+export type AdminGetRoleAssignmentsParamsType = z.infer<typeof AdminGetRoleAssignmentsParams>
+export const AdminGetRoleAssignmentsParams = createFindParams({
+	limit: 50,
+	offset: 0
+}).merge(
+	z.object({
+		grantee_type: z.union([z.string(), z.array(z.string())]).optional(),
+		grantee_id: z.union([z.string(), z.array(z.string())]).optional(),
+		scope_type: z.union([z.string(), z.array(z.string())]).optional(),
+		scope_id: z.union([z.string(), z.array(z.string())]).optional()
+	})
+)
+
+export type AdminCreateRoleAssignmentsType = z.infer<typeof AdminCreateRoleAssignments>
+export const AdminCreateRoleAssignments = z.object({
+	assignments: z
+		.array(
+			z
+				.object({
+					grantee_type: z.string().min(1),
+					grantee_id: z.string().min(1),
+					scope_type: z.string().min(1).optional(),
+					scope_id: z.string().min(1).optional()
+				})
+				.strict()
+				.refine(assignment => (assignment.scope_type === undefined) === (assignment.scope_id === undefined), {
+					message: 'scope_type and scope_id must be provided together'
+				})
+		)
+		.min(1)
+})
+
+export type AdminRemoveRoleAssignmentsType = z.infer<typeof AdminRemoveRoleAssignments>
+export const AdminRemoveRoleAssignments = z.object({
+	assignment_ids: z.array(z.string().min(1)).min(1)
+})

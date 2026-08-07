@@ -6,20 +6,21 @@ export const getUsersToBootstrapStepId = 'get-users-to-bootstrap-access'
 /**
  * Determines which users should be granted the seeded super-admin role on first
  * load. Returns an empty list (skip) when the store has already been bootstrapped
- * (any user↔access_role link exists) or when the super-admin role is missing.
+ * (any role assignment exists — including rows the link-table migration copied)
+ * or when the super-admin role is missing.
  */
 export const getUsersToBootstrapStep = createStep(
 	getUsersToBootstrapStepId,
 	async (_input: unknown, { container }): Promise<StepResponse<{ userIds: string[] }>> => {
 		const query = container.resolve(ContainerRegistrationKeys.QUERY)
 
-		// Already bootstrapped? Any user↔access_role link means someone has a role.
-		const { data: existingLinks } = await query.graph({
-			entity: 'user_access_role',
+		// Already bootstrapped? Any assignment means someone has a role.
+		const { data: existingAssignments } = await query.graph({
+			entity: 'access_role_assignment',
 			fields: ['id'],
 			pagination: { take: 1 }
 		})
-		if (existingLinks?.length) {
+		if (existingAssignments?.length) {
 			return new StepResponse({ userIds: [] })
 		}
 

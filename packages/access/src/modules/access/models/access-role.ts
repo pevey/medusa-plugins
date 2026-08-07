@@ -1,4 +1,5 @@
 import { model } from '@medusajs/framework/utils'
+import AccessRoleAssignment from './access-role-assignment'
 import AccessRoleParent from './access-role-parent'
 import AccessRolePolicy from './access-role-policy'
 
@@ -9,7 +10,8 @@ const AccessRole = model
 		description: model.text().nullable(),
 		metadata: model.json().nullable(),
 		policies: model.hasMany(() => AccessRolePolicy, { mappedBy: 'role' }),
-		parents: model.hasMany(() => AccessRoleParent, { mappedBy: 'role' })
+		parents: model.hasMany(() => AccessRoleParent, { mappedBy: 'role' }),
+		assignments: model.hasMany(() => AccessRoleAssignment, { mappedBy: 'role' })
 	})
 	.indexes([{ on: ['name'], unique: true, where: 'deleted_at IS NULL' }])
 

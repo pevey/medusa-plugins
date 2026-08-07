@@ -15,5 +15,16 @@ export const adminAccessScopeRoutesMiddlewares: AccessMiddlewareRoute[] = [
 				operation: PolicyOperation.read
 			}
 		]
+	},
+	{
+		method: ['GET'],
+		matcher: '/admin/access/scopes/:type/options',
+		middlewares: [],
+		accessPolicies: [
+			{
+				resource: 'access_role',
+				operation: PolicyOperation.read
+			}
+		]
 	}
 ]
