@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-veeqo",
-	"version": "0.3.2",
+	"version": "0.3.3",
 	"description": "Veeqo integration plugin for Medusa v2",
 	"author": "Lacey Pevey",
 	"repository": {
