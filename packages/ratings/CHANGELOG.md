@@ -1,4 +1,4 @@
-## 1.0.0
+## 0.3.1
 
 - Fix a11y issues with create modal and edit drawer
 - Updated medusa packages to 2.18.0

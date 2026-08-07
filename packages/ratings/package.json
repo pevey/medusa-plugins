@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-ratings",
-	"version": "1.0.0",
+	"version": "0.3.1",
 	"description": "Product review and rating plugin for Medusa v2 with moderation workflow",
 	"author": "Lacey Pevey",
 	"repository": {
