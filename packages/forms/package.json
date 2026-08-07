@@ -3,7 +3,6 @@
 	"version": "0.2.4",
 	"description": "Form builder and submission management plugin for Medusa v2",
 	"author": "Lacey Pevey",
-	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/pevey/medusa-plugins.git"
