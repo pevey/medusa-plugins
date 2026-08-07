@@ -3,7 +3,6 @@
 	"version": "0.3.2",
 	"description": "Veeqo integration plugin for Medusa v2",
 	"author": "Lacey Pevey",
-	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/pevey/medusa-plugins.git"

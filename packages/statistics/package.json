@@ -3,7 +3,6 @@
 	"version": "0.2.4",
 	"description": "Dashboard statistics plugin for Medusa v2 with daily aggregation and customizable widgets",
 	"author": "Lacey Pevey",
-	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/pevey/medusa-plugins.git"

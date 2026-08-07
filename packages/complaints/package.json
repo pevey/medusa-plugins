@@ -3,7 +3,6 @@
 	"version": "1.1.0",
 	"description": "Complaint logger plugin for Medusa v2",
 	"author": "Lacey Pevey",
-	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/pevey/medusa-plugins.git"

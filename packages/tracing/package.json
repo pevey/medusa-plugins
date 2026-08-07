@@ -3,7 +3,6 @@
 	"version": "1.0.0",
 	"description": "Inventory tracing plugin for Medusa v2 with stock lots and serial numbers",
 	"author": "Lacey Pevey",
-	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/pevey/medusa-plugins.git"

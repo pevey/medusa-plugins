@@ -3,7 +3,6 @@
 	"version": "0.1.4",
 	"description": "Affiliate promotion code management and per-order attribution for Medusa v2.",
 	"author": "Lacey Pevey",
-	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/pevey/medusa-plugins.git"
