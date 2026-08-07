@@ -1,6 +1,6 @@
 {
 	"name": "medusa-plugin-affiliates",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"description": "Affiliate promotion code management and per-order attribution for Medusa v2.",
 	"author": "Lacey Pevey",
 	"repository": {

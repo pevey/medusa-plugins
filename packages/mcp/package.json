@@ -1,5 +1,6 @@
 {
 	"name": "medusa-plugin-mcp",
+	"private": true,
 	"version": "0.4.0",
 	"description": "MCP server and LLM chat plugin for Medusa v2",
 	"author": "Lacey Pevey",

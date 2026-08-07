@@ -1,9 +1,6 @@
-## 1.0.1
+## 0.2.6
 
 - Fix relationship direction display in admin detail page.
-
-## 1.0.0
-
 - Fix a11y issues with create modal and edit drawer
 - Add option to prerender markdown format content items as html by appending the query param ?render-html
 - Fix major admin UI bug introduced in 0.2.2 that caused posting from the create-content-item-modal to fail because it was sending a redundant field that caused validation to reject

@@ -1,5 +1,6 @@
 {
 	"name": "medusa-plugin-barcodes",
+	"private": true,
 	"version": "0.2.2",
 	"description": "Barcode generation and management plugin for Medusa v2",
 	"author": "Lacey Pevey",

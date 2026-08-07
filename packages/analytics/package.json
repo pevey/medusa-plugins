@@ -1,5 +1,6 @@
 {
 	"name": "medusa-plugin-analytics",
+	"private": true,
 	"version": "0.3.2",
 	"description": "Self-hosted analytics plugin for Medusa v2",
 	"author": "Lacey Pevey",
