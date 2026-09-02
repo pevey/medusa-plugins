@@ -22,7 +22,12 @@ import type { AdminGetReviewsType } from '../../../api/validators'
 import { AdminReview, ReviewStatus } from '../../types'
 import { useReviewsList, useApproveReviews, useRejectReviews, useDeleteReviews, useFeatureReviews } from '../../hooks/reviews'
 
-export const config = defineRouteConfig({ label: 'Reviews', icon: Star, rank: 10 })
+export const config = defineRouteConfig({
+	label: 'Reviews',
+	icon: Star,
+	nested: '/products',
+	rank: 10
+})
 export const handle = { breadcrumb: () => 'Reviews' }
 
 const STATUS_COLORS: Record<ReviewStatus, 'blue' | 'green' | 'red'> = {

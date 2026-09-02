@@ -32,7 +32,7 @@
 
 import fs from 'fs/promises'
 import { medusaIntegrationTestRunner } from '@medusajs/test-utils'
-import { ContainerRegistrationKeys, Modules } from '@medusajs/framework/utils'
+import { Modules } from '@medusajs/framework/utils'
 import { createUserAccountWorkflow } from '@medusajs/medusa/core-flows'
 import { ComplaintService } from '../../src/modules/complaint/service'
 import {
@@ -100,11 +100,8 @@ medusaIntegrationTestRunner({
 			// actors on a `guardResource` prefix), not re-proven per consumer. Do not
 			// add a denial case here — complaints stays an unscoped, access-aware
 			// consumer and nothing more.
-			const link = container.resolve(ContainerRegistrationKeys.LINK)
-			await (link as any).create({
-				[Modules.USER]: { user_id: user.id },
-				access: { access_role_id: 'acrl_super_admin' }
-			})
+			const accessService: any = container.resolve('access')
+			await accessService.createAccessRoleAssignments({ role_id: 'acrl_super_admin', grantee_type: 'user', grantee_id: user.id })
 
 			const loginRes = await api.post('/auth/user/emailpass', {
 				email: 'complaint-test@example.com',

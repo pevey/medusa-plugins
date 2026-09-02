@@ -65,8 +65,24 @@
 					"link": "/medusa-plugin-access/api/operations/postadminaccessrolesbyidpolicies/"
 				},
 				{
+					"label": "Update Policy",
+					"link": "/medusa-plugin-access/api/operations/postadminaccessrolesbyidpoliciesbypolicy_id/"
+				},
+				{
 					"label": "Delete Policy",
 					"link": "/medusa-plugin-access/api/operations/deleteadminaccessrolesbyidpoliciesbypolicy_id/"
+				},
+				{
+					"label": "List Assignments",
+					"link": "/medusa-plugin-access/api/operations/getadminaccessrolesbyidassignments/"
+				},
+				{
+					"label": "Create Assignment",
+					"link": "/medusa-plugin-access/api/operations/postadminaccessrolesbyidassignments/"
+				},
+				{
+					"label": "Batch Delete Assignments",
+					"link": "/medusa-plugin-access/api/operations/deleteadminaccessrolesbyidassignments/"
 				},
 				{
 					"label": "List Users",
@@ -79,6 +95,14 @@
 				{
 					"label": "Batch Delete Users",
 					"link": "/medusa-plugin-access/api/operations/deleteadminaccessrolesbyidusers/"
+				},
+				{
+					"label": "List Scopes",
+					"link": "/medusa-plugin-access/api/operations/getadminaccessscopes/"
+				},
+				{
+					"label": "List Options",
+					"link": "/medusa-plugin-access/api/operations/getadminaccessscopesbytypeoptions/"
 				},
 				{
 					"label": "List Roles",

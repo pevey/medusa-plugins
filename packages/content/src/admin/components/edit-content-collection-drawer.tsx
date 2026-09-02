@@ -22,7 +22,7 @@ const schema = zod.object({
 		.string()
 		.min(1, 'Slug is required')
 		.regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, hyphens only'),
-	prefix: zod.string().optional().default('')
+	prefix: zod.string()
 })
 type FormData = zod.infer<typeof schema>
 

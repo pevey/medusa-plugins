@@ -13,10 +13,10 @@
 		"start": "medusa start"
 	},
 	"dependencies": {
-		"@medusajs/admin-sdk": "2.18.0",
-		"@medusajs/cli": "2.18.0",
-		"@medusajs/framework": "2.18.0",
-		"@medusajs/medusa": "2.18.0",
+		"@medusajs/admin-sdk": "2.20.0",
+		"@medusajs/cli": "2.20.0",
+		"@medusajs/framework": "2.20.0",
+		"@medusajs/medusa": "2.20.0",
 		"medusa-plugin-access": "workspace:*",
 		"medusa-plugin-affiliates": "workspace:*",
 		"medusa-plugin-analytics": "workspace:*",

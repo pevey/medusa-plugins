@@ -7,7 +7,7 @@ const PAGE = 200
 
 export const rebuildAllSearchDocumentsStep = createStep('rebuild-all-search-documents', async (_, { container }) => {
 	const query = container.resolve(ContainerRegistrationKeys.QUERY)
-	const search = container.resolve('search') as SearchModuleService
+	const search = container.resolve<SearchModuleService>('search')
 	const mod = search.isTranslationsDisabled() ? null : resolveTranslationModule(container)
 	const counts: Record<string, number> = {}
 

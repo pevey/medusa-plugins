@@ -9,7 +9,7 @@ export default async function searchSeedHandler({ container }: SubscriberArgs<Re
 	// Re-check emptiness here — with multiple worker instances, more than one loader
 	// may have emitted the event. First one wins; the rest see rows and no-op.
 	try {
-		const search = container.resolve(SEARCH_MODULE) as SearchModuleService
+		const search = container.resolve<SearchModuleService>(SEARCH_MODULE)
 		const existing = await search.listSearchDocuments({}, { take: 1 })
 		if (existing.length > 0) return
 	} catch (error) {

@@ -6,7 +6,7 @@ import { resolveTranslationModule } from '../../../modules/search/lib/translatio
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
 	const { q, limit, locale } = req.validatedQuery as StoreSearchQuery
 	const channelIds = (req as any).publishable_key_context?.sales_channel_ids ?? []
-	const search = req.scope.resolve('search') as SearchModuleService
+	const search = req.scope.resolve<SearchModuleService>('search')
 
 	// The Translation module is only resolvable from the app/request container, not the search
 	// module's own container, so the localized-vs-base decision has to be made here. Non-translated

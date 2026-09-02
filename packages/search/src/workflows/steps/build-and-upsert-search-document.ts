@@ -7,7 +7,7 @@ type Input = { type: string; id: string }
 
 export const buildAndUpsertSearchDocumentStep = createStep('build-and-upsert-search-document', async ({ type, id }: Input, { container }) => {
 	const query = container.resolve(ContainerRegistrationKeys.QUERY)
-	const search = container.resolve('search') as SearchModuleService
+	const search = container.resolve<SearchModuleService>('search')
 
 	const source = search.getSource(type)
 	if (!source) {

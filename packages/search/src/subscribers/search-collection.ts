@@ -4,7 +4,7 @@ import deleteSearchDocumentWorkflow from '../workflows/delete-search-document'
 import type SearchModuleService from '../modules/search/service'
 
 export default async function searchCollectionHandler({ event: { name: eventName, data }, container }: SubscriberArgs<{ id: string }>) {
-	const search = container.resolve('search') as SearchModuleService
+	const search = container.resolve<SearchModuleService>('search')
 	// Handler-gated: no-op unless the collection source is enabled via plugin options
 	if (!search.isSourceEnabled('collection')) return
 

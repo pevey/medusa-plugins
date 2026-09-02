@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Access API
-  version: 0.1.2
+  version: 0.2.0
   description: Access management for Medusa v2.
 servers:
   - url: http://localhost:9000
@@ -598,12 +598,14 @@ paths:
       tags:
         - Admin
       parameters:
-        - name: policies
+        - name: direct_only
           in: query
           required: false
           schema:
-            type: array
-            items: *a5
+            type: string
+            enum:
+              - "true"
+              - "false"
         - name: id
           in: path
           required: true
@@ -641,6 +643,42 @@ paths:
               schema:
                 type: object
   /admin/access/roles/{id}/policies/{policy_id}:
+    post:
+      operationId: postAdminAccessRolesByidPoliciesBypolicy_id
+      summary: Update Policy
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: policy_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scope:
+                  type: string
+                  minLength: 1
+                  nullable: true
+              required:
+                - scope
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
     delete:
       operationId: deleteAdminAccessRolesByidPoliciesBypolicy_id
       summary: Delete Policy
@@ -657,6 +695,155 @@ paths:
           required: true
           schema:
             type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  object:
+                    type: string
+                  deleted:
+                    type: boolean
+  /admin/access/roles/{id}/assignments:
+    get:
+      operationId: getAdminAccessRolesByidAssignments
+      summary: List Assignments
+      tags:
+        - Admin
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: grantee_type
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: grantee_id
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: scope_type
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: scope_id
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      operationId: postAdminAccessRolesByidAssignments
+      summary: Create Assignment
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assignments:
+                  type: string
+                  minLength: 1
+                grantee_id:
+                  type: string
+                  minLength: 1
+                scope_type:
+                  type: string
+                  minLength: 1
+                scope_id:
+                  type: string
+                  minLength: 1
+              required:
+                - assignments
+                - grantee_id
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      operationId: deleteAdminAccessRolesByidAssignments
+      summary: Batch Delete Assignments
+      tags:
+        - Admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assignment_ids:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                  minItems: 1
+              required:
+                - assignment_ids
       responses:
         "200":
           description: OK
@@ -785,6 +972,38 @@ paths:
                     type: string
                   deleted:
                     type: boolean
+  /admin/access/scopes:
+    get:
+      operationId: getAdminAccessScopes
+      summary: List Scopes
+      tags:
+        - Admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /admin/access/scopes/{type}/options:
+    get:
+      operationId: getAdminAccessScopesBytypeOptions
+      summary: List Options
+      tags:
+        - Admin
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
   /admin/users/{id}/access/roles:
     get:
       operationId: getAdminUsersByidAccessRoles

@@ -12,7 +12,7 @@ const schema = zod.object({
 	lot_number: zod.string().min(1, 'Required'),
 	description: zod.string().nullable().optional(),
 	stocked_quantity: zod.number().min(0),
-	enabled: zod.boolean().default(true)
+	enabled: zod.boolean()
 })
 type CreateStockLotFormData = zod.infer<typeof schema>
 

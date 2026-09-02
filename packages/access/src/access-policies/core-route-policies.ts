@@ -1,14 +1,14 @@
 // AUTO-GENERATED — do not edit by hand.
 //
 // The `policies:[]` declarations @medusajs/medusa ships on its core admin
-// routes, harvested from the installed package. 352 entries.
+// routes, harvested from the installed package. 355 entries.
 //
-// Generated from @medusajs/medusa@2.18.0.
+// Generated from @medusajs/medusa@2.20.0.
 //
 // Regenerate with scripts/gen-core-route-policies.cjs. Hand-written additions
 // belong in supplemental-route-policies.ts, which this never overwrites.
 
-export const CORE_ROUTE_POLICIES_MEDUSA_VERSION = '2.18.0'
+export const CORE_ROUTE_POLICIES_MEDUSA_VERSION = '2.20.0'
 
 type CoreRoutePolicy = {
 	matcher: string
@@ -1361,6 +1361,16 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 	{
 		matcher: '/admin/inventory-items',
 		methods: ['GET'],
+		policies: [
+			{
+				resource: 'inventory_item',
+				operation: 'read'
+			}
+		]
+	},
+	{
+		matcher: '/admin/inventory-items/export',
+		methods: ['POST'],
 		policies: [
 			{
 				resource: 'inventory_item',
@@ -4229,6 +4239,30 @@ export const coreRoutePolicies: CoreRoutePolicy[] = [
 			{
 				resource: 'user',
 				operation: 'delete'
+			}
+		],
+		target: {
+			resource: 'user',
+			param: 'id'
+		}
+	},
+	{
+		matcher: '/admin/users/:id/auth-providers',
+		methods: ['GET'],
+		policies: [
+			{
+				resource: 'user',
+				operation: 'read'
+			}
+		]
+	},
+	{
+		matcher: '/admin/users/:id/reset-password',
+		methods: ['POST'],
+		policies: [
+			{
+				resource: 'user',
+				operation: 'update'
 			}
 		],
 		target: {

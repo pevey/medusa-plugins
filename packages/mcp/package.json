@@ -68,12 +68,12 @@
 		"remark-gfm": "^4.0.1"
 	},
 	"devDependencies": {
-		"@medusajs/admin-sdk": "2.18.0",
-		"@medusajs/cli": "2.18.0",
-		"@medusajs/framework": "2.18.0",
-		"@medusajs/icons": "2.18.0",
-		"@medusajs/test-utils": "2.18.0",
-		"@medusajs/ui": "4.2.0",
+		"@medusajs/admin-sdk": "2.20.0",
+		"@medusajs/cli": "2.20.0",
+		"@medusajs/framework": "2.20.0",
+		"@medusajs/icons": "2.20.0",
+		"@medusajs/test-utils": "2.20.0",
+		"@medusajs/ui": "4.2.2",
 		"@swc/core": "1.15.47",
 		"@swc/jest": "0.2.39",
 		"@types/jest": "30.0.0",
@@ -92,9 +92,9 @@
 		"vitest": "4.1.10"
 	},
 	"peerDependencies": {
-		"@medusajs/framework": "^2.18.0",
-		"@medusajs/js-sdk": "^2.18.0",
-		"@medusajs/medusa": "^2.18.0",
+		"@medusajs/framework": "^2.20.0",
+		"@medusajs/js-sdk": "^2.20.0",
+		"@medusajs/medusa": "^2.20.0",
 		"medusa-plugin-automation": "*",
 		"medusa-plugin-statistics": "*"
 	},

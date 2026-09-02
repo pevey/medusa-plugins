@@ -22,6 +22,7 @@ import { CreateAffiliateModal } from '../../components/create-affiliate-modal'
 export const config = defineRouteConfig({
 	label: 'Affiliates',
 	icon: UserGroup,
+	nested: '/promotions',
 	rank: 1
 })
 export const handle = { breadcrumb: () => 'Affiliates' }

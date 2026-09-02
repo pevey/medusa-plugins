@@ -8,7 +8,7 @@
     "sveltekit-medusa-sdk"
   ],
   "devDependencies": [
-    "@medusajs/types@2.18.0"
+    "@medusajs/types@2.20.0"
   ],
   "registryDependencies": [
     "https://pevey.com/r/product.json",

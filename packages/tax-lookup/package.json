@@ -51,11 +51,11 @@
 		"typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.unit.json"
 	},
 	"devDependencies": {
-		"@medusajs/admin-sdk": "2.18.0",
-		"@medusajs/cli": "2.18.0",
-		"@medusajs/framework": "2.18.0",
-		"@medusajs/icons": "2.18.0",
-		"@medusajs/ui": "4.2.0",
+		"@medusajs/admin-sdk": "2.20.0",
+		"@medusajs/cli": "2.20.0",
+		"@medusajs/framework": "2.20.0",
+		"@medusajs/icons": "2.20.0",
+		"@medusajs/ui": "4.2.2",
 		"@swc/core": "1.15.47",
 		"@swc/jest": "0.2.39",
 		"@types/jest": "30.0.0",
@@ -72,9 +72,9 @@
 		"yalc": "1.0.0-pre.53"
 	},
 	"peerDependencies": {
-		"@medusajs/framework": "^2.18.0",
-		"@medusajs/js-sdk": "^2.18.0",
-		"@medusajs/medusa": "^2.18.0"
+		"@medusajs/framework": "^2.20.0",
+		"@medusajs/js-sdk": "^2.20.0",
+		"@medusajs/medusa": "^2.20.0"
 	},
 	"engines": {
 		"node": ">=22"

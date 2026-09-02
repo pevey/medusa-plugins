@@ -5,7 +5,7 @@
   "type": "registry:ui",
   "description": "Compound product image gallery/lightbox on embla: Root (optional thumbnails/thumbnailBreakpoint/zoom props), Main, Carousel, Image, Thumbnails, ThumbnailImage, Dots — sharing a context. Root publishes layout intent to the parts; set `zoom` to enable the click-to-zoom overlay. Accepts image URLs or Medusa image objects.",
   "devDependencies": [
-    "@medusajs/types@2.18.0"
+    "@medusajs/types@2.20.0"
   ],
   "registryDependencies": [
     "carousel",

@@ -18,7 +18,7 @@ export default async function searchTranslationHandler({ event: { name: eventNam
 		if (!mod?.retrieveTranslation) return
 		const t = await mod.retrieveTranslation(data.id).catch(() => null)
 		if (!t) return
-		const search = container.resolve('search') as SearchModuleService
+		const search = container.resolve<SearchModuleService>('search')
 		const type = REFERENCE_TO_TYPE[t.reference] ?? t.reference
 		if (!search.isSourceEnabled(type)) return
 		await upsertSearchDocumentWorkflow(container).run({ input: { type, id: t.reference_id } })

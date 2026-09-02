@@ -12,6 +12,7 @@ jest.setTimeout(60000)
 const resolvedModulePath = join(__dirname, '../../../../.medusa/server/src/modules/access')
 const moduleModels = [
 	require(join(resolvedModulePath, 'models/access-role.js')).default,
+	require(join(resolvedModulePath, 'models/access-role-assignment.js')).default,
 	require(join(resolvedModulePath, 'models/access-policy.js')).default,
 	require(join(resolvedModulePath, 'models/access-role-policy.js')).default,
 	require(join(resolvedModulePath, 'models/access-role-parent.js')).default

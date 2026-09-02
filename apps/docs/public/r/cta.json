@@ -9,7 +9,7 @@
     "sveltekit-stripe"
   ],
   "devDependencies": [
-    "@medusajs/types@2.18.0",
+    "@medusajs/types@2.20.0",
     "@stripe/stripe-js@9.12.1"
   ],
   "registryDependencies": [

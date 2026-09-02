@@ -66,11 +66,11 @@
 		"cors": "^2.8.5"
 	},
 	"devDependencies": {
-		"@medusajs/admin-sdk": "2.18.0",
-		"@medusajs/cli": "2.18.0",
-		"@medusajs/framework": "2.18.0",
-		"@medusajs/icons": "2.18.0",
-		"@medusajs/ui": "4.2.0",
+		"@medusajs/admin-sdk": "2.20.0",
+		"@medusajs/cli": "2.20.0",
+		"@medusajs/framework": "2.20.0",
+		"@medusajs/icons": "2.20.0",
+		"@medusajs/ui": "4.2.2",
 		"@swc/core": "1.15.47",
 		"@swc/jest": "0.2.39",
 		"@types/cors": "2.8.19",
@@ -90,9 +90,9 @@
 		"vitest": "4.1.10"
 	},
 	"peerDependencies": {
-		"@medusajs/framework": "^2.18.0",
-		"@medusajs/js-sdk": "^2.18.0",
-		"@medusajs/medusa": "^2.18.0",
+		"@medusajs/framework": "^2.20.0",
+		"@medusajs/js-sdk": "^2.20.0",
+		"@medusajs/medusa": "^2.20.0",
 		"awilix": "^8.0.1"
 	},
 	"engines": {
