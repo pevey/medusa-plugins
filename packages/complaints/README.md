@@ -71,10 +71,14 @@ module.exports = defineConfig({
 })
 ```
 
-**Without medusa-plugin-access**, the declaration is a no-op, and you must rely on Medusa's own mechanism — with an important caveat: as of Medusa 2.18, `http.restrictedFields` is only enforced when the undocumented `MEDUSA_FF_RBAC_FILTER_FIELDS` feature flag is enabled. Setting the config alone does nothing.
+**Without medusa-plugin-access**, the declaration is a no-op, and you rely on Medusa's own mechanisms. Since Medusa 2.21, these cover the core store routes. Every core store route that can return products, customers, or orders has a list of allowed fields, and a relation that is not on the list is silently stripped from the response. Complaints are not on any of those lists, so core hides them by default.
+
+Add `http.restrictedFields` as a second layer for store routes that have no allowed-fields list, such as routes added by your own code or other plugins that use Medusa's query validation.
+
+Neither mechanism applies to Medusa's opt-in `POST /store/search` endpoint. It returns whatever fields the client asks it to hydrate. If you expose the product index (or a customer or order index) through `configureStoreSearch`, a request for `complaints.*` returns the linked records. medusa-plugin-access strips them from that response too.
 
 ```ts
-// medusa-config.ts — ALSO requires MEDUSA_FF_RBAC_FILTER_FIELDS=true in your environment
+// medusa-config.ts
 module.exports = defineConfig({
 	projectConfig: {
 		// ... other settings

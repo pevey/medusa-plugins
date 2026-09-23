@@ -50,6 +50,6 @@ describe('restrictStoreFields loader', () => {
 		await expect(restrictStoreFields({ options: { adminOnly: true }, logger: { warn } } as any)).resolves.toBeUndefined()
 
 		expect(registeredForStore()).toBeUndefined()
-		expect(warn).toHaveBeenCalledWith(expect.stringContaining('NOT hidden from store field expansion'))
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('not POST /store/search'))
 	})
 })

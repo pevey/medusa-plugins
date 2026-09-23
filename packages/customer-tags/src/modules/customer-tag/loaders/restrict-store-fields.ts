@@ -21,7 +21,7 @@ export default async function restrictStoreFields({ options, logger }: LoaderOpt
 	} catch (error) {
 		if (options?.adminOnly === true) {
 			logger?.warn(
-				`customer-tags: adminOnly is set, but medusa-plugin-access could not be loaded — customer tags are NOT hidden from store responses. Install medusa-plugin-access, or configure http.restrictedFields and enable MEDUSA_FF_RBAC_FILTER_FIELDS. (${error instanceof Error ? error.message : String(error)})`
+				`customer-tags: adminOnly is set, but medusa-plugin-access could not be loaded — customer tags are hidden only by Medusa's own field lists, which cover core store routes but not POST /store/search or store routes without an allowed-fields list. Install medusa-plugin-access for full coverage. (${error instanceof Error ? error.message : String(error)})`
 			)
 		}
 	}
