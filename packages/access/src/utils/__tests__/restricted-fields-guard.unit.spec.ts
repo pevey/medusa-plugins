@@ -165,14 +165,55 @@ describe('restrictedFieldsGuard', () => {
 		expect(sent.body).toEqual({ articles: [{ id: 'art_1' }] })
 	})
 
-	it('rewrites ?order= naming a restricted segment to an unorderable field', async () => {
+	it('rewrites ?order= naming a restricted segment to an unorderable field, keeping the direction', async () => {
 		const req = makeReq({ query: { order: '-orders' } })
 		req.restrictedFields.add(['orders'])
 
 		await restrictedFieldsGuard(req, makeRes().res, jest.fn())
 
-		expect(req.query.order).toBe('__restricted_field__')
+		expect(req.query.order).toBe('-__restricted_field__')
 		expect(debug).toHaveBeenCalledWith(expect.stringContaining('restricted_field_probe (order: -orders)'))
+	})
+
+	it.each([
+		['orders', 'orders'],
+		['-orders', 'orders'],
+		['variants.orders', 'variants.orders']
+	])('echoes the client field instead of the marker when core names ?order=%s in its error', async (order, echoed) => {
+		const req = makeReq({ query: { order } })
+		req.restrictedFields.add(['orders'])
+		const { res, sent } = makeRes()
+
+		await restrictedFieldsGuard(req, res, jest.fn())
+		const coreField = (req.query.order as string).replace(/^-/, '')
+		res.status(400).json({ type: 'invalid_data', message: `Order field ${coreField} is not valid` })
+
+		expect(sent.status).toBe(400)
+		expect(sent.body).toEqual({ type: 'invalid_data', message: `Order field ${echoed} is not valid` })
+	})
+
+	it('restores the marker in nested and bare-string bodies', async () => {
+		const req = makeReq({ query: { order: 'orders' } })
+		req.restrictedFields.add(['orders'])
+		const { res, sent } = makeRes()
+
+		await restrictedFieldsGuard(req, res, jest.fn())
+		res.json({ errors: [{ detail: 'bad sort: __restricted_field__' }] })
+		expect(sent.body).toEqual({ errors: [{ detail: 'bad sort: orders' }] })
+
+		res.json('__restricted_field__')
+		expect(sent.body).toBe('orders')
+	})
+
+	it('leaves response strings alone when ?order= was not masked', async () => {
+		const req = makeReq({ query: { order: 'title' } })
+		req.restrictedFields.add(['orders'])
+		const { res, sent } = makeRes()
+
+		await restrictedFieldsGuard(req, res, jest.fn())
+		res.json({ message: '__restricted_field__' })
+
+		expect(sent.body).toEqual({ message: '__restricted_field__' })
 	})
 
 	it('leaves an unrestricted ?order= untouched', async () => {

@@ -11,7 +11,7 @@ export type CustomerForVeeqoCustomerInput = {
 	email?: string | null
 	phone?: string | null
 	veeqo_customer?: {
-		veeqo_customer_id?: number | null
+		veeqo_customer_id?: string | null
 	} | null
 }
 
@@ -34,7 +34,7 @@ export type OrderForVeeqoOrderInput = {
 		email?: string | null
 		phone?: string | null
 		veeqo_customer?: {
-			veeqo_customer_id?: number | null
+			veeqo_customer_id?: string | null
 		} | null
 	} | null
 	items?:
@@ -46,7 +46,7 @@ export type OrderForVeeqoOrderInput = {
 				variant?: {
 					id?: string | null
 					veeqo_sellable?: {
-						veeqo_sellable_id?: number | string | null
+						veeqo_sellable_id?: string | null
 					} | null
 				} | null
 		  }[]
@@ -54,7 +54,7 @@ export type OrderForVeeqoOrderInput = {
 	sales_channel?: {
 		id: string
 		veeqo_channel?: {
-			veeqo_channel_id?: number | null
+			veeqo_channel_id?: string | null
 		} | null
 	} | null
 	shipping_methods?:
@@ -64,7 +64,7 @@ export type OrderForVeeqoOrderInput = {
 				shipping_option?: {
 					id: string
 					veeqo_delivery_method?: {
-						veeqo_delivery_method_id?: number | null
+						veeqo_delivery_method_id?: string | null
 					} | null
 				} | null
 		  }[]
@@ -92,7 +92,7 @@ export type ProductVariantForVeeqoProductInput = {
 		  }[]
 		| null
 	veeqo_sellable?: {
-		veeqo_sellable_id?: number | string | null
+		veeqo_sellable_id?: string | null
 	} | null
 }
 
@@ -103,7 +103,7 @@ export type ProductForVeeqoProductInput = {
 	weight?: number | null
 	variants?: ProductVariantForVeeqoProductInput[] | null
 	veeqo_product?: {
-		veeqo_product_id?: number | null
+		veeqo_product_id?: string | null
 	} | null
 }
 
@@ -111,9 +111,9 @@ export type SalesChannelForVeeqoChannelInput = {
 	id: string
 	name: string | null
 	veeqo_channel?: {
-		veeqo_channel_id?: number | null
+		veeqo_channel_id?: string | null
 	} | null
-	default_warehouse_id?: number | null
+	default_warehouse_id?: string | null
 }
 
 export type ShippingOptionForVeeqoDeliveryMethodInput = {
@@ -125,7 +125,7 @@ export type ShippingOptionForVeeqoDeliveryMethodInput = {
 		  }[]
 		| null
 	veeqo_delivery_method?: {
-		veeqo_delivery_method_id?: number | null
+		veeqo_delivery_method_id?: string | null
 	} | null
 }
 
@@ -140,7 +140,7 @@ export type StockLocationForVeeqoWarehouseInput = {
 		postal_code?: string | null
 	} | null
 	veeqo_warehouse?: {
-		veeqo_warehouse_id: number
+		veeqo_warehouse_id: string
 	} | null
 }
 

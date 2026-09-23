@@ -7,25 +7,6 @@ servers:
   - url: http://localhost:9000
     description: Local development
 paths:
-  /admin/products/{id}:
-    get:
-      operationId: getAdminProductsByid
-      summary: Get Product
-      tags:
-        - Admin
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
   /admin/reviews:
     get:
       operationId: getAdminReviews

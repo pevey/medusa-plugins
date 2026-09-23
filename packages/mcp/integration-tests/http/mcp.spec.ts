@@ -68,9 +68,13 @@ medusaIntegrationTestRunner({
 		const setupAdmin = async (email: string): Promise<{ userId: string; token: string }> => {
 			const container = getContainer()
 			const authService: any = container.resolve(Modules.AUTH)
-			const { authIdentity } = await authService.register('emailpass', {
+			const { success, authIdentity, error } = await authService.register('emailpass', {
 				body: { email, password: 'Sup3rSecret!' }
 			})
+			// `register` reports failure as `{ success: false, error }` rather than throwing.
+			if (!success) {
+				throw new Error(`emailpass register failed for ${email}: ${error}`)
+			}
 			const { result: user } = await createUserAccountWorkflow(container).run({
 				input: {
 					authIdentityId: authIdentity!.id,

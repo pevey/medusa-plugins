@@ -110,7 +110,7 @@ export const AdminSalesChannelWithVeeqoSchema = z
 		// whatever subfields were asked for -- confirmed against the live API (see
 		// task-4c-veeqo-report.md). Modelled here since it's part of what the route
 		// actually returns, not an unbounded core-entity field.
-		veeqo_channel: z.strictObject({ veeqo_channel_id: z.number().optional(), sales_channel_id: z.string().optional() }).optional()
+		veeqo_channel: z.strictObject({ veeqo_channel_id: z.string().optional(), sales_channel_id: z.string().optional() }).optional()
 	})
 	.passthrough() as unknown as z.ZodType<CoreEntityRef & { veeqo_channel?: AdminSalesChannelWithVeeqo['veeqo_channel'] }>
 // `veeqo_channel`'s type is pulled via indexed access on the REAL exported type
@@ -145,7 +145,7 @@ export const AdminStockLocationWithVeeqoSchema = z
 		id: z.string(),
 		// See the note on `AdminSalesChannelWithVeeqoSchema.veeqo_channel` above --
 		// same always-present foreign-key column, here on the warehouse link.
-		veeqo_warehouse: z.strictObject({ veeqo_warehouse_id: z.number().optional(), stock_location_id: z.string().optional() }).optional()
+		veeqo_warehouse: z.strictObject({ veeqo_warehouse_id: z.string().optional(), stock_location_id: z.string().optional() }).optional()
 	})
 	.passthrough() as unknown as z.ZodType<CoreEntityRef & { veeqo_warehouse?: AdminStockLocationWithVeeqo['veeqo_warehouse'] }>
 type AdminStockLocationWithVeeqoContract = CoreEntityRef & { veeqo_warehouse?: AdminStockLocationWithVeeqo['veeqo_warehouse'] }
@@ -175,7 +175,7 @@ export const AdminShippingOptionWithVeeqoSchema = z
 		id: z.string(),
 		// See the note on `AdminSalesChannelWithVeeqoSchema.veeqo_channel` above --
 		// same always-present foreign-key column, here on the delivery-method link.
-		veeqo_delivery_method: z.strictObject({ veeqo_delivery_method_id: z.number().optional(), shipping_option_id: z.string().optional() }).optional()
+		veeqo_delivery_method: z.strictObject({ veeqo_delivery_method_id: z.string().optional(), shipping_option_id: z.string().optional() }).optional()
 	})
 	.passthrough() as unknown as z.ZodType<CoreEntityRef & { veeqo_delivery_method?: AdminShippingOptionWithVeeqo['veeqo_delivery_method'] }>
 type AdminShippingOptionWithVeeqoContract = CoreEntityRef & { veeqo_delivery_method?: AdminShippingOptionWithVeeqo['veeqo_delivery_method'] }
@@ -205,7 +205,7 @@ export const AdminProductWithVeeqoSchema = z
 		id: z.string(),
 		// See the note on `AdminSalesChannelWithVeeqoSchema.veeqo_channel` above --
 		// same always-present foreign-key column, here on the product link.
-		veeqo_product: z.strictObject({ veeqo_product_id: z.number().optional(), product_id: z.string().optional() }).optional()
+		veeqo_product: z.strictObject({ veeqo_product_id: z.string().optional(), product_id: z.string().optional() }).optional()
 	})
 	.passthrough() as unknown as z.ZodType<CoreEntityRef & { veeqo_product?: AdminProductWithVeeqo['veeqo_product'] }>
 type AdminProductWithVeeqoContract = CoreEntityRef & { veeqo_product?: AdminProductWithVeeqo['veeqo_product'] }
@@ -239,7 +239,7 @@ export const AdminProductVariantWithVeeqoSchema = z
 		// the exact mismatch that was empirically found first (see the report):
 		// modelling only `veeqo_sellable_id` here failed with `unrecognized_keys:
 		// ["product_variant_id"]` against a real, previously-synced variant.
-		veeqo_sellable: z.strictObject({ veeqo_sellable_id: z.number().optional(), product_variant_id: z.string().optional() }).optional()
+		veeqo_sellable: z.strictObject({ veeqo_sellable_id: z.string().optional(), product_variant_id: z.string().optional() }).optional()
 	})
 	.passthrough() as unknown as z.ZodType<
 	CoreEntityRef & {

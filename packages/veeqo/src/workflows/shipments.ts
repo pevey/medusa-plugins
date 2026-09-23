@@ -43,9 +43,11 @@ const processNewShipmentsStep = createStep('process-new-veeqo-shipments-step', a
 	const veeqoService: VeeqoService = container.resolve('veeqo')
 	const query = container.resolve(ContainerRegistrationKeys.QUERY)
 
-	const existingAllocationIds = new Set<number>(((dbOrder.veeqo_shipments ?? []) as any[]).map((s: any) => s.veeqo_allocation_id))
+	const existingAllocationIds = new Set<string>(((dbOrder.veeqo_shipments ?? []) as any[]).map((s: any) => String(s.veeqo_allocation_id)))
 
-	const newAllocations = ((liveOrder.allocations ?? []) as any[]).filter((alloc: any) => alloc.shipment != null && !existingAllocationIds.has(alloc.id))
+	const newAllocations = ((liveOrder.allocations ?? []) as any[]).filter(
+		(alloc: any) => alloc.shipment != null && !existingAllocationIds.has(String(alloc.id))
+	)
 
 	if (!newAllocations.length) {
 		return new StepResponse(void 0)
@@ -98,8 +100,8 @@ const processNewShipmentsStep = createStep('process-new-veeqo-shipments-step', a
 		await veeqoService.createVeeqoShipments({
 			veeqo_order_id: dbOrder.id as string,
 			fulfillment_id: fulfillment.id,
-			veeqo_allocation_id: alloc.id as number,
-			veeqo_shipment_id: shipment.id as number,
+			veeqo_allocation_id: String(alloc.id),
+			veeqo_shipment_id: String(shipment.id),
 			carrier: shipment.carrier ?? null,
 			tracking_number: shipment.tracking_number ?? null,
 			shipped_by: shipment.shipped_by ?? null,
@@ -156,11 +158,11 @@ const processDeliveredShipmentsStep = createStep('process-delivered-veeqo-shipme
 	const undelivered = currentShipments.filter((s: any) => s.veeqo_tracking_events == null)
 
 	for (const dbShipment of undelivered) {
-		const liveShipment = await veeqoService.fetchShipment(dbShipment.veeqo_shipment_id as number)
+		const liveShipment = await veeqoService.fetchShipment(dbShipment.veeqo_shipment_id as string)
 
 		if (!liveShipment.tracking_number?.delivered_at) continue
 
-		const events = await veeqoService.fetchTrackingEvents(dbShipment.veeqo_shipment_id as number)
+		const events = await veeqoService.fetchTrackingEvents(dbShipment.veeqo_shipment_id as string)
 
 		await markFulfillmentAsDeliveredWorkflow(container).run({
 			input: { id: dbShipment.fulfillment_id as string }

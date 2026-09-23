@@ -11,7 +11,7 @@ export const config = defineWidgetConfig({
 export type AdminCustomerWithVeeqo = {
 	customer: AdminCustomer & {
 		veeqo_customer?: {
-			veeqo_customer_id: number
+			veeqo_customer_id: string
 			customer_id?: string
 		}
 	}

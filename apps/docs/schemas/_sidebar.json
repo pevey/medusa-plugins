@@ -809,10 +809,6 @@
 			"collapsed": true,
 			"items": [
 				{
-					"label": "Get Product",
-					"link": "/medusa-plugin-ratings/api/operations/getadminproductsbyid/"
-				},
-				{
 					"label": "List Reviews",
 					"link": "/medusa-plugin-ratings/api/operations/getadminreviews/"
 				},

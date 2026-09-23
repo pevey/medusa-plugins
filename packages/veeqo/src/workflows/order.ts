@@ -45,10 +45,10 @@ const mapOrderToVeeqoOrderInput = (order: OrderForVeeqoOrderInput, veeqoCustomer
 	}
 
 	return {
-		channel_id: channelId!,
+		channel_id: Number(channelId),
 		customer_id: veeqoCustomerId,
 		deliver_to_attributes: mapShippingAddressToVeeqoAddress(order),
-		delivery_method_id: deliveryMethodId!,
+		delivery_method_id: Number(deliveryMethodId),
 		number: order.id,
 		send_notification_email: false,
 		...(order.discount_total != null ? { total_discounts: order.discount_total } : {}),
@@ -83,10 +83,10 @@ type ReplacementContext = {
 	additional_items: ReplacementItem[]
 	customer: { id: string; email: string | null; phone: string | null } | null
 	shipping_address: any
-	sales_channel: { id: string; veeqo_channel_id?: number | null } | null
-	shipping_method: { id: string; veeqo_delivery_method_id?: number | null } | null
-	parent_veeqo_order_id: number | null
-	variants_with_sellable: Record<string, { veeqo_sellable_id: number | string | undefined }>
+	sales_channel: { id: string; veeqo_channel_id?: string | null } | null
+	shipping_method: { id: string; veeqo_delivery_method_id?: string | null } | null
+	parent_veeqo_order_id: string | null
+	variants_with_sellable: Record<string, { veeqo_sellable_id: string | undefined }>
 }
 
 // Disambiguator pattern. Stays short and human-readable for warehouse-staff search in Veeqo.
@@ -147,10 +147,10 @@ const mapReplacementContextToVeeqoOrderInput = (ctx: ReplacementContext, veeqoCu
 	}
 
 	return {
-		channel_id: ctx.sales_channel!.veeqo_channel_id!,
+		channel_id: Number(ctx.sales_channel!.veeqo_channel_id),
 		customer_id: veeqoCustomerId,
 		deliver_to_attributes: deliverTo,
-		delivery_method_id: ctx.shipping_method!.veeqo_delivery_method_id!,
+		delivery_method_id: Number(ctx.shipping_method!.veeqo_delivery_method_id),
 		number,
 		send_notification_email: false,
 		// total_discounts is required by Veeqo despite the optional TS marker.
@@ -226,7 +226,7 @@ export const createVeeqoOrderStep = createStep(
 		const veeqoService: VeeqoService = container.resolve('veeqo')
 
 		// Resolve the local VeeqoCustomer DB id (needed as FK on VeeqoOrder rows).
-		const dbCustomers = await veeqoService.listVeeqoCustomers({ veeqo_customer_id: input.veeqo_input.customer_id }, { take: 1 })
+		const dbCustomers = await veeqoService.listVeeqoCustomers({ veeqo_customer_id: String(input.veeqo_input.customer_id) }, { take: 1 })
 		const veeqoCustomerDbId = (dbCustomers[0] as any)?.id as string | undefined
 
 		// Find or create the placeholder row.
@@ -281,7 +281,7 @@ export const createVeeqoOrderStep = createStep(
 				logger.info(`veeqo: recovered orphaned Veeqo order ${orphan.id} for ${input.source_type} ${input.source_id} (number: ${input.veeqo_input.number})`)
 				await veeqoService.updateVeeqoOrders({
 					selector: { id: rowId },
-					data: { veeqo_order_id: orphan.id, last_sync_error: null }
+					data: { veeqo_order_id: String(orphan.id), last_sync_error: null }
 				})
 				return new StepResponse(orphan)
 			}
@@ -295,7 +295,7 @@ export const createVeeqoOrderStep = createStep(
 			await veeqoService.updateVeeqoOrders({
 				selector: { id: rowId },
 				data: {
-					veeqo_order_id: apiResponse.id,
+					veeqo_order_id: String(apiResponse.id),
 					last_sync_error: null
 					// last_sync_attempted_at intentionally retained at the placeholder write timestamp
 				}
@@ -447,7 +447,7 @@ export const getOrderDetailsStep = createStep('get-medusa-order-details-step', a
 				variant: variantId
 					? {
 							id: variantId,
-							veeqo_sellable: veeqoSellable ? { veeqo_sellable_id: String(veeqoSellable.veeqo_sellable_id) } : undefined
+							veeqo_sellable: veeqoSellable ? { veeqo_sellable_id: veeqoSellable.veeqo_sellable_id } : undefined
 						}
 					: null
 			}
@@ -467,7 +467,7 @@ export const getOrderDetailsStep = createStep('get-medusa-order-details-step', a
 				shipping_option: soId
 					? {
 							id: soId,
-							veeqo_delivery_method: veeqoDm ? { veeqo_delivery_method_id: Number(veeqoDm.veeqo_delivery_method_id) } : undefined
+							veeqo_delivery_method: veeqoDm ? { veeqo_delivery_method_id: veeqoDm.veeqo_delivery_method_id } : undefined
 						}
 					: null
 			}
@@ -743,7 +743,7 @@ export const getReplacementContextStep = createStep(
 							filters: { id: variantIds }
 						})
 						.then(({ data }) => Object.fromEntries((data as any[]).map(v => [v.id, { veeqo_sellable_id: v.veeqo_sellable?.veeqo_sellable_id }])))
-				: Promise.resolve({} as Record<string, { veeqo_sellable_id: number | string | undefined }>),
+				: Promise.resolve({} as Record<string, { veeqo_sellable_id: string | undefined }>),
 			shippingOptionIds.length > 0
 				? query.graph({
 						entity: 'shipping_option',

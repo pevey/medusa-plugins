@@ -9,7 +9,7 @@
     "@lucide/svelte"
   ],
   "devDependencies": [
-    "@medusajs/types@2.20.0"
+    "@medusajs/types@2.21.1"
   ],
   "registryDependencies": [
     "button",

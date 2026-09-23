@@ -15,17 +15,6 @@ import {
 
 export default defineMiddlewares([
 	{
-		matcher: '/admin/products/:id',
-		method: ['GET'], // A middleware entry without method is registered by Medusa as app.use(matcher)
-		middlewares: [
-			// @ts-ignore
-			(req, res, next) => {
-				;(req.allowed ??= []).push('review')
-				next()
-			}
-		]
-	},
-	{
 		matcher: '/admin/reviews',
 		method: ['GET'],
 		middlewares: [

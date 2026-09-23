@@ -11,12 +11,12 @@ export const config = defineWidgetConfig({
 export type AdminProductWithVeeqo = {
 	product: AdminProduct & {
 		veeqo_product?: {
-			veeqo_product_id: number
+			veeqo_product_id: string
 			product_id?: string
 		}
 		variants: (AdminProductVariant & {
 			veeqo_sellable?: {
-				veeqo_sellable_id: number
+				veeqo_sellable_id: string
 				product_variant_id?: string
 			}
 		})[]

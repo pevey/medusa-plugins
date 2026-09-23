@@ -47,15 +47,6 @@ export default defineMiddlewares([
 		middlewares: [validateAndTransformBody(AdminUpdateCustomerTag)]
 	},
 	{
-		matcher: '/admin/customers',
-		middlewares: [
-			(req, _res, next) => {
-				;(req.allowed ??= []).push('complaints', 'customer_tags')
-				next()
-			}
-		]
-	},
-	{
 		matcher: '/admin/customers/:id',
 		method: ['POST'],
 		additionalDataValidator: {

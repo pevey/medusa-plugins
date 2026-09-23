@@ -1315,7 +1315,7 @@ medusaIntegrationTestRunner({
 			it('GET /admin/sales-channels (wizard fields) matches AdminSalesChannelsWithVeeqoListResponse', async () => {
 				const res = await api.get(`/admin/sales-channels?fields=id,name,description,veeqo_channel.veeqo_channel_id&id[]=${salesChannelId}`, auth())
 				expect(res.status).toBe(200)
-				expect(res.data.sales_channels[0]?.veeqo_channel?.veeqo_channel_id).toEqual(expect.any(Number))
+				expect(res.data.sales_channels[0]?.veeqo_channel?.veeqo_channel_id).toEqual(expect.any(String))
 				expect(() => AdminSalesChannelsWithVeeqoListResponseSchema.parse(res.data)).not.toThrow()
 			})
 
@@ -1325,7 +1325,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				expect(res.status).toBe(200)
-				expect(res.data.stock_locations[0]?.veeqo_warehouse?.veeqo_warehouse_id).toEqual(expect.any(Number))
+				expect(res.data.stock_locations[0]?.veeqo_warehouse?.veeqo_warehouse_id).toEqual(expect.any(String))
 				expect(() => AdminStockLocationsWithVeeqoListResponseSchema.parse(res.data)).not.toThrow()
 			})
 
@@ -1335,14 +1335,14 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				expect(res.status).toBe(200)
-				expect(res.data.shipping_options[0]?.veeqo_delivery_method?.veeqo_delivery_method_id).toEqual(expect.any(Number))
+				expect(res.data.shipping_options[0]?.veeqo_delivery_method?.veeqo_delivery_method_id).toEqual(expect.any(String))
 				expect(() => AdminShippingOptionsWithVeeqoListResponseSchema.parse(res.data)).not.toThrow()
 			})
 
 			it('GET /admin/products (wizard fields) matches AdminProductWithVeeqoListResponse', async () => {
 				const res = await api.get(`/admin/products?fields=id,title,status,veeqo_product.veeqo_product_id&id[]=${productId}`, auth())
 				expect(res.status).toBe(200)
-				expect(res.data.products[0]?.veeqo_product?.veeqo_product_id).toEqual(expect.any(Number))
+				expect(res.data.products[0]?.veeqo_product?.veeqo_product_id).toEqual(expect.any(String))
 				expect(() => AdminProductWithVeeqoListResponseSchema.parse(res.data)).not.toThrow()
 			})
 
@@ -1352,7 +1352,7 @@ medusaIntegrationTestRunner({
 					auth()
 				)
 				expect(res.status).toBe(200)
-				expect(res.data.variants[0]?.veeqo_sellable?.veeqo_sellable_id).toEqual(expect.any(Number))
+				expect(res.data.variants[0]?.veeqo_sellable?.veeqo_sellable_id).toEqual(expect.any(String))
 				expect(() => AdminProductVariantsWithVeeqoListResponseSchema.parse(res.data)).not.toThrow()
 			})
 		})

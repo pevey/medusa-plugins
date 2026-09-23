@@ -63,14 +63,25 @@ medusaIntegrationTestRunner({
 			return rows.map((row: any) => row.role_id)
 		}
 
+		// Register an emailpass identity. `register` reports failure as
+		// `{ success: false, error }` rather than throwing, so surface it here
+		// instead of as an undefined identity further down.
+		const registerEmailpass = async (email: string) => {
+			const authService: any = getContainer().resolve(Modules.AUTH)
+			const { success, authIdentity, error } = await authService.register('emailpass', {
+				body: { email, password: 'Sup3rSecret!' }
+			})
+			if (!success) {
+				throw new Error(`emailpass register failed for ${email}: ${error}`)
+			}
+			return authIdentity
+		}
+
 		// Register + create an admin user, optionally grant the seeded super-admin
 		// role (via an assignment), and log in. Returns the user id + bearer token.
 		const setupAdmin = async (email: string, opts?: { superAdmin?: boolean }): Promise<{ userId: string; token: string }> => {
 			const container = getContainer()
-			const authService: any = container.resolve(Modules.AUTH)
-			const { authIdentity } = await authService.register('emailpass', {
-				body: { email, password: 'Sup3rSecret!' }
-			})
+			const authIdentity = await registerEmailpass(email)
 			const { result: user } = await createUserAccountWorkflow(container).run({
 				input: {
 					authIdentityId: authIdentity!.id,
@@ -93,10 +104,7 @@ medusaIntegrationTestRunner({
 		describe('super-admin bootstrap', () => {
 			it('grants super-admin to a role-less user and is idempotent', async () => {
 				const container = getContainer()
-				const authService: any = container.resolve(Modules.AUTH)
-				const { authIdentity } = await authService.register('emailpass', {
-					body: { email: 'bootstrap@example.com', password: 'Sup3rSecret!' }
-				})
+				const authIdentity = await registerEmailpass('bootstrap@example.com')
 				const { result: user } = await createUserAccountWorkflow(container).run({
 					input: {
 						authIdentityId: authIdentity!.id,
@@ -147,10 +155,7 @@ medusaIntegrationTestRunner({
 				const role = await accessService.createAccessRoles({ name: 'Manager' })
 
 				// 2) create a user
-				const authService: any = container.resolve(Modules.AUTH)
-				const { authIdentity } = await authService.register('emailpass', {
-					body: { email: 'link-test@example.com', password: 'Sup3rSecret!' }
-				})
+				const authIdentity = await registerEmailpass('link-test@example.com')
 				const { result: user } = await createUserAccountWorkflow(container).run({
 					input: {
 						authIdentityId: authIdentity!.id,
@@ -413,10 +418,7 @@ medusaIntegrationTestRunner({
 				const query = container.resolve(ContainerRegistrationKeys.QUERY)
 
 				// --- setup (seed) on a stable connection ---
-				const authService: any = container.resolve(Modules.AUTH)
-				const { authIdentity } = await authService.register('emailpass', {
-					body: { email: 'assign-test@example.com', password: 'Sup3rSecret!' }
-				})
+				const authIdentity = await registerEmailpass('assign-test@example.com')
 				const { result: user } = await createUserAccountWorkflow(container).run({
 					input: {
 						authIdentityId: authIdentity!.id,
@@ -1023,10 +1025,7 @@ medusaIntegrationTestRunner({
 					role_id: role.id,
 					policy_id: custRead.id
 				})
-				const authService: any = container.resolve(Modules.AUTH)
-				const { authIdentity } = await authService.register('emailpass', {
-					body: { email: 'ff-limited@example.com', password: 'Sup3rSecret!' }
-				})
+				const authIdentity = await registerEmailpass('ff-limited@example.com')
 				const { result: user } = await createUserAccountWorkflow(container).run({
 					input: {
 						authIdentityId: authIdentity!.id,
@@ -1314,10 +1313,7 @@ medusaIntegrationTestRunner({
 				const [policy] = await accessService.listAccessPolicies({ key: 'customer:delete' })
 				await accessService.createAccessRolePolicies({ role_id: role.id, policy_id: policy.id, scope: 'company' })
 
-				const authService: any = container.resolve(Modules.AUTH)
-				const { authIdentity } = await authService.register('emailpass', {
-					body: { email: 'scoped-chain@example.com', password: 'Sup3rSecret!' }
-				})
+				const authIdentity = await registerEmailpass('scoped-chain@example.com')
 				const { result: user } = await createUserAccountWorkflow(container).run({
 					input: {
 						authIdentityId: authIdentity!.id,
@@ -1529,7 +1525,6 @@ medusaIntegrationTestRunner({
 			it('does not let an actor grant access_role:update unrestricted when they hold it only @company (direct workflow invocation)', async () => {
 				const container = getContainer()
 				const accessService: any = container.resolve('access')
-				const authService: any = container.resolve(Modules.AUTH)
 				const unique = Math.random().toString(36).slice(2)
 
 				const [accessRoleUpdatePolicy] = await accessService.listAccessPolicies({ key: 'access_role:update' })
@@ -1541,18 +1536,14 @@ medusaIntegrationTestRunner({
 				await accessService.createAccessRolePolicies({ role_id: targetRole.id, policy_id: accessRoleUpdatePolicy.id })
 
 				const actorEmail = `self-ref-actor-${unique}@example.com`
-				const { authIdentity: actorAuthIdentity } = await authService.register('emailpass', {
-					body: { email: actorEmail, password: 'Sup3rSecret!' }
-				})
+				const actorAuthIdentity = await registerEmailpass(actorEmail)
 				const { result: actorUser } = await createUserAccountWorkflow(container).run({
 					input: { authIdentityId: actorAuthIdentity!.id, userData: { email: actorEmail, first_name: 'Self', last_name: 'Ref' } }
 				})
 				await assignRole('user', actorUser.id, actorRole.id)
 
 				const targetEmail = `self-ref-target-${unique}@example.com`
-				const { authIdentity: targetAuthIdentity } = await authService.register('emailpass', {
-					body: { email: targetEmail, password: 'Sup3rSecret!' }
-				})
+				const targetAuthIdentity = await registerEmailpass(targetEmail)
 				const { result: targetUser } = await createUserAccountWorkflow(container).run({
 					input: { authIdentityId: targetAuthIdentity!.id, userData: { email: targetEmail, first_name: 'Self', last_name: 'RefTarget' } }
 				})
@@ -2082,10 +2073,7 @@ medusaIntegrationTestRunner({
 				publishableApiKey = keyRes.data.api_key.token
 				await api.post(`/admin/api-keys/${keyRes.data.api_key.id}/sales-channels`, { add: [scRes.data.sales_channel.id] }, auth())
 
-				const authService: any = container.resolve(Modules.AUTH)
-				const { authIdentity } = await authService.register('emailpass', {
-					body: { email: 'restricted-customer@example.com', password: 'Sup3rSecret!' }
-				})
+				const authIdentity = await registerEmailpass('restricted-customer@example.com')
 				const { result: customer } = await createCustomerAccountWorkflow(container).run({
 					input: {
 						authIdentityId: authIdentity!.id,
@@ -2157,12 +2145,20 @@ medusaIntegrationTestRunner({
 				expect(admin.data.customer.addresses).toEqual(expect.any(Array))
 			})
 
-			it('answers ordering by a restricted field identically to ordering by a nonexistent one (list shape)', async () => {
-				const restricted = await api.get('/store/products?order=orders', storeHeaders()).catch((e: any) => e.response)
-				const nonexistent = await api.get('/store/products?order=zz_nonexistent', storeHeaders()).catch((e: any) => e.response)
+			it.each([
+				['orders', 'zz_nonexistent'],
+				['-orders', '-zz_nonexistent'],
+				['variants.orders', 'variants.zz_nonexistent']
+			])('answers ?order=%s on a list route exactly as a nonexistent field of that name', async (restrictedOrder, nonexistentOrder) => {
+				const restricted = await api.get(`/store/products?order=${restrictedOrder}`, storeHeaders()).catch((e: any) => e.response)
+				const nonexistent = await api.get(`/store/products?order=${nonexistentOrder}`, storeHeaders()).catch((e: any) => e.response)
+				const asIfNonexistent = JSON.parse(
+					JSON.stringify(nonexistent.data).split(nonexistentOrder.replace(/^-/, '')).join(restrictedOrder.replace(/^-/, ''))
+				)
 
 				expect(restricted.status).toBe(nonexistent.status)
-				expect(restricted.data).toEqual(nonexistent.data)
+				expect(restricted.data).toEqual(asIfNonexistent)
+				expect(JSON.stringify(restricted.data)).not.toContain('__restricted_field__')
 			})
 
 			it('answers ordering by a restricted field identically on routes that reject or ignore ordering', async () => {
@@ -2182,10 +2178,7 @@ medusaIntegrationTestRunner({
 				const container = getContainer()
 				;({ token: adminToken } = await setupAdmin('access-namespace@example.com', { superAdmin: true }))
 
-				const authService: any = container.resolve(Modules.AUTH)
-				const { authIdentity } = await authService.register('emailpass', {
-					body: { email: 'namespace-customer@example.com', password: 'Sup3rSecret!' }
-				})
+				const authIdentity = await registerEmailpass('namespace-customer@example.com')
 				await createCustomerAccountWorkflow(container).run({
 					input: {
 						authIdentityId: authIdentity!.id,

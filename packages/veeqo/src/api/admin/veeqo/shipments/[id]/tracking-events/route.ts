@@ -3,7 +3,7 @@ import { AuthenticatedMedusaRequest, MedusaResponse } from '@medusajs/framework/
 import { VEEQO_MODULE } from '../../../../../../modules/veeqo'
 import { VeeqoService } from '../../../../../../modules/veeqo/service'
 
-const ShipmentIdParam = z.coerce.number().int().positive()
+const ShipmentIdParam = z.string().regex(/^[1-9]\d*$/)
 
 // passthrough route for retreiving tracking events for a shipment from veeqo
 export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {

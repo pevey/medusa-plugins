@@ -11,7 +11,7 @@ const mapSalesChannelToVeeqoChannelInput = (sales_channel: SalesChannelForVeeqoC
 		name: sales_channel.name?.replace(/[^a-zA-Z0-9 ]/g, ''), // veeqo api rejects if name has special characters
 		type_code: 'direct',
 		...(sales_channel.default_warehouse_id && {
-			default_warehouse_id: sales_channel.default_warehouse_id
+			default_warehouse_id: Number(sales_channel.default_warehouse_id)
 		})
 	}
 }
@@ -30,7 +30,7 @@ export const getSalesChannelDetailsStep = createStep('get-sales-channel-details-
 		filters: { sales_channel_id }
 	})
 	// get veeqo warehouse id for first linked stock location, if exists
-	let defaultVeeqoWarehouseId: number | undefined
+	let defaultVeeqoWarehouseId: string | undefined
 	if (links.length > 0) {
 		const stock_location_id = links[0].stock_location_id
 		const { data: stockLocations } = await query.graph({

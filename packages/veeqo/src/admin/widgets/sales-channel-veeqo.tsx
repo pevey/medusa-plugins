@@ -11,7 +11,7 @@ export const config = defineWidgetConfig({
 export type AdminSalesChannelWithVeeqo = {
 	sales_channel: AdminSalesChannel & {
 		veeqo_channel?: {
-			veeqo_channel_id: number
+			veeqo_channel_id: string
 			sales_channel_id?: string
 		}
 	}

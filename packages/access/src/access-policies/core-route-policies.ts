@@ -3,12 +3,12 @@
 // The `policies:[]` declarations @medusajs/medusa ships on its core admin
 // routes, harvested from the installed package. 355 entries.
 //
-// Generated from @medusajs/medusa@2.20.0.
+// Generated from @medusajs/medusa@2.21.1.
 //
 // Regenerate with scripts/gen-core-route-policies.cjs. Hand-written additions
 // belong in supplemental-route-policies.ts, which this never overwrites.
 
-export const CORE_ROUTE_POLICIES_MEDUSA_VERSION = '2.20.0'
+export const CORE_ROUTE_POLICIES_MEDUSA_VERSION = '2.21.1'
 
 type CoreRoutePolicy = {
 	matcher: string

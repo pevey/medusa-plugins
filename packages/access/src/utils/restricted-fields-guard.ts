@@ -5,13 +5,52 @@ import { restrictedFieldsForPath } from './field-restrictions'
 /**
  * What `?order=` is rewritten to when it names a restricted segment. Core then
  * produces its own genuine unknown-field response for whatever shape the route
- * has (opaque 500 on list routes, zod 400 where `order` is not an accepted
- * param, ignored where the handler never reads it) — responding here with any
- * hand-built error would be distinguishable from that baseline on at least one
- * of those shapes. Sorting by a restricted column must not proceed: result
- * ordering is a value side-channel the response strip cannot close.
+ * has (400 naming the field on routes with an `allowed` list, opaque 500 on
+ * other list routes, zod 400 where `order` is not an accepted param, ignored
+ * where the handler never reads it) — responding here with any hand-built error
+ * would be distinguishable from that baseline on at least one of those shapes.
+ * Wherever core echoes the field name, the response wrapper swaps this marker
+ * back to the client's own field, so the answer is exactly what a nonexistent
+ * field of that name would get. Sorting by a restricted column must not
+ * proceed: result ordering is a value side-channel the response strip cannot
+ * close.
  */
 const UNORDERABLE_FIELD = '__restricted_field__'
+
+/**
+ * Replace every occurrence of `marker` in the string values of `body`, in
+ * place. Returns the replacement for a bare string body, since a primitive
+ * cannot be mutated.
+ */
+function replaceInStrings(body: unknown, marker: string, replacement: string): unknown {
+	if (typeof body === 'string') {
+		return body.split(marker).join(replacement)
+	}
+
+	const seen = new WeakSet<object>()
+
+	const walk = (node: unknown): void => {
+		if (!node || typeof node !== 'object' || seen.has(node as object)) {
+			return
+		}
+		seen.add(node as object)
+
+		const record = node as Record<string, unknown>
+		for (const key of Object.keys(record)) {
+			const value = record[key]
+			if (typeof value === 'string') {
+				if (value.includes(marker)) {
+					record[key] = value.split(marker).join(replacement)
+				}
+			} else {
+				walk(value)
+			}
+		}
+	}
+
+	walk(body)
+	return body
+}
 
 /**
  * Flatten the raw `?fields=` input to the paths the client explicitly typed.
@@ -95,10 +134,11 @@ function logRestrictedFields(req: MedusaRequest, message: string): void {
 }
 
 /**
- * Enforces restricted fields: core `http.restrictedFields` config (which core
- * computes and discards unless the undocumented `rbac_filter_fields` flag is
- * set) unioned with `declareRestrictedFields` registry declarations, on any
- * matching route prefix.
+ * Enforces restricted fields: core `http.restrictedFields` config unioned with
+ * `declareRestrictedFields` registry declarations, on any matching route
+ * prefix. Core strips `req.restrictedFields` from the query only on routes
+ * without an `allowed` list and never inspects `?order=` or the response body,
+ * so this middleware closes those gaps and covers prefixes core does not.
  *
  * Silent-everywhere by design: stripping a restricted field is
  * byte-indistinguishable from the field not existing (core returns 200 with
@@ -116,11 +156,10 @@ export async function restrictedFieldsGuard(req: MedusaRequest, res: MedusaRespo
 
 	const registrySegments = restrictedFieldsForPath(path)
 
-	// Feed declarations into core's own carrier. Core discards it today — that
-	// is the bug this middleware exists for — but the day upstream enforces
-	// `req.restrictedFields` unconditionally, declared fields get query-side
-	// stripping (never fetched) with no change here. `/store`, `/admin`, and
-	// `/rbac` carry an instance; other prefixes rely on the response strip.
+	// Feed declarations into core's own carrier so declared fields get core's
+	// query-side stripping (never fetched) on routes without an `allowed` list.
+	// `/store`, `/admin`, and `/rbac` carry an instance; other prefixes rely on
+	// the response strip.
 	if (registrySegments.size) {
 		req.restrictedFields?.add([...registrySegments])
 	}
@@ -137,15 +176,20 @@ export async function restrictedFieldsGuard(req: MedusaRequest, res: MedusaRespo
 		logRestrictedFields(req, `restricted_field_probe (fields: ${explicitlyRequested.join(', ')})`)
 	}
 
+	let maskedOrderField: string | undefined
 	const rawOrder = req.query?.order
 	if (typeof rawOrder === 'string' && hasRestrictedSegment(rawOrder.replace(/^-/, ''))) {
 		logRestrictedFields(req, `restricted_field_probe (order: ${rawOrder})`)
-		req.query.order = UNORDERABLE_FIELD
+		maskedOrderField = rawOrder.replace(/^-/, '')
+		req.query.order = (rawOrder.startsWith('-') ? '-' : '') + UNORDERABLE_FIELD
 	}
 
 	const originalJson = res.json.bind(res)
 	;(res as any).json = (body: unknown) => {
 		try {
+			if (maskedOrderField) {
+				body = replaceInStrings(body, UNORDERABLE_FIELD, maskedOrderField)
+			}
 			if (stripRestrictedSegments(body, applicable) && !explicitlyRequested.length) {
 				logRestrictedFields(req, 'restricted fields stripped')
 			}

@@ -11,7 +11,7 @@ export const config = defineWidgetConfig({
 export type AdminStockLocationWithVeeqo = {
 	stock_location: AdminStockLocation & {
 		veeqo_warehouse?: {
-			veeqo_warehouse_id: number
+			veeqo_warehouse_id: string
 			stock_location_id?: string
 		}
 	}

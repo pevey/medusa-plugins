@@ -11,7 +11,7 @@ export const config = defineWidgetConfig({
 export type AdminShippingOptionWithVeeqo = {
 	shipping_option: AdminShippingOption & {
 		veeqo_delivery_method?: {
-			veeqo_delivery_method_id: number
+			veeqo_delivery_method_id: string
 			shipping_option_id?: string
 		}
 	}

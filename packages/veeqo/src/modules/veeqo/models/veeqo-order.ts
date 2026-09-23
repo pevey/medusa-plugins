@@ -25,7 +25,7 @@ export const VeeqoOrder = model
 		source_id: model.text(),
 		// Nullable to support the placeholder-row pattern during in-flight create attempts.
 		// Postgres allows multiple NULLs in a unique index, so existing uniqueness invariant is preserved.
-		veeqo_order_id: model.number().unique().nullable(),
+		veeqo_order_id: model.text().unique().nullable(),
 		veeqo_status: model.text().nullable(),
 		// Last error message from a failed sync attempt; NULL when healthy.
 		last_sync_error: model.text().nullable(),

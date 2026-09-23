@@ -127,7 +127,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Fetches a channel from Veeqo by Veeqo Channel ID. Returns the Veeqo channel or null if not found.
 	 */
-	async fetchChannel(veeqoChannelId: number): Promise<VeeqoChannelDTO> {
+	async fetchChannel(veeqoChannelId: string | number): Promise<VeeqoChannelDTO> {
 		return this.fetch({
 			path: `/channels/${veeqoChannelId}`,
 			method: 'GET'
@@ -142,7 +142,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Fetches a customer from Veeqo by Veeqo Customer ID. Returns the Veeqo customer or null if not found.
 	 */
-	async fetchCustomer(veeqoCustomerId: number): Promise<VeeqoCustomerDTO> {
+	async fetchCustomer(veeqoCustomerId: string | number): Promise<VeeqoCustomerDTO> {
 		return await this.fetch({
 			path: `/customers/${veeqoCustomerId}`,
 			method: 'GET'
@@ -157,7 +157,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Fetches a delivery method from Veeqo by Veeqo Delivery Method ID. Returns the Veeqo delivery method or null if not found.
 	 */
-	async fetchDeliveryMethod(veeqoDeliveryMethodId: number): Promise<VeeqoDeliveryMethodDTO> {
+	async fetchDeliveryMethod(veeqoDeliveryMethodId: string | number): Promise<VeeqoDeliveryMethodDTO> {
 		return await this.fetch({
 			path: `/delivery_methods/${veeqoDeliveryMethodId}`,
 			method: 'GET'
@@ -198,7 +198,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Fetches an order from Veeqo by Veeqo Order ID. Returns the Veeqo order or null if not found.
 	 */
-	async fetchOrder(veeqoOrderId: number): Promise<VeeqoOrderDTO> {
+	async fetchOrder(veeqoOrderId: string | number): Promise<VeeqoOrderDTO> {
 		return await this.fetch({
 			path: `/orders/${veeqoOrderId}`,
 			method: 'GET'
@@ -213,7 +213,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Fetches a product from Veeqo by Veeqo Product ID. Returns the Veeqo product or null if not found.
 	 */
-	async fetchProduct(veeqoProductId: number): Promise<VeeqoProductDTO> {
+	async fetchProduct(veeqoProductId: string | number): Promise<VeeqoProductDTO> {
 		return await this.fetch({
 			path: `/products/${veeqoProductId}`,
 			method: 'GET'
@@ -228,7 +228,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Fetches a shipment from Veeqo by Veeqo Shipment ID. Returns the Veeqo shipment or null if not found.
 	 */
-	async fetchShipment(shipmentId: number): Promise<VeeqoShipmentDTO> {
+	async fetchShipment(shipmentId: string | number): Promise<VeeqoShipmentDTO> {
 		return await this.fetch({
 			path: `/shipments/${shipmentId}`,
 			method: 'GET'
@@ -243,7 +243,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Fetches tracking events for a shipment from Veeqo by Veeqo Shipment ID. Returns an array of tracking events.
 	 */
-	async fetchTrackingEvents(shipmentId: number): Promise<VeeqoTrackingEventDTO[]> {
+	async fetchTrackingEvents(shipmentId: string | number): Promise<VeeqoTrackingEventDTO[]> {
 		return await this.fetch({
 			path: `/shipments/tracking_events/${shipmentId}`,
 			method: 'GET'
@@ -258,7 +258,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Fetches a warehouse (Stock Location) from Veeqo by Veeqo Warehouse ID. Returns the Veeqo warehouse or null if not found.
 	 */
-	async fetchWarehouse(warehouseId: number): Promise<VeeqoWarehouseDTO> {
+	async fetchWarehouse(warehouseId: string | number): Promise<VeeqoWarehouseDTO> {
 		return await this.fetch({
 			path: `/warehouses/${warehouseId}`,
 			method: 'GET'
@@ -288,7 +288,7 @@ export class VeeqoService extends MedusaService({
 
 		await this.createVeeqoChannels({
 			sales_channel_id: salesChannelId,
-			veeqo_channel_id: veeqoChannel.id
+			veeqo_channel_id: String(veeqoChannel.id)
 		})
 
 		return veeqoChannel
@@ -312,7 +312,7 @@ export class VeeqoService extends MedusaService({
 
 		await this.createVeeqoCustomers({
 			customer_id: customerId,
-			veeqo_customer_id: veeqoCustomer.id
+			veeqo_customer_id: String(veeqoCustomer.id)
 		})
 
 		return veeqoCustomer
@@ -336,7 +336,7 @@ export class VeeqoService extends MedusaService({
 
 		await this.createVeeqoDeliveryMethods({
 			shipping_option_id: shippingOptionId,
-			veeqo_delivery_method_id: veeqoDeliveryMethod.id
+			veeqo_delivery_method_id: String(veeqoDeliveryMethod.id)
 		})
 
 		return veeqoDeliveryMethod
@@ -388,7 +388,7 @@ export class VeeqoService extends MedusaService({
 
 		await this.createVeeqoProducts({
 			product_id: product.id,
-			veeqo_product_id: veeqoProduct.id
+			veeqo_product_id: String(veeqoProduct.id)
 		})
 
 		for (const sellable of veeqoProduct.sellables) {
@@ -396,7 +396,7 @@ export class VeeqoService extends MedusaService({
 			if (matchingVariant) {
 				await this.createVeeqoSellables({
 					product_variant_id: matchingVariant.id,
-					veeqo_sellable_id: sellable.id
+					veeqo_sellable_id: String(sellable.id)
 				})
 			}
 		}
@@ -424,7 +424,7 @@ export class VeeqoService extends MedusaService({
 
 		await this.createVeeqoWarehouses({
 			stock_location_id: stockLocationId,
-			veeqo_warehouse_id: veeqoWarehouse.id
+			veeqo_warehouse_id: String(veeqoWarehouse.id)
 		})
 
 		return veeqoWarehouse
@@ -433,7 +433,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Updates a channel in Veeqo. First argument is the Veeqo channel ID, second argument is the input data to update the channel in Veeqo. Returns the updated Veeqo channel.
 	 */
-	async updateChannel(veeqoChannelId: number, veeqoChannelInput: VeeqoChannelInput): Promise<VeeqoChannelDTO> {
+	async updateChannel(veeqoChannelId: string | number, veeqoChannelInput: VeeqoChannelInput): Promise<VeeqoChannelDTO> {
 		const veeqoChannel = (await this.fetch({
 			path: `/channels/${veeqoChannelId}`,
 			method: 'PUT',
@@ -451,7 +451,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Updates a customer in Veeqo. First argument is the Veeqo customer ID, second argument is the input data to update the customer in Veeqo. Returns the updated Veeqo customer.
 	 */
-	async updateCustomer(veeqoCustomerId: number, veeqoCustomerInput: VeeqoCustomerInput): Promise<VeeqoCustomerDTO> {
+	async updateCustomer(veeqoCustomerId: string | number, veeqoCustomerInput: VeeqoCustomerInput): Promise<VeeqoCustomerDTO> {
 		const veeqoCustomer = (await this.fetch({
 			path: `/customers/${veeqoCustomerId}`,
 			method: 'PUT',
@@ -469,7 +469,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Updates a delivery method in Veeqo. First argument is the Veeqo delivery method ID, second argument is the input data to update the delivery method in Veeqo. Returns the updated Veeqo delivery method.
 	 */
-	async updateDeliveryMethod(veeqoDeliveryMethodId: number, veeqoDeliveryMethodInput: VeeqoDeliveryMethodInput): Promise<VeeqoDeliveryMethodDTO> {
+	async updateDeliveryMethod(veeqoDeliveryMethodId: string | number, veeqoDeliveryMethodInput: VeeqoDeliveryMethodInput): Promise<VeeqoDeliveryMethodDTO> {
 		const veeqoDeliveryMethod = (await this.fetch({
 			path: `/delivery_methods/${veeqoDeliveryMethodId}`,
 			method: 'PUT',
@@ -487,7 +487,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Updates an order in Veeqo. First argument is the Veeqo order ID, second argument is the input data to update the order in Veeqo. Returns the updated Veeqo order.
 	 */
-	async updateOrder(veeqoOrderId: number, veeqoOrderInput: VeeqoOrderInput): Promise<VeeqoOrderDTO> {
+	async updateOrder(veeqoOrderId: string | number, veeqoOrderInput: VeeqoOrderInput): Promise<VeeqoOrderDTO> {
 		const veeqoOrder = (await this.fetch({
 			path: `/orders/${veeqoOrderId}`,
 			method: 'PUT',
@@ -505,7 +505,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Updates a product in Veeqo. First argument is the Veeqo product ID, second argument is the input data to update the product in Veeqo. Returns the updated Veeqo product.
 	 */
-	async updateProduct(veeqoProductId: number, veeqoProductInput: VeeqoProductInput): Promise<VeeqoProductDTO> {
+	async updateProduct(veeqoProductId: string | number, veeqoProductInput: VeeqoProductInput): Promise<VeeqoProductDTO> {
 		const veeqoProduct = (await this.fetch({
 			path: `/products/${veeqoProductId}`,
 			method: 'PUT',
@@ -527,7 +527,7 @@ export class VeeqoService extends MedusaService({
 	/**
 	 * Updates a warehouse (Stock Location) in Veeqo. First argument is the Veeqo warehouse ID, second argument is the input data to update the warehouse in Veeqo. Returns the updated Veeqo warehouse.
 	 */
-	async updateWarehouse(veeqoWarehouseId: number, veeqoWarehouseInput: VeeqoWarehouseInput): Promise<VeeqoWarehouseDTO> {
+	async updateWarehouse(veeqoWarehouseId: string | number, veeqoWarehouseInput: VeeqoWarehouseInput): Promise<VeeqoWarehouseDTO> {
 		const veeqoWarehouse = (await this.fetch({
 			path: `/warehouses/${veeqoWarehouseId}`,
 			method: 'PUT',

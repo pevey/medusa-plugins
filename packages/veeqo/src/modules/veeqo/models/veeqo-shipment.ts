@@ -4,8 +4,8 @@ import { VeeqoOrder } from './veeqo-order'
 export const VeeqoShipment = model.define('veeqo_shipment', {
 	id: model.id().primaryKey(),
 	fulfillment_id: model.text(),
-	veeqo_allocation_id: model.number().unique(),
-	veeqo_shipment_id: model.number().unique(),
+	veeqo_allocation_id: model.text().unique(),
+	veeqo_shipment_id: model.text().unique(),
 	carrier: model.json().nullable(),
 	tracking_number: model.json().nullable(),
 	shipped_by: model.json().nullable(),

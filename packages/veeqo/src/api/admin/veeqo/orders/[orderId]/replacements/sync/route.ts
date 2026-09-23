@@ -7,7 +7,7 @@ type VeeqoOrderRow = {
 	id: string
 	source_type: SourceType
 	source_id: string
-	veeqo_order_id: number | null
+	veeqo_order_id: string | null
 	last_sync_error: string | null
 }
 
